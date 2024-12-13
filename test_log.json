@@ -1,0 +1,13 @@
+[
+  {
+    "iteration": 0,
+    "variable_to_factor_messages": {},
+    "factor_to_variable_messages": {},
+    "assignments": {
+      "X1": 0,
+      "X2": 0,
+      "X3": 0
+    },
+    "converged": true
+  }
+]
