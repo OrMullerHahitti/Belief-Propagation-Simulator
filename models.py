@@ -1,7 +1,8 @@
 import itertools
 import copy
 import json
-
+import networkx as nx
+import matplotlib.pyplot as plt
 
 class VariableNode:
     """
@@ -294,6 +295,29 @@ class FactorGraph:
         """
         with open(filename, 'w') as f:
             json.dump(self.iteration_log, f, indent=2)
+
+    def visualize(self):
+        """
+        Visualize the factor graph using networkx and matplotlib.
+        """
+        G = nx.Graph()
+
+        # Add variable nodes
+        for var_name, var_node in self.variables.items():
+            G.add_node(var_name, label=var_name, color='blue')
+
+        # Add factor nodes and edges
+        for factor_name, factor_node in self.factors.items():
+            G.add_node(factor_name, label=factor_name, color='red')
+            for var_node in factor_node.variables:
+                G.add_edge(factor_name, var_node.name)
+
+        # Draw the graph
+        pos = nx.spring_layout(G)
+        colors = [G.nodes[node]['color'] for node in G.nodes]
+        labels = nx.get_node_attributes(G, 'label')
+        nx.draw(G, pos, labels=labels, node_color=colors, with_labels=True, node_size=3000, font_size=10, font_color='white')
+        plt.show()
 
 
 # ------------------------
