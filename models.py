@@ -103,6 +103,12 @@ class FactorGraph:
         # For logging iterations
         self.iteration_log = []
 
+    def __repr__(self):
+        return f"FactorGraph(variables={list(self.variables.keys())}, factors={list(self.factors.keys())})"
+    def __str__(self):
+        return f"FactorGraph(variables={list(self.variables.keys())}, factors={list(self.factors.keys())})"
+
+
     def _initialize_messages(self):
         """
         Initialize all messages to zero.
@@ -318,6 +324,8 @@ class FactorGraph:
         labels = nx.get_node_attributes(G, 'label')
         nx.draw(G, pos, labels=labels, node_color=colors, with_labels=True, node_size=3000, font_size=10, font_color='white')
         plt.show()
+
+
 
 
 # ------------------------
