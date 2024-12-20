@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 class VariableNode:
     """
     Represents a variable node in the factor graph.
+    A variable node represents a discrete random variable.
     """
 
     def __init__(self, name, domain):
