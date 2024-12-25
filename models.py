@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from numpy.ma.core import min_val
+
 
 def num_to_letter(n: int) -> str:
     # 1 -> 'a', 2 -> 'b', ...
@@ -10,50 +12,64 @@ def letter_to_num(c: str) -> int:
     return ord(c) - ord('a') + 1
 
 
-class CostTableIndexer:
-    def __init__(self, ct, row_index):
-        self.ct = ct  # reference to CostTable instance
-        self.row = row_index
-
-    def __getitem__(self, col_index):
-        # Convert row and col indexes (could be letter or number)
-        row_letter = self.ct._to_letter(self.row)
-        col_letter = self.ct._to_letter(col_index)
-        return self.ct._df.loc[row_letter, col_letter]
-
-
 class CostTable:
-    def __init__(self, df=None, domain_size=None):
-        if df is not None:
-            self._df = df.copy()
-        else:
-            if domain_size is None:
-                raise ValueError("Must provide either df or domain size")
-            letters = [num_to_letter(i) for i in range(1, domain_size+1)]
-            # Create random NxN cost table
-            data = np.random.rand(domain_size, domain_size)  # random NxN in [0,1)
+    def __init__(self, data:pd.DataFrame|None = None, domain_size=None):
+        '''
+        data: optional DataFrame of cost values
+        domain_size: if data is None, create a random domain_size x domain_size DataFrame
+
+
+        '''
+        if data is None and domain_size is not None:
+            letters = [chr(ord('a') + i) for i in range(domain_size)]
+            data = np.random.rand(domain_size, domain_size)
             self._df = pd.DataFrame(data, index=letters, columns=letters)
-
-    def __getitem__(self, row_index):
-        # This returns a row accessor
-        return CostTableIndexer(self, row_index)
-
-    def _to_letter(self, x):
+        elif data is not None:
+            self._df = pd.DataFrame(data)
+        else:
+            raise ValueError("Must provide either data or domain size")
+    @staticmethod
+    def to_letter(self, x):
         if isinstance(x, int):
-            return num_to_letter(x)
+            return chr(ord('a') + x-1)
         elif isinstance(x, str):
-            # assume already a letter
             return x
         else:
             raise TypeError("Index must be int or str")
+
+    def __getitem__(self, key):
+        if isinstance(key, tuple) and len(key) == 2:
+            row_key, col_key = key
+            if isinstance(row_key, int):
+                row_key = self.to_letter(row_key)
+            if isinstance(col_key, int):
+                col_key = self.to_letter(col_key)
+            return self._df.loc[row_key, col_key]
+        elif isinstance(key, int):
+            key = self.to_letter(key)
+            return self._df[key]
+        else:
+            return self._df[key]
+
+    def __setitem__(self, key, value):
+        if isinstance(key, tuple) and len(key) == 2:
+            row_key, col_key = key
+            if isinstance(row_key, int):
+                row_key = self.to_letter(row_key)
+            if isinstance(col_key, int):
+                col_key = self.to_letter(col_key)
+            self._df.loc[row_key, col_key] = value
+        elif isinstance(key, int):
+            key = self.to_letter(key)
+            self._df[key] = value
+        else:
+            self._df[key] = value
 
     def __str__(self):
         return str(self._df)
 
     def to_dataframe(self):
         return self._df.copy()
-
-
 class FactorNode:
     def __init__(self, name: str, var_nodes, cost_table: CostTable = None):
         """
@@ -76,11 +92,13 @@ class FactorNode:
         # e.g., which variable corresponds to rows or columns.
 
 
+
+
 class Q:
     def __init__(self, domain_size):
         self.domain_size = domain_size
         # Random initialization of Q values
-        letters = [num_to_letter(i) for i in range(1, domain_size+1)]
+        letters = [num_to_letter(i) for i in range(1, domain_size + 1)]
         random_values = np.random.rand(domain_size)  # random array of length domain_size
         self.values = {letter: val for letter, val in zip(letters, random_values)}
 
@@ -173,27 +191,5 @@ class VariableNode:
         self.received_messages[factor_node.name].append(r_message)
 
 
-#example usage:
-# Step 1: Create Variable Nodes
-X1 = VariableNode(name="X1", domain_size=3)
-X2 = VariableNode(name="X2", domain_size=3)
 
-# Step 2: Create Factor Node
-F12 = FactorNode(name="F12", var_nodes=(X1, X2))
-
-# Step 3: Print the randomly generated cost table of F12
-print(f"CostTable of F12:\n{F12.cost_table}\n")
-
-# Step 4: Create a random Q message from X1 to F12
-Q_X1_F12 = Q(domain_size=X1.domain_size)
-print(f"Random Q message from X1 to F12:\n{Q_X1_F12}\n")
-
-# Step 5: Compute the R message sent from F12 back to X1
-R_F12_X1 = R(q=Q_X1_F12, cost_table=F12.cost_table, direction="columns")  # Assume X1 corresponds to columns
-print(f"R message from F12 to X1:\n{R_F12_X1}\n")
-
-# Step 6: Display R.after for debugging
-print(f"Processed CostTable (R.after):\n{R_F12_X1.after}\n")
-print(f"Minimum values in R (mins): {R_F12_X1.mins}")
-print(f"Global minimizer in R: {R_F12_X1.minimizer}")
 
