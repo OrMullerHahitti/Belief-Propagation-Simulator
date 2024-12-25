@@ -32,3 +32,12 @@ async def save_log(filename: str = "iteration_log.json"):
         raise HTTPException(status_code=400, detail="Factor graph is not initialized.")
     factor_graph.save_log(filename)
     return {"message": f"Iteration log saved to {filename}"}
+
+# Compare this snippet from app/tests/test_algorithm.py:
+
+
+
+
+
+
+

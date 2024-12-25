@@ -1,6 +1,205 @@
+from models import VariableNode, FactorNode, Q, R
+import pandas as pd
 
-# Example usage
+class Line:
+    """
+    Represents L(k) = slope*k + intercept.
+    slope = costTable[i][j]
+    intercept = Q[i]
+    """
 
+    def __init__(self, slope: float, intercept: float, name: str = ""):
+        self.slope = slope
+        self.intercept = intercept
+        self.name = name  # Optional: store something like f"Line i=..., j=..."
+
+    def value_at(self, k: float) -> float:
+        """Compute the line value at k."""
+        return self.slope * k + self.intercept
+
+    def intersect(self, other: "Line") -> float or None:
+        """
+        Find k where this line == other line.
+        slope1*k + intercept1 = slope2*k + intercept2
+        => k * (slope1 - slope2) = intercept2 - intercept1
+        => k = (intercept2 - intercept1) / (slope1 - slope2)
+
+        Returns None if lines are parallel or effectively parallel.
+        """
+        denom = (self.slope - other.slope)
+        if abs(denom) < 1e-12:
+            return None  # parallel or nearly parallel
+        return (other.intercept - self.intercept) / denom
+
+    def __repr__(self):
+        return f"Line(name={self.name}, slope={self.slope:.3f}, intercept={self.intercept:.3f})"
+
+class LinesGroup:
+    """
+    Holds multiple lines, e.g., from a single column of cost table.
+    """
+    def __init__(self, lines):
+        self.lines = lines  # list of Line objects
+
+    def build_curve(self) -> "Curve":
+        """
+        Build the piecewise-minimum envelope (Curve) from these lines.
+        """
+        # 1) Find all intersection points among lines.
+        intersection_points = [0.0, 1.0]  # start with 0 and 1
+        n = len(self.lines)
+
+        for i in range(n):
+            for j in range(i+1, n):
+                k_int = self.lines[i].intersect(self.lines[j])
+                if k_int is not None:
+                    # Only consider intersections within [0,1]
+                    if 0.0 <= k_int <= 1.0:
+                        intersection_points.append(k_int)
+
+        # 2) Sort unique intersection points
+        intersection_points = sorted(set(intersection_points))
+
+        # 3) For each sub-interval, figure out which line is minimal
+        segments = []
+        for idx in range(len(intersection_points) - 1):
+            start_k = intersection_points[idx]
+            end_k = intersection_points[idx + 1]
+            mid_k = (start_k + end_k) / 2.0  # test the midpoint
+
+            # Find which line is minimal at mid_k
+            min_line = min(self.lines, key=lambda line: line.value_at(mid_k))
+
+            segments.append(Segment(start_k, end_k, min_line))
+
+        # Build the final Curve
+        return Curve(segments)
+
+    def __repr__(self):
+        return f"LinesGroup with {len(self.lines)} lines"
+class Segment:
+    """One piece of the piecewise-minimum envelope."""
+    def __init__(self, start_k: float, end_k: float, line: Line):
+        self.start_k = start_k
+        self.end_k = end_k
+        self.line = line  # The line that is minimal on [start_k, end_k)
+
+    def __repr__(self):
+        return (f"Segment(k in [{self.start_k:.2f}, {self.end_k:.2f}), "
+                f"line={self.line})")
+
+
+class Curve:
+    """A piecewise linear function that is the minimum of multiple lines."""
+    def __init__(self, segments):
+        self.segments = segments  # list of Segment objects
+
+    def evaluate(self, k: float) -> float:
+        """Evaluate the piecewise-minimum at a given k in [0,1]."""
+        # If k == 1 exactly, we might want to handle carefully
+        for seg in self.segments:
+            if seg.start_k <= k < seg.end_k:
+                return seg.line.value_at(k)
+        # If k = 1.0 exactly, let's pick the last segment
+        if abs(k - 1.0) < 1e-12:
+            return self.segments[-1].line.value_at(k)
+        raise ValueError(f"k={k} is outside [0,1] or no segment found.")
+
+    def __repr__(self):
+        text = "Curve:\n"
+        for seg in self.segments:
+            text += f"  {seg}\n"
+        return text
+
+
+class FactorService:
+    """
+    Builds lines from a given FactorNode (cost table) + Q
+    Then constructs piecewise-minimum curves (one per column or row, etc.).
+    """
+
+    def __init__(self, factor_node:FactorNode, q:Q, use_columns=True):
+        """
+        :param factor_node: FactorNode that has a cost_table of size n x n
+        :param q: Q object, domain_size = n
+        :param use_columns: If True, interpret domain as columns.
+                           Otherwise, we'd do rows.
+        """
+        self.factor_node = factor_node
+        self.q = q
+        self.use_columns = use_columns
+        # We assume domain_size is the same as Q's domain_size
+        self.domain_size = q.domain_size
+
+    def build_lines_for_column(self, col_idx: int):
+        """
+        Builds a LinesGroup for a single column (col_idx).
+        We'll produce n lines, one for each domain index i in [1..n].
+
+        L_i(k) = k * cost_table[i][col_idx] + Q[i]
+        """
+        lines = []
+        for i in range(1, self.q.domain_size+1 ):
+            slope = self.factor_node.cost_table[i,col_idx]  # cost_table[i][j]
+            intercept = self.q[i]  # Q[i]
+            line_name = f"Line(i={i}, col={col_idx})"
+            lines.append(Line(slope, intercept, line_name))
+        return LinesGroup(lines)
+
+    def build_lines_for_row(self, row_idx: int):
+        """
+        Similar, if we wanted row-based approach:
+        L_j(k) = k * cost_table[row_idx][j] + Q[j]
+        """
+        lines = []
+        for j in range(1, self.domain_size + 1):
+            slope = self.factor_node.cost_table[row_idx][j]
+            intercept = self.q[j]
+            line_name = f"Line(row={row_idx}, j={j})"
+            lines.append(Line(slope, intercept, line_name))
+        return LinesGroup(lines)
+
+    def build_all_curves(self):
+        """
+        For each column (if use_columns=True) or each row (otherwise),
+        build the piecewise-minimum curve. Return a list of Curves.
+        """
+        curves = []
+        if self.use_columns:
+            # domain_size columns
+            for col in range(1, self.domain_size):
+                group = self.build_lines_for_column(col)
+                curve = group.build_curve()
+                curves.append(curve)
+        else:
+            # domain_size rows
+            for row in range(1, self.domain_size):
+                group = self.build_lines_for_row(row)
+                curve = group.build_curve()
+                curves.append(curve)
+        return curves
+
+# 1) Create VariableNodes, FactorNode, Q, etc. (just as an example)
+X1 = VariableNode(name="X1", domain_size=3)
+X2 = VariableNode(name="X2", domain_size=3)
+F12 = FactorNode(name="F12", var_nodes=(X1, X2))
+Q_X1_F12 = Q(domain_size=X1.domain_size)  # random Q of size 3
+
+# 2) Instantiate FactorService
+service = FactorService(factor_node=F12, q=Q_X1_F12, use_columns=True)
+
+# 3) Build piecewise-minimum curves for each column
+curves = service.build_all_curves()  # returns a list of Curve objects
+
+# 4) Print them out
+for idx, curve in enumerate(curves, start=1):
+    print(f"=== Curve for Column {idx} ===")
+    print(curve)
+    # Evaluate the curve at a few points
+    for test_k in [0.0, 0.3, 0.7, 1.0]:
+        val = curve.evaluate(test_k)
+        print(f"  k={test_k} => curve value = {val:.4f}")
+    print()
 
 #q_instance = Q(df)
 #print(q_instance)
