@@ -1,5 +1,9 @@
 # interfaces.py
 from abc import ABC, abstractmethod
+from pydantic import BaseModel,validate_arguments
+import numpy as np
+from typing import List
+from typing import Annotated
 
 
 class DampingPolicy(ABC):
@@ -13,6 +17,7 @@ class DampingPolicy(ABC):
 
 class CostReductionPolicy(ABC):
     @abstractmethod
+    @validate_arguments
     def should_apply(self, iteration: int) -> bool:
         """
         Return True if cost reduction should be applied at this iteration.
@@ -20,6 +25,7 @@ class CostReductionPolicy(ABC):
         pass
 
     @abstractmethod
+    @validate_arguments
     def get_K(self, iteration: int) -> float:
         """
         Return the cost-reduction multiplier (K) for the given iteration.
@@ -29,6 +35,7 @@ class CostReductionPolicy(ABC):
 
 class Updator(ABC):
     @abstractmethod
+    @validate_arguments
     def schedule_updates(self, Q_keys, R_keys, iteration: int):
         """
         Given the lists of edges for Q and R, return the order in which they should be updated.
@@ -56,13 +63,48 @@ class StoppingCriterion(ABC):
         """
         pass
 
-class Node(ABC):
-    def __init__(self, name,type):
-        self.name = name
-        self.neighbors = []
-        self.type = type
 
-    def add_neighbor(self, neighbor):
-        self.neighbors.append(neighbor)
 
-    __eq__ = lambda self, other: self.type == other.type and self.name == other.name
+class MessageUpdateRule(ABC):
+    """
+    Defines how to compute Q and R messages for a specific variant
+    of Belief Propagation (e.g., Min-Sum, Max-Sum, Sum-Product, etc.).
+    """
+
+    @abstractmethod
+    def compute_Q(
+        self,
+        v_name : str,
+        f_name : str,
+        factor_graph,
+        Q_messages,
+        R_messages,
+        iteration
+    ) -> np.ndarray:
+        """
+        Compute the Q_{v->f}(x_v) message vector.
+        """
+        pass
+
+    @abstractmethod
+    def compute_R(
+        self,
+        f_name,
+        v_name,
+        factor_graph,
+        Q_messages,
+        R_messages,
+        iteration
+    ) -> np.ndarray:
+        """
+        Compute the R_{f->v}(x_v) message vector.
+        """
+        pass
+
+    class NeighbourAddingPolicy(ABC):
+        @abstractmethod
+        def add_neighbours(cls, other):
+            """
+            Given the factor graph, add neighbours to each node.
+            """
+            pass

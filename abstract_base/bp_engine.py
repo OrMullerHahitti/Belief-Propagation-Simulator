@@ -1,23 +1,27 @@
-# bp_engine.py
-from abc import ABC, abstractmethod
+from abc import ABC
+from typing import Dict
 import numpy as np
+
+from bp_variations.factor_graph import FactorGraph
+
 
 class BeliefPropagationEngine(ABC):
     """
-    Abstract base class for a generic Belief Propagation engine.
-    Provides skeleton methods: run_inference, get_beliefs, etc.
-    The actual message update rules (computeQ, computeR) must be supplied
-    by an injected MessageUpdateRule or by the subclass.
+    Abstract engine for belief propagation.
     """
+    def __init__(self, factor_graph: FactorGraph):
+        self.factor_graph = factor_graph
+        self.Q: Dict[tuple, np.ndarray] = {}
+        self.R: Dict[tuple, np.ndarray] = {}
 
     @abstractmethod
-    def run_inference(self, max_iters=10):
+    def run_inference(self, max_iters: int = 10):
         pass
 
     @abstractmethod
-    def get_beliefs(self):
+    def get_beliefs(self) -> Dict[str, np.ndarray]:
         pass
 
     @abstractmethod
-    def get_map_estimate(self):
+    def get_map_estimate(self) -> Dict[str, int]:
         pass
