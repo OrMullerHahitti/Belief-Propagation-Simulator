@@ -5,7 +5,6 @@ import numpy as np
 from typing import List
 from typing import Annotated
 
-
 class DampingPolicy(ABC):
     @abstractmethod
     def get_damping_factor(self, iteration: int) -> float:
@@ -13,7 +12,6 @@ class DampingPolicy(ABC):
         Return the damping factor for the given iteration.
         """
         pass
-
 
 class CostReductionPolicy(ABC):
     @abstractmethod
@@ -101,10 +99,13 @@ class MessageUpdateRule(ABC):
         """
         pass
 
-    class NeighbourAddingPolicy(ABC):
-        @abstractmethod
-        def add_neighbours(cls, other):
-            """
-            Given the factor graph, add neighbours to each node.
-            """
-            pass
+class NeighborAddingPolicy(ABC):
+    """
+    Abstract class for adding neighbours to nodes in the factor graph.
+    """
+    @abstractmethod
+    def add_neighbors(self, node ,other) -> bool:
+        """
+        Given the factor graph, add neighbours to each node.
+        """
+        pass

@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Dict
 import numpy as np
 
@@ -20,6 +20,9 @@ class BeliefPropagationEngine(ABC):
 
     @abstractmethod
     def get_beliefs(self) -> Dict[str, np.ndarray]:
+        ''' Return the beliefs of the factor graph.
+        :return:
+        :param: A dictionary mapping variable names to belief vectors.'''
         pass
 
     @abstractmethod

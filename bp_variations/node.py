@@ -1,22 +1,30 @@
-# nodes.py
+from typing import Sequence
+from pydantic import Field
 
-
-from abstract_base.Node import Node
+from abstract_base.node import Node
+from abstract_base.interfaces import NeighborAddingPolicy
+from policies.node_add_policy import BPNeighborAddingPolicy
 
 
 class VariableNode(Node):
-    def __init__(self, name, domain):
-        super().__init__(name)
-        self.domain = domain
+    '''
+    A class to represent a variable node in a factor graph.
 
+    '''
+    type :str = Field(default="Variable")
+    # If you need a domain that is a sequence of ints/floats:
+    # - Python 3.10+ supports int | float
+    # - For older versions, use Union[int, float]
+    domain: list[int | float] = Field(default_factory=list)
 
-
+    def add_neighbor(self, neighbor, policy: NeighborAddingPolicy = BPNeighborAddingPolicy()):
+        policy.add_neighbors(self, neighbor)
 
 
 class FactorNode(Node):
-    def __init__(self, name, potential_table, var_names):
-        super().__init__(name)
-        self.potential_table = potential_table  # numpy array
-        self.var_names = var_names
+    type: str = Field(default="Factor")
+    domain: list[int | float] = Field(default_factory=list)
+    var_names: list[str] = Field(default_factory=list)
 
-
+    def add_neighbor(self, neighbor, policy: NeighborAddingPolicy = BPNeighborAddingPolicy()):
+        policy.add_neighbors(self, neighbor)
