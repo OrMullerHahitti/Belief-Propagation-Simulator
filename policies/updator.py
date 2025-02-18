@@ -1,6 +1,6 @@
 # schedulers.py
 import random
-from abstract_base.interfaces import Updator
+from DCOP_base.interfaces import Updator
 
 class SynchronousScheduler(Updator):
     """

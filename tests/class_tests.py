@@ -1,5 +1,5 @@
 import unittest
-from abstract_base.interfaces import NeighborAddingPolicy
+from DCOP_base.interfaces import NeighborAddingPolicy
 from policies.node_add_policy import BPNeighborAddingPolicy
 from bp_variations.node import VariableNode, FactorNode
 

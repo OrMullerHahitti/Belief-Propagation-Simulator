@@ -1,6 +1,6 @@
 # stopping.py
 import numpy as np
-from abstract_base.interfaces import StoppingCriterion
+from DCOP_base.interfaces import StoppingCriterion
 
 
 class MaxIterationsStopping(StoppingCriterion):

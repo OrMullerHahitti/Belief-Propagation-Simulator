@@ -1,8 +1,8 @@
 from typing import Sequence
 from pydantic import Field
 
-from abstract_base.node import Node
-from abstract_base.interfaces import NeighborAddingPolicy
+from DCOP_base.node import Node
+from DCOP_base.interfaces import NeighborAddingPolicy
 from policies.node_add_policy import BPNeighborAddingPolicy
 
 

@@ -1,6 +1,6 @@
 from typing import final
 
-from abstract_base.interfaces import NeighborAddingPolicy
+from DCOP_base.interfaces import NeighborAddingPolicy
 
 class CustomNeighborAddingPolicy(NeighborAddingPolicy):
     def add_neighbors(self, node, neighbor)->bool:

@@ -1,5 +1,5 @@
 # policies.py
-from abstract_base.interfaces import DampingPolicy, CostReductionPolicy
+from DCOP_base.interfaces import DampingPolicy, CostReductionPolicy
 
 
 

@@ -1,4 +1,4 @@
-from abstract_base.interfaces import DampingPolicy
+from DCOP_base.interfaces import DampingPolicy
 class ConstantDampingPolicy(DampingPolicy):
     def __init__(self, damping_value: float):
         self.damping_value = damping_value
