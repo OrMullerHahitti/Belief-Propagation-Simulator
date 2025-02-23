@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Callable, Set
 import numpy as np
 
-from policies.Computator import Computator
+from utils.randomes import create_random_table
 
 
 class Agent(ABC):
@@ -13,9 +13,9 @@ class Agent(ABC):
         self.name = name  # Human-readable name for the node
         self.type = node_type  # Type of the node (e.g., 'variable', 'factor')
     def __eq__(self, other):
-        return self.name == other.name
+        return self.name == other.name and self.type != other.type
     def __hash__(self):
-        return hash(self.name)
+        return hash((self.name,self.type))
 #mailer class that will handle recieveing and sending the messages to the right nodes
 class Mailer(Agent):
     def __init__(self):
@@ -49,6 +49,8 @@ class Message():
         return f"Message from {self.sender.name} to {self.recipient.name}: {self.message}"
     def __repr__(self):
         return self.__str__()
+
+
 class BPAgent(Agent):
 
 
@@ -59,12 +61,22 @@ class BPAgent(Agent):
     """
 
     def __init__(self,  name: str, node_type: str):
-        from policies.Computator import Computator
         super().__init__( name, node_type) # List of connected node IDs
         self.messages: Set[Message] = set()  # Stores incoming messages
         self.history:Dict[Any:Set[Message]]={}# Stores message history
         self.iteration=0
         self.state = 0
+
+
+
+    def receive_message(self, message:Message) -> None:
+        self.state =1
+        self.messages.add(message)
+
+    def update_local_beliefs(self) -> None:
+        self.history[self.iteration] = self.messages
+        self.messages=self._compute_messages()
+        self._update_local_variables()
 
     @property
     @abstractmethod
@@ -73,52 +85,70 @@ class BPAgent(Agent):
         could be either a value, a distribution, or an assignment'''
         pass
 
-    def receive_message(self, message:Message) -> None:
-        self.state =1
-        self.messages.add(message)
-
-    @abstractmethod
-    def update_local_beliefs(self) -> None:
-        self.history[self.iteration] = self.messages
-        self.messages=self._compute_messages()
-        self.iteration=self.iteration+1
-
     @abstractmethod
     def _compute_messages(self) -> Set[Message]:
         '''Compute the messages to be sent to the neighbors'''
         pass
-    def __eq__ (self, other):
-        return self.name == other.name and self.type != other.type
-    def __hash__(self):
-        return hash((self.name,self.type))
+    @abstractmethod
+    def _update_local_variables(self) -> None:
+        '''Update the local variables of the node'''
+        pass
 
 
 
 
 class VariableNode(BPAgent):
+
     """
     Represents a variable node in DCOP, holding a variable and its domain.
     """
-    def __init__(self, node_id: str, name: str):
+
+
+    def __init__(self, node_id: str, name: str, domain_size: int = 3,
+                 computator: VariableComputator = computator.MinSumVariableComputator()):
+        """
+        :param node_id: Unique identifier
+        :param name: Human-readable name
+        :param domain_size: e.g., length of the domain array
+        :param computator: A policy object that implements the logic
+                           for computing messages & belief (MinSum, MaxSum, etc.)
+        """
         super().__init__(node_id, name, node_type="variable")
+        self.domain_size = domain_size
+        # A policy object controlling how messages & belief are computed:
+        self.computator = computator
 
+    def _compute_messages(self) -> Set[Message]:
+        """
+        Called by the BPAgent framework to compute outgoing messages.
+        """
+        return self.computator.compute_outgoing_messages(self, self.messages)
 
-    def compute_messages(self) -> Set[Message]:
-        message_set = set()
-        sender_to_msg = {m.sender: m.message for m in self.messages}
-        total = np.sum(list(sender_to_msg.values()), axis=0)
-        for recipient in sender_to_msg:
-            new_msg_value = total - sender_to_msg[recipient]
-            message_set.add(Message(new_msg_value, self, recipient))
-        return message_set
+    @property
+    def belief(self) -> np.ndarray:
+        """
+        Uses the policy to compute and return this node's local belief.
+        """
+        return self.computator.compute_belief(self, self.messages)
 
-    def receive_message(self, message:Message) -> None:
-        self.messages.add(message)
-    def update_local_belief(self) -> None:
-        pass
+    def _update_local_variables(self) -> None:
+        """
+        For example, increment iteration count or do some local update logic.
+        """
+        self.iteration += 1
 
-    def get_belief(self) -> Dict[str, float]:
-        pass
+class FactorNode(BPAgent):
+    def __init__(self, node_id: str, name: str, cost_table: np.ndarray | None = None,
+                 computator: FactorComputator = computators.MinSumFactorComputator()):
+        super().__init__(name, "factor")
+        self.cost_table = cost_table if cost_table is not None else create_random_table(3)
+        self.messages = set()
+        self.computator = computator
+
+    def _compute_messages(self) -> Set[Message]:
+        # Defer to the policy class:
+        return self.computator.compute_outgoing_messages(self, self.cost_table, self.messages)
+
 
 
 
@@ -135,13 +165,13 @@ class FactorNode(BPAgent):
       # List of variable node IDs this factor depends on
         if cost_table is not None:
             self.cost_table = cost_table
+        else:
+            self.cost_table = create_random_table(3)
         self.messages=Set[Message]
-    def compute_message(self, message:Message,compute:Computer=MinSumComputer()) -> Message:
+    def _compute_message(self, message:Message,compute:Computator) -> Message:
         return compute.compute_message(self.cost_table,message)
-    def receive_message(self,message: Message) -> None:
-        self.messages.add(message)
 
-            # A callable function that evaluates assignments
+
     @property
     def mean_cost(self) -> float:
         return np.mean(self.cost_table)
