@@ -1,8 +1,21 @@
 # stopping.py
+from abc import ABC, abstractmethod
+
 import numpy as np
-from DCOP_base.interfaces import StoppingCriterion
 
+class StoppingCriterion(ABC):
+    @abstractmethod
+    def should_stop(self, iteration: int, max_iters: int, Q, R, Q_old, R_old) -> bool:
+        """
+        Return True if inference should stop. For example, check if iteration >= max_iters,
+        or if messages have converged, etc.
 
+        :param iteration: current iteration count (0-based).
+        :param max_iters: user-specified maximum iteration limit.
+        :param Q, R: current message dicts
+        :param Q_old, R_old: previous iteration message dicts
+        """
+        pass
 class MaxIterationsStopping(StoppingCriterion):
     """
     Stop after max_iters unconditionally.
