@@ -1,6 +1,23 @@
 # schedulers.py
 import random
+from abc import ABC, abstractmethod
+
 from DCOP_base.interfaces import Updator
+class Updator(ABC):
+    @abstractmethod
+    def schedule_updates(self, Q_keys, R_keys, iteration: int):
+        """
+        Given the lists of edges for Q and R, return the order in which they should be updated.
+        In synchronous mode, might return something like [('Q', vName, fName), ...] for all Q
+        then [('R', fName, vName), ...], or do them in random order, etc.
+
+        Must produce an iterable of tuples of the form:
+           ('Q', vName, fName) or ('R', fName, vName)
+        indicating the update type and the node names.
+        """
+        pass
+
+
 
 class SynchronousScheduler(Updator):
     """
