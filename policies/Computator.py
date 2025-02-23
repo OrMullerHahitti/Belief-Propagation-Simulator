@@ -7,25 +7,13 @@ import numpy as np
 from DCOP_base.agent import Message
 
 
-class Computer(ABC):
+class Computator(ABC):
     @abstractmethod
     def compute_message(self, message:Message) -> Message:
         pass
-    @abstractmethod
-    def update_local_belief(self) -> None:
-        pass
-    @abstractmethod
-    def get_belief(self) -> Dict[str, float]:
-        pass
-    @abstractmethod
-    def receive_message(self, sender_id: str, message: Any) -> None:
-        pass
-    def __eq__ (self, other):
-        return self.name == other.name and self.type != other.type
-    def __hash__(self):
-        return hash((self.name,self.type))
+
 #compute for a factor node the message to be sent to a variable node
-class FactorCompute(Computer):
+class FactorCompute(Computator):
     def __init__(self, node_id: str, name: str, domain: List[Any]):
         self.node_id = node_id
         self.name = name
@@ -47,5 +35,3 @@ class FactorCompute(Computer):
         pass
     def get_belief(self) -> Dict[str, float]:
         return self.belief
-    def receive_message(self, sender_id: str, message: Any) -> None:
-        self.messages[sender_id] = message
