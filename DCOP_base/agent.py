@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Callable, Set
 import numpy as np
-from policies.compute_message_policy import Computer
+
+from policies.Computator import Computator
 
 
 class Agent(ABC):
@@ -49,32 +50,42 @@ class Message():
     def __repr__(self):
         return self.__str__()
 class BPAgent(Agent):
+
+
     """
     Abstract base class for belief propagation (BP) nodes.
     Extends the Node class with methods relevant to message passing,
     updating local belief, and retrieving that belief.
     """
 
-    def __init__(self, node_id: str, name: str, node_type: str):
-        super().__init__( name, node_type)
-        self.neighbors: List[str] = []  # List of connected node IDs
-        self.messages: Dict[str, Any] = {}  # Stores incoming messages
-        self.belief: Dict[str, float] = {}  # The belief state of the node
+    def __init__(self,  name: str, node_type: str):
+        from policies.Computator import Computator
+        super().__init__( name, node_type) # List of connected node IDs
+        self.messages: Set[Message] = set()  # Stores incoming messages
+        self.history:Dict[Any:Set[Message]]={}# Stores message history
+        self.iteration=0
+        self.state = 0
 
+    @property
     @abstractmethod
-    def compute_message(self, recipient_id: str) -> Any:
+    def belief(self):
+        '''Return the belief of the node.
+        could be either a value, a distribution, or an assignment'''
         pass
 
-    @abstractmethod
     def receive_message(self, message:Message) -> None:
-        pass
+        self.state =1
+        self.messages.add(message)
 
     @abstractmethod
-    def update_local_belief(self) -> None:
-        pass
+    def update_local_beliefs(self) -> None:
+        self.history[self.iteration] = self.messages
+        self.messages=self._compute_messages()
+        self.iteration=self.iteration+1
 
     @abstractmethod
-    def get_belief(self) -> Dict[str, float]:
+    def _compute_messages(self) -> Set[Message]:
+        '''Compute the messages to be sent to the neighbors'''
         pass
     def __eq__ (self, other):
         return self.name == other.name and self.type != other.type
@@ -82,19 +93,15 @@ class BPAgent(Agent):
         return hash((self.name,self.type))
 
 
+
+
 class VariableNode(BPAgent):
     """
     Represents a variable node in DCOP, holding a variable and its domain.
     """
+    def __init__(self, node_id: str, name: str):
+        super().__init__(node_id, name, node_type="variable")
 
-
-
-    def __init__(self, node_id: str, name: str, domain: List[Any]):
-        super().__init__(node_id, name, "variable")
-        self.domain = domain  # The domain of possible values
-        self.current_value = None  # The selected value (default is unassigned)
-        self.messages = Set[Message] # Stores incoming messages
-        self.message_history = {}  # Stores incoming messages for debugging
 
     def compute_messages(self) -> Set[Message]:
         message_set = set()
