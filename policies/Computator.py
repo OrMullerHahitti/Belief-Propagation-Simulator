@@ -178,9 +178,6 @@ class MaxSumVariableComputator(VariableComputator):
 
         sender_to_msg = {m.sender: m.message for m in incoming_messages}
         total = np.sum(list(sender_to_msg.values()), axis=0)
-        # For max-sum, some approaches might do element-wise max or subtract, etc.
-        # For demonstration, let's do a "subtract neighbor" pattern analogous to min-sum
-        # but interpret it in a 'max-sum' sense
         for neighbor, msg_val in sender_to_msg.items():
             new_msg_val = total - msg_val
             message_set.add(Message(new_msg_val, var_node, neighbor))
