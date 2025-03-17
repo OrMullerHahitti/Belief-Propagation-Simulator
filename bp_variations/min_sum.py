@@ -2,7 +2,7 @@ from typing import Dict
 
 import numpy as np
 
-from DCOP_base.bp_engine import BeliefPropagationEngine
+from BP_base.bp_engine import BeliefPropagationEngine
 from DCOP_base.interfaces import DampingPolicy, CostReductionPolicy
 from bp_variations.factor_graph import FactorGraph
 

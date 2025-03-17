@@ -1,6 +1,7 @@
 from typing import Dict, List, Union
-from nodes import VariableNode, FactorNode  # Assuming Node subclasses are in a `nodes` module
-from abstract_graph_system import AbstractGraphSystem  # Base class
+
+from BP_base.agents import VariableNode, FactorNode
+from DCOP_base import AbstractGraphSystem
 
 
 class FactorGraph(AbstractGraphSystem):
