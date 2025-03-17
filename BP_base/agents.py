@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC,abstractmethod
-from typing import Dict, Set, List
+from typing import Dict, List, List, TypeAlias, Any
 import numpy as np
 from networkx import Graph
 from numpy import ndarray
 
-from DCOP_base import Agent
+from DCOP_base import Agent, Computator
 from utils.decorators import validate_message_direction
 from utils.randomes import create_random_table
-
-Iteration:Dict[int,List[Message]]
+Iteration:TypeAlias = Dict[int,List['Message']]
 class Message():
     def __init__(self,message:np.ndarray,sender:Agent,recipient:Agent):
         self.message = message
@@ -26,18 +25,17 @@ class Message():
         return f"Message from {self.sender.name} to {self.recipient.name}: {self.message}"
     def __repr__(self):
         return self.__str__()
-class BPComputator(ABC):
+
+class BPComputator(ABC,Computator):
     @abstractmethod
-    def compute_Q(self,messages:Set[Message]) -> Message:
+    def compute_Q(self,messages:List[Message]) -> Message:
         pass
     @abstractmethod
     def compute_R(self,cost_table:np.ndarray,messages:Message)->[Message]:
-        '''input: cost_table: np.ndarray, messages: Set[Message]
-        output: set of messages computed from the cost table and the incoming messages for each variable node'''
+        '''input: cost_table: np.ndarray, messages: List[Message]
+        output: List of messages computed from the cost table and the incoming messages for each variable node'''
         pass
-    @abstractmethod
-    def get_belief(self,node:Agent)->np.ndarray|float|int:
-        pass
+
 
 
 class BPAgent(Agent):
@@ -52,20 +50,18 @@ class BPAgent(Agent):
     def __init__(self,  name: str, node_type: str, computator:BPComputator):
         super().__init__( name, node_type) # List of connected node IDs
         self.computator = computator
-        self.messages: Set[Message] = set()
+        self.messages: List[Message]
         curr_message:np.ndarray|None = None# Stores incoming messages
+
     def add_message(self, message:Message) -> None:
+        '''mailer uses this function to add a message to the agent'''
         self.messages.add(message)
 
     @abstractmethod
-    def compute_messages(self) -> Set[Message]:
+    def compute_messages(self) -> List[Message]:
         pass
 
-    @property
-    def belief(self):
-        '''Return the belief of the node.
-        could be either a value, a distribution, or an assignment'''
-        return self.computator.get_belief(self)
+
 
 
 
@@ -92,7 +88,7 @@ class VariableNode(BPAgent):
         # A policy object controlling how messages & belief are computed:
         self.computator = computator
 
-    def compute_messages(self) -> Set[Message]:
+    def compute_messages(self) -> List[Message]:
         """
         Called by the BPAgent framework to compute outgoing messages.
         """
@@ -103,7 +99,9 @@ class VariableNode(BPAgent):
         For example, increment iteration count or do some local update logic.
         """
         self.iteration += 1
-
+    @property
+    def belief(self) -> np.ndarray:
+        pass
 
 class FactorNode(BPAgent):
     """
@@ -119,8 +117,8 @@ class FactorNode(BPAgent):
             self.cost_table = cost_table
         else:
             self.cost_table = create_random_table(3)
-        self.messages:Set[Message]|None=None
-        self.to_send :Set[Message]|None = None
+        self.messages:List[Message]|None=None
+        self.to_send :List[Message]|None = None
 
     @validate_message_direction
     def compute_message(self, message:Message) -> Message:
