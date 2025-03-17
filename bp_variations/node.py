@@ -1,7 +1,6 @@
-from typing import Sequence
 from pydantic import Field
 
-from DCOP_base.agent import Node
+from DCOP_base import Node
 from DCOP_base.interfaces import NeighborAddingPolicy
 from policies.node_add_policy import BPNeighborAddingPolicy
 

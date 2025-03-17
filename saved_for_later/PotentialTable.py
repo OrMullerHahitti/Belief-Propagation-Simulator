@@ -1,11 +1,9 @@
-from abc import ABC, abstractmethod, abstractproperty, abstractstaticmethod
 from typing import Any, Hashable, Union, Dict
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, Field
 
-from DCOP_base.agent import Node
+from DCOP_base import Node
 from utils.conversions import to_ndarray
 from utils.randomes import create_random_table, create_random_message
 
