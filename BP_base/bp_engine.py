@@ -5,7 +5,7 @@ import numpy as np
 from bp_variations.factor_graph import FactorGraph
 
 
-class BeliefPropagationEngine(ABC):
+class BeliefPropagation(ABC):
     """
     Abstract engine for belief propagation.
     """

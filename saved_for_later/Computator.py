@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Set
 import numpy as np
 
-from DCOP_base.agent import VariableNode, Message, FactorNode
+from DCOP_base import VariableNode, Message, FactorNode
 
 # Stub classes for demonstration; replace with actual imports:
 # from your_project.agents import Message, VariableNode
