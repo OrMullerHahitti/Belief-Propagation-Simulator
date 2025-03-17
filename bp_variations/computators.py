@@ -108,7 +108,7 @@ class ProductComputator(BPComputator):
         return result
 
 #### ------------------------------------------------------- ####
-####                   Additional Computators                ####
+####                 Additional Computators                  ####
 #### ------------------------------------------------------- ####
 
 class MinSumComputator(SumComputator):

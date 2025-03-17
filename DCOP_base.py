@@ -1122,8 +1122,6 @@ from typing import Any, Dict, List, Callable, Set, TypeAlias
 import numpy as np
 
 from utils.randomes import create_random_table
-from __future__ import annotations
-from networkx import Graph
 Computator :TypeAlias =  Any
 class AbstractGraphSystem(ABC):
     """
