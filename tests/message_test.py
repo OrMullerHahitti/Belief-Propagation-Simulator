@@ -1,8 +1,7 @@
-import pytest
 import numpy as np
 from unittest.mock import Mock
-from DCOP_base.agent import Agent
-from DCOP_base.agent import Message
+from DCOP_base import Agent
+from DCOP_base import Message
 
 def test_message_initialization():
     sender = Mock(spec=Agent)
