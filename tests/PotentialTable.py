@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from DCOP_base.PotentialTable import CostTable
+from saved_for_later.PotentialTable import CostTable
 
 
 def test_has_default_random_table():
