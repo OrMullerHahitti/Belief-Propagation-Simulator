@@ -24,7 +24,7 @@ class Message():
     def __repr__(self):
         return self.__str__()
 
-class BPComputator(ABC,Computator):
+class BPComputator(ABC):
     @abstractmethod
     def compute_Q(self,messages:List[Message]) -> Message:
         pass
@@ -55,9 +55,6 @@ class BPAgent(Agent):
         '''mailer uses this function to add a message to the agent'''
         self.messages.add(message)
 
-    @abstractmethod
-    def compute_messages(self) -> List[Message]:
-        pass
 
 
 
@@ -71,8 +68,7 @@ class VariableNode(BPAgent):
     """
 
 
-    def __init__(self, node_id: str, name: str, computator: BPComputator, domain_size: int = 3,
-                 ):
+    def __init__(self, node_id: str, name: str, computator: BPComputator|None=None, domain_size: int = 3,):
         """
         :param node_id: Unique identifier
         :param name: Human-readable name
@@ -107,10 +103,13 @@ class FactorNode(BPAgent):
     Represents a factor node, storing a function that links multiple variables.
     """
 
-    def __init__(self, name: str,computator:BPComputator, cost_table :np.ndarray|None=None):
+    def __init__(self, name: str,computator:BPComputator|None=None, cost_table :np.ndarray|None=None):
         super().__init__(name, "factor")
       # List of variable node IDs this factor depends on
-        self.computator = computator
+        if computator is not None:
+            self.computator = computator
+        else:
+          self.computator = None
         if cost_table is not None:
             self.cost_table = cost_table
         else:
@@ -126,5 +125,7 @@ class FactorNode(BPAgent):
     @property
     def mean_cost(self) -> float:
         return np.mean(self.cost_table)
+    def compute_messages(self) -> List[Message]:
+        return []
 
 
