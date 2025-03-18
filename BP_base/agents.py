@@ -26,10 +26,10 @@ class Message():
 
 class BPComputator(ABC):
     @abstractmethod
-    def compute_Q(self,messages:List[Message]) -> Message:
+    def compute_Q(self,messages:List[Message]) -> List[Message]:
         pass
     @abstractmethod
-    def compute_R(self,cost_table:np.ndarray,messages:Message)->[Message]:
+    def compute_R(self,cost_table:np.ndarray,messages:Message)->Message:
         '''input: cost_table: np.ndarray, messages: List[Message]
         output: List of messages computed from the cost table and the incoming messages for each variable node'''
         pass
@@ -45,15 +45,17 @@ class BPAgent(Agent):
     updating local belief, and retrieving that belief.
     """
 
-    def __init__(self,  name: str, node_type: str, computator:BPComputator):
+    def __init__(self,  name: str, node_type: str, computator:BPComputator|None=None):
         super().__init__( name, node_type) # List of connected node IDs
         self.computator = computator
-        self.messages: List[Message]
+        self.messages: List[Message] =[]
         curr_message:np.ndarray|None = None# Stores incoming messages
 
     def add_message(self, message:Message) -> None:
         '''mailer uses this function to add a message to the agent'''
         self.messages.add(message)
+    def update_computatpr(self,computator:BPComputator) -> None:
+        self.computator = computator
 
 
 
@@ -68,19 +70,16 @@ class VariableNode(BPAgent):
     """
 
 
-    def __init__(self, node_id: str, name: str, computator: BPComputator|None=None, domain_size: int = 3,):
+    def __init__(self, name: str, domain_size: int = 3,):
         """
         :param node_id: Unique identifier
-        :param name: Human-readable name
-         :param computator: A policy object that implements the logic
-                           for computing messages & belief (MinSum, MaxSum, etc.)
+        :param name: Human-readable nam
         :param domain_size: e.g., length of the domain array
 
         """
-        super().__init__(node_id, name, node_type="variable")
+
+        super().__init__(name, node_type="variable")
         self.domain_size = domain_size
-        # A policy object controlling how messages & belief are computed:
-        self.computator = computator
 
     def compute_messages(self) -> List[Message]:
         """
@@ -96,26 +95,22 @@ class VariableNode(BPAgent):
     @property
     def belief(self) -> np.ndarray:
         pass
+    __repr__ = lambda self: f"VariableNode: {self.name}"
 
 class FactorNode(BPAgent):
     """
-    Purpouse: recieve and send messages to the right nodes to the others, computing the beliefs to be sent
+    Purpose: receive and send messages to the right nodes to the others, computing the beliefs to be sent
     Represents a factor node, storing a function that links multiple variables.
     """
 
-    def __init__(self, name: str,computator:BPComputator|None=None, cost_table :np.ndarray|None=None):
+    def __init__(self, name: str, cost_table :np.ndarray|None=None):
         super().__init__(name, "factor")
       # List of variable node IDs this factor depends on
-        if computator is not None:
-            self.computator = computator
-        else:
-          self.computator = None
+
         if cost_table is not None:
             self.cost_table = cost_table
         else:
             self.cost_table = create_random_table(3)
-        self.messages:List[Message]|None=None
-        self.to_send :List[Message]|None = None
 
     @validate_message_direction
     def compute_message(self, message:Message) -> Message:
@@ -127,5 +122,7 @@ class FactorNode(BPAgent):
         return np.mean(self.cost_table)
     def compute_messages(self) -> List[Message]:
         return []
+    def __repr__(self):
+        return f"FactorNode: {self.name}"
 
 
