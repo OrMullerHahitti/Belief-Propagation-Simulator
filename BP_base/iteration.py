@@ -5,26 +5,27 @@ import numpy as np
 from datetime import datetime
 
 
-class Iteration(BaseModel):
+class Iteration:
     """
     Represents a single iteration in the Belief Propagation algorithm.
     Contains all relevant information about the iteration state.
     """
-    number: int = Field(ge=0)  # Current iteration number (0-based)
-    max_iterations: int = Field(ge=1)  # Maximum number of iterations
+    def __init__(self):
+        number: int = Field(ge=0)  # Current iteration number (0-based)
+        max_iterations: int = Field(ge=1)  # Maximum number of iterations
 
-    # Messages state
-    Q_messages: Optional[Dict] = None  # Current Q messages
-    R_messages: Optional[Dict] = None  # Current R messages
-    Q_previous: Optional[Dict] = None  # Previous Q messages
-    R_previous: Optional[Dict] = None  # Previous R messages
+        # Messages state
+        Q_messages: Optional[Dict] = None  # Current Q messages
+        R_messages: Optional[Dict] = None  # Current R messages
+        Q_previous: Optional[Dict] = None  # Previous Q messages
+        R_previous: Optional[Dict] = None  # Previous R messages
 
-    # Convergence metrics
-    message_residual: Optional[float] = None  # Difference from previous iteration
+        # Convergence metrics
+        message_residual: Optional[float] = None  # Difference from previous iteration
 
-    # Timing information
-    start_time: datetime = Field(default_factory=datetime.utcnow)
-    end_time: Optional[datetime] = None
+        # Timing information
+        start_time: datetime = Field(default_factory=datetime.utcnow)
+        end_time: Optional[datetime] = None
 
     class Config:
         arbitrary_types_allowed = True
