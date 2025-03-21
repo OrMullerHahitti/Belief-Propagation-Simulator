@@ -1,10 +1,10 @@
-# implementation of factor graph given everything in BP_base
+# implementation of factor graph given everything in bp_base
 from abc import ABC
 from typing import List, Dict, Tuple, Union
 
 from networkx import Graph
 
-from BP_base.agents import VariableNode, FactorNode
+from bp_base.agents import VariableNode, FactorNode
 from DCOP_base import Agent
 
 

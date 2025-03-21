@@ -1,6 +1,6 @@
 from typing import Dict, List, Union
 
-from BP_base.agents import VariableNode, FactorNode
+from bp_base.agents import VariableNode, FactorNode
 from DCOP_base import AbstractGraphSystem
 
 
