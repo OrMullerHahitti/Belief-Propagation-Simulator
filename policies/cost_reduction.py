@@ -3,11 +3,13 @@ from abc import ABC, abstractmethod
 from typing import Callable, TypeAlias, Any
 
 from DCOP_base import Agent
+from policies.abstract import FactorPolicy
+
 Iteration :TypeAlias = Any #for now only a place holder
 '''
 this module is mostly for config!!
 '''
-class CostReductionPolicy():
+class CostReductionPolicy(FactorPolicy, ABC):
     def __init__(self, stopping_critiria:Callable|None=None,applying_critiria:Callable|None=None):
         self.calc_k = stopping_critiria
         self.applying_critiria = applying_critiria
@@ -28,11 +30,18 @@ class CostReductionPolicy():
         pass
 
 class EveryTimeCostReduction(CostReductionPolicy):
+
     def should_apply(self, iteration: int) -> bool:
         return True
     def get_K(self) -> float:
         return 0.5
 
 class MinMaxEnvelopeCostReduction(CostReductionPolicy):
+
+
     def should_apply(self, iteration: int) -> bool:
         return iteration % 2 == 0
+
+    def get_K(self) -> float:
+        return 0.5
+

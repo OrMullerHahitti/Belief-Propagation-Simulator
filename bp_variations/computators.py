@@ -1,7 +1,7 @@
 from typing import List, Set
 import numpy as np
 
-from BP_base.agents import BPComputator, Message, BPAgent
+from bp_base.agents import BPComputator, Message, BPAgent
 
 
 class SumComputator(BPComputator):

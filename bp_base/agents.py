@@ -4,7 +4,7 @@ from abc import ABC,abstractmethod
 from typing import Dict, List, TypeAlias
 import numpy as np
 
-from BP_base.components import Message, BPComputator
+from bp_base.components import Message, BPComputator
 from DCOP_base import Agent
 from saved_for_later.decorators import validate_message_direction
 from utils.randomes import create_random_table
