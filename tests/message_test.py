@@ -8,7 +8,7 @@ def test_message_initialization():
     recipient = Mock(spec=Agent)
     message_data = np.array([1, 2, 3])
     message = Message(message=message_data, sender=sender, recipient=recipient)
-    assert np.array_equal(message.message, message_data)
+    assert np.array_equal(message.data, message_data)
     assert message.sender == sender
     assert message.recipient == recipient
 

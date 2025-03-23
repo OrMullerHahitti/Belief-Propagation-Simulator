@@ -18,7 +18,7 @@ class BPAgent(Agent):
 
     """
     Abstract base class for belief propagation (BP) nodes.
-    Extends the Node class with methods relevant to message passing,
+    Extends the Node class with methods relevant to data passing,
     updating local belief, and retrieving that belief.
     """
 
@@ -29,7 +29,7 @@ class BPAgent(Agent):
         curr_message:np.ndarray|None = None# Stores incoming messages
 
     def add_message(self, message:Message) -> None:
-        '''mailer uses this function to add a message to the agent'''
+        '''mailer uses this function to add a data to the agent'''
         self.messages.add(message)
     def update_computatpr(self,computator:BPComputator) -> None:
         self.computator = computator

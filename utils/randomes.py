@@ -46,5 +46,5 @@ def create_random_table(domain_size: Tuple[int, ...], randomness_policy: Randomn
 #example : create randome table 3x3 with integeres - 0 to 10
 # create_random_table((3, 3), integer_random)
 
-#example : create randome message 3 with uniform random
+#example : create randome data 3 with uniform random
 

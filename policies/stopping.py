@@ -12,8 +12,8 @@ class StoppingCriterion(ABC):
 
         :param iteration: current iteration count (0-based).
         :param max_iters: user-specified maximum iteration limit.
-        :param Q, R: current message dicts
-        :param Q_old, R_old: previous iteration message dicts
+        :param Q, R: current data dicts
+        :param Q_old, R_old: previous iteration data dicts
         """
         pass
 class MaxIterationsStopping(StoppingCriterion):

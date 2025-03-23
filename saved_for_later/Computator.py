@@ -56,13 +56,13 @@ class MinSumVariableComputator(VariableComputator):
     ) -> Set[Message]:
         message_set = set()
 
-        # Suppose each incoming message is an array of shape (domain_size,).
+        # Suppose each incoming data is an array of shape (domain_size,).
         # Combine all messages: e.g., element-wise sum them.
-        # Then to send a message back to each neighbor, we subtract that neighbor's contribution,
+        # Then to send a data back to each neighbor, we subtract that neighbor's contribution,
         # aligning with standard "min-sum" or "sum-product" style factor graphs.
 
         # 1) Gather incoming messages from each neighbor:
-        sender_to_msg = {m.sender: m.message for m in incoming_messages}
+        sender_to_msg = {m.sender: m.data for m in incoming_messages}
         # 2) Sum them up:
         total = np.sum(list(sender_to_msg.values()), axis=0)
         # 3) Build new messages for each neighbor:
@@ -82,7 +82,7 @@ class MinSumVariableComputator(VariableComputator):
     ) -> np.ndarray:
         # For min-sum, you might do an element-wise sum and then take an argmin or similar.
         # As a trivial example:
-        sum_all = np.sum([m.message for m in incoming_messages], axis=0)
+        sum_all = np.sum([m.data for m in incoming_messages], axis=0)
         # Potentially apply further min-sum logic (like normalizing or picking the best domain index).
         return sum_all
 class FactorComputator(ABC):
@@ -109,7 +109,7 @@ class MinSumFactorComputator(FactorComputator):
     """
     Example: Min-Sum logic for factor nodes.
     Typically, you'd marginalize over all but one variable
-    to produce the message to that variable.
+    to produce the data to that variable.
     """
 
     def compute_outgoing_messages(
@@ -123,17 +123,17 @@ class MinSumFactorComputator(FactorComputator):
         # Example approach:
         # 1) Convert incoming messages into arrays that align with factor_node's cost_table indexing.
         # 2) Combine them with cost_table (e.g., add them for min-sum).
-        # 3) Marginalize out the other variables to build a message for each variable node.
+        # 3) Marginalize out the other variables to build a data for each variable node.
 
-        # For demo, suppose each incoming message is an array we "add" to cost_table:
+        # For demo, suppose each incoming data is an array we "add" to cost_table:
         for incoming_msg in incoming_messages:
-            # Combine cost_table with the incoming message:
-            combined = cost_table + incoming_msg.message
+            # Combine cost_table with the incoming data:
+            combined = cost_table + incoming_msg.data
             # Then do a naive "min over one axis" to get a 1D array for the variable node:
             # (The actual axis depends on how you shape your cost table.)
             new_msg_values = np.min(combined, axis=0)
 
-            # Construct the outgoing message, setting the factor_node as sender
+            # Construct the outgoing data, setting the factor_node as sender
             # and the original sender (a VariableNode) as recipient:
             msg = Message(new_msg_values, factor_node, incoming_msg.sender)
             message_set.add(msg)
@@ -156,7 +156,7 @@ class MaxSumFactorComputator(FactorComputator):
         message_set = set()
 
         for incoming_msg in incoming_messages:
-            combined = cost_table + incoming_msg.message
+            combined = cost_table + incoming_msg.data
             # Use np.max along the appropriate axis to get the "max" version
             new_msg_values = np.max(combined, axis=0)
 
@@ -176,7 +176,7 @@ class MaxSumVariableComputator(VariableComputator):
     ) -> Set[Message]:
         message_set = set()
 
-        sender_to_msg = {m.sender: m.message for m in incoming_messages}
+        sender_to_msg = {m.sender: m.data for m in incoming_messages}
         total = np.sum(list(sender_to_msg.values()), axis=0)
         for neighbor, msg_val in sender_to_msg.items():
             new_msg_val = total - msg_val
@@ -191,5 +191,5 @@ class MaxSumVariableComputator(VariableComputator):
     ) -> np.ndarray:
         # For max-sum, combine incoming messages in a "max-sum" sense, maybe element-wise sum
         # then interpret the result as a "utility" array, from which we pick argmax, etc.
-        sum_all = np.sum([m.message for m in incoming_messages], axis=0)
+        sum_all = np.sum([m.data for m in incoming_messages], axis=0)
         return sum_all
