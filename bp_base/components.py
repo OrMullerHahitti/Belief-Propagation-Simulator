@@ -1,14 +1,17 @@
 from abc import abstractmethod, ABC
-from typing import List
+from typing import List, TypeAlias
 
 import numpy as np
 
 from DCOP_base import Agent
 
 
+CostTable: TypeAlias = np.ndarray
+
+
 class Message():
-    def __init__(self,message:np.ndarray,sender:Agent,recipient:Agent):
-        self.message = message
+    def __init__(self,data:np.ndarray,sender:Agent,recipient:Agent):
+        self.data = data
         self.sender = sender
         self.recipient = recipient
     def __hash__(self):
@@ -18,7 +21,7 @@ class Message():
     def __ne__(self, other):
         return not self == other
     def __str__(self):
-        return f"Message from {self.sender.name} to {self.recipient.name}: {self.message}"
+        return f"Message from {self.sender.name} to {self.recipient.name}: {self.data}"
     def __repr__(self):
         return self.__str__()
 

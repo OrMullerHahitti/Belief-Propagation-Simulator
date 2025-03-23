@@ -55,7 +55,7 @@ class Iteration:
         self.R_messages = R
 
     def calculate_residual(self) -> float:
-        """Calculate the message residual from previous iteration"""
+        """Calculate the data residual from previous iteration"""
         if self.Q_previous is None or self.R_previous is None:
             return float('inf')
 
