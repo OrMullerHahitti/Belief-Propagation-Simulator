@@ -9,7 +9,7 @@ from DCOP_base import Agent
 CostTable: TypeAlias = np.ndarray
 
 
-class Message():
+class Message:
     def __init__(self,data:np.ndarray,sender:Agent,recipient:Agent):
         self.data = data
         self.sender = sender

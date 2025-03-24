@@ -2,9 +2,9 @@ from sys import implementation
 from typing import List, Set, TypeAlias
 import numpy as np
 
-from bp_base.agents import  Message, CostTable
+from bp_base.components import  Message,CostTable
 
-class BPComputator:
+class Computator:
     """
     A demonstration class that performs min-sum or max-sum computations
     (depending on aggregation_func) for messages in a factor graph.
