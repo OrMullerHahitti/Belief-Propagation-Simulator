@@ -37,13 +37,13 @@ def _create_edges(variable_li: List[VariableNode], factor_li: List[FactorNode]) 
 
 class FactorGraph():
     def __init__(self, variable_li: List[VariableNode], factor_li: List[FactorNode]):
-        self.graph = Graph()  # Use composition instead of inheritance
+        self.g = Graph()  # Use composition instead of inheritance
 
         if not variable_li and not factor_li:
             raise ValueError("Variable and factor lists cannot both be empty.")
 
-        self.graph.add_nodes_from(variable_li)
-        self.graph.add_nodes_from(factor_li)
+        self.g.add_nodes_from(variable_li)
+        self.g.add_nodes_from(factor_li)
 
         adjacency = _create_edges(variable_li, factor_li)
         self.graph.add_edges_from((f, v) for f, neighbors in adjacency.items() for v in neighbors)
@@ -51,6 +51,11 @@ class FactorGraph():
             return f"FactorGraph: {self.graph.nodes()}"
         def __repr__(self):
             return self.__str__()
+    def add_edge(self, variable:VariableNode,factor:FactorNode) -> None:
+        """Add edges to the graph."""
+        variable.update
+        self.g.add_edge(variable, factor)
+        self.g.add_edge(factor, variable)
 
 if __name__ == "__main__":
     # The following code should run without error
