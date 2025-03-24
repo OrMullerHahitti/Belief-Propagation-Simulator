@@ -1,8 +1,12 @@
 from sys import implementation
 from typing import List, Set, TypeAlias
 import numpy as np
+import logging
 
 from bp_base.components import  Message,CostTable
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 class Computator:
     """
@@ -15,6 +19,7 @@ class Computator:
         """
         self.reduce_func = reduce_func
         self.combine_func = combine_func
+        logger.info(f"Initialized Computator with reduce_func={reduce_func.__name__}, combine_func={combine_func.__name__}")
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
@@ -23,13 +28,16 @@ class Computator:
         'messages' is a list of factor->variable messages (R_{F->X}),
         each with shape (d,). We want to produce Q_{X->F} for each factor neighbor F.
         """
+        logger.info(f"Computing Q messages with {len(messages)} incoming messages")
 
         if not messages:
+            logger.warning("No incoming messages, returning empty list")
             return []
 
         # 'me' is this variable node (the node that now sends Q_{X->F})
         me = messages[0].recipient  # since all these messages are to 'X'
         senders = [msg.sender for msg in messages]  # factor neighbors
+        logger.debug(f"Variable node: {me}, Factor neighbors: {senders}")
 
         # We assume all messages have same shape 'd'
         d = messages[0].data.shape
@@ -37,6 +45,7 @@ class Computator:
 
         # For each factor neighbor F, we compute Q_{X->F}
         for factor_node in senders:
+            logger.debug(f"Computing message to factor node: {factor_node}")
             # Start with zero array (or ones if you're doing product)
             combined = np.zeros(d, dtype=float)
 
@@ -48,11 +57,12 @@ class Computator:
 
                 # e.g., combined += msg_i.data
                 combined = self.combine_func(combined, msg_i.data)
+                logger.debug(f"Combined with message from {msg_i.sender}, current result: {combined}")
 
             #normalize if you want:
             offset = np.min(combined)
             combined -= offset
-
+            logger.debug(f"Normalized message by subtracting {offset}, result: {combined}")
 
             # 'me' is the variable node, 'factor_node' is the factor neighbor
             messages_to_send.append(Message(
@@ -61,9 +71,8 @@ class Computator:
                 recipient=factor_node  # factor node
             ))
 
+        logger.info(f"Computed {len(messages_to_send)} outgoing Q messages")
         return messages_to_send
-
-
 
 
     def compute_R(self,
@@ -78,8 +87,11 @@ class Computator:
         :param incoming_messages: A list of n messages, one from each variable -> factor
         :return: A list of n messages, factor -> each variable
         """
+        logger.info(f"Computing R messages with {len(incoming_messages)} incoming messages and cost table shape {cost_table.shape if hasattr(cost_table, 'shape') else 'unknown'}")
+        
         n = len(incoming_messages)
         if n == 0:
+            logger.warning("No incoming messages, returning empty list")
             return []
 
         d = cost_table.shape[0]  # assume each dimension is size d
@@ -87,6 +99,7 @@ class Computator:
 
         # For each variable index i, compute R_{f->i}
         for i, msg_i in enumerate(incoming_messages):
+            logger.debug(f"Computing message to variable node: {msg_i.sender}")
             # 1) Copy the factor's cost table
             combined = cost_table  # shape (d, ..., d)
 
@@ -100,10 +113,13 @@ class Computator:
                 msg_data_j = msg_j.data.reshape(reshape_dims)
                 # Add to the combined cost table
                 combined = self.combine_func(combined, msg_data_j)
+                logger.debug(f"Combined with message from {msg_j.sender}")
 
             # 3) Aggregate (min or max) across all axes except i
             axes_to_reduce = tuple(ax for ax in range(n) if ax != i)
+            logger.debug(f"Reducing across axes {axes_to_reduce}")
             result_1d = self.reduce_func(combined, axis=axes_to_reduce)  # shape (d,)
+            logger.debug(f"Reduction result: {result_1d}")
 
             # 4) Wrap in a new Message, from factor -> variable i
             #    'msg_i.sender' is the variable node that sent Q_{i->f},
@@ -115,6 +131,7 @@ class Computator:
             )
             outgoing_messages.append(new_msg)
 
+        logger.info(f"Computed {len(outgoing_messages)} outgoing R messages")
         return outgoing_messages
 
 
@@ -126,7 +143,9 @@ class Computator:
 class MinSumComputator(Computator):
     def __init__(self):
         super().__init__(combine_func=np.add, reduce_func=np.min)
+        logger.info("Initialized MinSumComputator")
 
 class MaxSumComputator(Computator):
     def __init__(self):
         super().__init__(combine_func=np.add, reduce_func=np.max)
+        logger.info("Initialized MaxSumComputator")
