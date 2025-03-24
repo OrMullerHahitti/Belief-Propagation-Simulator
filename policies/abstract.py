@@ -10,3 +10,8 @@ class MessagePolicy(Policy,ABC):
 
 class FactorPolicy(Policy,ABC):
     pass
+
+class CostRedcutionPolicy(Policy,ABC):
+    pass
+
+
