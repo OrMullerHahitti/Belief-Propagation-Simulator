@@ -35,27 +35,44 @@ def _create_edges(variable_li: List[VariableNode], factor_li: List[FactorNode]) 
     return adjacency
 
 
-class FactorGraph():
+class FactorGraph:
     def __init__(self, variable_li: List[VariableNode], factor_li: List[FactorNode]):
         self.g = Graph()  # Use composition instead of inheritance
 
         if not variable_li and not factor_li:
             raise ValueError("Variable and factor lists cannot both be empty.")
 
+
         self.g.add_nodes_from(variable_li)
         self.g.add_nodes_from(factor_li)
-
+        self.dom =0
         adjacency = _create_edges(variable_li, factor_li)
-        self.graph.add_edges_from((f, v) for f, neighbors in adjacency.items() for v in neighbors)
-        def __str__(self):
-            return f"FactorGraph: {self.graph.nodes()}"
-        def __repr__(self):
-            return self.__str__()
-    def add_edge(self, variable:VariableNode,factor:FactorNode) -> None:
+        self.g.add_edges_from((f, v) for f, neighbors in adjacency.items() for v in neighbors)
+
+
+
+    def add_edge(self, variable: VariableNode, factor: FactorNode) -> None:
         """Add edges to the graph."""
-        variable.update
+        self._add_domains(factor, self.dom)  # adding the domains and updating the dom to be +1 for the next factor
         self.g.add_edge(variable, factor)
         self.g.add_edge(factor, variable)
+
+    def __str__(self):
+        return f"FactorGraph: {self.g.nodes()}"
+
+
+    def __repr__(self):
+        return self.__str__()
+
+    def _add_domains(self, variable, factor):
+        """Add domains to the factor node."""
+        variable.add_domain(factor, self.dom)
+        self.dom += 1
+
+
+
+
+
 
 if __name__ == "__main__":
     # The following code should run without error
