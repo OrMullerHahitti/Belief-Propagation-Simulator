@@ -26,6 +26,7 @@ class BPAgent(Agent):
         super().__init__( name, node_type) # List of connected node IDs
         self.computator = computator
         self.messages: List[Message] =[]
+        self.domains:Dict[BPAgent,int] ={}
         curr_message:np.ndarray|None = None# Stores incoming messages
 
     def add_message(self, message:Message) -> None:
@@ -33,6 +34,11 @@ class BPAgent(Agent):
         self.messages.add(message)
     def update_computatpr(self,computator:BPComputator) -> None:
         self.computator = computator
+
+    def add_domain(self,other:BPAgent,domain:int) -> None:
+        ''' uses this function to add a data to the agent'''
+        other.domains[self] = domain
+        self.domains[other] == domain
 
 
 
