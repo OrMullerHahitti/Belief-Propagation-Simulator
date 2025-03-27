@@ -46,6 +46,7 @@ class BPAgent(Agent):
 
 
 
+
 class VariableNode(BPAgent):
 
     """

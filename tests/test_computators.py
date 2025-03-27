@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
 import logging
-from bp_variations.computators import MinSumComputator, MaxSumComputator
-from bp_base.components import Message, CostTable
+from BP_base.computators import MinSumComputator, MaxSumComputator
+from bp_base.components import Message
 
 # Configure logger
 logger = logging.getLogger(__name__)
