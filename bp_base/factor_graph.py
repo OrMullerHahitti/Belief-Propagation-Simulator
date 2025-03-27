@@ -52,8 +52,13 @@ class FactorGraph:
 
 
     def add_edge(self, variable: VariableNode, factor: FactorNode) -> None:
-        """Add edges to the graph."""
-        self._add_domains(factor, self.dom)  # adding the domains and updating the dom to be +1 for the next factor
+        """Add edges to the graph.
+
+        :param variable: Variable node
+        :param factor: Factor node
+        add edges from variable to factor and vice versa and addding the "dom" to both of them
+        """
+        self._add_domains(variable, factor)  # adding the domains and updating the dom to be +1 for the next factor
         self.g.add_edge(variable, factor)
         self.g.add_edge(factor, variable)
 
@@ -67,6 +72,7 @@ class FactorGraph:
     def _add_domains(self, variable, factor):
         """Add domains to the factor node."""
         variable.add_domain(factor, self.dom)
+        factor.add_domain(variable,self.dom)
         self.dom += 1
 
 
