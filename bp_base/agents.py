@@ -47,7 +47,7 @@ class BPAgent(Agent):
 
 
 
-class VariableNode(BPAgent):
+class VariableAgent(BPAgent):
 
     """
     Represents a variable node in DCOP, holding a variable and its domain.
@@ -79,9 +79,9 @@ class VariableNode(BPAgent):
     @property
     def belief(self) -> np.ndarray:
         pass
-    __repr__ = lambda self: f"VariableNode: {self.name}"
+    __repr__ = lambda self: f"VariableAgent: {self.name}"
 
-class FactorNode(BPAgent):
+class FactorAgent(BPAgent):
     """
     Purpose: receive and send messages to the right nodes to the others, computing the beliefs to be sent
     Represents a factor node, storing a function that links multiple variables.
@@ -96,7 +96,6 @@ class FactorNode(BPAgent):
         else:
             self.cost_table = create_random_table(3)
 
-    @validate_message_direction
     def compute_message(self, message:Message) -> Message:
         return self.computator.compute_R(self.cost_table,message)
 
@@ -107,6 +106,6 @@ class FactorNode(BPAgent):
     def compute_messages(self) -> List[Message]:
         return []
     def __repr__(self):
-        return f"FactorNode: {self.name}"
+        return f"FactorAgent: {self.name}"
 
 
