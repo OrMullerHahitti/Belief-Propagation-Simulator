@@ -3,7 +3,7 @@ from typing import List, Union, Callable, Tuple
 from bp_base.typing import CostTable
 
 
-def create_cost_table(connections: int, domain: int, policy:  Callable = np.random.randint, **policy_params) -> CostTable:
+def _create_cost_table(connections: int, domain: int, policy:  Callable = np.random.randint, **policy_params) -> CostTable:
     """
     Main funtion that will be used in variations below
     Create a random cost table with shape (d0, d1, ..., dn-1).
@@ -30,7 +30,7 @@ def create_cost_table(connections: int, domain: int, policy:  Callable = np.rand
         raise ValueError(f"Unknown policy: {policy}")
 
 #functions that implement create_cost_table with different policies:
-def create_random_table(domain: int) -> CostTable:
+def create_random_int_table(n:int,domain: int,low=0,high=10) -> CostTable:
     """
     Create a random cost table with shape (domain, domain).
 
@@ -40,8 +40,8 @@ def create_random_table(domain: int) -> CostTable:
     Returns:
         Random cost table as numpy array
     """
-    return create_cost_table(2, domain, np.random.randint, low=0, high=10)
-def create_uniform_table(domain: int) -> CostTable:
+    return _create_cost_table(n, domain, np.random.randint, low=low, high=high)
+def create_uniform_table(n:int,domain: int,low=0, high=1) -> CostTable:
     """
     Create a uniform cost table with shape (domain, domain).
 
@@ -51,8 +51,8 @@ def create_uniform_table(domain: int) -> CostTable:
     Returns:
         Uniform cost table as numpy array
     """
-    return create_cost_table(2, domain, np.random.uniform, low=0, high=1)
-def create_normal_table(domain: int,loc=0,scale=1) -> CostTable:
+    return _create_cost_table(n, domain, np.random.uniform, low=low, high=high)
+def create_normal_table(n:int,domain: int,loc=0,scale=1) -> CostTable:
     """
         Create a normal cost table with shape (domain, domain).
 
@@ -65,9 +65,9 @@ def create_normal_table(domain: int,loc=0,scale=1) -> CostTable:
             :param loc: mean
             :param scale: SD
         """
-    return create_cost_table(2, domain, np.random.normal, loc=loc, scale=scale)
+    return _create_cost_table(n, domain, np.random.normal, loc=loc, scale=scale)
 
-def create_exponential_table(domain: int,scale =1) -> CostTable:
+def create_exponential_table(n:int,domain: int,scale =1) -> CostTable:
     """
     Create an exponential cost table with shape (domain, domain).
 
@@ -78,7 +78,7 @@ def create_exponential_table(domain: int,scale =1) -> CostTable:
         Exponential cost table as numpy array
         :param scale: exponential parameter
     """
-    return create_cost_table(2, domain, np.random.exponential, scale=scale)
+    return _create_cost_table(n, domain, np.random.exponential, scale=scale)
 
 def create_symmetric_cost_table(n: int, m: int) -> CostTable:
     """
