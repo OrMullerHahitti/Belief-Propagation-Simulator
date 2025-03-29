@@ -8,7 +8,7 @@ import numpy as np
 from DCOP_base import VariableNode, Message, FactorNode
 
 # Stub classes for demonstration; replace with actual imports:
-# from your_project.agents import Message, VariableNode
+# from your_project.agents import Message, VariableAgent
 
 
 class VariableComputator(ABC):
@@ -134,7 +134,7 @@ class MinSumFactorComputator(FactorComputator):
             new_msg_values = np.min(combined, axis=0)
 
             # Construct the outgoing data, setting the factor_node as sender
-            # and the original sender (a VariableNode) as recipient:
+            # and the original sender (a VariableAgent) as recipient:
             msg = Message(new_msg_values, factor_node, incoming_msg.sender)
             message_set.add(msg)
 
