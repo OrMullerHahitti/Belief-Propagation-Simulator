@@ -2,10 +2,12 @@
 from abc import ABC
 from typing import List, Dict, Tuple, Union
 
-from networkx import Graph
 
-from bp_base.agents import VariableNode, FactorNode
+from networkx import Graph,bipartite
+
+from bp_base.agents import VariableAgent, FactorAgent
 from DCOP_base import Agent
+
 
 
 def _strip_name(agent: Agent) -> List[int]:
@@ -21,37 +23,24 @@ def _strip_name(agent: Agent) -> List[int]:
         raise ValueError(f"Invalid agent name: {name}. Only factor names should be processed by this function.")
 
 
-def _create_edges(variable_li: List[VariableNode], factor_li: List[FactorNode]) -> Dict[FactorNode, List[VariableNode]]:
-    """Create edges based on variable indices in factor names."""
-    adjacency = {}
-    for f in factor_li:
-        try:
-            indices = _strip_name(f)
-            neighbors = [v for v in variable_li if int(v.name[1:]) in indices]  # Match variable indices
-            adjacency[f] = neighbors
-        except ValueError as e:
-            print(f"Warning: Skipping factor {f.name} due to naming error: {e}")
-            adjacency[f] = []  # Ensure every factor has a key in adjacency
-    return adjacency
+
 
 
 class FactorGraph:
-    def __init__(self, variable_li: List[VariableNode], factor_li: List[FactorNode]):
+    def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent]):
         self.g = Graph()  # Use composition instead of inheritance
 
         if not variable_li and not factor_li:
             raise ValueError("Variable and factor lists cannot both be empty.")
 
 
-        self.g.add_nodes_from(variable_li)
-        self.g.add_nodes_from(factor_li)
+        self.g.add_nodes_from(variable_li, bipartite=0)  # Add variable nodes to the graph
+        self.g.add_nodes_from(factor_li, bipartite=1)  # Add factor nodes to the graph
         self.dom =0
-        adjacency = _create_edges(variable_li, factor_li)
-        self.g.add_edges_from((f, v) for f, neighbors in adjacency.items() for v in neighbors)
 
 
 
-    def add_edge(self, variable: VariableNode, factor: FactorNode) -> None:
+    def add_edge(self, variable: VariableAgent, factor: FactorAgent) -> None:
         """Add edges to the graph.
 
         :param variable: Variable node
@@ -83,13 +72,13 @@ class FactorGraph:
 if __name__ == "__main__":
     # The following code should run without error
     # Create variable nodes
-    var1 = VariableNode(name="v1")
-    var2 = VariableNode(name="v2")
-    var3 = VariableNode(name="v3")
+    var1 = VariableAgent(name="v1")
+    var2 = VariableAgent(name="v2")
+    var3 = VariableAgent(name="v3")
 
     # Create factor nodes
-    factor12 = FactorNode(name="f12", cost_table=[[0.1, 0.9], [0.8, 0.2]])
-    factor23 = FactorNode(name="f23", cost_table=[[0.2, 0.8], [0.7, 0.3]])
+    factor12 = FactorAgent(name="f12", cost_table=[[0.1, 0.9], [0.8, 0.2]])
+    factor23 = FactorAgent(name="f23", cost_table=[[0.2, 0.8], [0.7, 0.3]])
 
     # Create factor graph
     fg = FactorGraph(variable_li=[var1, var2, var3], factor_li=[factor12, factor23])
