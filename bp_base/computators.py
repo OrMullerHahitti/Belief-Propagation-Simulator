@@ -3,6 +3,7 @@ from typing import List, Set, TypeAlias
 import numpy as np
 import logging
 
+from bp_base.agents import BPAgent
 from bp_base.components import  Message,CostTable
 
 # Configure logger
@@ -21,7 +22,7 @@ class Computator:
         self.combine_func = combine_func
         logger.info(f"Initialized Computator with reduce_func={reduce_func.__name__}, combine_func={combine_func.__name__}")
 
-    def compute_Q(self, messages: List[Message]) -> List[Message]:
+    def compute_Q(self, messages: List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
         """
         Compute variable->factor messages from a variable node's perspective.
 
@@ -41,7 +42,7 @@ class Computator:
 
         # We assume all messages have same shape 'd'
         d = messages[0].data.shape
-        messages_to_send: List[Message] = []
+        messages_to_send: List[Message["BPAgent"]] = []
 
         # For each factor neighbor F, we compute Q_{X->F}
         for factor_node in senders:
@@ -77,7 +78,7 @@ class Computator:
 
     def compute_R(self,
                   cost_table: CostTable,
-                  incoming_messages: List[Message]) -> List[Message]:
+                  incoming_messages: List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
         """
         Compute factor->variable messages. We assume:
           - 'cost_table' is an n-dimensional array (d, d, ..., d).
@@ -98,13 +99,15 @@ class Computator:
         outgoing_messages = []
 
         # For each variable index i, compute R_{f->i}
-        for i, msg_i in enumerate(incoming_messages):
+        for  msg_i in incoming_messages:
+            i= msg_i.sender.domains[msg_i.recipient]
             logger.debug(f"Computing message to variable node: {msg_i.sender}")
             # 1) Copy the factor's cost table
             combined = cost_table  # shape (d, ..., d)
 
             # 2) Add incoming messages from all other variables j != i
-            for j, msg_j in enumerate(incoming_messages):
+            for  msg_j in incoming_messages:
+                j= msg_j.sender.domains[msg_j.recipient]
                 if j == i:
                     continue
                 # Reshape Q_{j->f} for broadcasting across dimension j
