@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-from typing import List, TypeAlias
+from typing import List, TypeAlias, Generic,TypeVar
 
 import numpy as np
 
@@ -8,9 +8,11 @@ from DCOP_base import Agent
 
 CostTable: TypeAlias = np.ndarray
 
+A = TypeVar('A', bound=Agent)
 
-class Message:
-    def __init__(self,data:np.ndarray,sender:Agent,recipient:Agent):
+
+class Message(Generic[A]):
+    def __init__(self,data:np.ndarray,sender:A,recipient:A):
         self.data = data
         self.sender = sender
         self.recipient = recipient
