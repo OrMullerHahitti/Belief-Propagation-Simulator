@@ -1,33 +1,16 @@
 # implementation of factor graph given everything in bp_base
 from abc import ABC
-from typing import List, Dict, Tuple, Union
-
+from typing import List, Dict, Tuple, Union, TypeAlias
 
 from networkx import Graph,bipartite
 
 from bp_base.agents import VariableAgent, FactorAgent
 from DCOP_base import Agent
 
-
-
-def _strip_name(agent: Agent) -> List[int]:
-    """Extract variable indices from factor name (e.g., 'f123' -> [1, 2, 3])."""
-    name = agent.name
-    if name.startswith('f'):
-        try:
-            indices = [int(i) for i in name[1:]]
-            return indices
-        except ValueError:
-            raise ValueError(f"Invalid factor name: {name}. Factor names should start with 'f' followed by digits.")
-    else:
-        raise ValueError(f"Invalid agent name: {name}. Only factor names should be processed by this function.")
-
-
-
-
+Edges : TypeAlias = Dict[FactorAgent, List[VariableAgent]]
 
 class FactorGraph:
-    def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent]):
+    def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent],edges: Edges|None=None) -> None:
         self.g = Graph()  # Use composition instead of inheritance
 
         if not variable_li and not factor_li:
@@ -36,20 +19,21 @@ class FactorGraph:
 
         self.g.add_nodes_from(variable_li, bipartite=0)  # Add variable nodes to the graph
         self.g.add_nodes_from(factor_li, bipartite=1)  # Add factor nodes to the graph
-        self.dom =0
+        self.edges = edges
 
-
-
-    def add_edge(self, variable: VariableAgent, factor: FactorAgent) -> None:
+    def add_edges(self):
         """Add edges to the graph.
 
         :param variable: Variable node
         :param factor: Factor node
         add edges from variable to factor and vice versa and addding the "dom" to both of them
         """
-        self._add_domains(variable, factor)  # adding the domains and updating the dom to be +1 for the next factor
-        self.g.add_edge(variable, factor)
-        self.g.add_edge(factor, variable)
+        for factor in self.edges:
+            for i,variable in enumerate(self.edges[factor]):
+                self.g.add_edge(factor, variable)
+                factor.add_domain(variable, i)
+
+
 
     def __str__(self):
         return f"FactorGraph: {self.g.nodes()}"
@@ -58,11 +42,7 @@ class FactorGraph:
     def __repr__(self):
         return self.__str__()
 
-    def _add_domains(self, variable, factor):
-        """Add domains to the factor node."""
-        variable.add_domain(factor, self.dom)
-        factor.add_domain(variable,self.dom)
-        self.dom += 1
+
 
 
 
