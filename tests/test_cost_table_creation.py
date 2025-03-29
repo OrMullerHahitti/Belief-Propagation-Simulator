@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Add the parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from utils.ct_creator import create_cost_table, normalize_cost_table, create_symmetric_cost_table
+from utils.ct_creator import _create_cost_table, normalize_cost_table, create_symmetric_cost_table
 
 
 def test_cost_table_creation_with_randint():
@@ -31,13 +31,8 @@ def test_cost_table_creation_with_randint():
     
     logger.info(f"Creating cost table with randint: connections={connections}, domain={domain}, low={low}, high={high}")
     
-    cost_table = create_cost_table(
-        connections=connections, 
-        domain=domain, 
-        policy=np.random.randint,
-        low=low, 
-        high=high
-    )
+    cost_table = _create_cost_table(connections=connections, domain=domain, policy=np.random.randint, low=low,
+                                    high=high)
     
     logger.info(f"Created cost table with shape {cost_table.shape}")
     logger.info(f"Cost table stats: min={cost_table.min()}, max={cost_table.max()}, mean={cost_table.mean()}")
@@ -62,13 +57,8 @@ def test_cost_table_creation_with_uniform():
     
     logger.info(f"Creating cost table with uniform: connections={connections}, domain={domain}, low={low}, high={high}")
     
-    cost_table = create_cost_table(
-        connections=connections, 
-        domain=domain, 
-        policy=np.random.uniform,
-        low=low, 
-        high=high
-    )
+    cost_table = _create_cost_table(connections=connections, domain=domain, policy=np.random.uniform, low=low,
+                                    high=high)
     
     logger.info(f"Created cost table with shape {cost_table.shape}")
     logger.info(f"Cost table stats: min={cost_table.min():.4f}, max={cost_table.max():.4f}, mean={cost_table.mean():.4f}")
@@ -92,13 +82,8 @@ def test_cost_table_creation_with_normal():
     
     logger.info(f"Creating cost table with normal distribution: connections={connections}, domain={domain}, loc={loc}, scale={scale}")
     
-    cost_table = create_cost_table(
-        connections=connections, 
-        domain=domain, 
-        policy=np.random.normal,
-        loc=loc, 
-        scale=scale
-    )
+    cost_table = _create_cost_table(connections=connections, domain=domain, policy=np.random.normal, loc=loc,
+                                    scale=scale)
     
     logger.info(f"Created cost table with shape {cost_table.shape}")
     logger.info(f"Cost table stats: min={cost_table.min():.4f}, max={cost_table.max():.4f}, mean={cost_table.mean():.4f}, std={cost_table.std():.4f}")
@@ -190,13 +175,13 @@ def test_invalid_inputs():
     # Test with non-int domain
     logger.info("Testing invalid domain type")
     with pytest.raises(ValueError) as excinfo:
-        create_cost_table(2, "invalid", np.random.randint, low=0, high=10)
+        _create_cost_table(2, "invalid", np.random.randint, low=0, high=10)
     logger.info(f"Caught expected exception: {str(excinfo.value)}")
     
     # Test with non-callable policy
     logger.info("Testing non-callable policy")
     with pytest.raises(ValueError) as excinfo:
-        create_cost_table(2, 3, "not_callable")
+        _create_cost_table(2, 3, "not_callable")
     logger.info(f"Caught expected exception: {str(excinfo.value)}")
     
     logger.info("All assertions passed for invalid inputs")
