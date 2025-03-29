@@ -1,6 +1,6 @@
 from typing import Dict, List, Union
 
-from bp_base.agents import VariableNode, FactorNode
+from bp_base.agents import VariableAgent, FactorAgent
 from DCOP_base import AbstractGraphSystem
 
 
@@ -11,11 +11,11 @@ class FactorGraph(AbstractGraphSystem):
     """
 
     def __init__(self):
-        self.nodes: Dict[str, Union[VariableNode, FactorNode]] = {}
+        self.nodes: Dict[str, Union[VariableAgent, FactorAgent]] = {}
 
-    def add_agent(self, agent: Union[VariableNode, FactorNode]) -> None:
+    def add_agent(self, agent: Union[VariableAgent, FactorAgent]) -> None:
         """
-        Add a VariableNode or FactorNode to the graph.
+        Add a VariableAgent or FactorAgent to the graph.
         """
         if agent.name in self.nodes:
             raise ValueError(f"Agent with name {agent.name} already exists.")
@@ -23,7 +23,7 @@ class FactorGraph(AbstractGraphSystem):
 
     def connect(self, agent1_name: str, agent2_name: str) -> None:
         """
-        Connect two nodes (VariableNode or FactorNode) in the graph.
+        Connect two nodes (VariableAgent or FactorAgent) in the graph.
         """
         if agent1_name not in self.nodes or agent2_name not in self.nodes:
             raise ValueError("Both agents must exist in the graph.")
@@ -33,20 +33,20 @@ class FactorGraph(AbstractGraphSystem):
         agent1.add_neighbor(agent2)
         agent2.add_neighbor(agent1)
 
-    def get_agents(self) -> List[Union[VariableNode, FactorNode]]:
+    def get_agents(self) -> List[Union[VariableAgent, FactorAgent]]:
         """
         Retrieve all nodes (agents) in the graph.
         """
         return list(self.nodes.values())
 
-    def all_variables(self) -> List[VariableNode]:
+    def all_variables(self) -> List[VariableAgent]:
         """
         Retrieve all variable nodes in the graph.
         """
-        return [node for node in self.nodes.values() if isinstance(node, VariableNode)]
+        return [node for node in self.nodes.values() if isinstance(node, VariableAgent)]
 
-    def all_factors(self) -> List[FactorNode]:
+    def all_factors(self) -> List[FactorAgent]:
         """
         Retrieve all factor nodes in the graph.
         """
-        return [node for node in self.nodes.values() if isinstance(node, FactorNode)]
+        return [node for node in self.nodes.values() if isinstance(node, FactorAgent)]
