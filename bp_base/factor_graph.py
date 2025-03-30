@@ -2,16 +2,18 @@
 from abc import ABC
 from typing import List, Dict, Tuple, Union, TypeAlias
 
+
 from networkx import Graph,bipartite
 
 from bp_base.agents import VariableAgent, FactorAgent
 from DCOP_base import Agent
 
 Edges : TypeAlias = Dict[FactorAgent, List[VariableAgent]]
+Edges.__doc__ = "Edges is a dictionary where keys are FactorAgent instances and values are lists of VariableAgent instances. This represents the edges in the factor graph, connecting factors to their corresponding variables."
 
 class FactorGraph:
     def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent],edges: Edges|None=None) -> None:
-        self.g = Graph()  # Use composition instead of inheritance
+        self.g = Graph(type = "Factor")  # Use composition instead of inheritance
 
         if not variable_li and not factor_li:
             raise ValueError("Variable and factor lists cannot both be empty.")
@@ -30,8 +32,9 @@ class FactorGraph:
         """
         for factor in self.edges:
             for i,variable in enumerate(self.edges[factor]):
-                self.g.add_edge(factor, variable)
+                self.g.add_edge(factor, variable,dim = i)
                 factor.add_domain(variable, i)
+
 
 
 

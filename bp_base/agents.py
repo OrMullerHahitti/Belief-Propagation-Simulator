@@ -68,10 +68,12 @@ class VariableAgent(BPAgent):
         For example, increment iteration count or do some local update logic.
         """
         pass
-    @property
-    def belief(self) -> np.ndarray:
-        pass
-    __repr__ = lambda self: f"VariableAgent: {self.name}"
+    #TODO create the self belief function
+
+    # @property
+    # def belief(self) -> np.ndarray:
+    #     pass
+    # __repr__ = lambda self: f"VariableAgent: {self.name}"
 
 class FactorAgent(BPAgent):
     """
@@ -85,13 +87,13 @@ class FactorAgent(BPAgent):
         self.connection_number : Dict[VariableAgent,int] = {}
 
 
-    def compute_message(self, message:Message) -> Message:
+    def compute_message(self, messages:List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
         """
         Compute the message to be sent to the variable node.
-        :param message:
+        :param messages: List of incoming messages from variable nodes.
         :return:
         """
-        return self.computator.compute_R(self.cost_table,message)
+        return self.computator.compute_R(self.cost_table,messages)
 
 
     def _update_cost_table(self, domain:int, *args, **kwargs) -> None:
@@ -101,11 +103,14 @@ class FactorAgent(BPAgent):
         if self.cost_table is not None:
             raise ValueError("Cost table already exists. Cannot create a new one.")
         self.cost_table = CT_CREATION_FUNCTION(len(self.connection_number),MESSAGE_DOMAIN_SIZE,**CT_CREATION_PARAMS)
-    @property
-    def name(self) -> str:
-        if self.domains is None:
-            return self.name
-        return f'f{''.join(str(i) for i in self.domains.keys()[1:])}_'
+
+    #TODO :fix the self naming after creating agents
+
+    # @property
+    # def name(self) -> str:
+    #     if self.domains is None:
+    #         return self.name
+    #     return f'f{''.join(str(i) for i in self.domains.keys()[1:])}_'
 
 
     @property
