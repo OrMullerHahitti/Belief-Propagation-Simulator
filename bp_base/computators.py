@@ -9,7 +9,7 @@ from bp_base.components import  Message,CostTable
 # Configure logger
 logger = logging.getLogger(__name__)
 
-class Computator:
+class BPComputator:
     """
     A demonstration class that performs min-sum or max-sum computations
     (depending on aggregation_func) for messages in a factor graph.
@@ -143,12 +143,12 @@ class Computator:
 ### -------------------------- ###
 ### ------ implementation ---- ###
 ### -------------------------- ###
-class MinSumComputator(Computator):
+class MinSumComputator(BPComputator):
     def __init__(self):
         super().__init__(combine_func=np.add, reduce_func=np.min)
         logger.info("Initialized MinSumComputator")
 
-class MaxSumComputator(Computator):
+class MaxSumComputator(BPComputator):
     def __init__(self):
         super().__init__(combine_func=np.add, reduce_func=np.max)
         logger.info("Initialized MaxSumComputator")
