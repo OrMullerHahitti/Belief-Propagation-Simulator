@@ -98,7 +98,7 @@ class FactorAgent(BPAgent):
         return self.computator.compute_R(self.cost_table,messages)
 
 
-    def _update_cost_table(self, domain:int, *args, **kwargs) -> None:
+    def initiate_cost_table(self) -> None:
         """
         Create a cost table based on the specified distribution and parameters given the domain after connections
         """
