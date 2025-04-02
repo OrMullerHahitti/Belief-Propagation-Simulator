@@ -12,6 +12,10 @@ A = TypeVar('A', bound=Agent)
 
 
 class Message(Generic[A]):
+    '''
+    Represents a message in the BP algorithm.
+
+    '''
     def __init__(self,data:np.ndarray,sender:A,recipient:A):
         self.data = data
         self.sender = sender
