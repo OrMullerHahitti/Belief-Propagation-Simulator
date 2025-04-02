@@ -13,14 +13,14 @@ Edges.__doc__ = "Edges is a dictionary where keys are FactorAgent instances and 
 
 class FactorGraph:
     def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent],edges: Edges|None=None) -> None:
-        self.g = Graph(type = "Factor")  # Use composition instead of inheritance
+        self.G = Graph(type ="Factor")  # Use composition instead of inheritance
 
         if not variable_li and not factor_li:
             raise ValueError("Variable and factor lists cannot both be empty.")
 
 
-        self.g.add_nodes_from(variable_li, bipartite=0)  # Add variable nodes to the graph
-        self.g.add_nodes_from(factor_li, bipartite=1)  # Add factor nodes to the graph
+        self.G.add_nodes_from(variable_li, bipartite=0)  # Add variable nodes to the graph
+        self.G.add_nodes_from(factor_li, bipartite=1)  # Add factor nodes to the graph
         self.edges = edges
 
     def add_edges(self):
@@ -32,14 +32,14 @@ class FactorGraph:
         """
         for factor in self.edges:
             for i,variable in enumerate(self.edges[factor]):
-                self.g.add_edge(factor, variable,dim = i)
+                self.G.add_edge(factor, variable, dim = i)
                 factor.add_domain(variable, i)
 
 
 
 
     def __str__(self):
-        return f"FactorGraph: {self.g.nodes()}"
+        return f"FactorGraph: {self.G.nodes()}"
 
 
     def __repr__(self):
