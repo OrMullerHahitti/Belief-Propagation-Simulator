@@ -21,17 +21,18 @@ class BPAgent(Agent):
     """
 
     def __init__(self,  name: str, node_type: str):
+        ### --- attributes --- ###
         super().__init__( name, node_type)
         self.domain = MESSAGE_DOMAIN_SIZE
         self.computator = COMPUTATOR()
-        self.messages_before_compute: List[Message] =[]
-        self.messages_after_compute: List[Message] =[]
-        self.domains:Dict[BPAgent,int] ={}
+        ### --- message handling --- ###
+        self.mailbox: List[Message] =[]
+        self.messages_to_send: List[Message] =[]
 
 
     def receive_message(self, message:Message["BPAgent"]) -> None:
         '''mailer uses this function to add a data to the agent'''
-        self.messages_before_compute.append(message)
+        self.mailbox.append(message)
     def send_message(self, message:Message["BPAgent"]) -> None:
         message.recipient.receive_message(message)
 
@@ -46,7 +47,7 @@ class VariableAgent(BPAgent):
     """
 
 
-    def __init__(self, name: str, domain_size: int = 3,):
+    def __init__(self, name: str):
         """
         :param node_id: Unique identifier
         :param name: Human-readable nam
@@ -55,13 +56,12 @@ class VariableAgent(BPAgent):
         """
 
         super().__init__(name, node_type="variable")
-        self.domain_size = domain_size
 
     def compute_messages(self) -> None:
         """
         Called by the BPAgent framework to compute outgoing messages.
         """
-        self.messages_after_compute= self.computator.compute_Q(self.messages_before_compute)
+        self.messages_to_send= self.computator.compute_Q(self.mailbox)
 
     def _update_local_variables(self) -> None:
         """
@@ -81,10 +81,12 @@ class FactorAgent(BPAgent):
     Represents a factor node, storing a function that links multiple variables.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str,ct_creation_func = CT_CREATION_FUNCTION,param= CT_CREATION_PARAMS):
         super().__init__(name, "factor")
         self.cost_table :CostTable|None = None
         self.connection_number : Dict[VariableAgent,int] = {}
+        self.ct_creation_func = ct_creation_func
+        self.ct_creation_params = param
 
 
     def compute_message(self, messages:List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
@@ -102,7 +104,7 @@ class FactorAgent(BPAgent):
         """
         if self.cost_table is not None:
             raise ValueError("Cost table already exists. Cannot create a new one.")
-        self.cost_table = CT_CREATION_FUNCTION(len(self.connection_number),MESSAGE_DOMAIN_SIZE,**CT_CREATION_PARAMS)
+        self.cost_table = self.ct_creation_func(len(self.connection_number),self.domain,**self.ct_creation_params)
     def set_dim_for_variable(self, variable:VariableAgent, domain:int) -> None:
         """
         Add a an index to repressent a variable nodes dimension in the CT.
