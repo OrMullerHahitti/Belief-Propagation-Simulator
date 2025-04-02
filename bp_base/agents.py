@@ -50,7 +50,7 @@ class VariableAgent(BPAgent):
         """
         :param node_id: Unique identifier
         :param name: Human-readable nam
-        :param domain_size: e.g., length of the domain array
+        :param domain_size: e.G., length of the domain array
 
         """
 
@@ -103,7 +103,13 @@ class FactorAgent(BPAgent):
         if self.cost_table is not None:
             raise ValueError("Cost table already exists. Cannot create a new one.")
         self.cost_table = CT_CREATION_FUNCTION(len(self.connection_number),MESSAGE_DOMAIN_SIZE,**CT_CREATION_PARAMS)
-
+    def set_dim_for_variable(self, variable:VariableAgent, domain:int) -> None:
+        """
+        Add a an index to repressent a variable nodes dimension in the CT.
+        :param variable: Variable node
+        :param domain: Domain index
+        """
+        self.connection_number[variable] = domain
     #TODO :fix the self naming after creating agents
 
     # @property
