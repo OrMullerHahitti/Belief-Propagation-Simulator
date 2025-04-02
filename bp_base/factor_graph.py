@@ -33,7 +33,14 @@ class FactorGraph:
         for factor in self.edges:
             for i,variable in enumerate(self.edges[factor]):
                 self.G.add_edge(factor, variable, dim = i)
-                factor.add_domain(variable, i)
+                factor.set_dim_for_variable(variable, i)
+    def step(self):
+        """Run the factor graph algorithm."""
+        #compute messages to send and put them in the mailbox
+
+        # send the messages to neighbouring nodes
+        # update messages to send to the ones recieved and messages sent to empty List of messages
+
 
 
 
