@@ -1,8 +1,10 @@
 # implementation of factor graph given everything in bp_base
+from __future__ import annotations
+
 from abc import ABC
 from typing import List, Dict, Tuple, Union, TypeAlias
 
-
+import numpy as np
 from networkx import Graph,bipartite
 
 from bp_base.agents import VariableAgent, FactorAgent
@@ -12,7 +14,7 @@ Edges : TypeAlias = Dict[FactorAgent, List[VariableAgent]]
 Edges.__doc__ = "Edges is a dictionary where keys are FactorAgent instances and values are lists of VariableAgent instances. This represents the edges in the factor graph, connecting factors to their corresponding variables."
 
 class FactorGraph:
-    def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent],edges: Edges|None=None) -> None:
+    def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent],edges: Edges) -> None:
         self.G = Graph(type ="Factor")  # Use composition instead of inheritance
 
         if not variable_li and not factor_li:
@@ -22,8 +24,12 @@ class FactorGraph:
         self.G.add_nodes_from(variable_li, bipartite=0)  # Add variable nodes to the graph
         self.G.add_nodes_from(factor_li, bipartite=1)  # Add factor nodes to the graph
         self.edges = edges
+        #initialize the graph with the edges , and the mailboxes of the nodes
+        self._add_edges()
+        self._initialize_mailbox()
+        self._initialize_cost_table()
 
-    def add_edges(self):
+    def _add_edges(self):
         """Add edges to the graph.
 
         :param variable: Variable node
@@ -36,13 +42,34 @@ class FactorGraph:
                 factor.set_dim_for_variable(variable, i)
     def step(self):
         """Run the factor graph algorithm."""
+        pass
+
         #compute messages to send and put them in the mailbox
+        for node in self.G.nodes():
 
+            if isinstance(node, VariableAgent):
+                node.compute_message()
+            elif isinstance(node, FactorAgent):
+                node.compute_message()
+            else:
+                raise TypeError("Node must be either a VariableAgent or FactorAgent.")
         # send the messages to neighbouring nodes
-        # update messages to send to the ones recieved and messages sent to empty List of messages
+        # update messages to send to the ones received and messages sent to empty List of messages
 
 
-
+    def _initialize_mailbox(self):
+        """Initialize the mailbox for each Agent."""
+        for edge in self.G.edges():
+            factor, variable = edge
+            factor.recieve_message(data=np.zeros(factor.domain),sender=variable, recipient=factor)
+            variable.recieve_message(data=np.zeros(variable.domain),sender=factor, recipient=variable)
+    def _initialize_cost_table(self):
+        """Initialize the cost table for each FactorAgent."""
+        for factor in bipartite.sets(self.G)[1]:
+            if isinstance(factor, FactorAgent):
+                factor.initiate_cost_table()
+            else:
+                raise TypeError("Node must be a FactorAgent.")
 
 
     def __str__(self):
