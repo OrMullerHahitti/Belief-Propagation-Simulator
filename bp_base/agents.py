@@ -114,8 +114,8 @@ class FactorAgent(BPAgent):
 
 
     @property
-    def mean_cost(self) -> float:
-        return np.mean(self.cost_table)
+    def mean_cost(self,axis = None) -> float:
+        return np.mean(self.cost_table,axis=axis)
     def compute_messages(self) -> None:
         self.messages_after_compute = self.computator.compute_Q(self.messages_before_compute)
     def __repr__(self):
