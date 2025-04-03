@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC,abstractmethod
 from typing import Dict, List, TypeAlias
 import numpy as np
+from jedi.inference.gradual.typing import Callable
 
 from bp_base.components import Message, BPComputator, CostTable
 from DCOP_base import Agent
@@ -63,11 +64,7 @@ class VariableAgent(BPAgent):
         """
         self.messages_to_send= self.computator.compute_Q(self.mailbox)
 
-    def _update_local_variables(self) -> None:
-        """
-        For example, increment iteration count or do some local update logic.
-        """
-        pass
+
     #TODO create the self belief function
 
     # @property
@@ -81,7 +78,7 @@ class FactorAgent(BPAgent):
     Represents a factor node, storing a function that links multiple variables.
     """
 
-    def __init__(self, name: str,ct_creation_func = CT_CREATION_FUNCTION,param= CT_CREATION_PARAMS):
+    def __init__(self, name: str,ct_creation_func = CT_CREATION_FUNCTION,param:Dict= CT_CREATION_PARAMS):
         super().__init__(name, "factor")
         self.cost_table :CostTable|None = None
         self.connection_number : Dict[VariableAgent,int] = {}
@@ -105,13 +102,15 @@ class FactorAgent(BPAgent):
         if self.cost_table is not None:
             raise ValueError("Cost table already exists. Cannot create a new one.")
         self.cost_table = self.ct_creation_func(len(self.connection_number),self.domain,**self.ct_creation_params)
-    def set_dim_for_variable(self, variable:VariableAgent, domain:int) -> None:
+    def set_dim_for_variable(self, variable:VariableAgent, dim:int) -> None:
         """
         Add a an index to repressent a variable nodes dimension in the CT.
         :param variable: Variable node
-        :param domain: Domain index
+        :param dim: dimension index
         """
-        self.connection_number[variable] = domain
+        self.connection_number[variable] = dim
+
+
     #TODO :fix the self naming after creating agents
 
     # @property
