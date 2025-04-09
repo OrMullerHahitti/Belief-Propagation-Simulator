@@ -107,7 +107,7 @@ class BPComputator:
 
             # 2) Add incoming messages from all other variables j != i
             for  msg_j in incoming_messages:
-                j= msg_j.sender.domains[msg_j.recipient]
+                j= msg_j.recipient.connection_number[msg_j.sender]
                 if j == i:
                     continue
                 # Reshape Q_{j->f} for broadcasting across dimension j
