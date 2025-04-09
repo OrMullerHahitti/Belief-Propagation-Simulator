@@ -5,7 +5,8 @@ from abc import ABC
 from typing import List, Dict, Tuple, Union, TypeAlias
 
 import numpy as np
-from networkx import Graph,bipartite
+from Demos.SystemParametersInfo import new_x
+from networkx import Graph,bipartite,diameter
 
 from bp_base.agents import VariableAgent, FactorAgent
 from DCOP_base import Agent
@@ -24,10 +25,16 @@ class FactorGraph:
         self.G.add_nodes_from(variable_li, bipartite=0)  # Add variable nodes to the graph
         self.G.add_nodes_from(factor_li, bipartite=1)  # Add factor nodes to the graph
         self.edges = edges
+
         #initialize the graph with the edges , and the mailboxes of the nodes
         self._add_edges()
         self._initialize_mailbox()
         self._initialize_cost_table()
+        for node in bipartite.sets(self.G)[1]:
+            if isinstance(node, FactorAgent):
+                node.set_name_for_factor()
+        self.diameter = diameter(self.G)
+
 
     def _add_edges(self):
         """Add edges to the graph.
@@ -42,19 +49,30 @@ class FactorGraph:
                 factor.set_dim_for_variable(variable, i)
     def step(self):
         """Run the factor graph algorithm."""
-        pass
 
         #compute messages to send and put them in the mailbox
-        for node in self.G.nodes():
+        for agent in self.G.nodes():
+            agent.messages_to_send = agent.compute_messages(agent.mailbox)
+            agent.empty_mailbox()
+        #send the messages to the right nodes
+        for agent in self.G.nodes():
+            for message in agent.messages_to_send:
+                message.sender.send_message(message.recipient, message)
+    def cycle(self):
+        for i in range(self.diameter):
+            self.step()
+    def run(self, max_iter: int = 1000) -> None:
+        """
+        Run the factor graph algorithm for a maximum number of iterations.
+        :param max_iter: Maximum number of iterations to run.
+        """
+        for i in range(max_iter):
+            self.cycle()
+            if self.is_converged():
+                break
 
-            if isinstance(node, VariableAgent):
-                node.compute_message()
-            elif isinstance(node, FactorAgent):
-                node.compute_message()
-            else:
-                raise TypeError("Node must be either a VariableAgent or FactorAgent.")
-        # send the messages to neighbouring nodes
-        # update messages to send to the ones received and messages sent to empty List of messages
+
+
 
 
     def _initialize_mailbox(self):
