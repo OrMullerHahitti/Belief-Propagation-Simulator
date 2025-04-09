@@ -12,7 +12,7 @@ from utils.randomes import create_random_table
 
 from config.hyper_parameters_config import MESSAGE_DOMAIN_SIZE, CT_CREATION_FUNCTION, CT_CREATION_PARAMS,COMPUTATOR
 
-class BPAgent(Agent):
+class BPAgent(Agent,ABC):
 
 
     """
@@ -36,9 +36,13 @@ class BPAgent(Agent):
         self.mailbox.append(message)
     def send_message(self, message:Message["BPAgent"]) -> None:
         message.recipient.receive_message(message)
-
-
-
+    @abstractmethod
+    def compute_messages(self, messages:List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
+        """
+        Abstract method to compute messages.
+        This should be implemented by subclasses.
+        """
+        pass
 
 
 class VariableAgent(BPAgent):
@@ -86,7 +90,7 @@ class FactorAgent(BPAgent):
         self.ct_creation_params = param
 
 
-    def compute_message(self, messages:List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
+    def compute_messages(self, messages:List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
         """
         Compute the message to be sent to the variable node.
         :param messages: List of incoming messages from variable nodes.
@@ -109,6 +113,13 @@ class FactorAgent(BPAgent):
         :param dim: dimension index
         """
         self.connection_number[variable] = dim
+    def set_name_for_factor(self) -> None:
+        """
+        Set the name of the factor agent based on the connected variable agents.
+        """
+        if self.connection_number is None:
+            raise ValueError("Domains not set. Cannot set name.")
+        self.name = f"f{''.join(str(variable.name[1:]) for variable in self.connection_number.keys())}_"
 
 
     #TODO :fix the self naming after creating agents
@@ -126,6 +137,8 @@ class FactorAgent(BPAgent):
     def compute_messages(self) -> None:
         self.messages_after_compute = self.computator.compute_Q(self.messages_before_compute)
     def __repr__(self):
+        return f"FactorAgent: {self.name}"
+    def __str__(self):
         return f"FactorAgent: {self.name}"
 
 
