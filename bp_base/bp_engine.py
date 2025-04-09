@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, List
 import numpy as np
 
+from bp_base.agents import BPAgent
+from bp_base.components import Message
 from bp_variations.factor_graph import FactorGraph
 
-import Pipeline
 class BeliefPropagation(ABC):
     """
     Abstract engine for belief propagation.
     """
     def __init__(self, factor_graph: FactorGraph):
         self.factor_graph = factor_graph
-        self.Q: Dict[tuple, np.ndarray] = {}
-        self.R: Dict[tuple, np.ndarray] = {}
+        self.history = Dict[int, List[BPAgent]]  # Store history of beliefs
 
     @abstractmethod
     def run_inference(self, max_iters: int = 10):
