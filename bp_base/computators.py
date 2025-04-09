@@ -1,5 +1,5 @@
 from sys import implementation
-from typing import List, Set, TypeAlias
+from typing import List, Set, TypeAlias, Dict
 import numpy as np
 import logging
 
@@ -100,7 +100,7 @@ class BPComputator(Computator):
 
         # For each variable index i, compute R_{f->i}
         for  msg_i in incoming_messages:
-            i= msg_i.sender.domains[msg_i.recipient]
+            i= msg_i.recipient.[msg_i.recipient]
             logger.debug(f"Computing message to variable node: {msg_i.sender}")
             # 1) Copy the factor's cost table
             combined = cost_table  # shape (d, ..., d)
@@ -143,6 +143,8 @@ class BPComputator(Computator):
         Get the assignment of the variable based on the final belief.
         :return: index of the assignment
         """
+        return {np.argmax(curr_belief).astype(int): curr_belief.max().astype(int)}
+
         pass
 
 
