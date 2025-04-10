@@ -11,21 +11,21 @@ class Iteration:
     Contains all relevant information about the iteration state.
     """
     def __init__(self):
-        number: int = Field(ge=0)  # Current iteration number (0-based)
-        max_iterations: int = Field(ge=1)  # Maximum number of iterations
+        self.number = 0  # Current iteration number (0-based)
+        self.max_iterations = 1000  # Maximum number of iterations
 
         # Messages state
-        Q_messages: Optional[Dict] = None  # Current Q messages
-        R_messages: Optional[Dict] = None  # Current R messages
-        Q_previous: Optional[Dict] = None  # Previous Q messages
-        R_previous: Optional[Dict] = None  # Previous R messages
+        self.Q_messages = None  # Current Q messages
+        self.R_messages = None  # Current R messages
+        self.Q_previous = None  # Previous Q messages
+        self.R_previous = None  # Previous R messages
 
         # Convergence metrics
-        message_residual: Optional[float] = None  # Difference from previous iteration
+        self.message_residual = None  # Difference from previous iteration
 
         # Timing information
-        start_time: datetime = Field(default_factory=datetime.utcnow)
-        end_time: Optional[datetime] = None
+        self.start_time = datetime.utcnow()
+        self.end_time = None
 
     class Config:
         arbitrary_types_allowed = True

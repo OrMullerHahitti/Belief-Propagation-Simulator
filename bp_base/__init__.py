@@ -1,1 +1,1 @@
-from agents import BPAgent
+from .agents import BPAgent

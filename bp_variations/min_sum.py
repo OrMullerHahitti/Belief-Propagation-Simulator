@@ -1,47 +1,70 @@
-from typing import Dict
-
+from typing import Dict, List, Optional, Union
 import numpy as np
 
-from bp_base.bp_engine import BeliefPropagationEngine
-from DCOP_base.interfaces import DampingPolicy, CostReductionPolicy
-from bp_variations.factor_graph import FactorGraph
+from bp_base.bp_engine import BeliefPropagation
+from bp_base.factor_graph import FactorGraph
+from bp_base.agents import VariableAgent, FactorAgent
 
-
-class MinSumBP(BeliefPropagationEngine):
-    def __init__(
-        self,
-        factor_graph: FactorGraph,
-        damping_policy: DampingPolicy | None = None,
-        cost_reduction_policy: CostReductionPolicy|None = None,
-    ):
+class MinSumBP(BeliefPropagation):
+    """
+    Concrete implementation of BeliefPropagation using the Min-Sum algorithm.
+    This algorithm minimizes the total cost, which is useful for DCOP problems.
+    """
+    
+    def __init__(self, factor_graph: FactorGraph):
+        """
+        Initialize the Min-Sum Belief Propagation engine.
+        
+        Args:
+            factor_graph: The factor graph to run belief propagation on.
+        """
         super().__init__(factor_graph)
-        self.damping_policy = damping_policy
-        self.cost_reduction_policy = cost_reduction_policy
-
-    def run_inference(self, max_iters: int = 10):
-        for iteration in range(max_iters):
-            # Apply cost reduction
-            if self.cost_reduction_policy.should_apply(iteration):
-                alpha = self.cost_reduction_policy.get_alpha(iteration)
-                for factor in self.factor_graph.all_factors():
-                    factor.potential_table *= alpha
-
-            # Update messages (simplified; actual logic goes here)
-            for var_node in self.factor_graph.all_variables():
-                for neighbor in var_node.neighbors:
-                    # Update Q and R messages here
-                    pass
-
+        # Optional damping factor (0.0-1.0) to help with convergence
+        self.damping_factor = 0.5
+        
     def get_beliefs(self) -> Dict[str, np.ndarray]:
-        # Compute beliefs from Q and R messages
+        """
+        Compute the beliefs (local marginals) for each variable node.
+        In min-sum, this represents the cost (or energy) for each possible value.
+        
+        Returns:
+            A dictionary mapping variable names to belief vectors.
+        """
         beliefs = {}
-        for var_node in self.factor_graph.all_variables():
-            beliefs[var_node.name] = np.sum(
-                [self.R[(f.name, var_node.name)] for f in var_node.neighbors], axis=0
-            )
+        
+        # For each variable node, compute its belief by summing incoming messages
+        for node in self.graph.G.nodes():
+            if isinstance(node, VariableAgent):
+                # Initialize to zeros
+                belief = np.zeros(node.domain)
+                
+                # Sum up messages from all connected factor nodes
+                for message in node.mailbox:
+                    belief += message.data
+                
+                # Store the belief
+                beliefs[node.name] = belief
+                
+                # Also update the variable's internal belief
+                node.final_belief = belief
+                
         return beliefs
-
+    
     def get_map_estimate(self) -> Dict[str, int]:
-        # Return the MAP estimate based on beliefs
+        """
+        Return the MAP (Maximum A Posteriori) estimate for each variable.
+        In min-sum, this means finding the value with the MINIMUM cost.
+        
+        Returns:
+            A dictionary mapping variable names to their most likely values.
+        """
+        # First, compute the beliefs for all variables
         beliefs = self.get_beliefs()
-        return {var: np.argmin(cost) for var, cost in beliefs.items()}
+        
+        # For each variable, find the value that minimizes its cost
+        map_estimate = {}
+        for var_name, belief in beliefs.items():
+            # In min-sum, we want the minimum value
+            map_estimate[var_name] = int(np.argmin(belief))
+            
+        return map_estimate
