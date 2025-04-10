@@ -1,27 +1,22 @@
 from collections import namedtuple
-from typing import Any, List, Callable
+from typing import Any, List, Callable, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 
-Point = namedtuple('Point', ['x', 'y'])
-
+from numpy import ndarray
 ############################################################
 # Existing Line class
 ############################################################
 class Line:
-    def __init__(self, A: Point, B: Point):
+    def __init__(self, belief: int|float, constraint: int|float):
         # A, B are two distinct points: (x1, y1) and (x2, y2).
         # We compute line coefficients a1, b1, c1 for the equation:
         #     a1*x + b1*y = c1
-        self.x1, self.y1 = A
-        self.x2, self.y2 = B
+        #     self.a = constraint
+        self.b = belief
 
-        # line: (y2 - y1)*x + (x1 - x2)*y = c1
-        self.a1 = self.y2 - self.y1
-        self.b1 = self.x1 - self.x2
-        self.c1 = self.a1 * self.x1 + self.b1 * self.y1
-
-    def intersection(self, other: 'Line') -> Point | None:
+    @staticmethod
+    def intersection(line:'Line', other: 'Line') -> Tuple[float,int|float] | None:
         """
         Returns the intersection Point of this line with `other`,
         or None if they are parallel.
