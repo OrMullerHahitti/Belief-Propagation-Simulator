@@ -41,15 +41,3 @@ class BPComputator(ABC):
         '''input: cost_table: np.ndarray, messages: List[Message]
         output: List of messages computed from the cost table and the incoming messages for each variable node'''
         pass
-@dataclass
-class History():
-    '''A class to hold the history of the messages sent and received by each agent'''
-    messages_sent:List[Message]
-    messages_received:List[Message]
-    beliefs:List[np.ndarray]
-    map_estimates:List[np.ndarray]
-    def __init__(self):
-        self.messages_sent = []
-        self.messages_received = []
-        self.beliefs = []
-        self.map_estimates = []

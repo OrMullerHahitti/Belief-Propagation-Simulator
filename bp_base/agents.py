@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from abc import ABC,abstractmethod
-from typing import Dict, List, TypeAlias
+from typing import Dict, List, TypeAlias, Any
 import numpy as np
 from jedi.inference.gradual.typing import Callable
 
-from bp_base.components import Message, BPComputator, CostTable
+from bp_base.components import Message, CostTable,Computator
+from bp_base.computators import BPComputator
 from DCOP_base import Agent
 from saved_for_later.decorators import validate_message_direction
 from utils.randomes import create_random_table
@@ -14,21 +15,20 @@ from config.hyper_parameters_config import MESSAGE_DOMAIN_SIZE, CT_CREATION_FUNC
 
 class BPAgent(Agent,ABC):
 
-
     """
     Abstract base class for belief propagation (BP) nodes.
     Extends the Node class with methods relevant to data passing,
     updating local belief, and retrieving that belief.
     """
 
-    def __init__(self,  name: str, node_type: str):
+    def __init__(self,  name: str, node_type: str,domain:int ,computator:BPComputator):
         ### --- attributes --- ###
         super().__init__( name, node_type)
-        self.domain = MESSAGE_DOMAIN_SIZE
-        self.computator = COMPUTATOR()
+        self.domain = domain
+        self.computator = computator
         ### --- message handling --- ###
-        self.mailbox: List[Message] =[]
-        self.messages_to_send: List[Message] =[]
+        self.mailbox: List[Message["BPAgent"]] =[]
+        self.messages_to_send: List[Message["BPAgent"]] =[]
 
 
     def receive_message(self, message:Message["BPAgent"]) -> None:
@@ -52,21 +52,21 @@ class VariableAgent(BPAgent):
     """
 
 
-    def __init__(self, name: str):
+    def __init__(self, name: str,domain:int,computator: BPComputator):
         """
-        :param node_id: Unique identifier
-        :param name: Human-readable nam
-        :param domain_size: e.G., length of the domain array
+        :param name: in our case most of the times will be x1,x2,x3
 
         """
-
-        super().__init__(name, node_type="variable")
+        node_type = "variable"
+        super().__init__(name, node_type,domain,computator)
+        self.final_belief: np.ndarray = np.zeros(domain)
 
     def compute_messages(self) -> None:
         """
         Called by the BPAgent framework to compute outgoing messages.
         """
         self.messages_to_send= self.computator.compute_Q(self.mailbox)
+
 
 
     #TODO create the self belief function
@@ -82,8 +82,9 @@ class FactorAgent(BPAgent):
     Represents a factor node, storing a function that links multiple variables.
     """
 
-    def __init__(self, name: str,ct_creation_func = CT_CREATION_FUNCTION,param:Dict= CT_CREATION_PARAMS):
-        super().__init__(name, "factor")
+    def __init__(self, name: str,domain:int,computator:BPComputator,ct_creation_func :Callable,param:Dict[str,Any] ):
+        node_type = "factor"
+        super().__init__(name, node_type,domain,computator)
         self.cost_table :CostTable|None = None
         self.connection_number : Dict[VariableAgent,int] = {}
         self.ct_creation_func = ct_creation_func
@@ -96,7 +97,7 @@ class FactorAgent(BPAgent):
         :param messages: List of incoming messages from variable nodes.
         :return:
         """
-        return self.computator.compute_R(self.cost_table,messages)
+        return self.computator.compute_R(cost_table=self.cost_table,messages=messages)
 
 
     def initiate_cost_table(self) -> None:

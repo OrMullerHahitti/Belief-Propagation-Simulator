@@ -12,5 +12,3 @@ CT_CREATION_PARAMS = {
 
 #computator
 COMPUTATOR = MaxSumComputator()
-
-
