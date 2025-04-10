@@ -1,11 +1,12 @@
+import numpy as np
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import List, TypeAlias, Generic,TypeVar
-
-import numpy as np
+from typing import List, TypeAlias, Generic,TypeVar, TYPE_CHECKING
 
 from DCOP_base import Agent
 
+if TYPE_CHECKING:
+    from bp_base.agents import BPAgent
 
 CostTable: TypeAlias = np.ndarray
 
@@ -41,3 +42,5 @@ class BPComputator(ABC):
         '''input: cost_table: np.ndarray, messages: List[Message]
         output: List of messages computed from the cost table and the incoming messages for each variable node'''
         pass
+class BPMessage(Message["BPAgent"]):
+    pass
