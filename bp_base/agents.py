@@ -59,14 +59,27 @@ class VariableAgent(BPAgent):
         """
         node_type = "variable"
         super().__init__(name, node_type,domain,computator)
-        self.final_belief: np.ndarray = np.zeros(domain)
 
     def compute_messages(self) -> None:
         """
         Called by the BPAgent framework to compute outgoing messages.
         """
         self.messages_to_send= self.computator.compute_Q(self.mailbox)
-
+    #TODO : make this more modular right now its only for maxsum
+    @property
+    def curr_belief(self) -> np.ndarray:
+        """
+        Compute the current belief based on incoming messages.
+        :return: Current belief as a numpy array.
+        """
+        return np.add([message.data for message in self.mailbox],axis=0)
+    @property
+    def curr_assignment(self) -> int|float:
+        """
+        Compute the current assignment based on incoming messages.
+        :return: Current assignment as a numpy array.
+        """
+        return np.argmax(self.curr_belief, axis=0)
 
 
     #TODO create the self belief function
