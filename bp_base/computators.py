@@ -4,12 +4,12 @@ import numpy as np
 import logging
 
 from bp_base.agents import BPAgent
-from bp_base.components import Message, CostTable, BPMessage,Computator
+from bp_base.components import Message, CostTable
 
 # Configure logger
 logger = logging.getLogger(__name__)
 
-class BPComputator(Computator):
+class BPComputator:
     """
     A demonstration class that performs min-sum or max-sum computations
     (depending on aggregation_func) for messages in a factor graph.
@@ -22,7 +22,7 @@ class BPComputator(Computator):
         self.combine_func = combine_func
         logger.info(f"Initialized Computator with reduce_func={reduce_func.__name__}, combine_func={combine_func.__name__}")
 
-    def compute_Q(self, messages: List[BPMessage]) -> List[Message[BPMessage]]:
+    def compute_Q(self, messages: List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
         """
         Compute variable->factor messages from a variable node's perspective.
 
@@ -42,7 +42,7 @@ class BPComputator(Computator):
 
         # We assume all messages have same shape 'd'
         d = messages[0].data.shape
-        messages_to_send: List[Message[BPMessage]] = []
+        messages_to_send: List[Message["BPAgent"]] = []
 
         # For each factor neighbor F, we compute Q_{X->F}
         for factor_node in senders:
@@ -100,7 +100,7 @@ class BPComputator(Computator):
 
         # For each variable index i, compute R_{f->i}
         for  msg_i in incoming_messages:
-            i= msg_i.recipient.[msg_i.recipient]
+            i= msg_i.recipient[msg_i.recipient]
             logger.debug(f"Computing message to variable node: {msg_i.sender}")
             # 1) Copy the factor's cost table
             combined = cost_table  # shape (d, ..., d)
@@ -137,15 +137,17 @@ class BPComputator(Computator):
         logger.info(f"Computed {len(outgoing_messages)} outgoing R messages")
         return outgoing_messages
 
-    @property
-    def assignemt(self,curr_belief:np.ndarray) -> Dict[str | int, float | int]:
+
+    def assign(self,curr_belief:np.ndarray) -> Dict[str | int, float | int]:
         """
         Get the assignment of the variable based on the final belief.
         :return: index of the assignment
         """
+        #TODO : make it modular so it wont be hardcoded argmax same with .max for now we can keep it that way
+        #TODO : or make it abstract
         return {np.argmax(curr_belief).astype(int): curr_belief.max().astype(int)}
 
-        pass
+
 
 
 
