@@ -5,7 +5,6 @@ from abc import ABC
 from typing import List, Dict, Tuple, Union, TypeAlias
 
 import numpy as np
-from Demos.SystemParametersInfo import new_x
 from networkx import Graph,bipartite,diameter
 
 from bp_base.agents import VariableAgent, FactorAgent
