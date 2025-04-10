@@ -46,29 +46,7 @@ class FactorGraph:
             for i,variable in enumerate(self.edges[factor]):
                 self.G.add_edge(factor, variable, dim = i)
                 factor.set_dim_for_variable(variable, i)
-    def step(self):
-        """Run the factor graph algorithm."""
 
-        #compute messages to send and put them in the mailbox
-        for agent in self.G.nodes():
-            agent.messages_to_send = agent.compute_messages(agent.mailbox)
-            agent.empty_mailbox()
-        #send the messages to the right nodes
-        for agent in self.G.nodes():
-            for message in agent.messages_to_send:
-                message.sender.send_message(message.recipient, message)
-    def cycle(self):
-        for i in range(self.diameter):
-            self.step()
-    def run(self, max_iter: int = 1000) -> None:
-        """
-        Run the factor graph algorithm for a maximum number of iterations.
-        :param max_iter: Maximum number of iterations to run.
-        """
-        for i in range(max_iter):
-            self.cycle()
-            if self.is_converged():
-                break
 
 
 
