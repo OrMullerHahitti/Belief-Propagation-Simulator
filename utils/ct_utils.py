@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Union, Callable, Tuple
 from bp_base.typing import CostTable
+from scipy.special import logsumexp
 
 
 def _create_cost_table(connections: int, domain: int, policy:  Callable = np.random.randint, **policy_params) -> CostTable:
@@ -28,7 +29,7 @@ def _create_cost_table(connections: int, domain: int, policy:  Callable = np.ran
         return policy(**policy_params,size=shape)
     else:
         raise ValueError(f"Unknown policy: {policy}")
-
+#####-------create_cost_table implementations --------#######
 #functions that implement create_cost_table with different policies:
 def create_random_int_table(n:int,domain: int,low=0,high=10) -> CostTable:
     """
@@ -90,10 +91,12 @@ def create_symmetric_cost_table(n: int, m: int) -> CostTable:
 
 
 
+
+
 # example for noramlizing cost table for 3*3 ndarray
 
 #TODO: ask roie: think of how to normalize, this is not good yet
-def normalize_cost_table(cost_table: np.ndarray) -> CostTable:
+def normalize_cost_table_sum(cost_table: np.ndarray) -> CostTable:
     """
     Normalize the cost table so that the sum of all dimensions is equal.
 
@@ -110,6 +113,31 @@ def normalize_cost_table(cost_table: np.ndarray) -> CostTable:
         print(curr_sum)
         cost_table = cost_table /(curr_sum * total_sum)
     return cost_table
+
+def normalize_cost_table(cost_table: np.ndarray, axis: int = None) -> np.ndarray:
+    """
+    Convert integer cost table into a normalized distribution via log-domain softmin.
+
+    Args:
+        cost_table (np.ndarray): Raw cost table (e.g., integers or floats).
+        axis (int, optional): Axis along which to normalize (e.g., 1 to normalize rows).
+
+    Returns:
+        np.ndarray: Normalized distribution (softmin over cost values).
+    """
+    # Convert cost to log-domain potentials (lower cost → higher potential)
+    log_potentials = -cost_table.astype(float)
+
+    # Compute log-normalizer (logZ) over the desired axis
+    logZ = logsumexp(log_potentials, axis=axis, keepdims=True)
+
+    # Compute normalized log-probabilities
+    log_probs = log_potentials - logZ
+
+    # Convert back from log-domain to probabilities
+    probs = np.exp(log_probs)
+
+    return probs
 
 
 """
