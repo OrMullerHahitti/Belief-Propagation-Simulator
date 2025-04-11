@@ -1,6 +1,6 @@
 # config for FactorAgents
 from bp_base.computators import Computator,MaxSumComputator
-from utils import ct_creator
+from utils import ct_utils
 #message parameters
 MESSAGE_DOMAIN_SIZE = 3
 #Cost Table Creation Function and parameters

@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 # Add the parent directory to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from utils.ct_creator import _create_cost_table, normalize_cost_table, create_symmetric_cost_table
+from utils.ct_utils import _create_cost_table, normalize_cost_table, create_symmetric_cost_table
 
 
 def test_cost_table_creation_with_randint():
