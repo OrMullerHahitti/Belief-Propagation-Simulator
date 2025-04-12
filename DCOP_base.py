@@ -39,8 +39,10 @@ class Agent(ABC):
     def __init__(self, name: str, node_type: str):
         self.name = name  # Human-readable name for the node
         self.type = node_type  # Type of the node (e.g., 'variable', 'factor')
+
     def __eq__(self, other):
         return self.name == other.name and self.type != other.type
+
     def __hash__(self):
         return hash((self.name,self.type))
 #mailer class that will handle recieveing and sending the messages to the right nodes
@@ -48,16 +50,20 @@ class Mailer(Agent):
     def __init__(self):
         super().__init__("mailer", "mailer")
         self.mailbox = {}
+
+
     def send_message(self, recipient: Agent, message: Any) -> None:
         if recipient.name in self.mailbox:
             self.mailbox[recipient.name].append(message)
         else:
             self.mailbox[recipient.name] = [message]
+
     def retrieve_messages(self, recipient: Agent) -> List[Any]:
         if recipient.name in self.mailbox:
             return self.mailbox[recipient.name]
         else:
             return []
+
     def clear_mailbox(self) -> None:
         self.mailbox = {}
 

@@ -16,7 +16,5 @@ class BPConfig:
 
     # Simulation parameters
     def __init__(self, factorgraphConfig:GraphConfig,message_pipline:List[MessagePolicy],factor_pipeline:List[FactorPolicy]):
-        """
-        self.factor_graph =  FactorGraph(**factorgraphConfig)
-        self.message_policy_pipline = message_pipline
+        pass
 
