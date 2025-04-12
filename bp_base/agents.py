@@ -5,7 +5,7 @@ from typing import Dict, List, TypeAlias, Any
 import numpy as np
 from jedi.inference.gradual.typing import Callable
 
-from bp_base.components import Message, CostTable,Computator
+from bp_base.components import Message, CostTable
 from bp_base.computators import BPComputator
 from DCOP_base import Agent
 from saved_for_later.decorators import validate_message_direction
