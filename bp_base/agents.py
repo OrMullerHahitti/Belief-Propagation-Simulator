@@ -88,7 +88,7 @@ class VariableAgent(BPAgent):
     # def belief(self) -> np.ndarray:
     #     pass
     # __repr__ = lambda self: f"VariableAgent: {self.name}"
-
+#TODO : add the option to just add a cost table and not to create automaticall
 class FactorAgent(BPAgent):
     """
     Purpose: receive and send messages to the right nodes to the others, computing the beliefs to be sent
