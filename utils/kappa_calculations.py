@@ -1,4 +1,5 @@
 from collections import namedtuple
+from dataclasses import dataclass
 from typing import Any, List, Callable, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,49 +8,27 @@ from numpy import ndarray
 ############################################################
 # Existing Line class
 ############################################################
+
+
+
 class Line:
     def __init__(self, belief: int|float, constraint: int|float):
-        # A, B are two distinct points: (x1, y1) and (x2, y2).
-        # We compute line coefficients a1, b1, c1 for the equation:
-        #     a1*x + b1*y = c1
-        #     self.a = constraint
+        '''
+
+        :param a: the belief sent for a certain domain
+        :param b: the constraint value
+        '''
+        self.a = constraint
         self.b = belief
+    def value(self,k: float) -> float:
+        return self.a*k + self.b
 
-    @staticmethod
-    def intersection(line:'Line', other: 'Line') -> Tuple[float,int|float] | None:
-        """
-        Returns the intersection Point of this line with `other`,
-        or None if they are parallel.
-        """
-        matrix = np.array([[self.a1, self.b1],
-                           [other.a1, other.b1]])
-        constants = np.array([self.c1, other.c1])
+class Segment:
+    def __init__(self,line:Line, start: float, end: float):
+        self.line = line
+        self.start = start
+        self.end = end
 
-        det = np.linalg.det(matrix)
-        if abs(det) < 1e-12:
-            # Lines are parallel or numerically unstable
-            return None
-
-        x, y = np.linalg.solve(matrix, constants)
-        return Point(x, y)
-
-    def y(self, x: float) -> float:
-        """
-        For a given x, return y on this line:  y = (c1 - a1*x) / b1
-        """
-        return (self.c1 - self.a1 * x) / self.b1
-
-    @property
-    def mid_point(self) -> Point:
-        return Point((self.x1 + self.x2) / 2.0,
-                     (self.y1 + self.y2) / 2.0)
-
-    def __gt__(self, other: 'Line'):
-        """
-        Example comparison by the y-coord of the mid_point.
-        Only used if you sort lines in some manner.
-        """
-        return self.mid_point.y > other.mid_point.y
 
 
 ############################################################
@@ -193,4 +172,5 @@ if __name__ == "__main__":
     for seg in segments:
         k_start, k_end, i_row, j_col = seg
         print(f"Segment from k in [{k_start:.2f}, {k_end:.2f}] minimal at ct[{i_row},{j_col}]")
+
 
