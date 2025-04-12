@@ -1,101 +1,81 @@
-# implementation of factor graph given everything in bp_base
-from __future__ import annotations
-
-from abc import ABC
-from typing import List, Dict, Tuple, Union, TypeAlias
-
+import networkx as nx
 import numpy as np
-from networkx import Graph,bipartite,diameter
+from typing import List, Dict, Tuple, Any
 
 from bp_base.agents import VariableAgent, FactorAgent
-from DCOP_base import Agent
 
-Edges : TypeAlias = Dict[FactorAgent, List[VariableAgent]]
-Edges.__doc__ = "Edges is a dictionary where keys are FactorAgent instances and values are lists of VariableAgent instances. This represents the edges in the factor graph, connecting factors to their corresponding variables."
 
 class FactorGraph:
-    def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent],edges: Edges) -> None:
-        self.G = Graph(type ="Factor")  # Use composition instead of inheritance
+    """
+    Represents a factor graph for belief propagation.
+    The graph structure is bipartite, with variable nodes connected to factor nodes.
+    """
 
-        if not variable_li and not factor_li:
-            raise ValueError("Variable and factor lists cannot both be empty.")
-
-
-        self.G.add_nodes_from(variable_li, bipartite=0)  # Add variable nodes to the graph
-        self.G.add_nodes_from(factor_li, bipartite=1)  # Add factor nodes to the graph
-        self.edges = edges
-
-        #initialize the graph with the edges , and the mailboxes of the nodes
-        self._add_edges()
-        self._initialize_mailbox()
-        self._initialize_cost_table()
-        for node in bipartite.sets(self.G)[1]:
-            if isinstance(node, FactorAgent):
-                node.set_name_for_factor()
-        self.diameter = diameter(self.G)
-
-
-    def _add_edges(self):
-        """Add edges to the graph.
-
-        :param variable: Variable node
-        :param factor: Factor node
-        add edges from variable to factor and vice versa and addding the "dom" to both of them
+    def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent], 
+                 edges: Dict[FactorAgent, List[VariableAgent]]):
         """
-        for factor in self.edges:
-            for i,variable in enumerate(self.edges[factor]):
-                self.G.add_edge(factor, variable, dim = i)
-                factor.set_dim_for_variable(variable, i)
-
-
-
-
-
-
-    def _initialize_mailbox(self):
-        """Initialize the mailbox for each Agent."""
+        Initialize the factor graph with variable nodes, factor nodes, and edges.
+        
+        :param variable_li: List of variable agents
+        :param factor_li: List of factor agents
+        :param edges: Dict mapping factor agents to their connected variable agents
+        """
+        # Create a bipartite graph
+        self.G = nx.Graph()
+        
+        # Add nodes
+        self.G.add_nodes_from(variable_li)
+        self.G.add_nodes_from(factor_li)
+        
+        # Add edges and set up factor nodes
+        self.add_edges(edges)
+        
+        # Initialize cost tables for factor nodes
+        self.initialize_cost_tables()
+        
+        # Initialize mailboxes for all nodes
+        self.initialize_mailbox()
+        
+    def add_edges(self, edges: Dict[FactorAgent, List[VariableAgent]]) -> None:
+        """
+        Add edges between factor nodes and variable nodes.
+        
+        :param edges: Dictionary mapping factor nodes to lists of variable nodes
+        """
+        for factor, variables in edges.items():
+            for i, var in enumerate(variables):
+                self.G.add_edge(factor, var)
+                # Set dimension index for the variable in the factor's cost table
+                factor.set_dim_for_variable(var, i)
+    
+    def initialize_cost_tables(self) -> None:
+        """
+        Initialize cost tables for factor nodes.
+        """
+        for node in self.G.nodes():
+            if isinstance(node, FactorAgent):
+                node.initiate_cost_table()
+    
+    def initialize_mailbox(self) -> None:
+        """
+        Initialize mailboxes for all nodes with zero messages.
+        """
         for edge in self.G.edges():
-            factor, variable = edge
-            factor.recieve_message(data=np.zeros(factor.domain),sender=variable, recipient=factor)
-            variable.recieve_message(data=np.zeros(variable.domain),sender=factor, recipient=variable)
-    def _initialize_cost_table(self):
-        """Initialize the cost table for each FactorAgent."""
-        for factor in bipartite.sets(self.G)[1]:
-            if isinstance(factor, FactorAgent):
-                factor.initiate_cost_table()
-            else:
-                raise TypeError("Node must be a FactorAgent.")
-
-
-    def __str__(self):
-        return f"FactorGraph: {self.G.nodes()}"
-
-
-    def __repr__(self):
-        return self.__str__()
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
-    # The following code should run without error
-    # Create variable nodes
-    var1 = VariableAgent(name="v1")
-    var2 = VariableAgent(name="v2")
-    var3 = VariableAgent(name="v3")
-
-    # Create factor nodes
-    factor12 = FactorAgent(name="f12", cost_table=[[0.1, 0.9], [0.8, 0.2]])
-    factor23 = FactorAgent(name="f23", cost_table=[[0.2, 0.8], [0.7, 0.3]])
-
-    # Create factor graph
-    fg = FactorGraph(variable_li=[var1, var2, var3], factor_li=[factor12, factor23])
-    print(fg.graph.nodes())
-    print(fg.graph.edges())
-    # Output:
-    # ['v1', 'v2', 'v3', 'f12', 'f23']
-    # [('f12', 'v1'), ('f12', 'v2'), ('f23', 'v2'), ('f23', 'v3')]
+            factor, variable = None, None
+            
+            # Determine which node is the factor and which is the variable
+            if isinstance(edge[0], FactorAgent) and isinstance(edge[1], VariableAgent):
+                factor, variable = edge[0], edge[1]
+            elif isinstance(edge[0], VariableAgent) and isinstance(edge[1], FactorAgent):
+                variable, factor = edge[0], edge[1]
+            
+            # If both nodes are identified, initialize their mailboxes
+            if factor is not None and variable is not None:
+                # Initialize mailboxes with zeros
+                if not hasattr(factor, 'mailbox'):
+                    factor.mailbox = []
+                if not hasattr(variable, 'mailbox'):
+                    variable.mailbox = []
+                
+                factor.mailbox.append(np.zeros(factor.domain))
+                variable.mailbox.append(np.zeros(variable.domain))
