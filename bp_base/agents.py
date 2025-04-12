@@ -27,17 +27,17 @@ class BPAgent(Agent,ABC):
         self.domain = domain
         self.computator = computator
         ### --- message handling --- ###
-        self.mailbox: List[Message["BPAgent"]] =[]
-        self.messages_to_send: List[Message["BPAgent"]] =[]
+        self.mailbox: List[Message] =[]
+        self.messages_to_send: List[Message] =[]
 
 
-    def receive_message(self, message:Message["BPAgent"]) -> None:
+    def receive_message(self, message:Message) -> None:
         '''mailer uses this function to add a data to the agent'''
         self.mailbox.append(message)
-    def send_message(self, message:Message["BPAgent"]) -> None:
+    def send_message(self, message:Message) -> None:
         message.recipient.receive_message(message)
     @abstractmethod
-    def compute_messages(self, messages:List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
+    def compute_messages(self, messages:List[Message]) -> List[Message]:
         """
         Abstract method to compute messages.
         This should be implemented by subclasses.
