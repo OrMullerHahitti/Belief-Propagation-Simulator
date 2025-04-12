@@ -3,7 +3,7 @@ from typing import List, Set, TypeAlias, Dict
 import numpy as np
 import logging
 
-from bp_base.agents import BPAgent
+from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.components import Message, CostTable
 
 # Configure logger
@@ -14,7 +14,7 @@ class BPComputator:
     A demonstration class that performs min-sum or max-sum computations
     (depending on aggregation_func) for messages in a factor graph.
     """
-    def __init__(self, reduce_func=np.min,combine_func = np.add):
+    def __init__(self, reduce_func=np.min, combine_func=np.add):
         """
         :param aggregation_func: e.g., np.min for min-sum, or np.max for max-sum
         """
@@ -22,7 +22,7 @@ class BPComputator:
         self.combine_func = combine_func
         logger.info(f"Initialized Computator with reduce_func={reduce_func.__name__}, combine_func={combine_func.__name__}")
 
-    def compute_Q(self, messages: List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
+    def compute_Q(self, messages: List[Message[FactorAgent, VariableAgent]]) -> List[Message[VariableAgent, FactorAgent]]:
         """
         Compute variable->factor messages from a variable node's perspective.
 
@@ -42,7 +42,7 @@ class BPComputator:
 
         # We assume all messages have same shape 'd'
         d = messages[0].data.shape
-        messages_to_send: List[Message["BPAgent"]] = []
+        messages_to_send: List[Message[VariableAgent, FactorAgent]] = []
 
         # For each factor neighbor F, we compute Q_{X->F}
         for factor_node in senders:
@@ -60,10 +60,10 @@ class BPComputator:
                 combined = self.combine_func(combined, msg_i.data)
                 logger.debug(f"Combined with message from {msg_i.sender}, current result: {combined}")
 
-            #normalize if you want:
-            offset = np.min(combined)
-            combined -= offset
-            logger.debug(f"Normalized message by subtracting {offset}, result: {combined}")
+            # #normalize if you want:
+            # offset = np.min(combined)
+            # combined -= offset
+            # logger.debug(f"Normalized message by subtracting {offset}, result: {combined}")
 
             # 'me' is the variable node, 'factor_node' is the factor neighbor
             messages_to_send.append(Message(
@@ -78,7 +78,7 @@ class BPComputator:
 
     def compute_R(self,
                   cost_table: CostTable,
-                  incoming_messages: List[Message["BPAgent"]]) -> List[Message["BPAgent"]]:
+                  incoming_messages: List[Message[VariableAgent, FactorAgent]]) -> List[Message[FactorAgent, VariableAgent]]:
         """
         Compute factor->variable messages. We assume:
           - 'cost_table' is an n-dimensional array (d, d, ..., d).
@@ -99,15 +99,16 @@ class BPComputator:
         outgoing_messages = []
 
         # For each variable index i, compute R_{f->i}
-        for  msg_i in incoming_messages:
-            i= msg_i.recipient[msg_i.recipient]
-            logger.debug(f"Computing message to variable node: {msg_i.sender}")
+        for i, msg_i in enumerate(incoming_messages):
+            factor_node = msg_i.recipient
+            variable_node = msg_i.sender
+            logger.debug(f"Computing message to variable node: {variable_node}")
+            
             # 1) Copy the factor's cost table
-            combined = cost_table  # shape (d, ..., d)
+            combined = cost_table.copy()  # shape (d, ..., d)
 
             # 2) Add incoming messages from all other variables j != i
-            for  msg_j in incoming_messages:
-                j= msg_j.recipient.connection_number[msg_j.sender]
+            for j, msg_j in enumerate(incoming_messages):
                 if j == i:
                     continue
                 # Reshape Q_{j->f} for broadcasting across dimension j
@@ -125,12 +126,10 @@ class BPComputator:
             logger.debug(f"Reduction result: {result_1d}")
 
             # 4) Wrap in a new Message, from factor -> variable i
-            #    'msg_i.sender' is the variable node that sent Q_{i->f},
-            #    so we now send from factor -> that same variable node.
             new_msg = Message(
                 data=result_1d,
-                sender=msg_i.recipient,          # or a factor node object if you have one
-                recipient=msg_i.sender    # the original sender variable
+                sender=factor_node,   # factor node
+                recipient=variable_node  # variable node
             )
             outgoing_messages.append(new_msg)
 
@@ -138,19 +137,14 @@ class BPComputator:
         return outgoing_messages
 
 
-    def assign(self,curr_belief:np.ndarray) -> Dict[str | int, float | int]:
+    def assign(self, curr_belief: np.ndarray) -> Dict[str | int, float | int]:
         """
         Get the assignment of the variable based on the final belief.
         :return: index of the assignment
         """
         #TODO : make it modular so it wont be hardcoded argmax same with .max for now we can keep it that way
         #TODO : or make it abstract
-        return {np.argmax(curr_belief).astype(int): curr_belief.max().astype(int)}
-
-
-
-
-
+        return {np.argmax(curr_belief).astype(int): curr_belief.max().astype(float)}
 
 ### -------------------------- ###
 ### ------ implementation ---- ###
