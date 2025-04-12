@@ -1,9 +1,8 @@
-from sys import implementation
+from __future__ import annotations
 from typing import List, Set, TypeAlias, Dict
 import numpy as np
 import logging
 
-from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.components import Message, CostTable
 
 # Configure logger
@@ -22,7 +21,7 @@ class BPComputator:
         self.combine_func = combine_func
         logger.info(f"Initialized Computator with reduce_func={reduce_func.__name__}, combine_func={combine_func.__name__}")
 
-    def compute_Q(self, messages: List[Message[FactorAgent, VariableAgent]]) -> List[Message[VariableAgent, FactorAgent]]:
+    def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
         Compute variable->factor messages from a variable node's perspective.
 
@@ -42,7 +41,7 @@ class BPComputator:
 
         # We assume all messages have same shape 'd'
         d = messages[0].data.shape
-        messages_to_send: List[Message[VariableAgent, FactorAgent]] = []
+        messages_to_send = []
 
         # For each factor neighbor F, we compute Q_{X->F}
         for factor_node in senders:
@@ -78,7 +77,7 @@ class BPComputator:
 
     def compute_R(self,
                   cost_table: CostTable,
-                  incoming_messages: List[Message[VariableAgent, FactorAgent]]) -> List[Message[FactorAgent, VariableAgent]]:
+                  incoming_messages: List[Message]) -> List[Message]:
         """
         Compute factor->variable messages. We assume:
           - 'cost_table' is an n-dimensional array (d, d, ..., d).
