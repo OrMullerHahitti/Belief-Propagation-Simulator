@@ -1,7 +1,7 @@
 import numpy as np
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
-from typing import List, TypeAlias, Generic, TypeVar, TYPE_CHECKING
+from typing import List, TypeAlias, TYPE_CHECKING
 
 from DCOP_base import Agent
 
@@ -10,17 +10,11 @@ if TYPE_CHECKING:
 
 CostTable: TypeAlias = np.ndarray
 
-A = TypeVar('A', bound=Agent)
-S = TypeVar('S', bound=Agent)  # Sender type
-R = TypeVar('R', bound=Agent)  # Recipient type
-
-
-class Message(Generic[S, R]):
+class Message:
     '''
     Represents a message in the BP algorithm.
-    Generic over sender and recipient agent types.
     '''
-    def __init__(self, data: np.ndarray, sender: S, recipient: R):
+    def __init__(self, data: np.ndarray, sender: Agent, recipient: Agent):
         self.data = data
         self.sender = sender
         self.recipient = recipient
@@ -45,5 +39,5 @@ class BPComputator(ABC):
         output: List of messages computed from the cost table and the incoming messages for each variable node'''
         pass
 
-class BPMessage(Message["BPAgent", "BPAgent"]):
+class BPMessage(Message):
     pass
