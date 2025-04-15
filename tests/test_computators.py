@@ -1,11 +1,27 @@
+import os
+from datetime import datetime
+
 import pytest
 import numpy as np
 import logging
 from bp_base.computators import MinSumComputator, MaxSumComputator
 from bp_base.components import Message
+log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "test_logs")
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, f"computator_initialize_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 
 # Configure logger
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("factor_graph_tests")
+logger.setLevel(logging.INFO)
+
+# File handler
+file_handler = logging.FileHandler(log_file)
+file_handler.setLevel(logging.INFO)
+file_format = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_format)
+logger.addHandler(file_handler)
+# Configure logger
+
 
 # Configure test logging
 @pytest.fixture(autouse=True)
