@@ -1,10 +1,12 @@
 import networkx as nx
 import numpy as np
 from typing import List, Dict, Tuple, Any
+import logging
 
 from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.components import Message
 
+logger = logging.getLogger(__name__)
 
 class FactorGraph:
     """

@@ -33,7 +33,16 @@ class BPAgent(Agent,ABC):
 
     def receive_message(self, message:Message) -> None:
         '''mailer uses this function to add a data to the agent'''
+        # Check if we already have a message from this sender
+        for i, existing_msg in enumerate(self.mailbox):
+            if existing_msg.sender == message.sender:
+                # Replace the existing message
+                self.mailbox[i] = message
+                return
+
+        # If no matching message found, append the new one
         self.mailbox.append(message)
+
     def send_message(self, message:Message) -> None:
         message.recipient.receive_message(message)
     @abstractmethod
@@ -154,3 +163,4 @@ class FactorAgent(BPAgent):
         return f"FactorAgent: {self.name}"
     def __str__(self):
         return f"FactorAgent: {self.name}"
+
