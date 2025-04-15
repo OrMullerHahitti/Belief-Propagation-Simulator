@@ -3,6 +3,7 @@ import numpy as np
 from typing import List, Dict, Tuple, Any
 
 from bp_base.agents import VariableAgent, FactorAgent
+from bp_base.components import Message
 
 
 class FactorGraph:
@@ -59,23 +60,29 @@ class FactorGraph:
     def initialize_mailbox(self) -> None:
         """
         Initialize mailboxes for all nodes with zero messages.
+        Each node creates outgoing messages to all its neighbors.
         """
-        for edge in self.G.edges():
-            factor, variable = None, None
+        # First ensure all nodes have empty mailboxes
+        for node in self.G.nodes():
+            if not hasattr(node, 'mailbox'):
+                node.mailbox = []
+        
+        # For each node, create outgoing messages to all its neighbors
+        for node in self.G.nodes():
+            # Get all neighbors of the node
+            neighbors = list(self.G.neighbors(node))
             
-            # Determine which node is the factor and which is the variable
-            if isinstance(edge[0], FactorAgent) and isinstance(edge[1], VariableAgent):
-                factor, variable = edge[0], edge[1]
-            elif isinstance(edge[0], VariableAgent) and isinstance(edge[1], FactorAgent):
-                variable, factor = edge[0], edge[1]
-            
-            # If both nodes are identified, initialize their mailboxes
-            if factor is not None and variable is not None:
-                # Initialize mailboxes with zeros
-                if not hasattr(factor, 'mailbox'):
-                    factor.mailbox = []
-                if not hasattr(variable, 'mailbox'):
-                    variable.mailbox = []
+            # For each neighbor, create a message from this node
+            for neighbor in neighbors:
+                # Create a zero message with appropriate domain size
+                zero_data = np.zeros(neighbor.domain)
                 
-                factor.mailbox.append(np.zeros(factor.domain))
-                variable.mailbox.append(np.zeros(variable.domain))
+                # Create message with this node as sender and neighbor as recipient
+                message = Message(
+                    data=zero_data,
+                    sender=node,
+                    recipient=neighbor
+                )
+                
+                # Add the message to this node's mailbox
+                node.mailbox.append(message)
