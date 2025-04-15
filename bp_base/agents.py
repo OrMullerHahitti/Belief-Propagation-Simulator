@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC,abstractmethod
-from typing import Dict, List, TypeAlias, Any
+from typing import Dict, List, TypeAlias, Any,Callable
 import numpy as np
-from jedi.inference.gradual.typing import Callable
 
 from bp_base.components import Message, CostTable
-from bp_base.components import BPComputator
+from bp_base.computators import BPComputator
 from DCOP_base import Agent
 from saved_for_later.decorators import validate_message_direction
 from utils.randomes import create_random_table
@@ -34,6 +33,7 @@ class BPAgent(Agent,ABC):
     def receive_message(self, message:Message) -> None:
         '''mailer uses this function to add a data to the agent'''
         self.mailbox.append(message)
+
     def send_message(self, message:Message) -> None:
         message.recipient.receive_message(message)
     @abstractmethod
@@ -95,10 +95,11 @@ class FactorAgent(BPAgent):
     Represents a factor node, storing a function that links multiple variables.
     """
 
-    def __init__(self, name: str,domain:int,computator:BPComputator,ct_creation_func :Callable,param:Dict[str,Any] ):
+    def __init__(self, name: str,domain:int,computator:BPComputator,ct_creation_func:Callable,param:Dict[str,Any] ):
         node_type = "factor"
         super().__init__(name, node_type,domain,computator)
         self.cost_table :CostTable|None = None
+        #TODO add the connection number on the edgeds of the graph it self
         self.connection_number : Dict[VariableAgent,int] = {}
         self.ct_creation_func = ct_creation_func
         self.ct_creation_params = param
@@ -110,7 +111,7 @@ class FactorAgent(BPAgent):
         :param messages: List of incoming messages from variable nodes.
         :return:
         """
-        return self.computator.compute_R(cost_table=self.cost_table,messages=messages)
+        return self.computator.compute_R(cost_table=self.cost_table,incoming_messages=messages)
 
 
     def initiate_cost_table(self) -> None:
