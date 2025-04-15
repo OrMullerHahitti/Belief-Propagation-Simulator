@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Dict, List, Optional, Protocol, Any, Union, TypeVar, Generic
 import numpy as np
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
