@@ -6,7 +6,7 @@ import numpy as np
 from jedi.inference.gradual.typing import Callable
 
 from bp_base.components import Message, CostTable
-from bp_base.components import BPComputator
+from bp_base.computators import BPComputator
 from DCOP_base import Agent
 from saved_for_later.decorators import validate_message_direction
 from utils.randomes import create_random_table
