@@ -20,6 +20,18 @@ class Message:
         self.data = data
         self.sender = sender
         self.recipient = recipient
+    
+    def copy(self) -> Message:
+        '''
+        Create a copy of this message with a new data array.
+        :return: A new Message object with same sender, recipient and a copy of data
+        '''
+        return Message(
+            data=np.copy(self.data),
+            sender=self.sender,
+            recipient=self.recipient
+        )
+        
     def __hash__(self):
         return hash((self.sender, self.recipient))
     def __eq__(self, other):
@@ -43,3 +55,4 @@ class BPComputator(ABC):
 
 class BPMessage(Message):
     pass
+
