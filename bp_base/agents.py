@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from abc import ABC,abstractmethod
-from typing import Dict, List, TypeAlias, Any
+from typing import Dict, List, TypeAlias, Any,Callable
 import numpy as np
-from jedi.inference.gradual.typing import Callable
+
 
 from bp_base.components import Message, CostTable
 from bp_base.computators import BPComputator
