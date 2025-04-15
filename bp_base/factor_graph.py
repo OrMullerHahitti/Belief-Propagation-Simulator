@@ -44,9 +44,9 @@ class FactorGraph:
         """
         for factor, variables in edges.items():
             for i, var in enumerate(variables):
-                self.G.add_edge(factor, var)
+                self.G.add_edge(factor, var, dim=i)
                 # Set dimension index for the variable in the factor's cost table
-                factor.set_dim_for_variable(var, i)
+                factor.connection_numbers[var] = i
     
     def initialize_cost_tables(self) -> None:
         """
