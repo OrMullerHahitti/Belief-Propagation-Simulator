@@ -1,3 +1,4 @@
+
 from abc import ABC, abstractmethod
 from typing import Dict, List
 import numpy as np
@@ -54,3 +55,8 @@ class BeliefPropagation(ABC):
             return True
         else:
             return False
+
+
+__doc__=""" in this module we will implement the belief propagation with various policies with factor graph configs
+most of which are implemented in the factor graph module and will be max-sum with different policies and different structures
+we will start with the usual 3-cycle and then move to more complex structures"""
