@@ -26,3 +26,33 @@ Configs will include:
 - **Policies for Factor Graphs (Cost Tables)** - e.g., cost reduction policy (with should apply or when to apply)
 - **stopping critiria** - as a class which we will call stopper or decider, will get curr and message and previous message and will decide if we should stop or not
 - **Max Iterations** - max iterations for the engine
+
+## Steps for creating new configs:
+
+1. Define your graph type (cycle-3, cycle-4, etc.)
+2. Choose a computator type (min-sum, max-sum, etc.)
+3. Specify domain size for variables
+4. Configure cost table parameters:
+   - Select a numpy random function (uniform, normal, randint, etc.)
+   - Set parameters for the random function
+5. Create a config dictionary with all parameters
+6. Use `create_and_save_factor_graph()` to build and save both the config and the graph
+7. The graph will be saved as a pickle file in the "saved_configs/factor_graphs" directory
+
+### Example:
+```python
+# Create a cycle-3 graph with min-sum computator
+config = {
+    'graph_type': 'cycle-3',
+    'graph_name': 'my-cycle-3-graph',
+    'computator_type': 'min-sum',
+    'domain_size': 4,
+    'cost_table_params': {
+        'function_type': 'uniform',
+        'params': {'low': -10, 'high': 10}
+    }
+}
+
+# Create and save the graph
+graph_path = create_and_save_factor_graph(config)
+```
