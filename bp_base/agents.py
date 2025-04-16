@@ -34,12 +34,8 @@ class BPAgent(Agent,ABC):
     def receive_message(self, message:Message) -> None:
         '''mailer uses this function to add a data to the agent'''
         # Check if we already have a message from this sender
-        for i, existing_msg in enumerate(self.mailbox):
-            if existing_msg.sender == message.sender:
-                # Replace the existing message
-                self.mailbox[i] = message
-                return
-
+        if self._check_existing_message(message):
+            return
         # If no matching message found, append the new one
         self.mailbox.append(message)
 
@@ -52,6 +48,14 @@ class BPAgent(Agent,ABC):
         This should be implemented by subclasses.
         """
         pass
+    #TODO: keep it but make irrelevent by automatically moving old messages to history/ empty mailbox
+    def _check_existing_message(self,message:Message) -> bool:
+        for i, existing_msg in enumerate(self.mailbox):
+            if existing_msg.sender == message.sender:
+                # Replace the existing message
+                self.mailbox[i] = message
+                return True
+        return False
 
 
 class VariableAgent(BPAgent):
