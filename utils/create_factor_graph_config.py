@@ -124,15 +124,14 @@ class ConfigCreator:
             if name not in sig.parameters:
                 raise ValueError(f"Parameter '{name}' not accepted by CT factory '{ct_factory}'")
 
-if __name__ == "__main__":
     # Use project root for relative paths
-    config_path = get_project_root() / "configs/factor_graph_configs"
-    ConfigCreator(config_path).create_config(graph_type="cycle",
-                                             domain_size=3,
-                                             num_variables=3,
-                                             ct_factory="random_int",
-                                             ct_params={"low": 2,
-                                                        'high': 100})
+config_path = get_project_root() / "configs/factor_graph_configs"
+ConfigCreator(config_path).create_config(graph_type="cycle",
+                                         domain_size=3,
+                                         num_variables=3,
+                                         ct_factory="random_int",
+                                         ct_params={"low": 2,
+                                                    'high': 100})
 
 
 __doc__="""this module is made to create a config file for the factor graph

@@ -39,6 +39,18 @@ class Agent(ABC):
     def __init__(self, name: str, node_type: str):
         self.name = name  # Human-readable name for the node
         self.type = node_type  # Type of the node (e.g., 'variable', 'factor')
+        self._computator = None
+    @property
+    def computator(self):
+        return self._computator
+
+    @computator.setter
+    def computator(self, computator: Computator) -> None:
+        """
+        Set the computator for this agent.
+        :param computator: The computator to be set.
+        """
+        self._computator = computator
 
     def __eq__(self, other):
         return self.name == other.name and self.type != other.type
