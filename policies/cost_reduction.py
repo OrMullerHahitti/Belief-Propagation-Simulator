@@ -10,7 +10,7 @@ from utils.kappa_calculations import Envelope, Line
 
 Iteration: TypeAlias = Any #for now only a place holder
 '''
-this module is mostly for config!!
+this module is mostly for configs!!
 '''
 class CostReductionPolicy(FactorPolicy, ABC):
     def __init__(self, stopping_critiria: Optional[Callable[[Iteration], bool]] = None,

@@ -11,7 +11,7 @@ from DCOP_base import Agent
 from saved_for_later.decorators import validate_message_direction
 from utils.randomes import create_random_table
 
-from config.hyper_parameters_config import MESSAGE_DOMAIN_SIZE, CT_CREATION_FUNCTION, CT_CREATION_PARAMS,COMPUTATOR
+from configs.hyper_parameters_config import MESSAGE_DOMAIN_SIZE, CT_CREATION_FUNCTION, CT_CREATION_PARAMS,COMPUTATOR
 
 class BPAgent(Agent,ABC):
 
@@ -21,11 +21,10 @@ class BPAgent(Agent,ABC):
     updating local belief, and retrieving that belief.
     """
 
-    def __init__(self,  name: str, node_type: str,domain:int ,computator:BPComputator):
+    def __init__(self,  name: str, node_type: str,domain:int ):
         ### --- attributes --- ###
         super().__init__( name, node_type)
         self.domain = domain
-        self.computator = computator
         ### --- message handling --- ###
         self.mailbox: List[Message] =[]
         self.messages_to_send: List[Message] =[]
@@ -65,13 +64,13 @@ class VariableAgent(BPAgent):
     """
 
 
-    def __init__(self, name: str,domain:int,computator: BPComputator):
+    def __init__(self, name: str,domain:int):
         """
         :param name: in our case most of the times will be x1,x2,x3
 
         """
         node_type = "variable"
-        super().__init__(name, node_type,domain,computator)
+        super().__init__(name, node_type,domain)
 
     def compute_messages(self) -> None:
         """
@@ -108,9 +107,9 @@ class FactorAgent(BPAgent):
     Represents a factor node, storing a function that links multiple variables.
     """
 
-    def __init__(self, name: str,domain:int,computator:BPComputator,ct_creation_func:Callable,param:Dict[str,Any] ):
+    def __init__(self, name: str,domain:int,ct_creation_func:Callable,param:Dict[str,Any] ):
         node_type = "factor"
-        super().__init__(name, node_type,domain,computator)
+        super().__init__(name, node_type,domain)
         self.cost_table :CostTable|None = None
         #TODO add the connection number on the edgeds of the graph it self
         self.connection_number : Dict[VariableAgent,int] = {}

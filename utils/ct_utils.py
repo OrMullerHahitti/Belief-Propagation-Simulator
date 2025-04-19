@@ -51,6 +51,10 @@ def create_uniform_table(n:int,domain: int,low=0, high=1) -> CostTable:
 
     Returns:
         Uniform cost table as numpy array
+        :param n: number of connections
+        :param domain: domain size
+        :param high:
+        :param low:
     """
     return _create_cost_table(n, domain, np.random.uniform, low=low, high=high)
 def create_normal_table(n:int,domain: int,loc=0,scale=1) -> CostTable:

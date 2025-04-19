@@ -1,18 +1,21 @@
+
 from abc import ABC, abstractmethod
 from typing import Dict, List
 import numpy as np
 
 from bp_base.agents import BPAgent
 from bp_base.components import Message
+from bp_base.computators import MaxSumComputator
 from bp_base.factor_graph import FactorGraph
-
+from DCOP_base import Computator
 class BeliefPropagation(ABC):
     """
     Abstract engine for belief propagation.
     """
-    def __init__(self, factor_graph: FactorGraph):
+    def __init__(self, factor_graph: FactorGraph,computator:Computator = MaxSumComputator()):
         self.graph = factor_graph
-        self.iterations = Dict[int, List[BPAgent]]  # Store history of beliefs
+        self.iterations = Dict[int, List[BPAgent]]
+        self.graph.set_computator(computator)# Store history of beliefs
 
     def step(self):
         """Run the factor graph algorithm."""
@@ -54,3 +57,8 @@ class BeliefPropagation(ABC):
             return True
         else:
             return False
+
+
+__doc__=""" in this module we will implement the belief propagation with various policies with factor graph configs
+most of which are implemented in the factor graph module and will be max-sum with different policies and different structures
+we will start with the usual 3-cycle and then move to more complex structures"""
