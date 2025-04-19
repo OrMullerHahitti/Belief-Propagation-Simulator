@@ -11,7 +11,7 @@ from DCOP_base import Agent
 from saved_for_later.decorators import validate_message_direction
 from utils.randomes import create_random_table
 
-from config.hyper_parameters_config import MESSAGE_DOMAIN_SIZE, CT_CREATION_FUNCTION, CT_CREATION_PARAMS,COMPUTATOR
+from configs.hyper_parameters_config import MESSAGE_DOMAIN_SIZE, CT_CREATION_FUNCTION, CT_CREATION_PARAMS,COMPUTATOR
 
 class BPAgent(Agent,ABC):
 
