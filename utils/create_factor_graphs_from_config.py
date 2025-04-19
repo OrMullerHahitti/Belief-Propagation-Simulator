@@ -24,13 +24,12 @@ def get_project_root() -> Path:
 # ──────────────────────────────────────────────────────────────
 # 1.  Registries – reuse the same ones from config_creator.py
 # ──────────────────────────────────────────────────────────────
-from utils.create_factor_graph_config import (
+from configs.global_config_mapping import (
     GRAPH_TYPES,                # str  -> dotted path for a *graph‑topology* builder
-    COMPUTATORS,                # str  -> dotted path for a BPComputator subclass
     CT_FACTORIES,               # str  -> cost‑table factory fn
-    GraphConfig,                # dataclass
-    ConfigCreator,              # helper that can load configs
+                  # helper that can load configs
 )
+from utils.create_factor_graph_config import ConfigCreator, GraphConfig
 
 # Optional: make sure agents & FactorGraph are importable
 from bp_base.agents import VariableAgent, FactorAgent
@@ -78,14 +77,12 @@ class FactorGraphBuilder:
 
         # 2. Resolve callables/classes
         graph_builder_fn: Callable = _resolve(GRAPH_TYPES[cfg.graph_type])
-        computator_cls = _resolve(COMPUTATORS[cfg.computator])
         ct_factory_fn: Callable = CT_FACTORIES[cfg.ct_factory_name]
 
         # 3. Build agents & edges
         variables, factors, edges = graph_builder_fn(
             num_vars=cfg.num_variables,
             domain_size=cfg.domain_size,
-            computator_cls=computator_cls,        # pass class for later use
             ct_factory=ct_factory_fn,
             ct_params=cfg.ct_factory_params,
         )
@@ -108,15 +105,17 @@ class FactorGraphBuilder:
 # 4.  Example graph‑topology builder functions
 #     (plug in as many as you like; just register them in GRAPH_TYPES)
 # ──────────────────────────────────────────────────────────────
-def _make_variable(idx: int, domain: int, computator) -> VariableAgent:
+def _make_variable(idx: int, domain: int) -> VariableAgent:
     name = f"x{idx}"
-    return VariableAgent(name=name, domain=domain, computator=computator())
+    return VariableAgent(name=name,
+                         domain=domain)
 
 def _make_factor(name: str, domain: int,
-                 computator, ct_factory: Callable, ct_params: dict) -> FactorAgent:
+                 ct_factory: Callable, ct_params: dict) -> FactorAgent:
     # we postpone cost‑table creation until FactorGraph initialises
     return FactorAgent(
-        name=name, domain=domain, computator=computator(),
+        name=name,
+        domain=domain,
         ct_creation_func=ct_factory,
         param=ct_params,
     )
@@ -125,7 +124,6 @@ def build_cycle_graph(
     *,
     num_vars: int,
     domain_size: int,
-    computator_cls,
     ct_factory: Callable,
     ct_params: Dict[str, Any],
 ):
@@ -134,7 +132,7 @@ def build_cycle_graph(
     Returns (variables, factors, edges).
     """
     variables: List[VariableAgent] = [
-        _make_variable(i + 1, domain_size, computator_cls) for i in range(num_vars)
+        _make_variable(i + 1, domain_size) for i in range(num_vars)
     ]
 
     factors: List[FactorAgent] = []
@@ -143,7 +141,7 @@ def build_cycle_graph(
     for i in range(num_vars):
         a, b = variables[i], variables[(i + 1) % num_vars]
         fname = f"f{a.name[1:]}{b.name[1:]}"
-        fnode = _make_factor(fname, domain_size, computator_cls,
+        fnode = _make_factor(fname, domain_size,
                              ct_factory, ct_params)
         factors.append(fnode)
         edges[fnode] = [a, b]
