@@ -1,13 +1,15 @@
 import numpy as np
 import logging
 from typing import List, Dict, Tuple, Callable, Any
+
+from DCOP_base import Computator
 from bp_base.typing import CostTable
 from bp_base.components import Message
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
-class BPComputator:
+class BPComputator(Computator):
     """
     Generic class for message computation in belief propagation.
     Can be configured for different BP variants (min-sum, max-sum, etc.)
