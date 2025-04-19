@@ -5,15 +5,17 @@ import numpy as np
 
 from bp_base.agents import BPAgent
 from bp_base.components import Message
+from bp_base.computators import MaxSumComputator
 from bp_base.factor_graph import FactorGraph
-
+from DCOP_base import Computator
 class BeliefPropagation(ABC):
     """
     Abstract engine for belief propagation.
     """
-    def __init__(self, factor_graph: FactorGraph):
+    def __init__(self, factor_graph: FactorGraph,computator:Computator = MaxSumComputator()):
         self.graph = factor_graph
-        self.iterations = Dict[int, List[BPAgent]]  # Store history of beliefs
+        self.iterations = Dict[int, List[BPAgent]]
+        self.graph.set_computator(computator)# Store history of beliefs
 
     def step(self):
         """Run the factor graph algorithm."""

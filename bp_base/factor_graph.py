@@ -3,8 +3,10 @@ import numpy as np
 from typing import List, Dict, Tuple, Any
 import logging
 
+from DCOP_base import Computator
 from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.components import Message
+from bp_base.computators import BPComputator
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +48,7 @@ class FactorGraph:
         :param edges: Dictionary mapping factor nodes to lists of variable nodes
         """
         for factor, variables in edges.items():
+
             for i, var in enumerate(variables):
                 self.G.add_edge(factor, var, dim=i)
                 # Set dimension index for the variable in the factor's cost table
@@ -88,3 +91,14 @@ class FactorGraph:
                 
                 # Add the message to this node's mailbox
                 node.mailbox.append(message)
+
+    def set_computator(self, computator: Computator,**kwargs) -> None:
+        """
+        Set the computator for all nodes in the graph.
+
+        :param computator: The computator to be set
+        """
+        for node in self.G.nodes():
+            node.computator = computator
+
+
