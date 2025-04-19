@@ -7,7 +7,7 @@ from pathlib import Path
 # Add parent directory to path to import modules
 sys.path.append(str(Path(__file__).parent.parent))
 
-from config.create_factor_graphs import (
+from config.create_factor_graph_config import (
     create_factor_graph, 
     create_and_save_factor_graph,
     load_factor_graph, 
