@@ -1,4 +1,4 @@
-# config for FactorAgents
+# configs for FactorAgents
 from bp_base.computators import MaxSumComputator
 from utils import ct_utils
 
