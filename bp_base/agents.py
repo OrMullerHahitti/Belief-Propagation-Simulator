@@ -8,7 +8,6 @@ import numpy as np
 from bp_base.components import Message, CostTable
 from bp_base.computators import BPComputator
 from DCOP_base import Agent
-from saved_for_later.decorators import validate_message_direction
 from utils.randomes import create_random_table
 
 from configs.hyper_parameters_config import MESSAGE_DOMAIN_SIZE, CT_CREATION_FUNCTION, CT_CREATION_PARAMS,COMPUTATOR

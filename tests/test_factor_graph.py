@@ -33,7 +33,6 @@ logger.addHandler(console_handler)
 
 global_config = {
     'domain': 2,
-    'computator': MaxSumComputator,
 }
 
 dict = {
@@ -42,7 +41,6 @@ dict = {
 }
 global_factor={
     'domain': 2,
-    'computator': MaxSumComputator,
     'ct_creation_func':  create_random_int_table,
     'param': dict
 }

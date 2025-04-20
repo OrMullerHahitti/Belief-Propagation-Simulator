@@ -4,22 +4,10 @@ import os
 from pathlib import Path
 from importlib import import_module
 from typing import List, Dict, Callable, Any
-
+import re
 
 # Function to get project root directory
-def get_project_root() -> Path:
-    """Return the path to the project root directory."""
-    # Try to find the project root by looking for a specific directory/file
-    current_path = Path(__file__).resolve().parent
-    while current_path.name != "Belief_propagation_simulator_" and current_path != current_path.parent:
-        current_path = current_path.parent
 
-    # If we didn't find the project root, use the current file's parent
-    if current_path == current_path.parent:
-        # Fallback to assuming we're running from somewhere within the project
-        current_path = Path(__file__).resolve().parent.parent
-
-    return current_path
 
 # ──────────────────────────────────────────────────────────────
 # 1.  Registries – reuse the same ones from config_creator.py
@@ -34,6 +22,7 @@ from utils.create_factor_graph_config import ConfigCreator, GraphConfig
 # Optional: make sure agents & FactorGraph are importable
 from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.factor_graph import FactorGraph
+from utils.path_utils import get_project_root
 
 
 # ──────────────────────────────────────────────────────────────
@@ -48,7 +37,8 @@ def _resolve(dotted: str) -> Any:
 def _next_index(base: Path, stem: str) -> int:
     """Return the next integer suffix for files that start with <stem>."""
     pattern = f"factor-graph-{stem}-number*.pkl"
-    existing = sorted(base.glob(pattern))
+    existing = sorted(base.glob(pattern), key=lambda p: int(p.stem.split("number")[-1]))
+
     if not existing:
         return 0
     # Extract last number
@@ -119,7 +109,8 @@ def _make_factor(name: str, domain: int,
         ct_creation_func=ct_factory,
         param=ct_params,
     )
-
+### ------------ IMPORTANT:  DO NOT CHANGE ------------------ ###
+# TODO: implement other functions to build different graph topologies
 def build_cycle_graph(
     *,
     num_vars: int,
