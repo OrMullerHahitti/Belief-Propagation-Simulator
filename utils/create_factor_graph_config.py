@@ -8,21 +8,8 @@ import sys
 from typing import Any, Dict, Callable
 
 from configs.global_config_mapping import GRAPH_TYPES, CT_FACTORIES
+from utils.path_utils import get_project_root
 
-
-def get_project_root() -> Path:
-    """Return the path to the project root directory."""
-    # Try to find the project root by looking for a specific directory/file
-    current_path = Path(__file__).resolve().parent
-    while current_path.name != "Belief_propagation_simulator_" and current_path != current_path.parent:
-        current_path = current_path.parent
-
-    # If we didn't find the project root, use the current file's parent
-    if current_path == current_path.parent:
-        # Fallback to assuming we're running from somewhere within the project
-        current_path = Path(__file__).resolve().parent.parent
-
-    return current_path
 
 ########################################################################
 # ---- 3. Dataclass that represents *one* configuration ---------------
