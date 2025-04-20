@@ -68,7 +68,22 @@ class Agent(ABC):
         return self.name == other.name and self.type != other.type
 
     def __hash__(self):
-        return hash((self.name,self.type))
+        # Add safety checks to prevent AttributeError
+        try:
+            name_val = self.name
+        except AttributeError:
+            # Use a default if name attribute doesn't exist
+            name_val = str(id(self))
+
+        try:
+            type_val = self.type
+        except AttributeError:
+            # Use a default if type attribute doesn't exist
+            type_val = "unknown"
+
+        return hash((name_val, type_val))
+
+
 #mailer class that will handle recieveing and sending the messages to the right nodes
 class Mailer(Agent):
     def __init__(self):

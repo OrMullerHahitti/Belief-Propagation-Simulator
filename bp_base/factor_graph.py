@@ -25,12 +25,15 @@ class FactorGraph:
         :param factor_li: List of factor agents
         :param edges: Dict mapping factor agents to their connected variable agents
         """
+        self.variables = variable_li
+        self.factors = factor_li
+
         # Create a bipartite graph
         self.G = nx.Graph()
         
         # Add nodes
-        self.G.add_nodes_from(variable_li)
-        self.G.add_nodes_from(factor_li)
+        self.G.add_nodes_from(self.variables)
+        self.G.add_nodes_from(self.factors)
         
         # Add edges and set up factor nodes
         self.add_edges(edges)
@@ -100,5 +103,37 @@ class FactorGraph:
         """
         for node in self.G.nodes():
             node.computator = computator
+
+    def __getstate__(self):
+        """
+        Custom method to control what gets pickled.
+        This helps ensure compatibility when unpickling.
+        """
+        state = self.__dict__.copy()
+        return state
+
+    def __setstate__(self, state):
+        """
+        Custom method to control unpickling behavior.
+        """
+        # Update the object's state with what was in the pickle
+        self.__dict__.update(state)
+
+        # Make sure G is reconstructed if it's missing
+        if not hasattr(self, 'G') or self.G is None:
+            import networkx as nx
+            self.G = nx.Graph()
+
+            # Rebuild graph from variables and factors
+            if hasattr(self, 'variables') and hasattr(self, 'factors'):
+                # Add nodes
+                self.G.add_nodes_from(self.variables)
+                self.G.add_nodes_from(self.factors)
+
+                # Rebuild edges from connection_number info
+                for factor in self.factors:
+                    if hasattr(factor, 'connection_number'):
+                        for var, dim in factor.connection_number.items():
+                            self.G.add_edge(factor, var, dim=dim)
 
 
