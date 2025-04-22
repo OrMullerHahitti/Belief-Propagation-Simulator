@@ -1,6 +1,6 @@
 
 from abc import ABC, abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Callable
 import numpy as np
 
 from bp_base.agents import BPAgent
@@ -12,10 +12,11 @@ class BeliefPropagation(ABC):
     """
     Abstract engine for belief propagation.
     """
-    def __init__(self, factor_graph: FactorGraph,computator:Computator = MaxSumComputator()):
+    def __init__(self, factor_graph: FactorGraph,computator:Computator = MaxSumComputator(),policies:Dict[str, List[Callable]] = None):
         self.graph = factor_graph
         self.iterations = Dict[int, List[BPAgent]]
         self.graph.set_computator(computator)# Store history of beliefs
+        self.policies = policies # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
 
     def step(self):
         """Run the factor graph algorithm."""
