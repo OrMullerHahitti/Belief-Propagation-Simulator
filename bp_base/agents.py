@@ -56,6 +56,7 @@ class BPAgent(Agent,ABC):
         return False
 
 
+
 class VariableAgent(BPAgent):
 
     """

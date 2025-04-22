@@ -28,4 +28,6 @@ class Computator(Protocol):
         pass
     
 
-
+class Policy(Protocol):
+    """Base protocol type for Policy classes"""
+    __call__: Callable
