@@ -1,38 +1,116 @@
-
+import typing
 from abc import ABC, abstractmethod
-from typing import Dict, List, Callable
+from typing import Dict, List, Callable, Tuple, Any
 import numpy as np
 
-from bp_base.agents import BPAgent
+from bp_base.agents import BPAgent, VariableAgent
 from bp_base.components import Message
 from bp_base.computators import MaxSumComputator
 from bp_base.factor_graph import FactorGraph
-from DCOP_base import Computator
-class BeliefPropagation(ABC):
+from DCOP_base import Computator, Agent
+from functools import reduce
+from bp_base.typing import Policy
+from dataclasses import dataclass, field
+T = typing.TypeVar('T')
+
+
+@dataclass
+class Step:
+    """
+    A class to represent a step in the factor graph.
+    """
+    num: int = 0
+    messages: Dict[str, List[Message]] = field(default_factory=dict)
+
+
+    def add(self, agent:Agent, message: Message):
+        """
+        Add a message to the step.
+        """
+        if agent.name not in self.messages:
+            self.messages[agent.name] = []
+        self.messages[agent.name].append(message)
+
+@dataclass
+class Cycle:
+    """
+    A class to represent a cycle in the factor graph.
+    """
+
+    number: int
+    steps : List[Step] = field(default_factory=list)
+
+    def add(self, step: Step):
+        """
+        Add a step to the cycle.
+        """
+        self.steps.append(step)
+    def __eq__(self, other: 'Cycle'):
+        """
+        Check if two cycles are equal.
+        """
+        if len(self.steps) != len(other.steps):
+            return False
+        for step1, step2 in zip(self.steps, other.steps):
+            if step1.messages != step2.messages:
+                return False
+        return True
+
+class History:
+    def __init__(self,**kwargs):
+        self.config = dict(kwargs)
+        self.cycles : Dict[int,Cycle] = {}
+    def __setitem__(self, key:int, value:Cycle):
+        self.cycles[key] = value
+    def __getitem__(self, key:int):
+        return self.cycles[key]
+    def compare_last_two_cycles(self):
+        if len(self.cycles) < 2:
+            return False
+        last_cycle = list(self.cycles.values())[-1]
+        second_last_cycle = list(self.cycles.values())[-2]
+        return last_cycle == second_last_cycle
+
+PolicyType = typing.Literal['message', 'cost_table', 'stopping_criteria', 'assignment']
+### TODO: create a wrapper to config everything beforehand
+### TODO: add a class to handle the policies and the history of the beliefs
+### begining running the algorithm
+class BPEngine:
     """
     Abstract engine for belief propagation.
     """
-    def __init__(self, factor_graph: FactorGraph,computator:Computator = MaxSumComputator(),policies:Dict[str, List[Callable]] = None):
+    def __init__(self, factor_graph: FactorGraph|None=None,computator:Computator = MaxSumComputator(),policies:Dict[PolicyType, List[Policy]] = None):
         self.graph = factor_graph
-        self.iterations = Dict[int, List[BPAgent]]
         self.graph.set_computator(computator)# Store history of beliefs
         self.policies = policies # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
+        self.history = History(computator = computator,policies = policies if not None else None,factor_graph = factor_graph) # Store history of beliefs
 
-    def step(self):
+    # TODO:maybe apply here cost table policies too? or after a cycle? should think this over will open issue
+    def step(self,i:int = 0) -> Step:
         """Run the factor graph algorithm."""
-
+        step = Step(i)
         # compute messages to send and put them in the mailbox
         for agent in self.graph.G.nodes():
             agent.messages_to_send = agent.compute_messages(agent.mailbox)
+            step.add(agent, agent.messages_to_send)
+
+            #apply message policies
+            self._apply_policies(self.policies["message"])
+
             agent.empty_mailbox()
+
         # send the messages to the right nodes
         for agent in self.graph.G.nodes():
             for message in agent.messages_to_send:
                 message.sender.send_message(message.recipient, message)
 
-    def cycle(self):
+        return step
+
+    def cycle(self,j) -> Cycle:
+        cy=Cycle(j)
         for i in range(self.graph.G.diameter):
-            self.step()
+            cy.add(self.step(i))
+        return cy
 
     def run(self, max_iter: int = 1000) -> None:
         """
@@ -40,24 +118,35 @@ class BeliefPropagation(ABC):
         :param max_iter: Maximum number of iterations to run.
         """
         for i in range(max_iter):
-            self.cycle()
-            if self.is_converged():
+            self.history[i]=self.cycle(i)
+            if self._is_converged():
                 break
-
+### -------------------------------------------------------------------####
+    #from here we will implement the getters/properties for the beliefs and the assignments
     def get_beliefs(self) -> Dict[str, np.ndarray]:
         ''' Return the beliefs of the factor graph.
         :return:
         :param: A dictionary mapping variable names to belief vectors.'''
         pass
 
+    def _is_converged(self) -> bool:
+        return self.history.compare_last_two_cycles()
 
-    def get_map_estimate(self) -> Dict[str, int]:
-        pass
-    def is_converged(self) -> bool:
-        if self.cycle[-1] == self.cycle[-2]:
-            return True
-        else:
-            return False
+    @property
+    def assignments(self) -> Dict[str, int|float]:
+        """
+        Get the assignments of the factor graph.
+        Get the assignments of the factor graph.
+        :return: A dictionary mapping variable names to their assignments.
+        """
+        return {node.name: node.curr_assignment for node in self.graph.G.nodes() if isinstance(node, VariableAgent)}
+
+    def _apply_policies(self,data:T)->T:
+        """
+        Apply the policies to the factor graph.
+        """
+
+        return reduce(lambda acc, policy: policy(acc), self.policies, data)
 
 
 __doc__=""" in this module we will implement the belief propagation with various policies with factor graph configs
