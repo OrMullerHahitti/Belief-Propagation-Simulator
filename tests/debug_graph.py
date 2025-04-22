@@ -12,7 +12,7 @@ os.makedirs(log_dir, exist_ok=True)
 
 # Set up root logger
 root_logger = logging.getLogger()
-root_logger.setLevel(logging.DEBUG)
+root_logger.setLevel(logging.INFO)
 
 # Clear any existing handlers
 if root_logger.handlers:
@@ -20,7 +20,6 @@ if root_logger.handlers:
 
 # Create console handler with colored formatting
 console_handler = colorlog.StreamHandler(sys.stdout)
-console_handler.setLevel(logging.DEBUG)
 console_handler.setFormatter(colorlog.ColoredFormatter(
     '%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     log_colors={
@@ -35,13 +34,13 @@ root_logger.addHandler(console_handler)
 
 # Add file handler
 file_handler = logging.FileHandler(os.path.join(log_dir, 'debug_graph.log'))
-file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 root_logger.addHandler(file_handler)
 
 # Get logger for this module
 logger = logging.getLogger(__name__)
 logger.info("Logging is now set up with colored console output")
+
 # Function to find the project root directory
 def find_project_root():
     """Find the project root directory by looking for a common marker like .git or a specific file"""
