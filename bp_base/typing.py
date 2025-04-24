@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Tuple,TypeAlias,Optional,Callable,Union,TypeVar, Protocol
+from typing import Any, Dict, List, Tuple,TypeAlias,Optional,Callable,Union,TypeVar, Protocol, Literal
+
+PolicyType = Literal['message', 'cost_table', 'stopping_criteria', 'assignment']
 
 class BPAgent(Protocol):
     """Base protocol type for Belief Propagation agents"""
@@ -30,4 +32,5 @@ class Computator(Protocol):
 
 class Policy(Protocol):
     """Base protocol type for Policy classes"""
+    type : PolicyType
     __call__: Callable

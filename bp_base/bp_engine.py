@@ -2,17 +2,19 @@ import typing
 from abc import ABC, abstractmethod
 from typing import Dict, List, Callable, Tuple, Any
 import numpy as np
-
+import networkx as nx
 from bp_base.agents import BPAgent, VariableAgent
 from bp_base.components import Message
 from bp_base.computators import MaxSumComputator
 from bp_base.factor_graph import FactorGraph
 from DCOP_base import Computator, Agent
 from functools import reduce
-from bp_base.typing import Policy
+from bp_base.typing import Policy, PolicyType
 from dataclasses import dataclass, field
 T = typing.TypeVar('T')
-
+""" in this module we will implement the belief propagation with various policies with factor graph configs
+most of which are implemented in the factor graph module and will be max-sum with different policies and different structures
+we will start with the usual 3-cycle and then move to more complex structures"""
 
 @dataclass
 class Step:
@@ -25,7 +27,7 @@ class Step:
 
     def add(self, agent:Agent, messages: List[Message]):
         """
-        Add a message to the step.
+        Add a List of messages for each agent per step.
         :param agent: Agent who will send the messages next step
         :param messages: the messages to be sent
         :return:
@@ -75,7 +77,6 @@ class History:
         second_last_cycle = list(self.cycles.values())[-2]
         return last_cycle == second_last_cycle
 
-PolicyType = typing.Literal['message', 'cost_table', 'stopping_criteria', 'assignment']
 ### TODO: create a wrapper to config everything beforehand
 ### TODO: add a class to handle the policies and the history of the beliefs
 ### begining running the algorithm
@@ -105,7 +106,11 @@ class BPEngine:
             step.add(agent, agent.messages_to_send)
 
             #apply message policies
-            self._apply_policies(self.policies["message"])
+            for message in agent.messages_to_send:
+                    # apply policies to the message
+                if isinstance(message, Message) and self.policies["message"]:
+                    message.data = self._apply_policies(self.policies["message"], message)
+                # add the message to the mailbox
 
             agent.empty_mailbox()
 
@@ -118,7 +123,8 @@ class BPEngine:
 
     def cycle(self,j) -> Cycle:
         cy=Cycle(j)
-        for i in range(self.graph.G.diameter):
+        #TODO add diameter in the factorgraph class
+        for i in range(nx.diameter(self.graph.G)):
             cy.add(self.step(i))
         return cy
 
@@ -138,7 +144,7 @@ class BPEngine:
         :return:
         :param: A dictionary mapping variable names to belief vectors.'''
         pass
-
+    #TODO : make it modular with the policies (i.e. policy stopping criteria)
     def _is_converged(self) -> bool:
         return self.history.compare_last_two_cycles()
 
@@ -151,14 +157,12 @@ class BPEngine:
         """
         return {node.name: node.curr_assignment for node in self.graph.G.nodes() if isinstance(node, VariableAgent)}
 
-    def _apply_policies(self,data:T)->T:
+    @staticmethod
+    def _apply_policies(policies:List[Policy],data:T)->T:
         """
         Apply the policies to the factor graph.
         """
 
-        return reduce(lambda acc, policy: policy(acc), self.policies, data)
+        return reduce(lambda acc, policy: policy(acc), policies, data)
 
 
-__doc__=""" in this module we will implement the belief propagation with various policies with factor graph configs
-most of which are implemented in the factor graph module and will be max-sum with different policies and different structures
-we will start with the usual 3-cycle and then move to more complex structures"""
