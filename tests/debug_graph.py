@@ -1,4 +1,5 @@
 import logging
+import pickle
 import sys
 import os
 from pathlib import Path
@@ -62,27 +63,25 @@ def find_project_root():
 project_root = find_project_root()
 sys.path.append(str(project_root))
 
+# Safely load pickle by handling errors - MOVED OUTSIDE TRY BLOCK
+def load_pickle(file_path):
+    try:
+        with open(file_path, 'rb') as f:
+            return pickle.load(f)
+    except Exception as e:
+        print(f"Error loading pickle: {e}")
+        return None
+
 # Import all the required classes before unpickling
 try:
     from bp_base.factor_graph import FactorGraph
     from bp_base.agents import VariableAgent, FactorAgent
     from bp_base.components import Message
     import networkx as nx
+    import inspect  # Add missing import
 
     print(f"NetworkX version: {nx.__version__}")
     print(f"FactorGraph class: {inspect.getmro(FactorGraph)}")
-
-
-
-    # Safely load pickle by handling errors
-    def load_pickle(file_path):
-        try:
-            with open(file_path, 'rb') as f:
-                return pickle.load(f)
-        except Exception as e:
-            print(f"Error loading pickle: {e}")
-            return None
-
 
     # Try to load the pickle
     pickle_path = os.path.join(project_root, 'configs', 'factor_graphs',
@@ -175,4 +174,38 @@ def test_graph_nodes_edges(factor_graph):
     logger.info(f"Number of edges: {len(factor_graph.G.edges())}")
     assert len(factor_graph.G.nodes()) >= 0, "Node count is negative?"
     assert len(factor_graph.G.edges()) >= 0, "Edge count is negative?"
+def test_graph_methods(factor_graph):
+    logger.info("Testing graph methods")
+    assert hasattr(factor_graph, 'initialize_cost_tables'), "initialize_cost_tables method not found"
+    assert hasattr(factor_graph, 'initialize_mailbox'), "initialize_mailbox method not found"
+def test_graph_pickle(factor_graph):
+    logger.info("Testing graph pickling")
+    try:
+        # Pickle the graph
+        with open('test_factor_graph.pkl', 'wb') as f:
+            pickle.dump(factor_graph, f)
 
+        # Unpickle the graph
+        with open('test_factor_graph.pkl', 'rb') as f:
+            loaded_graph = pickle.load(f)
+
+        assert loaded_graph is not None, "Failed to unpickle factor graph"
+        logger.info("Graph pickled and unpickled successfully")
+    except Exception as e:
+        logger.error(f"Error during pickling: {e}")
+        assert False, "Pickling failed"
+def test_loading_factor_graph():
+    logger.info("Testing loading of factor graph")
+    try:
+        fg = load_pickle(pickle_path)
+        for node in fg.G.nodes():
+            logger.info(f"Node: {nodes}")
+            if isinstance(node, FactorAgent):
+                logger.info(f"  - FactorAgent: {node.name} and its table is {node.cost_table}")
+                assert node.cost_table is not None
+
+        assert fg is not None, "Failed to load factor graph"
+        logger.info("Factor graph loaded successfully")
+    except Exception as e:
+        logger.error(f"Error loading factor graph: {e}")
+        assert False, "Loading failed"
