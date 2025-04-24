@@ -44,6 +44,37 @@ class Message:
         return self.__str__()
 
 
+class MessageBox:
+    def __init__(self):
+        self._messages: List[Message] = []
+
+    def add(self, message: Message):
+        """Add a message, replacing any from the same sender."""
+        for idx, existing in enumerate(self._messages):
+            if existing.sender == message.sender:
+                self._messages[idx] = message
+                return
+        self._messages.append(message)
+
+    def get_all(self) -> List[Message]:
+        return list(self._messages)
+
+    def clear(self):
+        self._messages.clear()
+
+    def get_from(self, sender) -> Optional[Message]:
+        for msg in self._messages:
+            if msg.sender == sender:
+                return msg
+        return None
+
+    def __len__(self):
+        return len(self._messages)
+
+    def __iter__(self):
+        return iter(self._messages)
+
+
 class BPMessage(Message):
     pass
 
