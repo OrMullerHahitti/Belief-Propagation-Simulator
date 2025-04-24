@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from abc import ABC,abstractmethod
+from dataclasses import field
 from typing import Dict, List, TypeAlias, Any,Callable
 import numpy as np
-
+from pyexpat.errors import messages
 
 from bp_base.components import Message, CostTable
 from bp_base.computators import BPComputator
@@ -25,7 +26,7 @@ class BPAgent(Agent,ABC):
         super().__init__( name, node_type)
         self.domain = domain
         ### --- message handling --- ###
-        self.mailbox: List[Message] =[]
+        self.mailbox: List[Message] =field(default_factory=list)
         self.messages_to_send: List[Message] =[]
 
 
@@ -40,7 +41,7 @@ class BPAgent(Agent,ABC):
     def send_message(self, message:Message) -> None:
         message.recipient.receive_message(message)
     @abstractmethod
-    def compute_messages(self, messages:List[Message]) -> List[Message]:
+    def compute_messages(self) -> List[Message]:
         """
         Abstract method to compute messages.
         This should be implemented by subclasses.
@@ -55,6 +56,8 @@ class BPAgent(Agent,ABC):
                 return True
         return False
 
+
+##### ----- Variable Agent ----- #####
 
 
 class VariableAgent(BPAgent):
@@ -77,6 +80,7 @@ class VariableAgent(BPAgent):
         Called by the BPAgent framework to compute outgoing messages.
         """
         self.messages_to_send= self.computator.compute_Q(self.mailbox)
+
     #TODO : make this more modular right now its only for maxsum
     @property
     def curr_belief(self) -> np.ndarray:
@@ -85,6 +89,7 @@ class VariableAgent(BPAgent):
         :return: Current belief as a numpy array.
         """
         return np.add([message.data for message in self.mailbox],axis=0)
+
     @property
     def curr_assignment(self) -> int|float:
         """
@@ -100,6 +105,12 @@ class VariableAgent(BPAgent):
     # def belief(self) -> np.ndarray:
     #     pass
     # __repr__ = lambda self: f"VariableAgent: {self.name}"
+
+
+
+### ---- Factor Agent --- ###
+
+
 #TODO : add the option to just add a cost table and not to create automaticall
 class FactorAgent(BPAgent):
     """
@@ -117,13 +128,13 @@ class FactorAgent(BPAgent):
         self.ct_creation_params = param
 
 
-    def compute_messages(self, messages:List[Message]) -> List[Message]:
+    def compute_messages(self) -> List[Message]:
         """
         Compute the message to be sent to the variable node.
         :param messages: List of incoming messages from variable nodes.
         :return:
         """
-        return self.computator.compute_R(cost_table=self.cost_table,messages=messages)
+        return self.computator.compute_R(cost_table=self.cost_table,incoming_messages=self.mailbox)
 
 
     def initiate_cost_table(self) -> None:
@@ -140,6 +151,7 @@ class FactorAgent(BPAgent):
         :param dim: dimension index
         """
         self.connection_number[variable] = dim
+
     def set_name_for_factor(self) -> None:
         """
         Set the name of the factor agent based on the connected variable agents.
@@ -161,8 +173,6 @@ class FactorAgent(BPAgent):
     @property
     def mean_cost(self,axis = None) -> float:
         return np.mean(self.cost_table,axis=axis)
-    def compute_messages(self) -> None:
-        self.messages_after_compute = self.computator.compute_Q(self.messages_before_compute)
     def __repr__(self):
         return f"FactorAgent: {self.name}"
     def __str__(self):
