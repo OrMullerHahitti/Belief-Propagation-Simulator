@@ -23,13 +23,17 @@ class Step:
     messages: Dict[str, List[Message]] = field(default_factory=dict)
 
 
-    def add(self, agent:Agent, message: Message):
+    def add(self, agent:Agent, messages: List[Message]):
         """
         Add a message to the step.
+        :param agent: Agent who will send the messages next step
+        :param messages: the messages to be sent
+        :return:
         """
         if agent.name not in self.messages:
             self.messages[agent.name] = []
-        self.messages[agent.name].append(message)
+        self.messages[agent.name].extend(messages)
+
 
 @dataclass
 class Cycle:
@@ -79,11 +83,17 @@ class BPEngine:
     """
     Abstract engine for belief propagation.
     """
-    def __init__(self, factor_graph: FactorGraph|None=None,computator:Computator = MaxSumComputator(),policies:Dict[PolicyType, List[Policy]] = None):
+    def __init__(self, factor_graph:FactorGraph, computator:Computator = MaxSumComputator(), policies:Dict[PolicyType, List[Policy]]|None=None):
+        """
+        Initialize the belief propagation engine.
+        :param factor_graph:
+        :param computator:
+        :param policies:
+        """
         self.graph = factor_graph
         self.graph.set_computator(computator)# Store history of beliefs
         self.policies = policies # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
-        self.history = History(computator = computator,policies = policies if not None else None,factor_graph = factor_graph) # Store history of beliefs
+        self.history = History(computator = computator,policies = policies,factor_graph = factor_graph) # Store history of beliefs
 
     # TODO:maybe apply here cost table policies too? or after a cycle? should think this over will open issue
     def step(self,i:int = 0) -> Step:
