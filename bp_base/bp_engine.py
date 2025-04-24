@@ -34,6 +34,9 @@ class Step:
         """
         if agent.name not in self.messages:
             self.messages[agent.name] = []
+        # Ensure messages is a list, even if None
+        if messages is None:
+            messages = []
         self.messages[agent.name].extend(messages)
 
 
@@ -92,32 +95,36 @@ class BPEngine:
         :param policies:
         """
         self.graph = factor_graph
-        self.graph.set_computator(computator)# Store history of beliefs
-        self.policies = policies # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
-        self.history = History(computator = computator,policies = policies,factor_graph = factor_graph) # Store history of beliefs
+        self.graph.set_computator(computator)  # Store history of beliefs
+        self.policies = policies  # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
+        self.history = History(computator=computator, policies=policies, factor_graph=factor_graph)  # Store history of beliefs
 
     # TODO:maybe apply here cost table policies too? or after a cycle? should think this over will open issue
-    def step(self,i:int = 0) -> Step:
+    def step(self, i: int = 0) -> Step:
         """Run the factor graph algorithm."""
         step = Step(i)
         # compute messages to send and put them in the mailbox
         for agent in self.graph.G.nodes():
-            agent.messages_to_send = agent.compute_messages(agent.mailbox)
+            agent.messages_to_send = agent.compute_messages()
+            #TODO: send the messages to the right nodes!!!!!!!!!!!!!
+            # Ensure messages_to_send is a list, even if None
+            if agent.messages_to_send is None:
+                agent.messages_to_send = []
             step.add(agent, agent.messages_to_send)
 
-            #apply message policies
-            for message in agent.messages_to_send:
-                    # apply policies to the message
-                if isinstance(message, Message) and self.policies["message"]:
-                    message.data = self._apply_policies(self.policies["message"], message)
-                # add the message to the mailbox
+            # apply message policies
+            if self.policies and "message" in self.policies and self.policies["message"]:
+                for message in agent.messages_to_send:
+                    if isinstance(message, Message):
+                        message.data = self._apply_policies(self.policies["message"], message)
+            # add the message to the mailbox
 
             agent.empty_mailbox()
 
         # send the messages to the right nodes
         for agent in self.graph.G.nodes():
             for message in agent.messages_to_send:
-                message.sender.send_message(message.recipient, message)
+                message.sender.send_message(message)
 
         return step
 
@@ -143,7 +150,12 @@ class BPEngine:
         ''' Return the beliefs of the factor graph.
         :return:
         :param: A dictionary mapping variable names to belief vectors.'''
-        pass
+        beliefs = {}
+        for node in self.graph.G.nodes():
+            if isinstance(node, VariableAgent):
+                beliefs[node.name] = getattr(node, "belief", None)
+        return beliefs
+
     #TODO : make it modular with the policies (i.e. policy stopping criteria)
     def _is_converged(self) -> bool:
         return self.history.compare_last_two_cycles()
@@ -164,5 +176,7 @@ class BPEngine:
         """
 
         return reduce(lambda acc, policy: policy(acc), policies, data)
+
+
 
 
