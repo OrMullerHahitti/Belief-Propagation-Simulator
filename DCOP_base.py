@@ -48,7 +48,7 @@ class Agent(ABC):
     """
     The top-level abstract base class for any node in the DCOP problem.
     """
-    def __init__(self, name: str, node_type: str):
+    def __init__(self, name: str, node_type: str = "general"):
         self.name = name  # Human-readable name for the node
         self.type = node_type  # Type of the node (e.g., 'variable', 'factor')
         self._computator = None
@@ -82,6 +82,7 @@ class Agent(ABC):
             type_val = "unknown"
 
         return hash((name_val, type_val))
+    __repr__ = lambda self: f"Agent({self.name}, {self.type})"
 
 
 #mailer class that will handle recieveing and sending the messages to the right nodes
