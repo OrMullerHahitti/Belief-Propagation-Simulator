@@ -6,7 +6,7 @@ from typing import Dict, List, TypeAlias, Any,Callable
 import numpy as np
 from pyexpat.errors import messages
 
-from bp_base.components import Message, CostTable
+from bp_base.components import Message, CostTable, MessageBox
 from bp_base.computators import BPComputator
 from DCOP_base import Agent
 from utils.randomes import create_random_table
@@ -26,7 +26,7 @@ class BPAgent(Agent,ABC):
         super().__init__( name, node_type)
         self.domain = domain
         ### --- message handling --- ###
-        self.mailbox: List[Message] =field(default_factory=list)
+        self.mailbox: MessageBox()
         self.messages_to_send: List[Message] =[]
 
 
