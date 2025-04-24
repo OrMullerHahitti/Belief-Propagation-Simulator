@@ -42,7 +42,7 @@ class FactorGraph:
         self.initialize_cost_tables()
         
         # Initialize mailboxes for all nodes
-        self.initialize_mailbox()
+        self.initialize_messages()
         
     def add_edges(self, edges: Dict[FactorAgent, List[VariableAgent]]) -> None:
         """
@@ -51,7 +51,9 @@ class FactorGraph:
         :param edges: Dictionary mapping factor nodes to lists of variable nodes
         """
         for factor, variables in edges.items():
-
+            # Ensure connection_number exists
+            if not hasattr(factor, "connection_number"):
+                factor.connection_number = {}
             for i, var in enumerate(variables):
                 self.G.add_edge(factor, var, dim=i)
                 # Set dimension index for the variable in the factor's cost table
@@ -65,7 +67,7 @@ class FactorGraph:
             if isinstance(node, FactorAgent):
                 node.initiate_cost_table()
     
-    def initialize_mailbox(self) -> None:
+    def initialize_messages(self) -> None:
         """
         Initialize mailboxes for all nodes with zero messages.
         Each node creates outgoing messages to all its neighbors.
@@ -77,23 +79,18 @@ class FactorGraph:
         
         # For each node, create outgoing messages to all its neighbors
         for node in self.G.nodes():
-            # Get all neighbors of the node
             neighbors = list(self.G.neighbors(node))
-            
-            # For each neighbor, create a message from this node
             for neighbor in neighbors:
-                # Create a zero message with appropriate domain size
+                # Check if neighbor has a domain attribute
+                logger.info("Initializing mailbox for node: %s", node)
                 zero_data = np.zeros(neighbor.domain)
-                
-                # Create message with this node as sender and neighbor as recipient
                 message = Message(
                     data=zero_data,
                     sender=node,
                     recipient=neighbor
                 )
-                
-                # Add the message to this node's mailbox
-                node.mailbox.append(message)
+                node.messages_to_send.append(message)
+                  # Initialize messages to send
 
     def set_computator(self, computator: Computator,**kwargs) -> None:
         """
@@ -135,5 +132,3 @@ class FactorGraph:
                     if hasattr(factor, 'connection_number'):
                         for var, dim in factor.connection_number.items():
                             self.G.add_edge(factor, var, dim=dim)
-
-
