@@ -37,9 +37,18 @@ class BPAgent(Agent,ABC):
             return
         # If no matching message found, append the new one
         self.mailbox.append(message)
-
-    def send_message(self, message:Message) -> None:
-        message.recipient.receive_message(message)
+    #TODO: change the whole way it works. fix it, think it through from the message creation to the sending , computing and receiving new messages FML
+    def send_messages_after_computation(self) -> None:
+        for message in self.messages_to_send:
+            # Send the message to the recipient
+            message.recipient.receive_message(message)
+    def initialize_messages(self,neighbors:List['BPAgent']) -> None:
+        """
+        Initialize the mailbox and messages to send.
+        This method can be overridden in subclasses to perform additional initialization.
+        """
+        self.mailbox = [Message(np.zeros(self.domain),neighbor,self) for neighbor in neighbors]
+        self.messages_to_send = [Message(np.zeros(self.domain),self,neighbor) for neighbor in neighbors]
     @abstractmethod
     def compute_messages(self) -> List[Message]:
         """
@@ -55,6 +64,11 @@ class BPAgent(Agent,ABC):
                 self.mailbox[i] = message
                 return True
         return False
+    def empty_mailbox(self) -> None:
+        """
+        Clear the mailbox.
+        """
+        self.mailbox = []
 
 
 ##### ----- Variable Agent ----- #####
@@ -88,8 +102,7 @@ class VariableAgent(BPAgent):
         Compute the current belief based on incoming messages.
         :return: Current belief as a numpy array.
         """
-        return np.add([message.data for message in self.mailbox],axis=0)
-
+        return np.sum([message.data for message in self.mailbox], axis=0)
     @property
     def curr_assignment(self) -> int|float:
         """

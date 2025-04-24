@@ -4,3 +4,4 @@ check.py
 *.pyc
 
 __pycache__/
+.venv
