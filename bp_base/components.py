@@ -43,15 +43,6 @@ class Message:
     def __repr__(self):
         return self.__str__()
 
-class BPComputator(ABC):
-    @abstractmethod
-    def compute_Q(self, messages: List[Message]) -> List[Message]:
-        pass
-    @abstractmethod
-    def compute_R(self, cost_table: np.ndarray, messages: Message) -> Message:
-        '''input: cost_table: np.ndarray, messages: List[Message]
-        output: List of messages computed from the cost table and the incoming messages for each variable node'''
-        pass
 
 class BPMessage(Message):
     pass
