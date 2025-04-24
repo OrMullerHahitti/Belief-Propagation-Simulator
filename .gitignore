@@ -1,3 +1,5 @@
 check.py
 /.idea
-/.idea
+__pycache__/
+*.pyc
+
