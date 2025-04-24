@@ -1,0 +1,2 @@
+"""this module contains the logger configuration for the project
+will take from other places in the project and centralize the logging configuration right here, including all basic config and all handlers"""
