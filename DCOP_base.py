@@ -51,7 +51,8 @@ class Agent(ABC):
     def __init__(self, name: str, node_type: str = "general"):
         self.name = name  # Human-readable name for the node
         self.type = node_type  # Type of the node (e.g., 'variable', 'factor')
-        self._computator = None
+        self._computator:Computator|None = None
+
     @property
     def computator(self):
         return self._computator
