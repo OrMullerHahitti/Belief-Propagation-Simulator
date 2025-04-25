@@ -6,7 +6,7 @@ from typing import Dict, List, TypeAlias, Any,Callable
 import numpy as np
 from pyexpat.errors import messages
 
-from bp_base.components import Message, CostTable, MessageBox
+from bp_base.components import Message, CostTable, MessageBox, Mailbox, MailHandler
 from bp_base.computators import BPComputator
 from DCOP_base import Agent
 from utils.randomes import create_random_table
@@ -26,29 +26,23 @@ class BPAgent(Agent,ABC):
         super().__init__( name, node_type)
         self.domain = domain
         ### --- message handling --- ###
-        self.mailbox: MessageBox()
-        self.messages_to_send: List[Message] =[]
-
-
-    def receive_message(self, message:Message) -> None:
-        '''mailer uses this function to add a data to the agent'''
-        # Check if we already have a message from this sender
-        if self._check_existing_message(message):
-            return
-        # If no matching message found, append the new one
-        self.mailbox.append(message)
-    #TODO: change the whole way it works. fix it, think it through from the message creation to the sending , computing and receiving new messages FML
-    def send_messages_after_computation(self) -> None:
-        for message in self.messages_to_send:
-            # Send the message to the recipient
-            message.recipient.receive_message(message)
-    def initialize_messages(self,neighbors:List['BPAgent']) -> None:
+        self.mailer= MailHandler()
+    def recieve_message(self, message: Message) -> None:
         """
-        Initialize the mailbox and messages to send.
-        This method can be overridden in subclasses to perform additional initialization.
+        Receive a message and add it to the mailbox.
+        :param message: Message to be received.
         """
-        self.mailbox = [Message(np.zeros(self.domain),neighbor,self) for neighbor in neighbors]
-        self.messages_to_send = [Message(np.zeros(self.domain),self,neighbor) for neighbor in neighbors]
+        self.mailer.receive_messages(message)
+    def empty_mailbox(self) -> None:
+        """
+        Clear the mailbox.
+        """
+        self.mailbox.clear_inbox()
+    def empty_outgoing(self):
+        """
+        Clear the outbox.
+        """
+        self.mailbox.clear_outgoing()
     @abstractmethod
     def compute_messages(self) -> List[Message]:
         """
@@ -56,19 +50,7 @@ class BPAgent(Agent,ABC):
         This should be implemented by subclasses.
         """
         pass
-    #TODO: keep it but make irrelevent by automatically moving old messages to history/ empty mailbox
-    def _check_existing_message(self,message:Message) -> bool:
-        for i, existing_msg in enumerate(self.mailbox):
-            if existing_msg.sender == message.sender:
-                # Replace the existing message
-                self.mailbox[i] = message
-                return True
-        return False
-    def empty_mailbox(self) -> None:
-        """
-        Clear the mailbox.
-        """
-        self.mailbox = []
+
 
 
 ##### ----- Variable Agent ----- #####
@@ -93,7 +75,7 @@ class VariableAgent(BPAgent):
         """
         Called by the BPAgent framework to compute outgoing messages.
         """
-        self.messages_to_send= self.computator.compute_Q(self.mailbox)
+        self.mailbox.stage = self.computator.compute_Q(self.mailbox.inbox)
 
     #TODO : make this more modular right now its only for maxsum
     @property

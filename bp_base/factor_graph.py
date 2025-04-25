@@ -73,23 +73,15 @@ class FactorGraph:
         Each node creates outgoing messages to all its neighbors.
         """
         # First ensure all nodes have empty mailboxes
-        for node in self.G.nodes():
-            if not hasattr(node, 'mailbox'):
-                node.mailbox = []
+
         
-        # For each node, create outgoing messages to all its neighbors
+     # For each node, create outgoing messages to all its neighbors
         for node in self.G.nodes():
             neighbors = list(self.G.neighbors(node))
             for neighbor in neighbors:
                 # Check if neighbor has a domain attribute
                 logger.info("Initializing mailbox for node: %s", node)
-                zero_data = np.zeros(neighbor.domain)
-                message = Message(
-                    data=zero_data,
-                    sender=node,
-                    recipient=neighbor
-                )
-                node.messages_to_send.append(message)
+                node.mailbox.set_first_message(node,neighbor)
                   # Initialize messages to send
 
     def set_computator(self, computator: Computator,**kwargs) -> None:
