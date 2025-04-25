@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Dict, List, Optional, Protocol, Any, Union, TypeVar, Generic
 import numpy as np
+from functools import singledispatch, singledispatchmethod
 from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from typing import List, TypeAlias, TYPE_CHECKING
@@ -42,37 +43,121 @@ class Message:
         return f"Message from {self.sender.name} to {self.recipient.name}: {self.data}"
     def __repr__(self):
         return self.__str__()
+    def __add__(self, other):
+        if not isinstance(other, Message):
+            raise TypeError("Can only add Message to Message")
+        if self.sender != other.recipient or self.recipient != other.sender:
+            raise ValueError("Cannot add messages from different senders or to different recipients")
+        return Message(
+            data=self.data + other.data,
+            sender=self.sender,
+            recipient=self.recipient
+        )
 
 
-class MessageBox:
-    def __init__(self):
-        self._messages: List[Message] = []
 
-    def add(self, message: Message):
+
+
+class MailHandler:
+    def __init__(self,_domain_size: int):
+        self._message_domain_size = _domain_size
+        self._incoming: List[Message] = []
+        self._outgoing: List[Message] = []
+
+    def set_first_message(self,owner: BPAgent,neighbor:BPAgent) -> Optional[Message]:
+        """Add a message to the mailbox, replacing any from the same sender."""
+        self._incoming.append(Message(np.zeros(self._message_domain_size), neighbor, owner))
+        self._outgoing.append(Message(np.zeros(self._message_domain_size), owner, neighbor))
+        # for idx, existing in enumerate(self._incoming):
+        #     if existing.sender == to_send.sender:
+        #         self._incoming[idx] = to_send
+        #         return
+        # self._incoming.append(to_send)
+
+    #TODO: decide where the mailbox should be cleared
+    #TODO: decide where THE SENDER BECOMES THE RECIEVER ETC HERE? IN THE BP AGENT? IN THE COMPUTATOR? I THINK THE BEST IS IN THE AGENT WITH A PRIVATE FUNCTION
+    #TODO : might be better to save all incmoing out going in a dict so i can hash them and retrieve them faster
+    @singledispatchmethod
+    def receive_message(self, message: Message):
+        """Handle a single Message."""
+        for idx, msg in enumerate(self._incoming):
+            if msg.sender == message.sender:
+                self._incoming[idx] = message  # probably want assignment here
+                break
+        else:
+            self._incoming.append(message)
+
+    @receive_message.register(list)
+    def _(self, messages: list[Message]):
+        """Handle a list of Messages."""
+        for message in messages:
+            self.receive_message(message)
+
+
+
+    def stage_sending(self, messages: List[Message]):##i.e staging meaning computing the messages in the inbox
         """Add a message, replacing any from the same sender."""
-        for idx, existing in enumerate(self._messages):
-            if existing.sender == message.sender:
-                self._messages[idx] = message
-                return
-        self._messages.append(message)
+        if len(self._outgoing) == 0:
+            self._outgoing= self._reciever_sender_turnaround(messages.copy())
+            return
+        else:
+            raise RuntimeError ("outbox was not cleared after sending messages")
+    def send_messages(self) -> List[Message]:
+        """Send all messages in the mailbox."""
+        # Send all messages in the mailbox
+        sent_messages = self._outgoing.copy()
+        self._outgoing.clear() #always clear outgiong, for all agents.
+        return sent_messages
 
-    def get_all(self) -> List[Message]:
-        return list(self._messages)
 
-    def clear(self):
-        self._messages.clear()
+    @staticmethod
+    @singledispatchmethod
+    def _reciever_sender_turnaround(arg: Union[Message, List[Message]]):
+        pass
+    @staticmethod
+    @_reciever_sender_turnaround.register(List[Message])
+    def _(arg: List[Message]):
+        return [Message(
+            data=message.data,
+            sender=message.recipient,
+            recipient=message.sender
+        )
+            for message in arg]
+    @staticmethod
+    @_reciever_sender_turnaround.register(Message)
+    def _(arg: Message):
+        return Message(
+            data=arg.data,
+            sender=arg.recipient,
+            recipient=arg.sender
+        )
 
-    def get_from(self, sender) -> Optional[Message]:
-        for msg in self._messages:
-            if msg.sender == sender:
+    @property
+    def inbox(self) -> List[Message]:
+        return self._incoming
+
+    def clear_inbox(self): #important!!!  for variables never clear the inbox
+        self._incoming.clear()
+    def clear_outgoing(self):
+        self._outgoing.clear()
+
+    def __getitem__(self, sender_name:str) -> Optional[Message]:
+        for msg in self._incoming:
+            if msg.sender.name == sender_name:
                 return msg
         return None
+    def __setitem__(self,sender_name:str, message: Message):
+        pass
+
+
 
     def __len__(self):
-        return len(self._messages)
+        return len(self._incoming)
 
     def __iter__(self):
-        return iter(self._messages)
+        return iter(self._incoming)
+
+
 
 
 class BPMessage(Message):
