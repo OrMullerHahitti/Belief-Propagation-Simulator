@@ -33,6 +33,13 @@ class BPAgent(Agent,ABC):
         :param message: Message to be received.
         """
         self.mailer.receive_messages(message)
+    def send_message(self, message: Message) -> None:
+        """
+        Send a message to the recipient.
+        :param message: Message to be sent.
+        """
+        for message in self.mailer.outbox:
+            self.mailer.send_message(message)
     def empty_mailbox(self) -> None:
         """
         Clear the mailbox.
@@ -78,7 +85,7 @@ class VariableAgent(BPAgent):
         """
         Called by the BPAgent framework to compute outgoing messages.
         """
-        self.mailbox.stage = self.computator.compute_Q(self.mailbox.inbox)
+        self.mailer.stage_sending(self.computator.compute_Q(self.mailer.inbox))
 
     #TODO : make this more modular right now its only for maxsum
     @property
@@ -87,7 +94,7 @@ class VariableAgent(BPAgent):
         Compute the current belief based on incoming messages.
         :return: Current belief as a numpy array.
         """
-        return np.sum([message.data for message in self.mailbox], axis=0)
+        return np.sum([message.data for message in self.inbox], axis=0)
     @property
     def curr_assignment(self) -> int|float:
         """
@@ -132,7 +139,7 @@ class FactorAgent(BPAgent):
         :param messages: List of incoming messages from variable nodes.
         :return:
         """
-        return self.computator.compute_R(cost_table=self.cost_table,incoming_messages=self.mailbox)
+        return self.mailer.stage_sending(self.computator.compute_R(cost_table=self.cost_table,incoming_messages=self.inbox))
 
 
     def initiate_cost_table(self) -> None:
@@ -157,16 +164,6 @@ class FactorAgent(BPAgent):
         if self.connection_number is None:
             raise ValueError("Domains not set. Cannot set name.")
         self.name = f"f{''.join(str(variable.name[1:]) for variable in self.connection_number.keys())}_"
-
-
-    #TODO :fix the self naming after creating agents
-
-    # @property
-    # def name(self) -> str:
-    #     if self.domains is None:
-    #         return self.name
-    #     return f'f{''.join(str(i) for i in self.domains.keys()[1:])}_'
-
 
     @property
     def mean_cost(self,axis = None) -> float:
