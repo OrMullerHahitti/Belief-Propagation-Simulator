@@ -6,7 +6,7 @@ from typing import Dict, List, TypeAlias, Any,Callable
 import numpy as np
 from pyexpat.errors import messages
 
-from bp_base.components import Message, CostTable, MessageBox, Mailbox, MailHandler
+from bp_base.components import Message, CostTable, MailHandler
 from bp_base.computators import BPComputator
 from DCOP_base import Agent
 from utils.randomes import create_random_table
@@ -26,8 +26,8 @@ class BPAgent(Agent,ABC):
         super().__init__( name, node_type)
         self.domain = domain
         ### --- message handling --- ###
-        self.mailer= MailHandler()
-    def recieve_message(self, message: Message) -> None:
+        self.mailer= MailHandler(domain)
+    def receive_message(self, message: Message) -> None:
         """
         Receive a message and add it to the mailbox.
         :param message: Message to be received.
@@ -37,12 +37,15 @@ class BPAgent(Agent,ABC):
         """
         Clear the mailbox.
         """
-        self.mailbox.clear_inbox()
+        self.mailer.clear_inbox()
     def empty_outgoing(self):
         """
         Clear the outbox.
         """
-        self.mailbox.clear_outgoing()
+        self.mailer.clear_outgoing()
+    @property
+    def inbox(self):
+        return self.mailer.inbox
     @abstractmethod
     def compute_messages(self) -> List[Message]:
         """

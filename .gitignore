@@ -5,3 +5,4 @@ check.py
 
 __pycache__/
 .venv
+/older_stuff/kappa_calculations.py
