@@ -15,7 +15,7 @@ CostTable: TypeAlias = np.ndarray
 
 class Message:
     '''
-    Represents a message in the BP algorithm.
+    Represents a message in the BP algorithm. (Base class) will be extended for different kinds of messages.
     '''
     def __init__(self, data: np.ndarray, sender: Agent, recipient: Agent):
         self.data = data
@@ -66,8 +66,8 @@ class MailHandler:
 
     def set_first_message(self,owner: BPAgent,neighbor:BPAgent) -> Optional[Message]:
         """Add a message to the mailbox, replacing any from the same sender."""
-        self._incoming.append(Message(np.zeros(self._message_domain_size), neighbor, owner))
-        self._outgoing.append(Message(np.zeros(self._message_domain_size), owner, neighbor))
+        self._incoming.append(Message(np.zeros(self._message_domain_size,), neighbor, owner))
+        self._outgoing.append(Message(np.zeros(self._message_domain_size,), owner, neighbor))
         # for idx, existing in enumerate(self._incoming):
         #     if existing.sender == to_send.sender:
         #         self._incoming[idx] = to_send
@@ -78,7 +78,7 @@ class MailHandler:
     #TODO: decide where THE SENDER BECOMES THE RECIEVER ETC HERE? IN THE BP AGENT? IN THE COMPUTATOR? I THINK THE BEST IS IN THE AGENT WITH A PRIVATE FUNCTION
     #TODO : might be better to save all incmoing out going in a dict so i can hash them and retrieve them faster
     @singledispatchmethod
-    def receive_message(self, message: Message):
+    def receive_messages(self, message: Message):
         """Handle a single Message."""
         for idx, msg in enumerate(self._incoming):
             if msg.sender == message.sender:
@@ -87,7 +87,7 @@ class MailHandler:
         else:
             self._incoming.append(message)
 
-    @receive_message.register(list)
+    @receive_messages.register(list)
     def _(self, messages: list[Message]):
         """Handle a list of Messages."""
         for message in messages:
@@ -98,7 +98,7 @@ class MailHandler:
     def stage_sending(self, messages: List[Message]):##i.e staging meaning computing the messages in the inbox
         """Add a message, replacing any from the same sender."""
         if len(self._outgoing) == 0:
-            self._outgoing= self._reciever_sender_turnaround(messages.copy())
+            self._outgoing= self._receiver_sender_turnaround(messages.copy())
             return
         else:
             raise RuntimeError ("outbox was not cleared after sending messages")
@@ -108,14 +108,26 @@ class MailHandler:
         sent_messages = self._outgoing.copy()
         self._outgoing.clear() #always clear outgiong, for all agents.
         return sent_messages
+    def clear_inbox(self): #important!!!  for variables never clear the inbox
+        self._incoming.clear()
+    def clear_outgoing(self):
+        self._outgoing.clear()
+
+    @property
+    def inbox(self) -> List[Message]:
+        return self._incoming
+
+    @property
+    def outbox(self) -> List[Message]:
+        return self._outgoing
 
 
-    @staticmethod
+
     @singledispatchmethod
-    def _reciever_sender_turnaround(arg: Union[Message, List[Message]]):
+    def _receiver_sender_turnaround(arg: Union[Message, List[Message]]):
         pass
-    @staticmethod
-    @_reciever_sender_turnaround.register(List[Message])
+
+    @_receiver_sender_turnaround.register(list)
     def _(arg: List[Message]):
         return [Message(
             data=message.data,
@@ -123,8 +135,8 @@ class MailHandler:
             recipient=message.sender
         )
             for message in arg]
-    @staticmethod
-    @_reciever_sender_turnaround.register(Message)
+
+    @_receiver_sender_turnaround.register(Message)
     def _(arg: Message):
         return Message(
             data=arg.data,
@@ -132,14 +144,9 @@ class MailHandler:
             recipient=arg.sender
         )
 
-    @property
-    def inbox(self) -> List[Message]:
-        return self._incoming
 
-    def clear_inbox(self): #important!!!  for variables never clear the inbox
-        self._incoming.clear()
-    def clear_outgoing(self):
-        self._outgoing.clear()
+
+
 
     def __getitem__(self, sender_name:str) -> Optional[Message]:
         for msg in self._incoming:

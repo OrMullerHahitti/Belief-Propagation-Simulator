@@ -1,12 +1,12 @@
 #cost reduction policy for the factor node
 from abc import ABC, abstractmethod
-from typing import Callable, TypeAlias, Any, List, Union, Optional, Tuple, cast
+from typing import Callable, TypeAlias, Any, List, Optional, Tuple
 
 import numpy as np
 
 from DCOP_base import Agent
 from policies.abstract import FactorPolicy
-from utils.kappa_calculations import Envelope, Line
+from older_stuff.kappa_calculations import Envelope
 
 Iteration: TypeAlias = Any #for now only a place holder
 '''
