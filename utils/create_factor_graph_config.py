@@ -5,7 +5,7 @@ import pickle
 import inspect
 import os
 import sys
-from typing import Any, Dict, Callable
+from typing import Any, Dict, Callable, List
 
 from configs.global_config_mapping import GRAPH_TYPES, CT_FACTORIES
 from utils.path_utils import get_project_root
@@ -14,7 +14,20 @@ from utils.path_utils import get_project_root
 ########################################################################
 # ---- 3. Dataclass that represents *one* configuration ---------------
 ########################################################################
+@dataclass(slots=True)
+class EngineConfig:
+    computator: str
+    factor_graph: Path | str
+    message_policies: List[str]
+    factor_policies: List[str]
 
+    # Anything else you want (seed, max_iters…) can be added later.
+
+    # ------------------------------------------------------------------
+    def filename(self) -> str:
+        """<computator>-<type>-<numV>-<factory><compactParams>.pkl"""
+        param_str = ",".join(f"{k}{v}" for k, v in self.damping_params.items())
+        return f"{self.computator}-{self.factor_graph}-{self.damping_type}{param_str}.pkl"
 @dataclass(slots=True)
 class GraphConfig:
     graph_type: str
@@ -45,7 +58,7 @@ class ConfigCreator:
         self.base_dir = Path(base_dir).expanduser().resolve()
 
     # ------------------------------------------------------------------
-    def create_config(
+    def create_graph_config(
         self,
         *,
         graph_type: str,
@@ -76,7 +89,20 @@ class ConfigCreator:
             pickle.dump(cfg, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
         return file_path
+    def create_engine_config(self,*,
+                             computator: str,
+                             factor_graph: Path|str,
+                             convergence_threshold: float,
+                             damping_factor: float,
+                             damping_type: str,
+                             damping_params: Dict[str, Any] | None = None,):
+        base_dir = get_project_root() / "configs/engine_configs"
+        os.makedirs(self.base_dir, exist_ok=True)
 
+        # Pickle‑dump
+        file_path = base_dir / cfg.filename()
+        with file_path.open("wb") as fh:
+            pickle.dump(cfg, fh, protocol=pickle.HIGHEST_PROTOCOL)
     # ------------------------------------------------------------------
     @staticmethod
     def load_config(path: str | Path) -> GraphConfig:
