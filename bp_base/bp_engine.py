@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Callable, Tuple, Any
 import numpy as np
 import networkx as nx
-from bp_base.agents import BPAgent, VariableAgent
+from bp_base.agents import BPAgent, VariableAgent, FactorAgent
 from bp_base.components import Message
 from bp_base.computators import MaxSumComputator
 from bp_base.factor_graph import FactorGraph
@@ -25,7 +25,7 @@ class Step:
     messages: Dict[str, List[Message]] = field(default_factory=dict)
 
 
-    def add(self, agent:Agent, messages: List[Message]):
+    def add(self, agent:Agent, message: Message):
         """
         Add a List of messages for each agent per step.
         :param agent: Agent who will send the messages next step
@@ -35,9 +35,7 @@ class Step:
         if agent.name not in self.messages:
             self.messages[agent.name] = []
         # Ensure messages is a list, even if None
-        if messages is None:
-            messages = []
-        self.messages[agent.name].extend(messages)
+        self.messages[agent.name].append(message)
 
 
 @dataclass
@@ -105,26 +103,28 @@ class BPEngine:
         step = Step(i)
         # compute messages to send and put them in the mailbox
         for agent in self.graph.G.nodes():
-            agent.messages_to_send = agent.compute_messages()
-            #TODO: send the messages to the right nodes!!!!!!!!!!!!!
-            # Ensure messages_to_send is a list, even if None
-            if agent.messages_to_send is None:
-                agent.messages_to_send = []
-            step.add(agent, agent.messages_to_send)
+
+            agent.compute_messages()
+            agent.empty_mailbox() # clear the mailbox
+            agent.mailer.send()
+            if isinstance(agent,FactorAgent):
+                for message in agent.mailer.outbox:
+                    step.add(message.recipient,message)
+            agent.mailer.prepare()
+            #both sending and receiving
 
             # apply message policies
+            # TODO next work
+            ''' 
             if self.policies and "message" in self.policies and self.policies["message"]:
                 for message in agent.messages_to_send:
                     if isinstance(message, Message):
                         message.data = self._apply_policies(self.policies["message"], message)
+                        '''
             # add the message to the mailbox
 
-            agent.empty_mailbox()
 
         # send the messages to the right nodes
-        for agent in self.graph.G.nodes():
-            for message in agent.messages_to_send:
-                message.sender.send_message(message)
 
         return step
 
