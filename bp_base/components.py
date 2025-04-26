@@ -61,13 +61,15 @@ class Message:
 class MailHandler:
     def __init__(self,_domain_size: int):
         self._message_domain_size = _domain_size
+        self._clear_after_staging = True
         self._incoming: List[Message] = []
         self._outgoing: List[Message] = []
+
+
 
     def set_first_message(self,owner: BPAgent,neighbor:BPAgent) -> Optional[Message]:
         """Add a message to the mailbox, replacing any from the same sender."""
         self._incoming.append(Message(np.zeros(self._message_domain_size,), neighbor, owner))
-        self._outgoing.append(Message(np.zeros(self._message_domain_size,), owner, neighbor))
         # for idx, existing in enumerate(self._incoming):
         #     if existing.sender == to_send.sender:
         #         self._incoming[idx] = to_send
@@ -80,36 +82,29 @@ class MailHandler:
     @singledispatchmethod
     def receive_messages(self, message: Message):
         """Handle a single Message."""
-        for idx, msg in enumerate(self._incoming):
-            if msg.sender == message.sender:
-                self._incoming[idx] = message  # probably want assignment here
-                break
-        else:
-            self._incoming.append(message)
+        self._incoming.append(message)
 
     @receive_messages.register(list)
     def _(self, messages: list[Message]):
         """Handle a list of Messages."""
         for message in messages:
-            self.receive_message(message)
-
-
+            self.receive_messages(message)
+    def send(self):
+        for message in self._outgoing:
+            message.recipient.mailer.receive_messages(message)
 
     def stage_sending(self, messages: List[Message]):##i.e staging meaning computing the messages in the inbox
         """Add a message, replacing any from the same sender."""
-        if len(self._outgoing) == 0:
-            self._outgoing= self._receiver_sender_turnaround(messages.copy())
-            return
-        else:
-            raise RuntimeError ("outbox was not cleared after sending messages")
-    def send_messages(self) -> List[Message]:
-        """Send all messages in the mailbox."""
-        # Send all messages in the mailbox
-        sent_messages = self._outgoing.copy()
-        self._outgoing.clear() #always clear outgiong, for all agents.
-        return sent_messages
+        self._outgoing= messages.copy()
+
+
+
+    def prepare(self):
+            self._outgoing.clear()
+    #if i want to use from outside the class
     def clear_inbox(self): #important!!!  for variables never clear the inbox
         self._incoming.clear()
+
     def clear_outgoing(self):
         self._outgoing.clear()
 
@@ -121,31 +116,36 @@ class MailHandler:
     def outbox(self) -> List[Message]:
         return self._outgoing
 
+    @property
+    def clear(self):
+        return self._clear_after_staging
 
+    @clear.setter
+    def clear(self, value: bool):
+        self._clear_after_staging = value
 
     @singledispatchmethod
-    def _receiver_sender_turnaround(arg: Union[Message, List[Message]]):
-        pass
+    def _receiver_sender_turnaround(self, arg: Union[Message, List[Message]]):
+        raise NotImplementedError(f"Cannot handle {type(arg)}")
 
-    @_receiver_sender_turnaround.register(list)
-    def _(arg: List[Message]):
-        return [Message(
-            data=message.data,
-            sender=message.recipient,
-            recipient=message.sender
-        )
-            for message in arg]
-
-    @_receiver_sender_turnaround.register(Message)
-    def _(arg: Message):
+    @_receiver_sender_turnaround.register
+    def _(self, arg: Message) -> Message:
         return Message(
             data=arg.data,
             sender=arg.recipient,
             recipient=arg.sender
         )
 
-
-
+    @_receiver_sender_turnaround.register(list)
+    def _(self, arg: List[Message]) -> List[Message]:
+        return [
+            Message(
+                data=message.data,
+                sender=message.recipient,
+                recipient=message.sender
+            )
+            for message in arg
+        ]
 
 
     def __getitem__(self, sender_name:str) -> Optional[Message]:
@@ -155,8 +155,6 @@ class MailHandler:
         return None
     def __setitem__(self,sender_name:str, message: Message):
         pass
-
-
 
     def __len__(self):
         return len(self._incoming)

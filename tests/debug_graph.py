@@ -85,7 +85,7 @@ try:
 
     # Try to load the pickle
     pickle_path = os.path.join(project_root, 'configs', 'factor_graphs',
-                               'factor-graph-cycle-3-random_intlow1,high100-number5.pkl')
+                               'factor-graph-cycle-3-random_intlow1,high100-number150.pkl')
     print(f"Attempting to load: {pickle_path}")
 
     # Check if file exists
@@ -177,7 +177,7 @@ def test_graph_nodes_edges(factor_graph):
 def test_graph_methods(factor_graph):
     logger.info("Testing graph methods")
     assert hasattr(factor_graph, 'initialize_cost_tables'), "initialize_cost_tables method not found"
-    assert hasattr(factor_graph, 'initialize_mailbox'), "initialize_mailbox method not found"
+    assert hasattr(factor_graph, 'initialize_messages'), "initialize_mailbox method not found"
 def test_graph_pickle(factor_graph):
     logger.info("Testing graph pickling")
     try:
@@ -189,7 +189,7 @@ def test_graph_pickle(factor_graph):
         with open('test_factor_graph.pkl', 'rb') as f:
             loaded_graph = pickle.load(f)
 
-        assert loaded_graph is not None, "Failed to unpickle factor graph"
+        assert loaded_graph is not None, logger.error("Failed to unpickle factor graph")
         logger.info("Graph pickled and unpickled successfully")
     except Exception as e:
         logger.error(f"Error during pickling: {e}")
@@ -205,7 +205,18 @@ def test_loading_factor_graph():
                 assert node.cost_table is not None
 
         assert fg is not None, "Failed to load factor graph"
+        assert isinstance(fg,FactorGraph) , "Failed to load factor graph"
         logger.info("Factor graph loaded successfully")
     except Exception as e:
         logger.error(f"Error loading factor graph: {e}")
         assert False, "Loading failed"
+def test_variable_agent_post_init(factor_graph):
+    logger.info("Testing VariableAgent post-init")
+    v1 = list(factor_graph.G.nodes())[0]
+    assert isinstance(v1, VariableAgent), "Node is not a VariableAgent"
+    assert hasattr(v1, "mailer"), "VariableAgent has no mailbox"
+    assert isinstance(v1.inbox, list), "inbox is not a list"
+    logger.info("VariableAgent messages inbox : %s", v1.inbox)
+    logger.info("VariableAgent messages to send : %s", v1.mailer._outgoing)
+    assert v1.domain == 3, "Domain is not 3"
+    assert v1.name == "x1", "Name is not x1"
