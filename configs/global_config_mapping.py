@@ -2,6 +2,9 @@
 # ----  Internal registries, global configs  ----------------------------------------
 ########################################################################
 from typing import Dict, Callable
+dirs ={
+    "test":"test_logs"
+}
 
 GRAPH_TYPES: Dict[str, str] = {        # str  -> dotted‑path or import key
     #all the graph types builders will be registered here, and with build_... typing
