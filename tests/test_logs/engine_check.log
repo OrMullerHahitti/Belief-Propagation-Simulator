@@ -1058,3 +1058,58 @@
 2025-04-26 17:03:53,259 - test_bp_engine_cycle - INFO - Message from f31 to x3: [235. 227. 245.]
 2025-04-26 17:03:53,259 - test_bp_engine_cycle - INFO - Beliefs after one cycle: {'x1': None, 'x2': None, 'x3': None}
 2025-04-26 17:03:53,260 - test_bp_engine_cycle - INFO - Assignments after one cycle: {'x1': np.int64(1), 'x2': np.int64(0), 'x3': np.int64(0)}
+2025-04-26 17:14:23,385 - test_bp_engine_cycle - INFO - Logging is now set up with colored console output
+2025-04-26 17:14:23,389 - test_bp_engine_cycle - INFO - Factor graph created with nodes: [Agent(x1, variable), Agent(x2, variable), Agent(x3, variable), FactorAgent: f12, FactorAgent: f23, FactorAgent: f31]
+2025-04-26 17:14:23,389 - test_bp_engine_cycle - INFO - BPEngine initialized.
+2025-04-26 17:14:23,390 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,390 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,390 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,391 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,391 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,391 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,405 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,405 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,405 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,405 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,406 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,407 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,407 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-04-26 17:14:23,407 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-04-26 17:14:23,407 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,407 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,407 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (3, 3)
+2025-04-26 17:14:23,407 - test_bp_engine_cycle - INFO - Cycle executed.
+2025-04-26 17:14:23,407 - test_bp_engine_cycle - INFO - Cycle has 3 steps.
+2025-04-26 17:14:23,407 - test_bp_engine_cycle - INFO - Step 0: messages: {'x1': [Message from f12 to x1: [90. 80. 96.], Message from f31 to x1: [83. 21. 88.]], 'x2': [Message from f12 to x2: [96. 90. 63.], Message from f23 to x2: [90. 76. 91.]], 'x3': [Message from f23 to x3: [80. 91. 90.], Message from f31 to x3: [83. 88. 72.]]}
+2025-04-26 17:14:23,409 - test_bp_engine_cycle - INFO - Message from f12 to x1: [90. 80. 96.]
+2025-04-26 17:14:23,409 - test_bp_engine_cycle - INFO - Message from f31 to x1: [83. 21. 88.]
+2025-04-26 17:14:23,409 - test_bp_engine_cycle - INFO - Message from f12 to x2: [96. 90. 63.]
+2025-04-26 17:14:23,410 - test_bp_engine_cycle - INFO - Message from f23 to x2: [90. 76. 91.]
+2025-04-26 17:14:23,410 - test_bp_engine_cycle - INFO - Message from f23 to x3: [80. 91. 90.]
+2025-04-26 17:14:23,410 - test_bp_engine_cycle - INFO - Message from f31 to x3: [83. 88. 72.]
+2025-04-26 17:14:23,411 - test_bp_engine_cycle - INFO - Step 1: messages: {'x1': [Message from f12 to x1: [166. 158. 186.], Message from f31 to x1: [163. 110. 179.]], 'x2': [Message from f12 to x2: [184. 173. 146.], Message from f23 to x2: [163. 148. 179.]], 'x3': [Message from f23 to x3: [176. 160. 186.], Message from f31 to x3: [173. 184. 162.]]}
+2025-04-26 17:14:23,413 - test_bp_engine_cycle - INFO - Message from f12 to x1: [166. 158. 186.]
+2025-04-26 17:14:23,413 - test_bp_engine_cycle - INFO - Message from f31 to x1: [163. 110. 179.]
+2025-04-26 17:14:23,413 - test_bp_engine_cycle - INFO - Message from f12 to x2: [184. 173. 146.]
+2025-04-26 17:14:23,413 - test_bp_engine_cycle - INFO - Message from f23 to x2: [163. 148. 179.]
+2025-04-26 17:14:23,414 - test_bp_engine_cycle - INFO - Message from f23 to x3: [176. 160. 186.]
+2025-04-26 17:14:23,414 - test_bp_engine_cycle - INFO - Message from f31 to x3: [173. 184. 162.]
+2025-04-26 17:14:23,414 - test_bp_engine_cycle - INFO - Step 2: messages: {'x1': [Message from f12 to x1: [242. 231. 259.], Message from f31 to x1: [259. 197. 248.]], 'x2': [Message from f12 to x2: [275. 253. 237.], Message from f23 to x2: [253. 238. 275.]], 'x3': [Message from f23 to x3: [264. 248. 274.], Message from f31 to x3: [257. 274. 238.]]}
+2025-04-26 17:14:23,416 - test_bp_engine_cycle - INFO - Message from f12 to x1: [242. 231. 259.]
+2025-04-26 17:14:23,416 - test_bp_engine_cycle - INFO - Message from f31 to x1: [259. 197. 248.]
+2025-04-26 17:14:23,416 - test_bp_engine_cycle - INFO - Message from f12 to x2: [275. 253. 237.]
+2025-04-26 17:14:23,416 - test_bp_engine_cycle - INFO - Message from f23 to x2: [253. 238. 275.]
+2025-04-26 17:14:23,417 - test_bp_engine_cycle - INFO - Message from f23 to x3: [264. 248. 274.]
+2025-04-26 17:14:23,417 - test_bp_engine_cycle - INFO - Message from f31 to x3: [257. 274. 238.]
+2025-04-26 17:14:23,417 - test_bp_engine_cycle - INFO - Beliefs after one cycle: {'x1': None, 'x2': None, 'x3': None}
+2025-04-26 17:14:23,417 - test_bp_engine_cycle - INFO - Assignments after one cycle: {'x1': np.int64(2), 'x2': np.int64(0), 'x3': np.int64(1)}
