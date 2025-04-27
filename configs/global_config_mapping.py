@@ -10,7 +10,8 @@ GRAPH_TYPES: Dict[str, str] = {        # str  -> dotted‑path or import key
     #all the graph types builders will be registered here, and with build_... typing
     "cycle": "utils.create_factor_graphs_from_config.build_cycle_graph",
     "octet-variable": "my_bp.graph_builders.build_octet_variable", #TODO : implemnt octec-variable and octec-factor, not for MST
-    "octet-factor": "my_bp.graph_builders.build_octet_factor",
+    "octet-factor": "my_bp.graph_builders.build_octet_factor", #TODO : implemnt octec-variable and octec-factor, not for MST
+    "random" : "utils.create_factor_graphs_from_config.build_random_graph",
 }
 
 COMPUTATORS: Dict[str, str] = {        # str -> dotted‑path to BPComputator subclass

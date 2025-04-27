@@ -23,6 +23,7 @@ class GraphConfig:
     domain_size: int
     ct_factory_name: str
     ct_factory_params: Dict[str, Any]
+    randomness: Dict[str, Any] = None  # Placeholder for future use, replace as needed
 
     # Anything else you want (seed, max_iters…) can be added later.
 
@@ -53,6 +54,7 @@ class ConfigCreator:
         domain_size: int,
         ct_factory: str,
         ct_params: Dict[str, Any] | None = None,
+        randomness: Dict[str,any]|None = None,
     ) -> Path:
         """Validate, build GraphConfig, dump to pickle, return full path."""
         ct_params = ct_params or {}
@@ -65,6 +67,7 @@ class ConfigCreator:
             domain_size=domain_size,
             ct_factory_name=ct_factory,
             ct_factory_params=ct_params,
+            others = randomness
         )
 
         # Ensure directory exists
@@ -91,6 +94,7 @@ class ConfigCreator:
         domain_size: int,
         ct_factory: str,
         ct_params: Dict[str, Any],
+
     ):
         if graph_type not in GRAPH_TYPES:
             raise ValueError(f"Unknown graph_type '{graph_type}'.  Allowed: {list(GRAPH_TYPES)}")
