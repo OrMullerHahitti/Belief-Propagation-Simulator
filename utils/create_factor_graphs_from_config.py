@@ -75,6 +75,8 @@ class FactorGraphBuilder:
             domain_size=cfg.domain_size,
             ct_factory=ct_factory_fn,
             ct_params=cfg.ct_factory_params,
+            **kwargs,
+
         )
 
         # 4. Create the FactorGraph object
