@@ -1,9 +1,10 @@
 from __future__ import annotations
 import pickle
 import os
+import random
 from pathlib import Path
 from importlib import import_module
-from typing import List, Dict, Callable, Any
+from typing import List, Dict, Callable, Any, Tuple
 import re
 
 # Function to get project root directory
@@ -23,6 +24,7 @@ from utils.create_factor_graph_config import ConfigCreator, GraphConfig
 from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.factor_graph import FactorGraph
 from utils.path_utils import get_project_root
+from itertools import combinations
 
 
 # ──────────────────────────────────────────────────────────────
@@ -75,7 +77,7 @@ class FactorGraphBuilder:
             domain_size=cfg.domain_size,
             ct_factory=ct_factory_fn,
             ct_params=cfg.ct_factory_params,
-            **kwargs,
+            density = cfg.density
 
         )
 
@@ -111,8 +113,55 @@ def _make_factor(name: str, domain: int,
         ct_creation_func=ct_factory,
         param=ct_params,
     )
+def _make_connections_density(variable_list:List[VariableAgent],density :float) -> List[Tuple[VariableAgent,VariableAgent]]:
+    """
+
+
+    """
+    all_edges = list(combinations(variable_list,2))
+    k = int(len(all_edges) *  density)
+    return random.sample(all_edges, k)
+
+def _build_factor_edge_list(edges:List[Tuple[VariableAgent,VariableAgent]],domain_size,ct_factory,ct_params) -> Dict[FactorAgent,List[VariableAgent]]:
+    """
+    Build a dictionary of edges from a list of edges.
+    :param edges: List of edges
+    :return: Dictionary of edges
+    """
+    edge_dict = {}
+    for edge in edges:
+        a, b = edge
+        fname = f"f{a.name[1:]}{b.name[1:]}"
+        fnode = _make_factor(fname, domain_size,ct_factory, ct_params)
+        edge_dict[fnode] = [a, b]
+    return edge_dict
+
+def build_random_graph(
+    num_vars: int,
+    domain_size: int,
+    ct_factory: Callable,
+    ct_params: Dict[str, Any],
+    density: float
+):
+    """
+    Build a random binary constraints graph.
+    :param num_vars: Number of variables
+    :param domain_size: Size of the domain
+    :param ct_factory: Cost table factory
+    :param ct_params: Cost table parameters
+    :param density: Density of the graph
+    :return: List of variables, list of factors, dictionary of edges
+    """
+    variables: List[VariableAgent] = [
+        _make_variable(i + 1, domain_size) for i in range(num_vars)
+    ]
+    connections = _make_connections_density(variables,density)
+    edges: Dict[FactorAgent, List[VariableAgent]] = _build_factor_edge_list(connections,domain_size,ct_factory,ct_params)
+    factors = list(edges.keys())
+
+    return variables, factors, edges
+
 ### ------------ IMPORTANT:  DO NOT CHANGE ------------------ ###
-# TODO: implement other functions to build different graph topologies
 def build_cycle_graph(
     *,
     num_vars: int,
@@ -120,6 +169,10 @@ def build_cycle_graph(
     ct_factory: Callable,
     ct_params: Dict[str, Any],
 ):
+    variables: List[VariableAgent] = [
+        _make_variable(i + 1, domain_size) for i in range(num_vars)
+    ]
+    edges = []
     """
     Simple N‑variable cycle: x1–f12–x2–f23–…–xn–fn1–x1
     Returns (variables, factors, edges).
@@ -146,3 +199,4 @@ def build_cycle_graph(
 GRAPH_TYPES.setdefault("cycle", "create_factor_graphs_from_config.py.build_cycle_graph")
 
 
+# TODO: implement other functions to build different graph topologies

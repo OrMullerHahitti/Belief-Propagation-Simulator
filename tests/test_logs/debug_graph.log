@@ -398,3 +398,69 @@ assert <bp_base.factor_graph.FactorGraph object at 0x000001B2C3402450> is Factor
 2025-04-26 16:41:46,960 - debug_graph - INFO - Testing VariableAgent post-init
 2025-04-26 16:41:46,960 - debug_graph - INFO - VariableAgent messages inbox : [Message from f12 to x1: [0. 0. 0.], Message from f31 to x1: [0. 0. 0.]]
 2025-04-26 16:41:46,960 - debug_graph - INFO - VariableAgent messages to send : []
+2025-04-29 16:37:04,240 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:37:04,373 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:37:04,374 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:37:41,281 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:37:41,412 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:37:41,412 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:39:07,838 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:39:07,980 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:39:07,980 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:39:08,015 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:39:08,016 - test_loading - INFO - Graph structure is valid
+2025-04-29 16:39:49,008 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:39:49,141 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:39:49,141 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:39:49,163 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:39:51,445 - test_loading - INFO - Graph visualization successful
+2025-04-29 16:42:04,352 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:42:04,560 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:42:04,560 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:42:04,607 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:42:09,666 - test_loading - INFO - Graph visualization successful
+2025-04-29 16:43:02,269 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:43:02,420 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:43:02,420 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:43:02,457 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:43:06,555 - test_loading - ERROR - Graph visualization failed: module 'matplotlib' has no attribute 'show'
+2025-04-29 16:44:16,909 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:44:17,043 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:44:17,043 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:44:17,126 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:44:25,817 - test_loading - INFO - Graph visualization successful
+2025-04-29 16:44:40,444 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:44:40,579 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:44:40,580 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:44:40,665 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:44:49,075 - test_loading - INFO - Graph visualization successful
+2025-04-29 16:45:08,830 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:45:09,012 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:45:09,012 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:45:09,098 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:45:15,957 - test_loading - INFO - Graph visualization successful
+2025-04-29 16:45:27,619 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:45:27,762 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:45:27,762 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:45:27,845 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:45:29,830 - test_loading - INFO - Graph visualization successful
+2025-04-29 16:45:53,785 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:45:53,922 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:45:53,922 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:45:53,996 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:45:58,824 - test_loading - INFO - Graph visualization successful
+2025-04-29 16:50:31,770 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:50:31,917 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:50:31,917 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:50:32,001 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:50:32,002 - test_loading - ERROR - Graph visualization failed: name 'variables' is not defined
+2025-04-29 16:50:51,129 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:50:51,406 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:50:51,407 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:50:51,569 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:50:54,674 - test_loading - INFO - Graph visualization successful
+2025-04-29 16:54:01,117 - test_loading - INFO - Logging is now set up with colored console output
+2025-04-29 16:54:01,250 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-04-29 16:54:01,250 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-04-29 16:54:01,335 - test_loading - INFO - Graph loaded successfully
+2025-04-29 16:54:02,826 - test_loading - INFO - Graph visualization successful
