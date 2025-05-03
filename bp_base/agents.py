@@ -149,6 +149,7 @@ class FactorAgent(BPAgent):
         if self.cost_table is not None:
             raise ValueError("Cost table already exists. Cannot create a new one.")
         self.cost_table = self.ct_creation_func(len(self.connection_number),self.domain,**self.ct_creation_params)
+
     def set_dim_for_variable(self, variable:VariableAgent, dim:int) -> None:
         """
         Add a an index to repressent a variable nodes dimension in the CT.
