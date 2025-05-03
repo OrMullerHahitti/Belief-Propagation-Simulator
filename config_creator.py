@@ -7,17 +7,17 @@ if __name__ == "__main__":
     config_path = find_project_root() / "configs/factor_graph_configs"
     ConfigCreator(config_path).create_config(graph_type="random",
                                              domain_size=5,
-                                             num_variables=30,
+                                             num_variables=10,
                                              ct_factory="random_int",
                                              ct_params={"low": 1,
                                                         'high': 100},
-                                                density=0.2)
+                                                density=0.4)
 
     builder = FactorGraphBuilder()
 
     # 2. Build and save a factor graph from a config file
-    for i in range(50):
-        cfg_path = f"{find_project_root()}\\configs/factor_graph_configs/random-50-random_intlow1,high1000.2.pkl"
+    for i in range(3):
+        cfg_path = f"{find_project_root()}\\configs/factor_graph_configs/random-10-random_intlow1,high1000.4.pkl"
         out_path = builder.build_and_save(cfg_path)
 
 
@@ -25,4 +25,4 @@ if __name__ == "__main__":
         print(f"Factor graph saved to: {out_path}")
         # 3. Load the factor graph from the saved file
         loaded_graph = builder.load_graph(out_path)
-        print("hi")
+        loaded_graph.visualize()
