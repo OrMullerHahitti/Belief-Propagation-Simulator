@@ -1278,3 +1278,514 @@
 2025-04-27 16:16:33,772 - test_bp_engine_cycle - INFO - Message from f31 to x3: [257. 274. 238.]
 2025-04-27 16:16:33,773 - test_bp_engine_cycle - INFO - Beliefs after one cycle: {'x1': None, 'x2': None, 'x3': None}
 2025-04-27 16:16:33,773 - test_bp_engine_cycle - INFO - Assignments after one cycle: {'x1': np.int64(2), 'x2': np.int64(0), 'x3': np.int64(1)}
+2025-05-03 18:22:59,174 - test_bp_engine_cycle - INFO - Logging is now set up with colored console output
+2025-05-03 18:22:59,183 - test_bp_engine_cycle - INFO - Factor graph created with nodes: [Agent(x1, variable), Agent(x2, variable), Agent(x3, variable), Agent(x4, variable), Agent(x5, variable), Agent(x6, variable), Agent(x7, variable), Agent(x8, variable), Agent(x9, variable), Agent(x10, variable), FactorAgent: f14, FactorAgent: f16, FactorAgent: f18, FactorAgent: f19, FactorAgent: f24, FactorAgent: f27, FactorAgent: f28, FactorAgent: f210, FactorAgent: f34, FactorAgent: f35, FactorAgent: f37, FactorAgent: f38, FactorAgent: f310, FactorAgent: f59, FactorAgent: f67, FactorAgent: f68, FactorAgent: f710]
+2025-05-03 18:22:59,185 - test_bp_engine_cycle - INFO - BPEngine initialized.
+2025-05-03 18:22:59,188 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,188 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,189 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,189 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,189 - bp_base.computators - INFO - Computing Q messages with 5 incoming messages
+2025-05-03 18:22:59,189 - bp_base.computators - INFO - Computed 5 outgoing Q messages
+2025-05-03 18:22:59,189 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,189 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,189 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,190 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,190 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,190 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,190 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,190 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,190 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,190 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,191 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,191 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,191 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,191 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,191 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,191 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,192 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,192 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,192 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,192 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,192 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,193 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,194 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,194 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,194 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,194 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,196 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,196 - bp_base.computators - INFO - Computing Q messages with 5 incoming messages
+2025-05-03 18:22:59,196 - bp_base.computators - INFO - Computed 5 outgoing Q messages
+2025-05-03 18:22:59,196 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,197 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,197 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,197 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,198 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,198 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,198 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,198 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,198 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,198 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,198 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,199 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,199 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,199 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,199 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,199 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,199 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,199 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,199 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,200 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,200 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,200 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,200 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,200 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,201 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,201 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,201 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,201 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,201 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,202 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,202 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,202 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,202 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,202 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computing Q messages with 5 incoming messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computed 5 outgoing Q messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,203 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,205 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,205 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,205 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,205 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,205 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,205 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,206 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,206 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,206 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,206 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,206 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,207 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,207 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,208 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,208 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,208 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,208 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,208 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,209 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,209 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,209 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,210 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,210 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,210 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,210 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,212 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,212 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,212 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,212 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,212 - bp_base.computators - INFO - Computing Q messages with 5 incoming messages
+2025-05-03 18:22:59,213 - bp_base.computators - INFO - Computed 5 outgoing Q messages
+2025-05-03 18:22:59,213 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,213 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,213 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,214 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,214 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,214 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,214 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,214 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,215 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,215 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,215 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,215 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,215 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,215 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,215 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,216 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,216 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,216 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,217 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,217 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,217 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,217 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,218 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,218 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,218 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,218 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,219 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,219 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,219 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,219 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,219 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,219 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,219 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,219 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,220 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,220 - bp_base.computators - INFO - Computing Q messages with 5 incoming messages
+2025-05-03 18:22:59,220 - bp_base.computators - INFO - Computed 5 outgoing Q messages
+2025-05-03 18:22:59,220 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,220 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,220 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,221 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,221 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,221 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,221 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,221 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,221 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,221 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,222 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,222 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,222 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,222 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,222 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,222 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,223 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,223 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,223 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,223 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,223 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,223 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,223 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,223 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,225 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,225 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,225 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,226 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,226 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,226 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,227 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,227 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,227 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,227 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,227 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,228 - bp_base.computators - INFO - Computing Q messages with 5 incoming messages
+2025-05-03 18:22:59,228 - bp_base.computators - INFO - Computed 5 outgoing Q messages
+2025-05-03 18:22:59,228 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,228 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,228 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,229 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,229 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,229 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,229 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,229 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,229 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,229 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,229 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,230 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,230 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,230 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,231 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,231 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,231 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,232 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,232 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,232 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,232 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,233 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,233 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,233 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,233 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,233 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,233 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,233 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,233 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,235 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,235 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,235 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,235 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,235 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,236 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,236 - bp_base.computators - INFO - Computing Q messages with 5 incoming messages
+2025-05-03 18:22:59,236 - bp_base.computators - INFO - Computed 5 outgoing Q messages
+2025-05-03 18:22:59,237 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,237 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,237 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,237 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computing Q messages with 4 incoming messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computed 4 outgoing Q messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computing Q messages with 2 incoming messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computed 2 outgoing Q messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computing Q messages with 3 incoming messages
+2025-05-03 18:22:59,238 - bp_base.computators - INFO - Computed 3 outgoing Q messages
+2025-05-03 18:22:59,239 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,239 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,239 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,239 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,240 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,240 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,240 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,240 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,241 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,241 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,242 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,242 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,242 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,243 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,243 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,243 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,243 - bp_base.computators - INFO - Computing R messages with 2 incoming messages and cost table shape (5, 5)
+2025-05-03 18:22:59,243 - test_bp_engine_cycle - INFO - Cycle executed.
+2025-05-03 18:22:59,243 - test_bp_engine_cycle - INFO - Cycle has 7 steps.
+2025-05-03 18:22:59,243 - test_bp_engine_cycle - INFO - Step 0: messages: {'x1': [Message from f14 to x1: [99. 83. 98. 92. 83.], Message from f16 to x1: [75. 90. 88. 90. 90.], Message from f18 to x1: [99. 68. 57. 75. 86.], Message from f19 to x1: [99. 52. 42. 65. 81.]], 'x4': [Message from f14 to x4: [83. 85. 84. 98. 99.], Message from f24 to x4: [93. 94. 77. 78. 78.], Message from f34 to x4: [93. 91. 80. 97. 91.]], 'x6': [Message from f16 to x6: [90. 81. 84. 90. 75.], Message from f67 to x6: [91. 98. 76. 90. 64.], Message from f68 to x6: [68. 66. 60. 92. 83.]], 'x8': [Message from f18 to x8: [99. 66. 80. 57. 86.], Message from f28 to x8: [85. 68. 93. 88. 86.], Message from f38 to x8: [92. 59. 85. 84. 62.], Message from f68 to x8: [92. 71. 78. 83. 68.]], 'x9': [Message from f19 to x9: [99. 74. 81. 52. 15.], Message from f59 to x9: [69. 76. 78. 92. 45.]], 'x2': [Message from f24 to x2: [78. 86. 77. 86. 94.], Message from f27 to x2: [79. 92. 73. 94. 97.], Message from f28 to x2: [86. 93. 53. 88. 73.], Message from f210 to x2: [89. 93. 71. 77. 90.]], 'x7': [Message from f27 to x7: [76. 92. 97. 94. 48.], Message from f37 to x7: [80. 96. 96. 89. 97.], Message from f67 to x7: [91. 98. 71. 76. 90.], Message from f710 to x7: [81. 99. 85. 92. 52.]], 'x10': [Message from f210 to x10: [79. 90. 77. 93. 61.], Message from f310 to x10: [95. 77. 98. 70. 94.], Message from f710 to x10: [81. 61. 80. 92. 99.]], 'x3': [Message from f34 to x3: [90. 68. 97. 80. 93.], Message from f35 to x3: [96. 83. 86. 97. 41.], Message from f37 to x3: [96. 38. 96. 97. 49.], Message from f38 to x3: [62. 57. 92. 85. 85.], Message from f310 to x3: [95. 98. 77. 87. 81.]], 'x5': [Message from f35 to x5: [97. 86. 96. 70. 97.], Message from f59 to x5: [92. 78. 76. 45. 68.]]}
+2025-05-03 18:22:59,261 - test_bp_engine_cycle - INFO - Message from f14 to x1: [99. 83. 98. 92. 83.]
+2025-05-03 18:22:59,262 - test_bp_engine_cycle - INFO - Message from f16 to x1: [75. 90. 88. 90. 90.]
+2025-05-03 18:22:59,262 - test_bp_engine_cycle - INFO - Message from f18 to x1: [99. 68. 57. 75. 86.]
+2025-05-03 18:22:59,263 - test_bp_engine_cycle - INFO - Message from f19 to x1: [99. 52. 42. 65. 81.]
+2025-05-03 18:22:59,263 - test_bp_engine_cycle - INFO - Message from f14 to x4: [83. 85. 84. 98. 99.]
+2025-05-03 18:22:59,263 - test_bp_engine_cycle - INFO - Message from f24 to x4: [93. 94. 77. 78. 78.]
+2025-05-03 18:22:59,265 - test_bp_engine_cycle - INFO - Message from f34 to x4: [93. 91. 80. 97. 91.]
+2025-05-03 18:22:59,266 - test_bp_engine_cycle - INFO - Message from f16 to x6: [90. 81. 84. 90. 75.]
+2025-05-03 18:22:59,267 - test_bp_engine_cycle - INFO - Message from f67 to x6: [91. 98. 76. 90. 64.]
+2025-05-03 18:22:59,267 - test_bp_engine_cycle - INFO - Message from f68 to x6: [68. 66. 60. 92. 83.]
+2025-05-03 18:22:59,268 - test_bp_engine_cycle - INFO - Message from f18 to x8: [99. 66. 80. 57. 86.]
+2025-05-03 18:22:59,268 - test_bp_engine_cycle - INFO - Message from f28 to x8: [85. 68. 93. 88. 86.]
+2025-05-03 18:22:59,269 - test_bp_engine_cycle - INFO - Message from f38 to x8: [92. 59. 85. 84. 62.]
+2025-05-03 18:22:59,270 - test_bp_engine_cycle - INFO - Message from f68 to x8: [92. 71. 78. 83. 68.]
+2025-05-03 18:22:59,271 - test_bp_engine_cycle - INFO - Message from f19 to x9: [99. 74. 81. 52. 15.]
+2025-05-03 18:22:59,271 - test_bp_engine_cycle - INFO - Message from f59 to x9: [69. 76. 78. 92. 45.]
+2025-05-03 18:22:59,272 - test_bp_engine_cycle - INFO - Message from f24 to x2: [78. 86. 77. 86. 94.]
+2025-05-03 18:22:59,274 - test_bp_engine_cycle - INFO - Message from f27 to x2: [79. 92. 73. 94. 97.]
+2025-05-03 18:22:59,274 - test_bp_engine_cycle - INFO - Message from f28 to x2: [86. 93. 53. 88. 73.]
+2025-05-03 18:22:59,275 - test_bp_engine_cycle - INFO - Message from f210 to x2: [89. 93. 71. 77. 90.]
+2025-05-03 18:22:59,276 - test_bp_engine_cycle - INFO - Message from f27 to x7: [76. 92. 97. 94. 48.]
+2025-05-03 18:22:59,277 - test_bp_engine_cycle - INFO - Message from f37 to x7: [80. 96. 96. 89. 97.]
+2025-05-03 18:22:59,278 - test_bp_engine_cycle - INFO - Message from f67 to x7: [91. 98. 71. 76. 90.]
+2025-05-03 18:22:59,278 - test_bp_engine_cycle - INFO - Message from f710 to x7: [81. 99. 85. 92. 52.]
+2025-05-03 18:22:59,279 - test_bp_engine_cycle - INFO - Message from f210 to x10: [79. 90. 77. 93. 61.]
+2025-05-03 18:22:59,279 - test_bp_engine_cycle - INFO - Message from f310 to x10: [95. 77. 98. 70. 94.]
+2025-05-03 18:22:59,280 - test_bp_engine_cycle - INFO - Message from f710 to x10: [81. 61. 80. 92. 99.]
+2025-05-03 18:22:59,281 - test_bp_engine_cycle - INFO - Message from f34 to x3: [90. 68. 97. 80. 93.]
+2025-05-03 18:22:59,281 - test_bp_engine_cycle - INFO - Message from f35 to x3: [96. 83. 86. 97. 41.]
+2025-05-03 18:22:59,282 - test_bp_engine_cycle - INFO - Message from f37 to x3: [96. 38. 96. 97. 49.]
+2025-05-03 18:22:59,283 - test_bp_engine_cycle - INFO - Message from f38 to x3: [62. 57. 92. 85. 85.]
+2025-05-03 18:22:59,283 - test_bp_engine_cycle - INFO - Message from f310 to x3: [95. 98. 77. 87. 81.]
+2025-05-03 18:22:59,283 - test_bp_engine_cycle - INFO - Message from f35 to x5: [97. 86. 96. 70. 97.]
+2025-05-03 18:22:59,285 - test_bp_engine_cycle - INFO - Message from f59 to x5: [92. 78. 76. 45. 68.]
+2025-05-03 18:22:59,285 - test_bp_engine_cycle - INFO - Step 1: messages: {'x1': [Message from f14 to x1: [270. 253. 273. 264. 269.], Message from f16 to x1: [222. 249. 265. 272. 249.], Message from f18 to x1: [368. 324. 312. 344. 336.], Message from f19 to x1: [168. 144. 134. 134. 159.]], 'x4': [Message from f14 to x4: [346. 358. 339. 357. 372.], Message from f24 to x4: [364. 354. 325. 333. 337.], Message from f34 to x4: [417. 439. 446. 448. 424.]], 'x6': [Message from f16 to x6: [346. 322. 339. 326. 372.], Message from f67 to x6: [363. 385. 351. 336. 351.], Message from f68 to x6: [314. 342. 336. 368. 345.]], 'x8': [Message from f18 to x8: [372. 327. 334. 302. 340.], Message from f28 to x8: [352. 347. 364. 345. 339.], Message from f38 to x8: [448. 436. 446. 440. 439.], Message from f68 to x8: [272. 245. 226. 230. 249.]], 'x9': [Message from f19 to x9: [372. 342. 340. 297. 288.], Message from f59 to x9: [165. 172. 165. 189. 131.]], 'x2': [Message from f24 to x2: [273. 262. 265. 268. 270.], Message from f27 to x2: [372. 385. 325. 353. 349.], Message from f28 to x2: [368. 341. 312. 351. 354.], Message from f210 to x2: [255. 255. 247. 255. 250.]], 'x7': [Message from f27 to x7: [348. 364. 354. 345. 305.], Message from f37 to x7: [423. 446. 448. 432. 446.], Message from f67 to x7: [249. 245. 229. 227. 272.], Message from f710 to x7: [255. 254. 248. 255. 226.]], 'x10': [Message from f210 to x10: [328. 354. 345. 364. 329.], Message from f310 to x10: [439. 448. 446. 429. 445.], Message from f710 to x10: [328. 347. 346. 351. 385.]], 'x3': [Message from f34 to x3: [269. 244. 273. 248. 270.], Message from f35 to x3: [180. 175. 172. 189. 131.], Message from f37 to x3: [385. 327. 383. 367. 325.], Message from f38 to x3: [335. 307. 368. 336. 361.], Message from f310 to x3: [255. 255. 228. 255. 238.]], 'x5': [Message from f35 to x5: [446. 448. 439. 413. 446.], Message from f59 to x5: [151. 159. 168. 115. 149.]]}
+2025-05-03 18:22:59,300 - test_bp_engine_cycle - INFO - Message from f14 to x1: [270. 253. 273. 264. 269.]
+2025-05-03 18:22:59,301 - test_bp_engine_cycle - INFO - Message from f16 to x1: [222. 249. 265. 272. 249.]
+2025-05-03 18:22:59,301 - test_bp_engine_cycle - INFO - Message from f18 to x1: [368. 324. 312. 344. 336.]
+2025-05-03 18:22:59,302 - test_bp_engine_cycle - INFO - Message from f19 to x1: [168. 144. 134. 134. 159.]
+2025-05-03 18:22:59,302 - test_bp_engine_cycle - INFO - Message from f14 to x4: [346. 358. 339. 357. 372.]
+2025-05-03 18:22:59,304 - test_bp_engine_cycle - INFO - Message from f24 to x4: [364. 354. 325. 333. 337.]
+2025-05-03 18:22:59,305 - test_bp_engine_cycle - INFO - Message from f34 to x4: [417. 439. 446. 448. 424.]
+2025-05-03 18:22:59,306 - test_bp_engine_cycle - INFO - Message from f16 to x6: [346. 322. 339. 326. 372.]
+2025-05-03 18:22:59,306 - test_bp_engine_cycle - INFO - Message from f67 to x6: [363. 385. 351. 336. 351.]
+2025-05-03 18:22:59,307 - test_bp_engine_cycle - INFO - Message from f68 to x6: [314. 342. 336. 368. 345.]
+2025-05-03 18:22:59,308 - test_bp_engine_cycle - INFO - Message from f18 to x8: [372. 327. 334. 302. 340.]
+2025-05-03 18:22:59,308 - test_bp_engine_cycle - INFO - Message from f28 to x8: [352. 347. 364. 345. 339.]
+2025-05-03 18:22:59,309 - test_bp_engine_cycle - INFO - Message from f38 to x8: [448. 436. 446. 440. 439.]
+2025-05-03 18:22:59,309 - test_bp_engine_cycle - INFO - Message from f68 to x8: [272. 245. 226. 230. 249.]
+2025-05-03 18:22:59,310 - test_bp_engine_cycle - INFO - Message from f19 to x9: [372. 342. 340. 297. 288.]
+2025-05-03 18:22:59,311 - test_bp_engine_cycle - INFO - Message from f59 to x9: [165. 172. 165. 189. 131.]
+2025-05-03 18:22:59,312 - test_bp_engine_cycle - INFO - Message from f24 to x2: [273. 262. 265. 268. 270.]
+2025-05-03 18:22:59,312 - test_bp_engine_cycle - INFO - Message from f27 to x2: [372. 385. 325. 353. 349.]
+2025-05-03 18:22:59,313 - test_bp_engine_cycle - INFO - Message from f28 to x2: [368. 341. 312. 351. 354.]
+2025-05-03 18:22:59,313 - test_bp_engine_cycle - INFO - Message from f210 to x2: [255. 255. 247. 255. 250.]
+2025-05-03 18:22:59,315 - test_bp_engine_cycle - INFO - Message from f27 to x7: [348. 364. 354. 345. 305.]
+2025-05-03 18:22:59,316 - test_bp_engine_cycle - INFO - Message from f37 to x7: [423. 446. 448. 432. 446.]
+2025-05-03 18:22:59,316 - test_bp_engine_cycle - INFO - Message from f67 to x7: [249. 245. 229. 227. 272.]
+2025-05-03 18:22:59,316 - test_bp_engine_cycle - INFO - Message from f710 to x7: [255. 254. 248. 255. 226.]
+2025-05-03 18:22:59,317 - test_bp_engine_cycle - INFO - Message from f210 to x10: [328. 354. 345. 364. 329.]
+2025-05-03 18:22:59,319 - test_bp_engine_cycle - INFO - Message from f310 to x10: [439. 448. 446. 429. 445.]
+2025-05-03 18:22:59,319 - test_bp_engine_cycle - INFO - Message from f710 to x10: [328. 347. 346. 351. 385.]
+2025-05-03 18:22:59,320 - test_bp_engine_cycle - INFO - Message from f34 to x3: [269. 244. 273. 248. 270.]
+2025-05-03 18:22:59,320 - test_bp_engine_cycle - INFO - Message from f35 to x3: [180. 175. 172. 189. 131.]
+2025-05-03 18:22:59,321 - test_bp_engine_cycle - INFO - Message from f37 to x3: [385. 327. 383. 367. 325.]
+2025-05-03 18:22:59,322 - test_bp_engine_cycle - INFO - Message from f38 to x3: [335. 307. 368. 336. 361.]
+2025-05-03 18:22:59,322 - test_bp_engine_cycle - INFO - Message from f310 to x3: [255. 255. 228. 255. 238.]
+2025-05-03 18:22:59,323 - test_bp_engine_cycle - INFO - Message from f35 to x5: [446. 448. 439. 413. 446.]
+2025-05-03 18:22:59,323 - test_bp_engine_cycle - INFO - Message from f59 to x5: [151. 159. 168. 115. 149.]
+2025-05-03 18:22:59,325 - test_bp_engine_cycle - INFO - Step 2: messages: {'x1': [Message from f14 to x1: [878. 861. 879. 859. 874.], Message from f16 to x1: [771. 767. 808. 794. 799.], Message from f18 to x1: [1171. 1104. 1108. 1147. 1126.], Message from f19 to x1: [264. 241. 231. 230. 246.]], 'x4': [Message from f14 to x4: [831. 843. 834. 842. 857.], Message from f24 to x4: [1067. 1047. 1018. 1073. 1041.], Message from f34 to x4: [1198. 1245. 1230. 1248. 1230.]], 'x6': [Message from f16 to x6: [855. 836. 848. 835. 881.], Message from f67 to x6: [1140. 1162. 1108. 1113. 1128.], Message from f68 to x6: [1210. 1238. 1232. 1264. 1241.]], 'x8': [Message from f18 to x8: [759. 714. 757. 729. 763.], Message from f28 to x8: [985. 970. 995. 964. 986.], Message from f38 to x8: [1148. 1148. 1144. 1140. 1151.], Message from f68 to x8: [792. 794. 801. 806. 777.]], 'x9': [Message from f19 to x9: [959. 929. 935. 892. 891.], Message from f59 to x9: [508. 515. 526. 538. 484.]], 'x2': [Message from f24 to x2: [883. 860. 871. 883. 891.], Message from f27 to x2: [1024. 1037. 1000. 1008. 1022.], Message from f28 to x2: [1177. 1150. 1121. 1160. 1163.], Message from f210 to x2: [885. 879. 856. 891. 886.]], 'x7': [Message from f27 to x7: [963. 975. 971. 974. 933.], Message from f37 to x7: [1119. 1135. 1137. 1128. 1125.], Message from f67 to x7: [751. 781. 733. 751. 784.], Message from f710 to x7: [870. 873. 878. 885. 844.]], 'x10': [Message from f210 to x10: [1092. 1063. 1063. 1102. 1068.], Message from f310 to x10: [1264. 1273. 1227. 1233. 1237.], Message from f710 to x10: [1101. 1116. 1115. 1116. 1154.]], 'x3': [Message from f34 to x3: [802. 778. 787. 781. 803.], Message from f35 to x3: [264. 234. 245. 248. 198.], Message from f37 to x3: [959. 901. 957. 941. 899.], Message from f38 to x3: [1055. 1027. 1088. 1048. 1081.], Message from f310 to x3: [782. 808. 778. 800. 777.]], 'x5': [Message from f35 to x5: [1332. 1338. 1340. 1303. 1330.], Message from f59 to x5: [424. 418. 441. 388. 408.]]}
+2025-05-03 18:22:59,341 - test_bp_engine_cycle - INFO - Message from f14 to x1: [878. 861. 879. 859. 874.]
+2025-05-03 18:22:59,342 - test_bp_engine_cycle - INFO - Message from f16 to x1: [771. 767. 808. 794. 799.]
+2025-05-03 18:22:59,343 - test_bp_engine_cycle - INFO - Message from f18 to x1: [1171. 1104. 1108. 1147. 1126.]
+2025-05-03 18:22:59,343 - test_bp_engine_cycle - INFO - Message from f19 to x1: [264. 241. 231. 230. 246.]
+2025-05-03 18:22:59,343 - test_bp_engine_cycle - INFO - Message from f14 to x4: [831. 843. 834. 842. 857.]
+2025-05-03 18:22:59,345 - test_bp_engine_cycle - INFO - Message from f24 to x4: [1067. 1047. 1018. 1073. 1041.]
+2025-05-03 18:22:59,346 - test_bp_engine_cycle - INFO - Message from f34 to x4: [1198. 1245. 1230. 1248. 1230.]
+2025-05-03 18:22:59,346 - test_bp_engine_cycle - INFO - Message from f16 to x6: [855. 836. 848. 835. 881.]
+2025-05-03 18:22:59,347 - test_bp_engine_cycle - INFO - Message from f67 to x6: [1140. 1162. 1108. 1113. 1128.]
+2025-05-03 18:22:59,347 - test_bp_engine_cycle - INFO - Message from f68 to x6: [1210. 1238. 1232. 1264. 1241.]
+2025-05-03 18:22:59,348 - test_bp_engine_cycle - INFO - Message from f18 to x8: [759. 714. 757. 729. 763.]
+2025-05-03 18:22:59,348 - test_bp_engine_cycle - INFO - Message from f28 to x8: [985. 970. 995. 964. 986.]
+2025-05-03 18:22:59,350 - test_bp_engine_cycle - INFO - Message from f38 to x8: [1148. 1148. 1144. 1140. 1151.]
+2025-05-03 18:22:59,351 - test_bp_engine_cycle - INFO - Message from f68 to x8: [792. 794. 801. 806. 777.]
+2025-05-03 18:22:59,352 - test_bp_engine_cycle - INFO - Message from f19 to x9: [959. 929. 935. 892. 891.]
+2025-05-03 18:22:59,352 - test_bp_engine_cycle - INFO - Message from f59 to x9: [508. 515. 526. 538. 484.]
+2025-05-03 18:22:59,353 - test_bp_engine_cycle - INFO - Message from f24 to x2: [883. 860. 871. 883. 891.]
+2025-05-03 18:22:59,354 - test_bp_engine_cycle - INFO - Message from f27 to x2: [1024. 1037. 1000. 1008. 1022.]
+2025-05-03 18:22:59,354 - test_bp_engine_cycle - INFO - Message from f28 to x2: [1177. 1150. 1121. 1160. 1163.]
+2025-05-03 18:22:59,355 - test_bp_engine_cycle - INFO - Message from f210 to x2: [885. 879. 856. 891. 886.]
+2025-05-03 18:22:59,355 - test_bp_engine_cycle - INFO - Message from f27 to x7: [963. 975. 971. 974. 933.]
+2025-05-03 18:22:59,355 - test_bp_engine_cycle - INFO - Message from f37 to x7: [1119. 1135. 1137. 1128. 1125.]
+2025-05-03 18:22:59,356 - test_bp_engine_cycle - INFO - Message from f67 to x7: [751. 781. 733. 751. 784.]
+2025-05-03 18:22:59,357 - test_bp_engine_cycle - INFO - Message from f710 to x7: [870. 873. 878. 885. 844.]
+2025-05-03 18:22:59,357 - test_bp_engine_cycle - INFO - Message from f210 to x10: [1092. 1063. 1063. 1102. 1068.]
+2025-05-03 18:22:59,358 - test_bp_engine_cycle - INFO - Message from f310 to x10: [1264. 1273. 1227. 1233. 1237.]
+2025-05-03 18:22:59,358 - test_bp_engine_cycle - INFO - Message from f710 to x10: [1101. 1116. 1115. 1116. 1154.]
+2025-05-03 18:22:59,359 - test_bp_engine_cycle - INFO - Message from f34 to x3: [802. 778. 787. 781. 803.]
+2025-05-03 18:22:59,359 - test_bp_engine_cycle - INFO - Message from f35 to x3: [264. 234. 245. 248. 198.]
+2025-05-03 18:22:59,360 - test_bp_engine_cycle - INFO - Message from f37 to x3: [959. 901. 957. 941. 899.]
+2025-05-03 18:22:59,361 - test_bp_engine_cycle - INFO - Message from f38 to x3: [1055. 1027. 1088. 1048. 1081.]
+2025-05-03 18:22:59,361 - test_bp_engine_cycle - INFO - Message from f310 to x3: [782. 808. 778. 800. 777.]
+2025-05-03 18:22:59,362 - test_bp_engine_cycle - INFO - Message from f35 to x5: [1332. 1338. 1340. 1303. 1330.]
+2025-05-03 18:22:59,362 - test_bp_engine_cycle - INFO - Message from f59 to x5: [424. 418. 441. 388. 408.]
+2025-05-03 18:22:59,363 - test_bp_engine_cycle - INFO - Step 3: messages: {'x1': [Message from f14 to x1: [2405. 2366. 2419. 2363. 2387.], Message from f16 to x1: [2444. 2440. 2481. 2467. 2472.], Message from f18 to x1: [3024. 3008. 2967. 3000. 3020.], Message from f19 to x1: [607. 590. 580. 573. 607.]], 'x4': [Message from f14 to x4: [2279. 2291. 2255. 2290. 2305.], Message from f24 to x4: [3164. 3165. 3136. 3164. 3137.], Message from f34 to x4: [3112. 3150. 3147. 3165. 3135.]], 'x6': [Message from f16 to x6: [2362. 2333. 2355. 2342. 2388.], Message from f67 to x6: [3059. 3081. 3063. 3032. 3047.], Message from f68 to x6: [2968. 2958. 2952. 2984. 2974.]], 'x8': [Message from f18 to x8: [2012. 1967. 1999. 1975. 2005.], Message from f28 to x8: [2877. 2865. 2872. 2870. 2878.], Message from f38 to x8: [2866. 2866. 2855. 2851. 2869.], Message from f68 to x8: [2078. 2080. 2087. 2092. 2063.]], 'x9': [Message from f19 to x9: [2919. 2889. 2880. 2837. 2835.], Message from f59 to x9: [1409. 1416. 1416. 1424. 1375.]], 'x2': [Message from f24 to x2: [2168. 2145. 2162. 2174. 2182.], Message from f27 to x2: [2868. 2881. 2830. 2858. 2845.], Message from f28 to x2: [2784. 2795. 2741. 2767. 2775.], Message from f210 to x2: [2446. 2442. 2436. 2452. 2479.]], 'x7': [Message from f27 to x7: [3012. 3024. 3037. 3028. 2988.], Message from f37 to x7: [2983. 2999. 2994. 2992. 2976.], Message from f67 to x7: [2156. 2186. 2138. 2156. 2189.], Message from f710 to x7: [2437. 2404. 2420. 2427. 2408.]], 'x10': [Message from f210 to x10: [3163. 3166. 3134. 3173. 3139.], Message from f310 to x10: [3175. 3154. 3105. 3114. 3148.], Message from f710 to x10: [2922. 2952. 2951. 2947. 2990.]], 'x3': [Message from f34 to x3: [1989. 1966. 2012. 1959. 1991.], Message from f35 to x3: [537. 507. 504. 521. 471.], Message from f37 to x3: [2725. 2667. 2723. 2707. 2665.], Message from f38 to x3: [2600. 2582. 2628. 2638. 2621.], Message from f310 to x3: [2290. 2316. 2256. 2308. 2278.]], 'x5': [Message from f35 to x5: [3690. 3696. 3694. 3661. 3688.], Message from f59 to x5: [1011. 1013. 1028.  975. 1003.]]}
+2025-05-03 18:22:59,378 - test_bp_engine_cycle - INFO - Message from f14 to x1: [2405. 2366. 2419. 2363. 2387.]
+2025-05-03 18:22:59,380 - test_bp_engine_cycle - INFO - Message from f16 to x1: [2444. 2440. 2481. 2467. 2472.]
+2025-05-03 18:22:59,381 - test_bp_engine_cycle - INFO - Message from f18 to x1: [3024. 3008. 2967. 3000. 3020.]
+2025-05-03 18:22:59,381 - test_bp_engine_cycle - INFO - Message from f19 to x1: [607. 590. 580. 573. 607.]
+2025-05-03 18:22:59,382 - test_bp_engine_cycle - INFO - Message from f14 to x4: [2279. 2291. 2255. 2290. 2305.]
+2025-05-03 18:22:59,382 - test_bp_engine_cycle - INFO - Message from f24 to x4: [3164. 3165. 3136. 3164. 3137.]
+2025-05-03 18:22:59,383 - test_bp_engine_cycle - INFO - Message from f34 to x4: [3112. 3150. 3147. 3165. 3135.]
+2025-05-03 18:22:59,384 - test_bp_engine_cycle - INFO - Message from f16 to x6: [2362. 2333. 2355. 2342. 2388.]
+2025-05-03 18:22:59,384 - test_bp_engine_cycle - INFO - Message from f67 to x6: [3059. 3081. 3063. 3032. 3047.]
+2025-05-03 18:22:59,386 - test_bp_engine_cycle - INFO - Message from f68 to x6: [2968. 2958. 2952. 2984. 2974.]
+2025-05-03 18:22:59,387 - test_bp_engine_cycle - INFO - Message from f18 to x8: [2012. 1967. 1999. 1975. 2005.]
+2025-05-03 18:22:59,388 - test_bp_engine_cycle - INFO - Message from f28 to x8: [2877. 2865. 2872. 2870. 2878.]
+2025-05-03 18:22:59,388 - test_bp_engine_cycle - INFO - Message from f38 to x8: [2866. 2866. 2855. 2851. 2869.]
+2025-05-03 18:22:59,389 - test_bp_engine_cycle - INFO - Message from f68 to x8: [2078. 2080. 2087. 2092. 2063.]
+2025-05-03 18:22:59,390 - test_bp_engine_cycle - INFO - Message from f19 to x9: [2919. 2889. 2880. 2837. 2835.]
+2025-05-03 18:22:59,391 - test_bp_engine_cycle - INFO - Message from f59 to x9: [1409. 1416. 1416. 1424. 1375.]
+2025-05-03 18:22:59,392 - test_bp_engine_cycle - INFO - Message from f24 to x2: [2168. 2145. 2162. 2174. 2182.]
+2025-05-03 18:22:59,393 - test_bp_engine_cycle - INFO - Message from f27 to x2: [2868. 2881. 2830. 2858. 2845.]
+2025-05-03 18:22:59,394 - test_bp_engine_cycle - INFO - Message from f28 to x2: [2784. 2795. 2741. 2767. 2775.]
+2025-05-03 18:22:59,394 - test_bp_engine_cycle - INFO - Message from f210 to x2: [2446. 2442. 2436. 2452. 2479.]
+2025-05-03 18:22:59,395 - test_bp_engine_cycle - INFO - Message from f27 to x7: [3012. 3024. 3037. 3028. 2988.]
+2025-05-03 18:22:59,396 - test_bp_engine_cycle - INFO - Message from f37 to x7: [2983. 2999. 2994. 2992. 2976.]
+2025-05-03 18:22:59,397 - test_bp_engine_cycle - INFO - Message from f67 to x7: [2156. 2186. 2138. 2156. 2189.]
+2025-05-03 18:22:59,397 - test_bp_engine_cycle - INFO - Message from f710 to x7: [2437. 2404. 2420. 2427. 2408.]
+2025-05-03 18:22:59,397 - test_bp_engine_cycle - INFO - Message from f210 to x10: [3163. 3166. 3134. 3173. 3139.]
+2025-05-03 18:22:59,399 - test_bp_engine_cycle - INFO - Message from f310 to x10: [3175. 3154. 3105. 3114. 3148.]
+2025-05-03 18:22:59,399 - test_bp_engine_cycle - INFO - Message from f710 to x10: [2922. 2952. 2951. 2947. 2990.]
+2025-05-03 18:22:59,400 - test_bp_engine_cycle - INFO - Message from f34 to x3: [1989. 1966. 2012. 1959. 1991.]
+2025-05-03 18:22:59,401 - test_bp_engine_cycle - INFO - Message from f35 to x3: [537. 507. 504. 521. 471.]
+2025-05-03 18:22:59,402 - test_bp_engine_cycle - INFO - Message from f37 to x3: [2725. 2667. 2723. 2707. 2665.]
+2025-05-03 18:22:59,403 - test_bp_engine_cycle - INFO - Message from f38 to x3: [2600. 2582. 2628. 2638. 2621.]
+2025-05-03 18:22:59,403 - test_bp_engine_cycle - INFO - Message from f310 to x3: [2290. 2316. 2256. 2308. 2278.]
+2025-05-03 18:22:59,403 - test_bp_engine_cycle - INFO - Message from f35 to x5: [3690. 3696. 3694. 3661. 3688.]
+2025-05-03 18:22:59,405 - test_bp_engine_cycle - INFO - Message from f59 to x5: [1011. 1013. 1028.  975. 1003.]
+2025-05-03 18:22:59,406 - test_bp_engine_cycle - INFO - Step 4: messages: {'x1': [Message from f14 to x1: [6413. 6383. 6427. 6367. 6396.], Message from f16 to x1: [6096. 6117. 6120. 6106. 6117.], Message from f18 to x1: [7920. 7882. 7870. 7896. 7896.], Message from f19 to x1: [1508. 1476. 1466. 1474. 1497.]], 'x4': [Message from f14 to x4: [6182. 6180. 6181. 6165. 6174.], Message from f24 to x4: [8204. 8193. 8164. 8176. 8155.], Message from f34 to x4: [8225. 8243. 8254. 8226. 8227.]], 'x6': [Message from f16 to x6: [6104. 6086. 6098. 6065. 6111.], Message from f67 to x6: [8523. 8525. 8523. 8492. 8491.], Message from f68 to x6: [7820. 7821. 7815. 7847. 7824.]], 'x8': [Message from f18 to x8: [5555. 5520. 5546. 5537. 5552.], Message from f28 to x8: [7577. 7572. 7579. 7572. 7568.], Message from f38 to x8: [7600. 7600. 7588. 7579. 7603.], Message from f68 to x8: [5504. 5506. 5513. 5518. 5489.]], 'x9': [Message from f19 to x9: [7972. 7953. 7960. 7917. 7890.], Message from f59 to x9: [3763. 3770. 3774. 3782. 3732.]], 'x2': [Message from f24 to x2: [5533. 5510. 5515. 5527. 5535.], Message from f27 to x2: [7668. 7681. 7649. 7669. 7649.], Message from f28 to x2: [7041. 7034. 6987. 7024. 7027.], Message from f210 to x2: [6193. 6187. 6168. 6199. 6196.]], 'x7': [Message from f27 to x7: [7465. 7485. 7533. 7487. 7484.], Message from f37 to x7: [7496. 7512. 7496. 7505. 7523.], Message from f67 to x7: [5421. 5426. 5401. 5383. 5418.], Message from f710 to x7: [6419. 6386. 6379. 6407. 6390.]], 'x10': [Message from f210 to x10: [7899. 7892. 7876. 7914. 7875.], Message from f310 to x10: [7946. 7944. 7912. 7904. 7919.], Message from f710 to x10: [8245. 8270. 8269. 8268. 8308.]], 'x3': [Message from f34 to x3: [5546. 5519. 5551. 5525. 5547.], Message from f35 to x3: [1124. 1094. 1099. 1108. 1058.], Message from f37 to x3: [7710. 7652. 7708. 7692. 7655.], Message from f38 to x3: [7026. 6998. 7059. 7043. 7052.], Message from f310 to x3: [6197. 6223. 6195. 6215. 6194.]], 'x5': [Message from f35 to x5: [9709. 9705. 9700. 9673. 9709.], Message from f59 to x5: [2971. 2958. 2988. 2935. 2948.]]}
+2025-05-03 18:22:59,420 - test_bp_engine_cycle - INFO - Message from f14 to x1: [6413. 6383. 6427. 6367. 6396.]
+2025-05-03 18:22:59,421 - test_bp_engine_cycle - INFO - Message from f16 to x1: [6096. 6117. 6120. 6106. 6117.]
+2025-05-03 18:22:59,422 - test_bp_engine_cycle - INFO - Message from f18 to x1: [7920. 7882. 7870. 7896. 7896.]
+2025-05-03 18:22:59,423 - test_bp_engine_cycle - INFO - Message from f19 to x1: [1508. 1476. 1466. 1474. 1497.]
+2025-05-03 18:22:59,423 - test_bp_engine_cycle - INFO - Message from f14 to x4: [6182. 6180. 6181. 6165. 6174.]
+2025-05-03 18:22:59,423 - test_bp_engine_cycle - INFO - Message from f24 to x4: [8204. 8193. 8164. 8176. 8155.]
+2025-05-03 18:22:59,425 - test_bp_engine_cycle - INFO - Message from f34 to x4: [8225. 8243. 8254. 8226. 8227.]
+2025-05-03 18:22:59,426 - test_bp_engine_cycle - INFO - Message from f16 to x6: [6104. 6086. 6098. 6065. 6111.]
+2025-05-03 18:22:59,427 - test_bp_engine_cycle - INFO - Message from f67 to x6: [8523. 8525. 8523. 8492. 8491.]
+2025-05-03 18:22:59,427 - test_bp_engine_cycle - INFO - Message from f68 to x6: [7820. 7821. 7815. 7847. 7824.]
+2025-05-03 18:22:59,428 - test_bp_engine_cycle - INFO - Message from f18 to x8: [5555. 5520. 5546. 5537. 5552.]
+2025-05-03 18:22:59,429 - test_bp_engine_cycle - INFO - Message from f28 to x8: [7577. 7572. 7579. 7572. 7568.]
+2025-05-03 18:22:59,429 - test_bp_engine_cycle - INFO - Message from f38 to x8: [7600. 7600. 7588. 7579. 7603.]
+2025-05-03 18:22:59,429 - test_bp_engine_cycle - INFO - Message from f68 to x8: [5504. 5506. 5513. 5518. 5489.]
+2025-05-03 18:22:59,430 - test_bp_engine_cycle - INFO - Message from f19 to x9: [7972. 7953. 7960. 7917. 7890.]
+2025-05-03 18:22:59,430 - test_bp_engine_cycle - INFO - Message from f59 to x9: [3763. 3770. 3774. 3782. 3732.]
+2025-05-03 18:22:59,431 - test_bp_engine_cycle - INFO - Message from f24 to x2: [5533. 5510. 5515. 5527. 5535.]
+2025-05-03 18:22:59,432 - test_bp_engine_cycle - INFO - Message from f27 to x2: [7668. 7681. 7649. 7669. 7649.]
+2025-05-03 18:22:59,433 - test_bp_engine_cycle - INFO - Message from f28 to x2: [7041. 7034. 6987. 7024. 7027.]
+2025-05-03 18:22:59,433 - test_bp_engine_cycle - INFO - Message from f210 to x2: [6193. 6187. 6168. 6199. 6196.]
+2025-05-03 18:22:59,435 - test_bp_engine_cycle - INFO - Message from f27 to x7: [7465. 7485. 7533. 7487. 7484.]
+2025-05-03 18:22:59,436 - test_bp_engine_cycle - INFO - Message from f37 to x7: [7496. 7512. 7496. 7505. 7523.]
+2025-05-03 18:22:59,436 - test_bp_engine_cycle - INFO - Message from f67 to x7: [5421. 5426. 5401. 5383. 5418.]
+2025-05-03 18:22:59,437 - test_bp_engine_cycle - INFO - Message from f710 to x7: [6419. 6386. 6379. 6407. 6390.]
+2025-05-03 18:22:59,438 - test_bp_engine_cycle - INFO - Message from f210 to x10: [7899. 7892. 7876. 7914. 7875.]
+2025-05-03 18:22:59,438 - test_bp_engine_cycle - INFO - Message from f310 to x10: [7946. 7944. 7912. 7904. 7919.]
+2025-05-03 18:22:59,439 - test_bp_engine_cycle - INFO - Message from f710 to x10: [8245. 8270. 8269. 8268. 8308.]
+2025-05-03 18:22:59,439 - test_bp_engine_cycle - INFO - Message from f34 to x3: [5546. 5519. 5551. 5525. 5547.]
+2025-05-03 18:22:59,440 - test_bp_engine_cycle - INFO - Message from f35 to x3: [1124. 1094. 1099. 1108. 1058.]
+2025-05-03 18:22:59,441 - test_bp_engine_cycle - INFO - Message from f37 to x3: [7710. 7652. 7708. 7692. 7655.]
+2025-05-03 18:22:59,441 - test_bp_engine_cycle - INFO - Message from f38 to x3: [7026. 6998. 7059. 7043. 7052.]
+2025-05-03 18:22:59,442 - test_bp_engine_cycle - INFO - Message from f310 to x3: [6197. 6223. 6195. 6215. 6194.]
+2025-05-03 18:22:59,442 - test_bp_engine_cycle - INFO - Message from f35 to x5: [9709. 9705. 9700. 9673. 9709.]
+2025-05-03 18:22:59,443 - test_bp_engine_cycle - INFO - Message from f59 to x5: [2971. 2958. 2988. 2935. 2948.]
+2025-05-03 18:22:59,443 - test_bp_engine_cycle - INFO - Step 5: messages: {'x1': [Message from f14 to x1: [16521. 16504. 16510. 16507. 16517.], Message from f16 to x1: [16392. 16433. 16431. 16429. 16433.], Message from f18 to x1: [20780. 20748. 20726. 20756. 20760.], Message from f19 to x1: [3862. 3834. 3824. 3828. 3855.]], 'x4': [Message from f14 to x4: [15597. 15609. 15592. 15608. 15623.], Message from f24 to x4: [20988. 20978. 20937. 20980. 20970.], Message from f34 to x4: [22109. 22147. 22140. 22158. 22132.]], 'x6': [Message from f16 to x6: [15890. 15861. 15883. 15870. 15916.], Message from f67 to x6: [21479. 21481. 21475. 21487. 21453.], Message from f68 to x6: [20791. 20798. 20792. 20824. 20801.]], 'x8': [Message from f18 to x8: [14116. 14071. 14090. 14070. 14096.], Message from f28 to x8: [19479. 19446. 19471. 19483. 19480.], Message from f38 to x8: [20645. 20636. 20625. 20637. 20639.], Message from f68 to x8: [14681. 14684. 14680. 14685. 14695.]], 'x9': [Message from f19 to x9: [20528. 20498. 20490. 20459. 20444.], Message from f59 to x9: [9769. 9776. 9783. 9801. 9741.]], 'x2': [Message from f24 to x2: [14470. 14493. 14512. 14509. 14517.], Message from f27 to x2: [19403. 19416. 19409. 19389. 19379.], Message from f28 to x2: [18744. 18740. 18694. 18727. 18730.], Message from f210 to x2: [16282. 16276. 16262. 16288. 16304.]], 'x7': [Message from f27 to x7: [18834. 18846. 18855. 18845. 18806.], Message from f37 to x7: [19973. 19998. 20000. 19982. 19988.], Message from f67 to x7: [14015. 14005. 13995. 13989. 14002.], Message from f710 to x7: [15926. 15897. 15903. 15914. 15897.]], 'x10': [Message from f210 to x10: [20321. 20301. 20297. 20331. 20297.], Message from f310 to x10: [21501. 21494. 21455. 21454. 21474.], Message from f710 to x10: [20477. 20484. 20483. 20515. 20522.]], 'x3': [Message from f34 to x3: [14463. 14454. 14438. 14442. 14479.], Message from f35 to x3: [3084. 3054. 3051. 3068. 3018.], Message from f37 to x3: [19393. 19335. 19409. 19389. 19362.], Message from f38 to x3: [18695. 18667. 18728. 18723. 18721.], Message from f310 to x3: [16251. 16277. 16239. 16269. 16239.]], 'x5': [Message from f35 to x5: [26593. 26599. 26575. 26564. 26591.], Message from f59 to x5: [8024. 8038. 8041. 7988. 8028.]]}
+2025-05-03 18:22:59,462 - test_bp_engine_cycle - INFO - Message from f14 to x1: [16521. 16504. 16510. 16507. 16517.]
+2025-05-03 18:22:59,463 - test_bp_engine_cycle - INFO - Message from f16 to x1: [16392. 16433. 16431. 16429. 16433.]
+2025-05-03 18:22:59,463 - test_bp_engine_cycle - INFO - Message from f18 to x1: [20780. 20748. 20726. 20756. 20760.]
+2025-05-03 18:22:59,464 - test_bp_engine_cycle - INFO - Message from f19 to x1: [3862. 3834. 3824. 3828. 3855.]
+2025-05-03 18:22:59,465 - test_bp_engine_cycle - INFO - Message from f14 to x4: [15597. 15609. 15592. 15608. 15623.]
+2025-05-03 18:22:59,465 - test_bp_engine_cycle - INFO - Message from f24 to x4: [20988. 20978. 20937. 20980. 20970.]
+2025-05-03 18:22:59,466 - test_bp_engine_cycle - INFO - Message from f34 to x4: [22109. 22147. 22140. 22158. 22132.]
+2025-05-03 18:22:59,466 - test_bp_engine_cycle - INFO - Message from f16 to x6: [15890. 15861. 15883. 15870. 15916.]
+2025-05-03 18:22:59,467 - test_bp_engine_cycle - INFO - Message from f67 to x6: [21479. 21481. 21475. 21487. 21453.]
+2025-05-03 18:22:59,468 - test_bp_engine_cycle - INFO - Message from f68 to x6: [20791. 20798. 20792. 20824. 20801.]
+2025-05-03 18:22:59,468 - test_bp_engine_cycle - INFO - Message from f18 to x8: [14116. 14071. 14090. 14070. 14096.]
+2025-05-03 18:22:59,469 - test_bp_engine_cycle - INFO - Message from f28 to x8: [19479. 19446. 19471. 19483. 19480.]
+2025-05-03 18:22:59,470 - test_bp_engine_cycle - INFO - Message from f38 to x8: [20645. 20636. 20625. 20637. 20639.]
+2025-05-03 18:22:59,470 - test_bp_engine_cycle - INFO - Message from f68 to x8: [14681. 14684. 14680. 14685. 14695.]
+2025-05-03 18:22:59,471 - test_bp_engine_cycle - INFO - Message from f19 to x9: [20528. 20498. 20490. 20459. 20444.]
+2025-05-03 18:22:59,472 - test_bp_engine_cycle - INFO - Message from f59 to x9: [9769. 9776. 9783. 9801. 9741.]
+2025-05-03 18:22:59,472 - test_bp_engine_cycle - INFO - Message from f24 to x2: [14470. 14493. 14512. 14509. 14517.]
+2025-05-03 18:22:59,473 - test_bp_engine_cycle - INFO - Message from f27 to x2: [19403. 19416. 19409. 19389. 19379.]
+2025-05-03 18:22:59,473 - test_bp_engine_cycle - INFO - Message from f28 to x2: [18744. 18740. 18694. 18727. 18730.]
+2025-05-03 18:22:59,473 - test_bp_engine_cycle - INFO - Message from f210 to x2: [16282. 16276. 16262. 16288. 16304.]
+2025-05-03 18:22:59,475 - test_bp_engine_cycle - INFO - Message from f27 to x7: [18834. 18846. 18855. 18845. 18806.]
+2025-05-03 18:22:59,476 - test_bp_engine_cycle - INFO - Message from f37 to x7: [19973. 19998. 20000. 19982. 19988.]
+2025-05-03 18:22:59,476 - test_bp_engine_cycle - INFO - Message from f67 to x7: [14015. 14005. 13995. 13989. 14002.]
+2025-05-03 18:22:59,478 - test_bp_engine_cycle - INFO - Message from f710 to x7: [15926. 15897. 15903. 15914. 15897.]
+2025-05-03 18:22:59,478 - test_bp_engine_cycle - INFO - Message from f210 to x10: [20321. 20301. 20297. 20331. 20297.]
+2025-05-03 18:22:59,478 - test_bp_engine_cycle - INFO - Message from f310 to x10: [21501. 21494. 21455. 21454. 21474.]
+2025-05-03 18:22:59,478 - test_bp_engine_cycle - INFO - Message from f710 to x10: [20477. 20484. 20483. 20515. 20522.]
+2025-05-03 18:22:59,480 - test_bp_engine_cycle - INFO - Message from f34 to x3: [14463. 14454. 14438. 14442. 14479.]
+2025-05-03 18:22:59,481 - test_bp_engine_cycle - INFO - Message from f35 to x3: [3084. 3054. 3051. 3068. 3018.]
+2025-05-03 18:22:59,481 - test_bp_engine_cycle - INFO - Message from f37 to x3: [19393. 19335. 19409. 19389. 19362.]
+2025-05-03 18:22:59,482 - test_bp_engine_cycle - INFO - Message from f38 to x3: [18695. 18667. 18728. 18723. 18721.]
+2025-05-03 18:22:59,482 - test_bp_engine_cycle - INFO - Message from f310 to x3: [16251. 16277. 16239. 16269. 16239.]
+2025-05-03 18:22:59,483 - test_bp_engine_cycle - INFO - Message from f35 to x5: [26593. 26599. 26575. 26564. 26591.]
+2025-05-03 18:22:59,484 - test_bp_engine_cycle - INFO - Message from f59 to x5: [8024. 8038. 8041. 7988. 8028.]
+2025-05-03 18:22:59,485 - test_bp_engine_cycle - INFO - Step 6: messages: {'x1': [Message from f14 to x1: [43222. 43193. 43236. 43194. 43206.], Message from f16 to x1: [42340. 42366. 42394. 42401. 42360.], Message from f18 to x1: [54904. 54844. 54862. 54880. 54900.], Message from f19 to x1: [9868. 9853. 9843. 9834. 9864.]], 'x4': [Message from f14 to x4: [41131. 41129. 41130. 41118. 41133.], Message from f24 to x4: [54518. 54507. 54478. 54507. 54482.], Message from f34 to x4: [57500. 57518. 57529. 57524. 57498.]], 'x6': [Message from f16 to x6: [41222. 41204. 41216. 41192. 41238.], Message from f67 to x6: [54829. 54839. 54817. 54797. 54805.], Message from f68 to x6: [54283. 54306. 54300. 54332. 54309.]], 'x8': [Message from f18 to x8: [36874. 36837. 36885. 36853. 36891.], Message from f28 to x8: [50271. 50266. 50278. 50274. 50258.], Message from f38 to x8: [53250. 53250. 53253. 53229. 53253.], Message from f68 to x8: [37449. 37440. 37447. 37452. 37437.]], 'x9': [Message from f19 to x9: [53792. 53784. 53791. 53748. 53721.], Message from f59 to x9: [26645. 26651. 26677. 26685. 26635.]], 'x2': [Message from f24 to x2: [37844. 37821. 37830. 37842. 37850.], Message from f27 to x2: [49981. 49992. 49987. 49980. 49995.], Message from f28 to x2: [49527. 49500. 49480. 49510. 49513.], Message from f210 to x2: [42058. 42062. 42049. 42057. 42068.]], 'x7': [Message from f27 to x7: [49585. 49601. 49648. 49618. 49599.], Message from f37 to x7: [52573. 52589. 52552. 52582. 52599.], Message from f67 to x7: [36772. 36781. 36752. 36751. 36784.], Message from f710 to x7: [41903. 41870. 41870. 41891. 41874.]], 'x10': [Message from f210 to x10: [52706. 52716. 52702. 52742. 52698.], Message from f310 to x10: [55730. 55703. 55709. 55692. 55708.], Message from f710 to x10: [52903. 52910. 52909. 52935. 52948.]], 'x3': [Message from f34 to x3: [36677. 36653. 36685. 36656. 36684.], Message from f35 to x3: [8137. 8107. 8124. 8125. 8074.], Message from f37 to x3: [48855. 48786. 48849. 48827. 48822.], Message from f38 to x3: [48335. 48307. 48368. 48328. 48361.], Message from f310 to x3: [40893. 40915. 40883. 40916. 40875.]], 'x5': [Message from f35 to x5: [68920. 68900. 68898. 68884. 68920.], Message from f59 to x5: [20580. 20568. 20597. 20544. 20558.]]}
+2025-05-03 18:22:59,505 - test_bp_engine_cycle - INFO - Message from f14 to x1: [43222. 43193. 43236. 43194. 43206.]
+2025-05-03 18:22:59,506 - test_bp_engine_cycle - INFO - Message from f16 to x1: [42340. 42366. 42394. 42401. 42360.]
+2025-05-03 18:22:59,507 - test_bp_engine_cycle - INFO - Message from f18 to x1: [54904. 54844. 54862. 54880. 54900.]
+2025-05-03 18:22:59,508 - test_bp_engine_cycle - INFO - Message from f19 to x1: [9868. 9853. 9843. 9834. 9864.]
+2025-05-03 18:22:59,509 - test_bp_engine_cycle - INFO - Message from f14 to x4: [41131. 41129. 41130. 41118. 41133.]
+2025-05-03 18:22:59,510 - test_bp_engine_cycle - INFO - Message from f24 to x4: [54518. 54507. 54478. 54507. 54482.]
+2025-05-03 18:22:59,510 - test_bp_engine_cycle - INFO - Message from f34 to x4: [57500. 57518. 57529. 57524. 57498.]
+2025-05-03 18:22:59,511 - test_bp_engine_cycle - INFO - Message from f16 to x6: [41222. 41204. 41216. 41192. 41238.]
+2025-05-03 18:22:59,511 - test_bp_engine_cycle - INFO - Message from f67 to x6: [54829. 54839. 54817. 54797. 54805.]
+2025-05-03 18:22:59,512 - test_bp_engine_cycle - INFO - Message from f68 to x6: [54283. 54306. 54300. 54332. 54309.]
+2025-05-03 18:22:59,512 - test_bp_engine_cycle - INFO - Message from f18 to x8: [36874. 36837. 36885. 36853. 36891.]
+2025-05-03 18:22:59,513 - test_bp_engine_cycle - INFO - Message from f28 to x8: [50271. 50266. 50278. 50274. 50258.]
+2025-05-03 18:22:59,513 - test_bp_engine_cycle - INFO - Message from f38 to x8: [53250. 53250. 53253. 53229. 53253.]
+2025-05-03 18:22:59,515 - test_bp_engine_cycle - INFO - Message from f68 to x8: [37449. 37440. 37447. 37452. 37437.]
+2025-05-03 18:22:59,516 - test_bp_engine_cycle - INFO - Message from f19 to x9: [53792. 53784. 53791. 53748. 53721.]
+2025-05-03 18:22:59,516 - test_bp_engine_cycle - INFO - Message from f59 to x9: [26645. 26651. 26677. 26685. 26635.]
+2025-05-03 18:22:59,517 - test_bp_engine_cycle - INFO - Message from f24 to x2: [37844. 37821. 37830. 37842. 37850.]
+2025-05-03 18:22:59,518 - test_bp_engine_cycle - INFO - Message from f27 to x2: [49981. 49992. 49987. 49980. 49995.]
+2025-05-03 18:22:59,518 - test_bp_engine_cycle - INFO - Message from f28 to x2: [49527. 49500. 49480. 49510. 49513.]
+2025-05-03 18:22:59,519 - test_bp_engine_cycle - INFO - Message from f210 to x2: [42058. 42062. 42049. 42057. 42068.]
+2025-05-03 18:22:59,519 - test_bp_engine_cycle - INFO - Message from f27 to x7: [49585. 49601. 49648. 49618. 49599.]
+2025-05-03 18:22:59,520 - test_bp_engine_cycle - INFO - Message from f37 to x7: [52573. 52589. 52552. 52582. 52599.]
+2025-05-03 18:22:59,521 - test_bp_engine_cycle - INFO - Message from f67 to x7: [36772. 36781. 36752. 36751. 36784.]
+2025-05-03 18:22:59,521 - test_bp_engine_cycle - INFO - Message from f710 to x7: [41903. 41870. 41870. 41891. 41874.]
+2025-05-03 18:22:59,522 - test_bp_engine_cycle - INFO - Message from f210 to x10: [52706. 52716. 52702. 52742. 52698.]
+2025-05-03 18:22:59,523 - test_bp_engine_cycle - INFO - Message from f310 to x10: [55730. 55703. 55709. 55692. 55708.]
+2025-05-03 18:22:59,523 - test_bp_engine_cycle - INFO - Message from f710 to x10: [52903. 52910. 52909. 52935. 52948.]
+2025-05-03 18:22:59,525 - test_bp_engine_cycle - INFO - Message from f34 to x3: [36677. 36653. 36685. 36656. 36684.]
+2025-05-03 18:22:59,525 - test_bp_engine_cycle - INFO - Message from f35 to x3: [8137. 8107. 8124. 8125. 8074.]
+2025-05-03 18:22:59,526 - test_bp_engine_cycle - INFO - Message from f37 to x3: [48855. 48786. 48849. 48827. 48822.]
+2025-05-03 18:22:59,527 - test_bp_engine_cycle - INFO - Message from f38 to x3: [48335. 48307. 48368. 48328. 48361.]
+2025-05-03 18:22:59,528 - test_bp_engine_cycle - INFO - Message from f310 to x3: [40893. 40915. 40883. 40916. 40875.]
+2025-05-03 18:22:59,528 - test_bp_engine_cycle - INFO - Message from f35 to x5: [68920. 68900. 68898. 68884. 68920.]
+2025-05-03 18:22:59,529 - test_bp_engine_cycle - INFO - Message from f59 to x5: [20580. 20568. 20597. 20544. 20558.]
+2025-05-03 18:22:59,529 - test_bp_engine_cycle - INFO - Beliefs after one cycle: {'x1': None, 'x2': None, 'x3': None, 'x4': None, 'x5': None, 'x6': None, 'x7': None, 'x8': None, 'x9': None, 'x10': None}
+2025-05-03 18:22:59,530 - test_bp_engine_cycle - INFO - Assignments after one cycle: {'x1': np.int64(2), 'x2': np.int64(4), 'x3': np.int64(2), 'x4': np.int64(1), 'x5': np.int64(0), 'x6': np.int64(4), 'x7': np.int64(4), 'x8': np.int64(2), 'x9': np.int64(2), 'x10': np.int64(3)}

@@ -44,7 +44,7 @@ logger.info("Logging is now set up with colored console output")
 @pytest.fixture
 def simple_factor_graph():
     pickle_path = os.path.join(project_root, 'configs', 'factor_graphs',
-                               'factor-graph-cycle-3-random_intlow1,high100-number49.pkl')
+                               'factor-graph-random-10-random_intlow1,high1000.4-number6.pkl')
 
     # Create two variables and one factor for a minimal test
 
