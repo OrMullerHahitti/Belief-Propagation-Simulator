@@ -8,7 +8,7 @@ import sys
 from typing import Any, Dict, Callable
 
 from configs.global_config_mapping import GRAPH_TYPES, CT_FACTORIES
-from utils.path_utils import get_project_root
+from utils.path_utils import find_project_root
 
 
 ########################################################################
@@ -42,7 +42,7 @@ class ConfigCreator:
     def __init__(self, base_dir: str | Path = "configs/factor_graph_configs"):
         # Convert relative path to absolute path using project root
         if not os.path.isabs(str(base_dir)):
-            base_dir = get_project_root() / base_dir
+            base_dir = find_project_root() / base_dir
         self.base_dir = Path(base_dir).expanduser().resolve()
 
     # ------------------------------------------------------------------
