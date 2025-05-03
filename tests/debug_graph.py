@@ -48,7 +48,7 @@ def find_project_root():
     current_dir = Path.cwd()
     while True:
         # Check if this is the project root (containing typical root markers)
-        if any((current_dir / marker).exists() for marker in ['.git', 'setup.py', 'pyproject.toml']):
+        if any((current_dir / marker).exists() for marker in ['.git', 'setup.py', 'pyproject.toml','.root']):
             return current_dir
 
         # Check if we've reached the filesystem root
