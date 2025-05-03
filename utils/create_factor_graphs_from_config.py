@@ -5,6 +5,7 @@ import random
 from pathlib import Path
 from importlib import import_module
 from typing import List, Dict, Callable, Any, Tuple
+import networkx as nx
 import re
 
 # Function to get project root directory
@@ -23,7 +24,7 @@ from utils.create_factor_graph_config import ConfigCreator, GraphConfig
 # Optional: make sure agents & FactorGraph are importable
 from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.factor_graph import FactorGraph
-from utils.path_utils import get_project_root
+from utils.path_utils import find_project_root
 from itertools import combinations
 
 
@@ -54,7 +55,7 @@ def _next_index(base: Path, stem: str) -> int:
 class FactorGraphBuilder:
     """Build & pickle a FactorGraph from a GraphConfig."""
 
-    def __init__(self, output_dir: str | Path = get_project_root() / "configs/factor_graphs"):
+    def __init__(self, output_dir: str | Path = find_project_root() / "configs/factor_graphs"):
         self.output_dir = Path(output_dir).expanduser().resolve()
         os.makedirs(self.output_dir, exist_ok=True)
 
@@ -93,6 +94,11 @@ class FactorGraphBuilder:
             pickle.dump(fg, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
         return out_path
+    @staticmethod
+    def load_graph(path: str | Path) -> FactorGraph:
+        """Load a pickled FactorGraph from <path>."""
+        with Path(path).open("rb") as fh:
+            return pickle.load(fh)
 
 
 # ──────────────────────────────────────────────────────────────
@@ -118,9 +124,10 @@ def _make_connections_density(variable_list:List[VariableAgent],density :float) 
 
 
     """
-    all_edges = list(combinations(variable_list,2))
-    k = int(len(all_edges) *  density)
-    return random.sample(all_edges, k)
+    r_graph = nx.erdos_renyi_graph(len(variable_list),density)
+    variable_map = {i:variable for i,variable in enumerate(variable_list)}
+    full_graph = nx.relabel_nodes(r_graph,variable_map)
+    return list(list(full_graph.edges()))
 
 def _build_factor_edge_list(edges:List[Tuple[VariableAgent,VariableAgent]],domain_size,ct_factory,ct_params) -> Dict[FactorAgent,List[VariableAgent]]:
     """
