@@ -12,14 +12,15 @@ logger = logging.getLogger(__name__)
 
 class FactorGraph:
     """
-    Represents a factor graph for belief propagation.
-    The graph structure is bipartite, with variable nodes connected to factor nodes.
+    Represents a bipartite factor graph for belief propagation.
+    The graph structure is bipartite, with variable nodes (set 0) connected only to factor nodes (set 1).
     """
 
     def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent], 
                  edges: Dict[FactorAgent, List[VariableAgent]]):
         """
         Initialize the factor graph with variable nodes, factor nodes, and edges.
+        Enforces bipartite structure: variables <-> factors only.
         
         :param variable_li: List of variable agents
         :param factor_li: List of factor agents
@@ -31,9 +32,9 @@ class FactorGraph:
         # Create a bipartite graph
         self.G = nx.Graph()
         
-        # Add nodes
-        self.G.add_nodes_from(self.variables)
-        self.G.add_nodes_from(self.factors)
+        # Add nodes with bipartite attribute
+        self.G.add_nodes_from(self.variables, bipartite=0)
+        self.G.add_nodes_from(self.factors, bipartite=1)
         
         # Add edges and set up factor nodes
         self.add_edges(edges)
@@ -47,6 +48,7 @@ class FactorGraph:
     def add_edges(self, edges: Dict[FactorAgent, List[VariableAgent]]) -> None:
         """
         Add edges between factor nodes and variable nodes.
+        Enforces bipartite structure: only factor-variable edges allowed.
         
         :param edges: Dictionary mapping factor nodes to lists of variable nodes
         """
@@ -55,24 +57,30 @@ class FactorGraph:
             if not hasattr(factor, "connection_number"):
                 factor.connection_number = {}
             for i, var in enumerate(variables):
+                # Enforce bipartite: only connect factor <-> variable
+                if not ((factor in self.factors and var in self.variables) or (factor in self.variables and var in self.factors)):
+                    raise ValueError("Edges must connect a factor node to a variable node (bipartite structure).")
                 self.G.add_edge(factor, var, dim=i)
                 # Set dimension index for the variable in the factor's cost table
                 factor.connection_number[var] = i
-    
+        logger.info("FactorGraph is bipartite: variables <-> factors only.")
+
     def initialize_cost_tables(self) -> None:
         """
         Initialize cost tables for factor nodes.
         """
-        for node in self.G.nodes():
+        for node in list(nx.bipartite.sets(self.G))[1]:
             if isinstance(node, FactorAgent):
+                # Initialize cost table for the factor node
                 node.initiate_cost_table()
+                logger.info("Cost table initialized for factor node: %s", node.name)
     
     def initialize_messages(self) -> None:
         """
         Initialize mailboxes for all nodes with zero messages.
         Each node creates outgoing messages to all its neighbors.
         """
-     # For each node, create outgoing messages to all its neighbors
+        # For each node, create outgoing messages to all its neighbors
         for node in self.G.nodes():
             neighbors = list(self.G.neighbors(node))
             if isinstance(node, VariableAgent):
@@ -80,10 +88,10 @@ class FactorGraph:
                     # Check if neighbor has a domain attribute
                     logger.info("Initializing mailbox for node: %s", node)
 
-                    node.mailer.set_first_message(node,neighbor)
-                      # Initialize messages to send
+                    node.mailer.set_first_message(node, neighbor)
+                    # Initialize messages to send
 
-    def set_computator(self, computator: Computator,**kwargs) -> None:
+    def set_computator(self, computator: Computator, **kwargs) -> None:
         """
         Set the computator for all nodes in the graph.
 
@@ -115,11 +123,12 @@ class FactorGraph:
             # Rebuild graph from variables and factors
             if hasattr(self, 'variables') and hasattr(self, 'factors'):
                 # Add nodes
-                self.G.add_nodes_from(self.variables)
-                self.G.add_nodes_from(self.factors)
+                self.G.add_nodes_from(self.variables, bipartite=0)
+                self.G.add_nodes_from(self.factors, bipartite=1)
 
                 # Rebuild edges from connection_number info
                 for factor in self.factors:
                     if hasattr(factor, 'connection_number'):
                         for var, dim in factor.connection_number.items():
                             self.G.add_edge(factor, var, dim=dim)
+

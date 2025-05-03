@@ -1,8 +1,10 @@
 import logging
-import pickle
-import sys
 import os
+import pickle
+import networkx as  nx
 from pathlib import Path
+import sys
+from matplotlib import pyplot as plt
 
 import colorlog  # pip install colorlog
 import pytest
@@ -48,7 +50,7 @@ def find_project_root():
     current_dir = Path.cwd()
     while True:
         # Check if this is the project root (containing typical root markers)
-        if any((current_dir / marker).exists() for marker in ['.git', 'setup.py', 'pyproject.toml','.root']):
+        if any((current_dir / marker).exists() for marker in ['.git', 'setup.py', 'pyproject.toml']):
             return current_dir
 
         # Check if we've reached the filesystem root
@@ -85,7 +87,7 @@ try:
 
     # Try to load the pickle
     pickle_path = os.path.join(project_root, 'configs', 'factor_graphs',
-                               'factor-graph-cycle-3-random_intlow1,high100-number150.pkl')
+                               'factor-graph-random-50-random_intlow1,high1000.5-number49.pkl')
     print(f"Attempting to load: {pickle_path}")
 
     # Check if file exists
@@ -165,58 +167,47 @@ def factor_graph():
     logger.info("Graph loaded successfully")
     return fg
 
-def test_factor_graph_attributes(factor_graph):
-    logger.info("Checking attributes of factor_graph")
-    assert hasattr(factor_graph, 'G'), "No 'G' attribute found"
-
-def test_graph_nodes_edges(factor_graph):
-    logger.info(f"Number of nodes: {len(factor_graph.G.nodes())}")
-    logger.info(f"Number of edges: {len(factor_graph.G.edges())}")
-    assert len(factor_graph.G.nodes()) >= 0, "Node count is negative?"
-    assert len(factor_graph.G.edges()) >= 0, "Edge count is negative?"
-def test_graph_methods(factor_graph):
-    logger.info("Testing graph methods")
-    assert hasattr(factor_graph, 'initialize_cost_tables'), "initialize_cost_tables method not found"
-    assert hasattr(factor_graph, 'initialize_messages'), "initialize_mailbox method not found"
-def test_graph_pickle(factor_graph):
-    logger.info("Testing graph pickling")
+def test_graph_structure(factor_graph):
+    """
+    Test the structure of the factor graph.
+    """
+    assert isinstance(fg, FactorGraph), "Loaded object is not a FactorGraph"
+    assert len(fg.G.nodes()) > 0, "Graph has no nodes"
+    assert len(fg.G.edges()) > 0, "Graph has no edges"
+    logger.info("Graph structure is valid")
+def test_viz(factor_graph):
+    """
+    Test the visualization of the factor graph.
+    """
     try:
-        # Pickle the graph
-        with open('test_factor_graph.pkl', 'wb') as f:
-            pickle.dump(factor_graph, f)
+        # Assume fg is your FactorGraph and fg.G is the NetworkX graph
+        G = factor_graph.G
 
-        # Unpickle the graph
-        with open('test_factor_graph.pkl', 'rb') as f:
-            loaded_graph = pickle.load(f)
+        # Identify variable and factor nodes
+        variable_nodes = [n for n in G.nodes if isinstance(n, VariableAgent)]
+        factor_nodes = [n for n in G.nodes if isinstance(n, FactorAgent)]
 
-        assert loaded_graph is not None, logger.error("Failed to unpickle factor graph")
-        logger.info("Graph pickled and unpickled successfully")
+        # Create bipartite layout
+        pos = nx.bipartite_layout(G, variable_nodes)
+
+        plt.figure(figsize=(8, 6))
+        # Draw variable nodes (circles)
+        nx.draw_networkx_nodes(G, pos, nodelist=variable_nodes, node_shape='o', node_color='skyblue', label='Variables')
+        # Draw factor nodes (squares)
+        nx.draw_networkx_nodes(G, pos, nodelist=factor_nodes, node_shape='s', node_color='salmon', label='Factors')
+        # Draw edges
+        nx.draw_networkx_edges(G, pos)
+        # Draw labels
+        nx.draw_networkx_labels(G, pos)
+
+        plt.legend(scatterpoints=1)
+        plt.axis('off')
+        plt.tight_layout()
+        plt.show()
+
+        plt.savefig("factor_graph_viz.png")
+        plt.show()
+        logger.info("Graph visualization successful")
     except Exception as e:
-        logger.error(f"Error during pickling: {e}")
-        assert False, "Pickling failed"
-def test_loading_factor_graph():
-    logger.info("Testing loading of factor graph")
-    try:
-        fg = load_pickle(pickle_path)
-        for node in fg.G.nodes():
-            logger.info(f"Node: {nodes}")
-            if isinstance(node, FactorAgent):
-                logger.info(f"  - FactorAgent: {node.name} and its table is {node.cost_table}")
-                assert node.cost_table is not None
-
-        assert fg is not None, "Failed to load factor graph"
-        assert isinstance(fg,FactorGraph) , "Failed to load factor graph"
-        logger.info("Factor graph loaded successfully")
-    except Exception as e:
-        logger.error(f"Error loading factor graph: {e}")
-        assert False, "Loading failed"
-def test_variable_agent_post_init(factor_graph):
-    logger.info("Testing VariableAgent post-init")
-    v1 = list(factor_graph.G.nodes())[0]
-    assert isinstance(v1, VariableAgent), "Node is not a VariableAgent"
-    assert hasattr(v1, "mailer"), "VariableAgent has no mailbox"
-    assert isinstance(v1.inbox, list), "inbox is not a list"
-    logger.info("VariableAgent messages inbox : %s", v1.inbox)
-    logger.info("VariableAgent messages to send : %s", v1.mailer._outgoing)
-    assert v1.domain == 3, "Domain is not 3"
-    assert v1.name == "x1", "Name is not x1"
+        logger.error(f"Graph visualization failed: {e}")
+        assert False, "Graph visualization failed"

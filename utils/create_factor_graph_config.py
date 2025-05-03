@@ -8,7 +8,7 @@ import sys
 from typing import Any, Dict, Callable
 
 from configs.global_config_mapping import GRAPH_TYPES, CT_FACTORIES
-from utils.path_utils import get_project_root
+from utils.path_utils import find_project_root
 
 
 ########################################################################
@@ -23,6 +23,7 @@ class GraphConfig:
     domain_size: int
     ct_factory_name: str
     ct_factory_params: Dict[str, Any]
+    density: float|None = None  # Placeholder for future use, replace as needed
 
     # Anything else you want (seed, max_iters…) can be added later.
 
@@ -30,7 +31,7 @@ class GraphConfig:
     def filename(self) -> str:
         """<computator>-<type>-<numV>-<factory><compactParams>.pkl"""
         param_str = ",".join(f"{k}{v}" for k, v in self.ct_factory_params.items())
-        return f"{self.graph_type}-{self.num_variables}-{self.ct_factory_name}{param_str}.pkl"
+        return f"{self.graph_type}-{self.num_variables}-{self.ct_factory_name}{param_str}{self.density if self.density else ""}.pkl"
 
 
 ########################################################################
@@ -41,7 +42,7 @@ class ConfigCreator:
     def __init__(self, base_dir: str | Path = "configs/factor_graph_configs"):
         # Convert relative path to absolute path using project root
         if not os.path.isabs(str(base_dir)):
-            base_dir = get_project_root() / base_dir
+            base_dir = find_project_root() / base_dir
         self.base_dir = Path(base_dir).expanduser().resolve()
 
     # ------------------------------------------------------------------
@@ -53,6 +54,8 @@ class ConfigCreator:
         domain_size: int,
         ct_factory: str,
         ct_params: Dict[str, Any] | None = None,
+       density: float|None = None,
+
     ) -> Path:
         """Validate, build GraphConfig, dump to pickle, return full path."""
         ct_params = ct_params or {}
@@ -65,6 +68,7 @@ class ConfigCreator:
             domain_size=domain_size,
             ct_factory_name=ct_factory,
             ct_factory_params=ct_params,
+            density = density
         )
 
         # Ensure directory exists
@@ -91,6 +95,7 @@ class ConfigCreator:
         domain_size: int,
         ct_factory: str,
         ct_params: Dict[str, Any],
+
     ):
         if graph_type not in GRAPH_TYPES:
             raise ValueError(f"Unknown graph_type '{graph_type}'.  Allowed: {list(GRAPH_TYPES)}")
@@ -112,13 +117,7 @@ class ConfigCreator:
                 raise ValueError(f"Parameter '{name}' not accepted by CT factory '{ct_factory}'")
 
     # Use project root for relative paths
-config_path = get_project_root() / "configs/factor_graph_configs"
-ConfigCreator(config_path).create_config(graph_type="cycle",
-                                         domain_size=3,
-                                         num_variables=3,
-                                         ct_factory="random_int",
-                                         ct_params={"low": 2,
-                                                    'high': 100})
+
 
 
 __doc__="""this module is made to create a config file for the factor graph
