@@ -37,15 +37,32 @@ class FactorGraph:
         self.G.add_nodes_from(self.factors, bipartite=1)
         
         # Add edges and set up factor nodes
-        self.add_edges(edges)
+        self._add_edges(edges)
         
         # Initialize cost tables for factor nodes
-        self.initialize_cost_tables()
+        self._initialize_cost_tables()
         
         # Initialize mailboxes for all nodes
-        self.initialize_messages()
+        self._initialize_messages()
+
+    def set_computator(self, computator: Computator, **kwargs) -> None:
+        """
+        Set the computator for all nodes in the graph.
+
+        :param computator: The computator to be set
+        """
+        for node in self.G.nodes():
+            node.computator = computator
+    def visualize(self) -> None:
+        """
+        Visualize the factor graph using matplotlib.
+        """
+        import matplotlib.pyplot as plt
+        pos = nx.bipartite_layout(self.G, nodes=self.variables)
+        nx.draw(self.G, pos, with_labels=True, node_color='lightblue', node_size=500, font_size=10)
+        plt.show()
         
-    def add_edges(self, edges: Dict[FactorAgent, List[VariableAgent]]) -> None:
+    def _add_edges(self, edges: Dict[FactorAgent, List[VariableAgent]]) -> None:
         """
         Add edges between factor nodes and variable nodes.
         Enforces bipartite structure: only factor-variable edges allowed.
@@ -65,7 +82,7 @@ class FactorGraph:
                 factor.connection_number[var] = i
         logger.info("FactorGraph is bipartite: variables <-> factors only.")
 
-    def initialize_cost_tables(self) -> None:
+    def _initialize_cost_tables(self) -> None:
         """
         Initialize cost tables for factor nodes.
         """
@@ -75,7 +92,7 @@ class FactorGraph:
                 node.initiate_cost_table()
                 logger.info("Cost table initialized for factor node: %s", node.name)
     
-    def initialize_messages(self) -> None:
+    def _initialize_messages(self) -> None:
         """
         Initialize mailboxes for all nodes with zero messages.
         Each node creates outgoing messages to all its neighbors.
@@ -91,14 +108,7 @@ class FactorGraph:
                     node.mailer.set_first_message(node, neighbor)
                     # Initialize messages to send
 
-    def set_computator(self, computator: Computator, **kwargs) -> None:
-        """
-        Set the computator for all nodes in the graph.
 
-        :param computator: The computator to be set
-        """
-        for node in self.G.nodes():
-            node.computator = computator
 
     def __getstate__(self):
         """
