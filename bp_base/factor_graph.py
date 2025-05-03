@@ -59,7 +59,10 @@ class FactorGraph:
         """
         import matplotlib.pyplot as plt
         pos = nx.bipartite_layout(self.G, nodes=self.variables)
-        nx.draw(self.G, pos, with_labels=True, node_color='lightblue', node_size=500, font_size=10)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=self.variables, node_shape='o', node_color='lightblue', node_size=300)
+        nx.draw_networkx_nodes(self.G, pos, nodelist=self.factors, node_shape='s', node_color='lightgreen', node_size=300)
+        nx.draw_networkx_edges(self.G, pos)
+        nx.draw_networkx_labels(self.G, pos)
         plt.show()
         
     def _add_edges(self, edges: Dict[FactorAgent, List[VariableAgent]]) -> None:

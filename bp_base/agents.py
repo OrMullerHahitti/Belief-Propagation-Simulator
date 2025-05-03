@@ -89,7 +89,7 @@ class VariableAgent(BPAgent):
 
     #TODO : make this more modular right now its only for maxsum
     @property
-    def curr_belief(self) -> np.ndarray:
+    def belief(self) -> np.ndarray:
         """
         Compute the current belief based on incoming messages.
         :return: Current belief as a numpy array.
@@ -101,7 +101,8 @@ class VariableAgent(BPAgent):
         Compute the current assignment based on incoming messages.
         :return: Current assignment as a numpy array.
         """
-        return np.argmax(self.curr_belief, axis=0)
+        return np.argmax(self.belief, axis=0)
+    __str__ = lambda self:self.name.upper()
 
 
     #TODO create the self belief function
@@ -171,6 +172,6 @@ class FactorAgent(BPAgent):
         return np.mean(self.cost_table,axis=axis)
     def __repr__(self):
         return f"FactorAgent: {self.name}"
-    def __str__(self):
-        return f"FactorAgent: {self.name}"
+
+    __str__ = lambda self:self.name.upper()
 
