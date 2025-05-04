@@ -45,9 +45,9 @@ class Cycle:
     """
     A class to represent a cycle in the factor graph.
     """
-
     number: int
     steps : List[Step] = field(default_factory=list)
+
 
     def add(self, step: Step):
         """
@@ -78,9 +78,9 @@ class History:
     def compare_last_two_cycles(self):
         if len(self.cycles) < 2:
             return False
-        last_cycle = list(self.cycles.values())[-1]
-        second_last_cycle = list(self.cycles.values())[-2]
-        return last_cycle == second_last_cycle
+        last_cycle = list(self.assignments.values())[-1]
+        second_last_cycle = list(self.assignments.values())[-2]
+        return list(last_cycle.values()) == list(second_last_cycle.values())
     @property
     def name(self):
         return f"{self.config['factor_graph'].name}_{self.config['computator']}_{self.config['policies'] if self.config['policies'] else ''}"

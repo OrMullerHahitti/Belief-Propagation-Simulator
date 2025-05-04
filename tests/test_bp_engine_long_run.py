@@ -35,8 +35,10 @@ def test_bp_engine_long_run(simple_factor_graph):
     fg = simple_factor_graph
     engine = BPEngine(factor_graph=fg)
     logger.info("BPEngine initialized.")
-
+    dict = {factor.name:factor.cost_table for factor in fg.factors}
     # Run the engine and save results as JSON
+    logger.info(f"\n{dict}\n")
+
     result_path = engine.run(max_iter=1000, save_json=True)
     logger.info("BP Engine run for 1000 iterations or until convergence.")
 
