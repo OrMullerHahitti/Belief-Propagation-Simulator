@@ -120,9 +120,11 @@ class MailHandler:
 
 
     def prepare(self):
-            self._outgoing.clear()
+        """clear outgoing messages and prepare for sending."""
+        self._outgoing.clear()
     #if i want to use from outside the class
     def clear_inbox(self): #important!!!  for variables never clear the inbox
+        """Clear the inbox."""
         self._incoming.clear()
 
     def clear_outgoing(self):
