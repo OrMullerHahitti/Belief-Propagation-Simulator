@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from abc import ABC,abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import field
-from typing import Dict, List, TypeAlias, Any,Callable
+from typing import Dict, List, TypeAlias, Any, Callable
 import numpy as np
 from pyexpat.errors import messages
 
@@ -11,29 +11,36 @@ from bp_base.computators import BPComputator
 from DCOP_base import Agent
 from utils.randomes import create_random_table
 
-from configs.hyper_parameters_config import MESSAGE_DOMAIN_SIZE, CT_CREATION_FUNCTION, CT_CREATION_PARAMS,COMPUTATOR
+from configs.hyper_parameters_config import (
+    MESSAGE_DOMAIN_SIZE,
+    CT_CREATION_FUNCTION,
+    CT_CREATION_PARAMS,
+    COMPUTATOR,
+)
 
-class BPAgent(Agent,ABC):
 
+class BPAgent(Agent, ABC):
     """
     Abstract base class for belief propagation (BP) nodes.
     Extends the Node class with methods relevant to data passing,
     updating local belief, and retrieving that belief.
     """
 
-    def __init__(self,  name: str, node_type: str,domain:int ):
+    def __init__(self, name: str, node_type: str, domain: int):
         ### --- attributes --- ###
-        super().__init__( name, node_type)
+        super().__init__(name, node_type)
         self.domain = domain
         self._history = []
         ### --- message handling --- ###
-        self.mailer= MailHandler(domain)
+        self.mailer = MailHandler(domain)
+
     def receive_message(self, message: Message) -> None:
         """
         Receive a message and add it to the mailbox.
         :param message: Message to be received.
         """
         self.mailer.receive_messages(message)
+
     def send_message(self, message: Message) -> None:
         """
         Send a message to the recipient.
@@ -48,14 +55,17 @@ class BPAgent(Agent,ABC):
         """
         self._history.append(self.mailer.inbox)
         self.mailer.clear_inbox()
+
     def empty_outgoing(self):
         """
         Clear the outbox.
         """
         self.mailer.clear_outgoing()
+
     @property
     def inbox(self):
         return self.mailer.inbox
+
     @abstractmethod
     def compute_messages(self) -> List[Message]:
         """
@@ -65,24 +75,21 @@ class BPAgent(Agent,ABC):
         pass
 
 
-
 ##### ----- Variable Agent ----- #####
 
 
 class VariableAgent(BPAgent):
-
     """
     Represents a variable node in DCOP, holding a variable and its domain.
     """
 
-
-    def __init__(self, name: str,domain:int):
+    def __init__(self, name: str, domain: int):
         """
         :param name: in our case most of the times will be x1,x2,x3
 
         """
         node_type = "variable"
-        super().__init__(name, node_type,domain)
+        super().__init__(name, node_type, domain)
 
     def compute_messages(self) -> None:
         """
@@ -90,7 +97,7 @@ class VariableAgent(BPAgent):
         """
         self.mailer.stage_sending(self.computator.compute_Q(self.mailer.inbox))
 
-    #TODO : make this more modular right now its only for maxsum
+    # TODO : make this more modular right now its only for maxsum
     @property
     def belief(self) -> np.ndarray:
         """
@@ -98,14 +105,17 @@ class VariableAgent(BPAgent):
         :return: Current belief as a numpy array.
         """
         return np.sum([message.data for message in self.inbox], axis=0)
+
     @property
-    def curr_assignment(self) -> int|float:
+    def curr_assignment(self) -> int | float:
         """
         Compute the current assignment based on incoming messages.
         :return: Current assignment as a numpy array.
         """
         return np.argmax(self.belief, axis=0)
-    __str__ = lambda self:self.name.upper()
+
+    __str__ = lambda self: self.name.upper()
+
     @property
     def last_iteration(self) -> List[Message]:
         """
@@ -114,8 +124,7 @@ class VariableAgent(BPAgent):
         """
         return self._history[-1] if self._history else []
 
-
-    #TODO create the self belief function
+    # TODO create the self belief function
 
     # @property
     # def belief(self) -> np.ndarray:
@@ -123,28 +132,30 @@ class VariableAgent(BPAgent):
     # __repr__ = lambda self: f"VariableAgent: {self.name}"
 
 
-
 ### ---- Factor Agent --- ###
 
 
-#TODO : add the option to just add a cost table and not to create automaticall
+# TODO : add the option to just add a cost table and not to create automaticall
 class FactorAgent(BPAgent):
     """
     Purpose: receive and send messages to the right nodes to the others, computing the beliefs to be sent
     Represents a factor node, storing a function that links multiple variables.
     """
 
-    def __init__(self, name: str,domain:int,ct_creation_func:Callable,param:Dict[str,Any] ):
+    def __init__(
+        self, name: str, domain: int, ct_creation_func: Callable, param: Dict[str, Any]
+    ):
         node_type = "factor"
-        super().__init__(name, node_type,domain)
-        self.cost_table :CostTable|None = None
-        #TODO add the connection number on the edgeds of the graph it self
-        self.connection_number : Dict[VariableAgent,int] = {}
+        super().__init__(name, node_type, domain)
+        self.cost_table: CostTable | None = None
+        # TODO add the connection number on the edgeds of the graph it self
+        self.connection_number: Dict[VariableAgent, int] = {}
         self.ct_creation_func = ct_creation_func
         self.ct_creation_params = param
 
-        self._original :np.ndarray|None=  None #in case of a policy changes original cost table this is meant to save it
-
+        self._original: np.ndarray | None = (
+            None  # in case of a policy changes original cost table this is meant to save it
+        )
 
     def compute_messages(self) -> List[Message]:
         """
@@ -152,8 +163,11 @@ class FactorAgent(BPAgent):
         :param messages: List of incoming messages from variable nodes.
         :return:
         """
-        return self.mailer.stage_sending(self.computator.compute_R(cost_table=self.cost_table,incoming_messages=self.inbox))
-
+        return self.mailer.stage_sending(
+            self.computator.compute_R(
+                cost_table=self.cost_table, incoming_messages=self.inbox
+            )
+        )
 
     def initiate_cost_table(self) -> None:
         """
@@ -161,9 +175,11 @@ class FactorAgent(BPAgent):
         """
         if self.cost_table is not None:
             raise ValueError("Cost table already exists. Cannot create a new one.")
-        self.cost_table = self.ct_creation_func(len(self.connection_number),self.domain,**self.ct_creation_params)
+        self.cost_table = self.ct_creation_func(
+            len(self.connection_number), self.domain, **self.ct_creation_params
+        )
 
-    def set_dim_for_variable(self, variable:VariableAgent, dim:int) -> None:
+    def set_dim_for_variable(self, variable: VariableAgent, dim: int) -> None:
         """
         Add a an index to repressent a variable nodes dimension in the CT.
         :param variable: Variable node
@@ -180,15 +196,15 @@ class FactorAgent(BPAgent):
         self.name = f"f{''.join(str(variable.name[1:]) for variable in self.connection_number.keys())}_"
 
     @property
-    def mean_cost(self,axis = None) -> float:
-        return np.mean(self.cost_table,axis=axis)
+    def mean_cost(self, axis=None) -> float:
+        return np.mean(self.cost_table, axis=axis)
 
     @property
-    def total_cost(self,axis = None) -> float:
-        return np.sum(self.cost_table,axis=axis)
+    def total_cost(self, axis=None) -> float:
+        return np.sum(self.cost_table, axis=axis)
 
     @property
-    def original_cost_table(self) -> np.ndarray|None:
+    def original_cost_table(self) -> np.ndarray | None:
         return self._original
 
     @original_cost_table.setter
@@ -199,5 +215,4 @@ class FactorAgent(BPAgent):
     def __repr__(self):
         return f"FactorAgent: {self.name}"
 
-    __str__ = lambda self:self.name.upper()
-
+    __str__ = lambda self: self.name.upper()
