@@ -464,3 +464,8 @@ assert <bp_base.factor_graph.FactorGraph object at 0x000001B2C3402450> is Factor
 2025-04-29 16:54:01,250 - bp_base.computators - INFO - Initialized MaxSumComputator
 2025-04-29 16:54:01,335 - test_loading - INFO - Graph loaded successfully
 2025-04-29 16:54:02,826 - test_loading - INFO - Graph visualization successful
+2025-05-04 13:44:30,806 - debug_graph - INFO - Logging is now set up with colored console output
+2025-05-04 13:44:32,037 - bp_base.computators - INFO - Initialized Computator with reduce_func=max, combine_func=add
+2025-05-04 13:44:32,038 - bp_base.computators - INFO - Initialized MaxSumComputator
+2025-05-04 13:44:32,702 - debug_graph - INFO - Testing loading of factor graph
+2025-05-04 13:44:32,702 - debug_graph - ERROR - Error loading factor graph: 'NoneType' object has no attribute 'G'
