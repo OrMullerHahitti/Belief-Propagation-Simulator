@@ -175,6 +175,7 @@ def build_cycle_graph(
     domain_size: int,
     ct_factory: Callable,
     ct_params: Dict[str, Any],
+    density:float
 ):
     variables: List[VariableAgent] = [
         _make_variable(i + 1, domain_size) for i in range(num_vars)
