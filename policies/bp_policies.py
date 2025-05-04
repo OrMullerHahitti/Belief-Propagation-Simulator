@@ -10,10 +10,20 @@ from bp_base.factor_graph import FactorGraph
 
 # This file is part of the BpPolicies package.
 
-class PolicyType(Enum):
-    FACTOR = "factor"
-    VARIABLE = "variable"
-    MESSAGE = "message"
+class PolicyType(int,Enum):
+    """
+    Enum class for different types of policies.
+    """
+    def __new__(cls, value: int,p_type: str):
+        obj = int.__new__(cls,value)
+        obj._value_ = value
+        obj.type = p_type
+        return obj
+    FACTOR = (10,"factor")
+    VARIABLE = (20,"variable")
+    MESSAGE = (30,"message")
+    GRAPH = (40,"graph")
+    __str__ = lambda self: self.p_type
 
 class Policy:
     """
@@ -57,6 +67,23 @@ class CostReductionPolicy(Policy):
             factor.update_cost_table = factor.cost_table * k
     @abstractmethod
     def _get_reduction(self)->Dict[float,FactorAgent]:
+        pass
+
+class SplittingPolicy(Policy):
+    """
+    Abstract base class for splitting policies.
+    """
+    def __init__(self, factor_graph: FactorGraph):
+        super().__init__(PolicyType.GRAPH)
+        self.factor = factor_graph
+
+    def __call__(self)->None:
+        mapping = self._get_splitting()
+        for k, factor in mapping.items():
+            factor.update_cost_table = factor.cost_table * k
+
+    @abstractmethod
+    def _get_splitting(self)->Dict[float,FactorGraph]:
         pass
 
 
