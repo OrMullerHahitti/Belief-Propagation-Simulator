@@ -13,7 +13,6 @@ from typing import (
 )
 import numpy as np
 
-
 PolicyType = Literal["message", "cost_table", "stopping_criteria", "assignment"]
 
 
