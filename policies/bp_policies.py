@@ -77,13 +77,14 @@ class SplittingPolicy(Policy):
         super().__init__(PolicyType.GRAPH)
         self.factor = factor_graph
 
-    def __call__(self)->None:
+    def __call__(self)->Dict[float,FactorAgent]:
         mapping = self._get_splitting()
         for k, factor in mapping.items():
             factor.update_cost_table = factor.cost_table * k
+        return mapping
 
     @abstractmethod
-    def _get_splitting(self)->Dict[float,FactorGraph]:
+    def _get_splitting(self)->Dict[float,FactorAgent]:
         pass
 
 

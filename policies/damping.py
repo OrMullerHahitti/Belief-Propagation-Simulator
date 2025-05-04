@@ -1,7 +1,6 @@
 
 from abc import ABC, abstractmethod
 
-from policies.abstract import FactorPolicy, MessagePolicy
 from policies.bp_policies import DampingPolicy, PolicyType
 
 
