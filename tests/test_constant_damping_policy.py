@@ -4,7 +4,7 @@ import sys
 import numpy as np
 from bp_base.agents import VariableAgent
 from bp_base.components import Message, MailHandler
-from policies.bp_policies import ConstantDampingPolicy
+from policies.damping import ConstantDampingPolicy
 
 logger = logging.getLogger("test_constant_damping_policy")
 logger.setLevel(logging.INFO)

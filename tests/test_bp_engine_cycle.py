@@ -9,42 +9,14 @@ from bp_base.factor_graph import FactorGraph
 from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.components import Message
 from bp_base.bp_engine import BPEngine
+from configs.loggers import Logger
 from utils.loading_utils import load_pickle, project_root
 log_dir = 'test_logs'
-
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
-
-# Clear any existing handlers
-if root_logger.handlers:
-    root_logger.handlers.clear()
-
-# Create console handler with colored formatting
-console_handler = colorlog.StreamHandler(sys.stdout)
-console_handler.setFormatter(colorlog.ColoredFormatter(
-    '%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    log_colors={
-        'DEBUG': 'cyan',
-        'INFO': 'green',
-        'WARNING': 'yellow',
-        'ERROR': 'red',
-        'CRITICAL': 'red,bg_white',
-    }
-))
-root_logger.addHandler(console_handler)
-
-# Add file handler
-file_handler = logging.FileHandler(os.path.join(log_dir, 'engine_check.log'))
-file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-root_logger.addHandler(file_handler)
-
-# Get logger for this module
-logger = logging.getLogger(__name__)
-logger.info("Logging is now set up with colored console output")
+logger = Logger(__name__,file = True)
 @pytest.fixture
 def simple_factor_graph():
     pickle_path = os.path.join(project_root, 'configs', 'factor_graphs',
-                               'factor-graph-random-10-random_intlow1,high1000.4-number6.pkl')
+                               'factor-graph-random-10-random_intlow1,high1000.4-number11.pkl')
 
     # Create two variables and one factor for a minimal test
 
