@@ -5,7 +5,7 @@ if __name__ == "__main__":
     from utils.create_factor_graph_config import ConfigCreator
     # 1. Create a FactorGraphBuilder instance
     config_path = find_project_root() / "configs/factor_graph_configs"
-    ConfigCreator(config_path).create_config(graph_type="random",
+    ConfigCreator(config_path).create_graph_config(graph_type="random",
                                              domain_size=5,
                                              num_variables=10,
                                              ct_factory="random_int",
