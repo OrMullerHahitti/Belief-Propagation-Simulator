@@ -5,14 +5,13 @@ from typing import Callable, TypeAlias, Any, List, Optional, Tuple
 import numpy as np
 
 from DCOP_base import Agent
-from policies.abstract import FactorPolicy
 from older_stuff.kappa_calculations import Envelope
 
 Iteration: TypeAlias = Any #for now only a place holder
 '''
 this module is mostly for configs!!
 '''
-class CostReductionPolicy(FactorPolicy, ABC):
+class CostReductionPolicy(ABC):
     def __init__(self, stopping_critiria: Optional[Callable[[Iteration], bool]] = None,
                  applying_critiria: Optional[Callable[[Iteration], bool]] = None):
         self.calc_k = stopping_critiria
