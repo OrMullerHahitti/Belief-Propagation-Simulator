@@ -99,8 +99,8 @@ class ConfigCreator:
                              convergence_threshold: float,
                              damping_factor: float,
                              damping_type: str,
-                             damping_params: Dict[str, Any] | None = None,):
-        base_dir = get_project_root() / "configs/engine_configs"
+                             damping_params: Dict[str, Any] | None = None):
+        base_dir = find_project_root() / "configs/engine_configs"
         os.makedirs(self.base_dir, exist_ok=True)
 
         # Pickle‑dump
