@@ -1,0 +1,14 @@
+{
+  "graph": {
+    "nodes": {
+      "x1": {
+        "type": "variable",
+        "domain": 5,
+        "belief": [
+          Infinity,
+          Infinity,
+          Infinity,
+          Infinity,
+          Infinity
+        ],
+        "assignment": 
