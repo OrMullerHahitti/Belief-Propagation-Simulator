@@ -25,6 +25,7 @@ class BPAgent(Agent,ABC):
         ### --- attributes --- ###
         super().__init__( name, node_type)
         self.domain = domain
+        self._history = []
         ### --- message handling --- ###
         self.mailer= MailHandler(domain)
     def receive_message(self, message: Message) -> None:
@@ -40,10 +41,12 @@ class BPAgent(Agent,ABC):
         """
         for message in self.mailer.outbox:
             self.mailer.send_message(message)
+
     def empty_mailbox(self) -> None:
         """
         Clear the mailbox.
         """
+        self._history.append(self.mailer.inbox)
         self.mailer.clear_inbox()
     def empty_outgoing(self):
         """
@@ -103,6 +106,13 @@ class VariableAgent(BPAgent):
         """
         return np.argmax(self.belief, axis=0)
     __str__ = lambda self:self.name.upper()
+    @property
+    def last_iteration(self) -> List[Message]:
+        """
+        Get the last iteration messages.
+        :return: List of last iteration messages.
+        """
+        return self._history[-1] if self._history else []
 
 
     #TODO create the self belief function
@@ -132,6 +142,8 @@ class FactorAgent(BPAgent):
         self.connection_number : Dict[VariableAgent,int] = {}
         self.ct_creation_func = ct_creation_func
         self.ct_creation_params = param
+
+        self._original :np.ndarray|None=  None #in case of a policy changes original cost table this is meant to save it
 
 
     def compute_messages(self) -> List[Message]:
@@ -170,6 +182,20 @@ class FactorAgent(BPAgent):
     @property
     def mean_cost(self,axis = None) -> float:
         return np.mean(self.cost_table,axis=axis)
+
+    @property
+    def total_cost(self,axis = None) -> float:
+        return np.sum(self.cost_table,axis=axis)
+
+    @property
+    def original_cost_table(self) -> np.ndarray|None:
+        return self._original
+
+    @original_cost_table.setter
+    def original_cost_table(self, value: np.ndarray) -> None:
+        if self._original is None:
+            self._original = value
+
     def __repr__(self):
         return f"FactorAgent: {self.name}"
 
