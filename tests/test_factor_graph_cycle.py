@@ -17,8 +17,8 @@ def setup_logging():
     """Configure logging for tests."""
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        force=True
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        force=True,
     )
     logging.getLogger().setLevel(logging.INFO)
     yield
@@ -41,25 +41,34 @@ def cycle_factor_graph():
     ct_creation_func = create_random_int_table
     ct_params = {"low": 0, "high": 10}
 
-    f1 = FactorAgent(name="f1", domain=domain_size, computator=computator,
-                     ct_creation_func=ct_creation_func, param=ct_params)
-    f2 = FactorAgent(name="f2", domain=domain_size, computator=computator,
-                     ct_creation_func=ct_creation_func, param=ct_params)
-    f3 = FactorAgent(name="f3", domain=domain_size, computator=computator,
-                     ct_creation_func=ct_creation_func, param=ct_params)
+    f1 = FactorAgent(
+        name="f1",
+        domain=domain_size,
+        computator=computator,
+        ct_creation_func=ct_creation_func,
+        param=ct_params,
+    )
+    f2 = FactorAgent(
+        name="f2",
+        domain=domain_size,
+        computator=computator,
+        ct_creation_func=ct_creation_func,
+        param=ct_params,
+    )
+    f3 = FactorAgent(
+        name="f3",
+        domain=domain_size,
+        computator=computator,
+        ct_creation_func=ct_creation_func,
+        param=ct_params,
+    )
 
     # Define edges: each factor is connected to two variables in a cycle
-    edges = {
-        f1: [x1, x2],
-        f2: [x2, x3],
-        f3: [x3, x1]
-    }
+    edges = {f1: [x1, x2], f2: [x2, x3], f3: [x3, x1]}
 
     # Create the factor graph
     factor_graph = FactorGraph(
-        variable_li=[x1, x2, x3],
-        factor_li=[f1, f2, f3],
-        edges=edges
+        variable_li=[x1, x2, x3], factor_li=[f1, f2, f3], edges=edges
     )
 
     return factor_graph
@@ -71,10 +80,14 @@ def test_factor_graph_initialization(cycle_factor_graph):
     G = cycle_factor_graph.G
 
     # Check the number of nodes
-    assert len(G.nodes()) == 6, "Factor graph should have 6 nodes (3 variables, 3 factors)"
+    assert (
+        len(G.nodes()) == 6
+    ), "Factor graph should have 6 nodes (3 variables, 3 factors)"
 
     # Check the number of edges
-    assert len(G.edges()) == 6, "Factor graph should have 6 edges (each factor connected to 2 variables)"
+    assert (
+        len(G.edges()) == 6
+    ), "Factor graph should have 6 edges (each factor connected to 2 variables)"
 
     # Check that variables have proper connections
     var_nodes = [node for node in G.nodes() if isinstance(node, VariableAgent)]
@@ -86,16 +99,25 @@ def test_factor_graph_initialization(cycle_factor_graph):
     # Check that each variable is connected to 2 factors
     for var in var_nodes:
         connected_factors = list(G.neighbors(var))
-        assert len(connected_factors) == 2, f"Variable {var.name} should be connected to 2 factors"
+        assert (
+            len(connected_factors) == 2
+        ), f"Variable {var.name} should be connected to 2 factors"
 
     # Check that each factor is connected to 2 variables
     for factor in factor_nodes:
         connected_vars = list(G.neighbors(factor))
-        assert len(connected_vars) == 2, f"Factor {factor.name} should be connected to 2 variables"
+        assert (
+            len(connected_vars) == 2
+        ), f"Factor {factor.name} should be connected to 2 variables"
 
         # Check that cost tables are initialized
-        assert factor.cost_table is not None, f"Cost table for factor {factor.name} should be initialized"
-        assert factor.cost_table.shape == (3, 3), f"Cost table shape should be (3, 3), got {factor.cost_table.shape}"
+        assert (
+            factor.cost_table is not None
+        ), f"Cost table for factor {factor.name} should be initialized"
+        assert factor.cost_table.shape == (
+            3,
+            3,
+        ), f"Cost table shape should be (3, 3), got {factor.cost_table.shape}"
 
 
 def test_message_initialization(cycle_factor_graph):
@@ -104,8 +126,10 @@ def test_message_initialization(cycle_factor_graph):
 
     # Check each edge has mailbox entries
     for node in G.nodes():
-        assert hasattr(node, 'mailbox'), f"Node {node.name} should have a mailbox"
-        assert len(node.mailbox) == 2, f"Node {node.name} should have 2 messages in mailbox (one for each connection)"
+        assert hasattr(node, "mailbox"), f"Node {node.name} should have a mailbox"
+        assert (
+            len(node.mailbox) == 2
+        ), f"Node {node.name} should have 2 messages in mailbox (one for each connection)"
 
 
 def test_one_step_message_passing(cycle_factor_graph):
@@ -118,11 +142,7 @@ def test_one_step_message_passing(cycle_factor_graph):
     # Manually assign some concrete cost tables for clearer testing
     for factor in factor_nodes:
         # Override the random cost tables with known values
-        factor.cost_table = np.array([
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9]
-        ])
+        factor.cost_table = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         # Log the cost table
         logger.info(f"Factor {factor.name} cost table:\n{factor.cost_table}")
 
@@ -131,12 +151,13 @@ def test_one_step_message_passing(cycle_factor_graph):
     for factor in factor_nodes:
         # Factor agents need to use compute_R with the cost table
         factor.messages_to_send = factor.computator.compute_R(
-            factor.cost_table,
-            factor.mailbox
+            factor.cost_table, factor.mailbox
         )
 
         # Log the computed messages
-        logger.info(f"Factor {factor.name} computed {len(factor.messages_to_send)} messages:")
+        logger.info(
+            f"Factor {factor.name} computed {len(factor.messages_to_send)} messages:"
+        )
         for i, msg in enumerate(factor.messages_to_send):
             logger.info(f"  Message {i + 1}: {msg}")
 
@@ -153,7 +174,9 @@ def test_one_step_message_passing(cycle_factor_graph):
         var.messages_to_send = var.computator.compute_Q(var.mailbox)
 
         # Log the computed messages
-        logger.info(f"Variable {var.name} computed {len(var.messages_to_send)} messages:")
+        logger.info(
+            f"Variable {var.name} computed {len(var.messages_to_send)} messages:"
+        )
         for i, msg in enumerate(var.messages_to_send):
             logger.info(f"  Message {i + 1}: {msg}")
 
@@ -165,12 +188,16 @@ def test_one_step_message_passing(cycle_factor_graph):
 
     # Step 5: Verify messages were received correctly
     for node in G.nodes():
-        logger.info(f"Node {node.name} mailbox now contains {len(node.mailbox)} messages")
+        logger.info(
+            f"Node {node.name} mailbox now contains {len(node.mailbox)} messages"
+        )
         for i, msg in enumerate(node.mailbox):
             logger.info(f"  Message {i + 1}: {msg}")
 
         # Each node should have exactly 2 messages in mailbox after all the sends
-        assert len(node.mailbox) == 2, f"Node {node.name} should have 2 messages in mailbox after message passing"
+        assert (
+            len(node.mailbox) == 2
+        ), f"Node {node.name} should have 2 messages in mailbox after message passing"
 
     # Step 6: Verify specific message contents for a sample variable and factor
     var1 = next(var for var in var_nodes if var.name == "x1")
@@ -181,14 +208,18 @@ def test_one_step_message_passing(cycle_factor_graph):
     assert len(var1_msgs) == 1, "Should find exactly 1 message from factor1 to var1"
 
     # Check shape of messages
-    assert var1_msgs[0].data.shape == (3,), f"Message data should have shape (3,), got {var1_msgs[0].data.shape}"
+    assert var1_msgs[0].data.shape == (
+        3,
+    ), f"Message data should have shape (3,), got {var1_msgs[0].data.shape}"
 
     # Check that factor1 received a message from var1
     factor1_msgs = [msg for msg in factor1.mailbox if msg.sender == var1]
     assert len(factor1_msgs) == 1, "Should find exactly 1 message from var1 to factor1"
 
     # Check shape of messages
-    assert factor1_msgs[0].data.shape == (3,), f"Message data should have shape (3,), got {factor1_msgs[0].data.shape}"
+    assert factor1_msgs[0].data.shape == (
+        3,
+    ), f"Message data should have shape (3,), got {factor1_msgs[0].data.shape}"
 
     logger.info("One step of message passing completed and verified")
 
@@ -198,8 +229,9 @@ def test_one_step_and_cycle():
     logger = logging.getLogger(__name__)
     logger.info("Loading factor graph from pkl file")
     with open(
-            r"c:\Users\Public\projects\Belief_propagation_simulator_\configs\factor_graphs\factor-graph-cycle-3-random_intlow1,high100-number0.pkl",
-            "rb") as f:
+        r"c:\Users\Public\projects\Belief_propagation_simulator_\configs\factor_graphs\factor-graph-cycle-3-random_intlow1,high100-number0.pkl",
+        "rb",
+    ) as f:
         factor_graph = pickle.load(f)
 
     bp_engine = BeliefPropagation(factor_graph)
@@ -212,7 +244,7 @@ def test_one_step_and_cycle():
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     logger.info("Running tests directly")
     pytest.main(["-xvs", "--log-cli-level=INFO", __file__])
