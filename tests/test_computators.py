@@ -6,9 +6,13 @@ import numpy as np
 import logging
 from bp_base.computators import MinSumComputator, MaxSumComputator
 from bp_base.components import Message
+
 log_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "test_logs")
 os.makedirs(log_dir, exist_ok=True)
-log_file = os.path.join(log_dir, f"computator_initialize_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+log_file = os.path.join(
+    log_dir,
+    f"computator_initialize_test_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log",
+)
 
 # Configure logger
 logger = logging.getLogger("factor_graph_tests")
@@ -28,26 +32,29 @@ logger.addHandler(file_handler)
 def setup_logging():
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        force= True
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        force=True,
     )
     # Fix the typo in format string
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        force = True
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        force=True,
     )
     # Add this line to ensure logs are displayed
     logging.getLogger().setLevel(logging.INFO)
     yield
 
+
 class MockNode:
     """Mock node class for testing purposes"""
+
     def __init__(self, id):
         self.id = id
 
     def __repr__(self):
         return f"Node({self.id})"
+
 
 def test_compute_q_min_sum():
     """Test compute_Q method with min-sum algorithm"""
@@ -59,14 +66,16 @@ def test_compute_q_min_sum():
     factor2 = MockNode("F2")
     factor3 = MockNode("F3")
 
-    logger.debug(f"Created mock nodes: var={var_node}, factors={factor1}, {factor2}, {factor3}")
+    logger.debug(
+        f"Created mock nodes: var={var_node}, factors={factor1}, {factor2}, {factor3}"
+    )
 
     # Create incoming messages from factors to variable
     # Each message has values for 3 possible states of the variable
     messages = [
         Message(np.array([0.0, 2.0, 5.0]), sender=factor1, recipient=var_node),
         Message(np.array([1.0, 0.0, 3.0]), sender=factor2, recipient=var_node),
-        Message(np.array([2.0, 1.0, 0.0]), sender=factor3, recipient=var_node)
+        Message(np.array([2.0, 1.0, 0.0]), sender=factor3, recipient=var_node),
     ]
 
     logger.debug(f"Created test messages: {[(m.sender, m.data) for m in messages]}")
@@ -82,7 +91,9 @@ def test_compute_q_min_sum():
     expected_count = 3
     actual_count = len(results)
     logger.info(f"EXPECTED count: {expected_count}, ACTUAL count: {actual_count}")
-    assert actual_count == expected_count, f"Expected {expected_count} messages but got {actual_count}"
+    assert (
+        actual_count == expected_count
+    ), f"Expected {expected_count} messages but got {actual_count}"
 
     # Verify content of messages
     # To F1: should have combined F2 and F3 messages
@@ -91,8 +102,11 @@ def test_compute_q_min_sum():
     expected_f1 = np.array([3.0, 1.0, 3.0])
     logger.info(f"EXPECTED F1 message: {expected_f1}")
     logger.info(f"ACTUAL F1 message: {f1_message.data}")
-    np.testing.assert_array_almost_equal(f1_message.data, expected_f1,
-                                         err_msg=f"F1 message mismatch: expected {expected_f1}, got {f1_message.data}")
+    np.testing.assert_array_almost_equal(
+        f1_message.data,
+        expected_f1,
+        err_msg=f"F1 message mismatch: expected {expected_f1}, got {f1_message.data}",
+    )
 
     # To F2: should have combined F1 and F3 messages
     f2_message = next(m for m in results if m.recipient == factor2)
@@ -100,8 +114,11 @@ def test_compute_q_min_sum():
     expected_f2 = np.array([2.0, 3.0, 5.0])
     logger.info(f"EXPECTED F2 message: {expected_f2}")
     logger.info(f"ACTUAL F2 message: {f2_message.data}")
-    np.testing.assert_array_almost_equal(f2_message.data, expected_f2,
-                                         err_msg=f"F2 message mismatch: expected {expected_f2}, got {f2_message.data}")
+    np.testing.assert_array_almost_equal(
+        f2_message.data,
+        expected_f2,
+        err_msg=f"F2 message mismatch: expected {expected_f2}, got {f2_message.data}",
+    )
 
     # To F3: should have combined F1 and F2 messages
     f3_message = next(m for m in results if m.recipient == factor3)
@@ -109,10 +126,14 @@ def test_compute_q_min_sum():
     expected_f3 = np.array([1.0, 2.0, 8.0])  # [0.0, 1.0, 7.0]
     logger.info(f"EXPECTED F3 message: {expected_f3}")
     logger.info(f"ACTUAL F3 message: {f3_message.data}")
-    np.testing.assert_array_almost_equal(f3_message.data, expected_f3,
-                                         err_msg=f"F3 message mismatch: expected {expected_f3}, got {f3_message.data}")
+    np.testing.assert_array_almost_equal(
+        f3_message.data,
+        expected_f3,
+        err_msg=f"F3 message mismatch: expected {expected_f3}, got {f3_message.data}",
+    )
 
     logger.info("test_compute_q_min_sum completed successfully")
+
 
 def test_compute_q_max_sum():
     """Test compute_Q method with max-sum algorithm"""
@@ -126,7 +147,7 @@ def test_compute_q_max_sum():
     # Create incoming messages from factors to variable
     messages = [
         Message(np.array([0.0, 2.0, -1.0]), sender=factor1, recipient=var_node),
-        Message(np.array([1.0, 0.0, 3.0]), sender=factor2, recipient=var_node)
+        Message(np.array([1.0, 0.0, 3.0]), sender=factor2, recipient=var_node),
     ]
 
     logger.debug(f"Created test messages: {[(m.sender, m.data) for m in messages]}")
@@ -142,25 +163,34 @@ def test_compute_q_max_sum():
     expected_count = 2
     actual_count = len(results)
     logger.info(f"EXPECTED count: {expected_count}, ACTUAL count: {actual_count}")
-    assert actual_count == expected_count, f"Expected {expected_count} messages but got {actual_count}"
+    assert (
+        actual_count == expected_count
+    ), f"Expected {expected_count} messages but got {actual_count}"
 
     # To F1: should contain message from F2
     f1_message = next(m for m in results if m.recipient == factor1)
-    expected_f1 = np.array([1.0, 0.0, 3.0])   # already normalized
+    expected_f1 = np.array([1.0, 0.0, 3.0])  # already normalized
     logger.info(f"EXPECTED F1 message: {expected_f1}")
     logger.info(f"ACTUAL F1 message: {f1_message.data}")
-    np.testing.assert_array_almost_equal(f1_message.data, expected_f1,
-                                         err_msg=f"F1 message mismatch: expected {expected_f1}, got {f1_message.data}")
+    np.testing.assert_array_almost_equal(
+        f1_message.data,
+        expected_f1,
+        err_msg=f"F1 message mismatch: expected {expected_f1}, got {f1_message.data}",
+    )
 
     # To F2: should contain message from F1
     f2_message = next(m for m in results if m.recipient == factor2)
-    expected_f2 = np.array([0.0, 2.0, -1.0])   # [1.0, 3.0, 0.0]
+    expected_f2 = np.array([0.0, 2.0, -1.0])  # [1.0, 3.0, 0.0]
     logger.info(f"EXPECTED F2 message: {expected_f2}")
     logger.info(f"ACTUAL F2 message: {f2_message.data}")
-    np.testing.assert_array_almost_equal(f2_message.data, expected_f2,
-                                         err_msg=f"F2 message mismatch: expected {expected_f2}, got {f2_message.data}")
+    np.testing.assert_array_almost_equal(
+        f2_message.data,
+        expected_f2,
+        err_msg=f"F2 message mismatch: expected {expected_f2}, got {f2_message.data}",
+    )
 
     logger.info("test_compute_q_max_sum completed successfully")
+
 
 def test_compute_r_min_sum():
     """Test compute_R method with min-sum algorithm"""
@@ -173,21 +203,25 @@ def test_compute_r_min_sum():
 
     # Create a simple 3x3 cost table for a factor connected to 2 variables
     # Each variable has 3 possible values
-    cost_table = np.array([
-        [5.0, 2.0, 8.0],  # costs when X1=0, X2={0,1,2}
-        [1.0, 3.0, 4.0],  # costs when X1=1, X2={0,1,2}
-        [7.0, 0.0, 6.0]   # costs when X1=2, X2={0,1,2}
-    ])
+    cost_table = np.array(
+        [
+            [5.0, 2.0, 8.0],  # costs when X1=0, X2={0,1,2}
+            [1.0, 3.0, 4.0],  # costs when X1=1, X2={0,1,2}
+            [7.0, 0.0, 6.0],  # costs when X1=2, X2={0,1,2}
+        ]
+    )
 
     logger.debug(f"Created cost table:\n{cost_table}")
 
     # Create incoming messages from variables to factor
     incoming_messages = [
         Message(np.array([0.0, 1.0, 3.0]), sender=var1, recipient=factor_node),
-        Message(np.array([2.0, 0.0, 4.0]), sender=var2, recipient=factor_node)
+        Message(np.array([2.0, 0.0, 4.0]), sender=var2, recipient=factor_node),
     ]
 
-    logger.debug(f"Created incoming messages: {[(m.sender, m.data) for m in incoming_messages]}")
+    logger.debug(
+        f"Created incoming messages: {[(m.sender, m.data) for m in incoming_messages]}"
+    )
 
     # Initialize min-sum computator
     computator = MinSumComputator()
@@ -200,7 +234,9 @@ def test_compute_r_min_sum():
     expected_count = 2
     actual_count = len(results)
     logger.info(f"EXPECTED count: {expected_count}, ACTUAL count: {actual_count}")
-    assert actual_count == expected_count, f"Expected {expected_count} messages but got {actual_count}"
+    assert (
+        actual_count == expected_count
+    ), f"Expected {expected_count} messages but got {actual_count}"
 
     # Verify content of messages
     # To X1: minimize over X2
@@ -212,8 +248,11 @@ def test_compute_r_min_sum():
     expected_x1 = np.min(x1_costs, axis=1)  # min over X2
     logger.info(f"EXPECTED X1 message: {expected_x1}")
     logger.info(f"ACTUAL X1 message: {x1_message.data}")
-    np.testing.assert_array_almost_equal(x1_message.data, expected_x1,
-                                         err_msg=f"X1 message mismatch: expected {expected_x1}, got {x1_message.data}")
+    np.testing.assert_array_almost_equal(
+        x1_message.data,
+        expected_x1,
+        err_msg=f"X1 message mismatch: expected {expected_x1}, got {x1_message.data}",
+    )
 
     # To X2: minimize over X1
     x2_message = next(m for m in results if m.recipient == var2)
@@ -224,10 +263,14 @@ def test_compute_r_min_sum():
     expected_x2 = np.min(x2_costs, axis=0)  # min over X1
     logger.info(f"EXPECTED X2 message: {expected_x2}")
     logger.info(f"ACTUAL X2 message: {x2_message.data}")
-    np.testing.assert_array_almost_equal(x2_message.data, expected_x2,
-                                         err_msg=f"X2 message mismatch: expected {expected_x2}, got {x2_message.data}")
+    np.testing.assert_array_almost_equal(
+        x2_message.data,
+        expected_x2,
+        err_msg=f"X2 message mismatch: expected {expected_x2}, got {x2_message.data}",
+    )
 
     logger.info("test_compute_r_min_sum completed successfully")
+
 
 def test_compute_r_max_sum():
     """Test compute_R method with max-sum algorithm"""
@@ -257,10 +300,12 @@ def test_compute_r_max_sum():
     incoming_messages = [
         Message(np.array([0.0, 1.0]), sender=var1, recipient=factor_node),
         Message(np.array([0.5, 0.0]), sender=var2, recipient=factor_node),
-        Message(np.array([0.0, 0.2]), sender=var3, recipient=factor_node)
+        Message(np.array([0.0, 0.2]), sender=var3, recipient=factor_node),
     ]
 
-    logger.debug(f"Created incoming messages: {[(m.sender, m.data) for m in incoming_messages]}")
+    logger.debug(
+        f"Created incoming messages: {[(m.sender, m.data) for m in incoming_messages]}"
+    )
 
     # Initialize max-sum computator
     computator = MaxSumComputator()
@@ -273,7 +318,9 @@ def test_compute_r_max_sum():
     expected_count = 3
     actual_count = len(results)
     logger.info(f"EXPECTED count: {expected_count}, ACTUAL count: {actual_count}")
-    assert actual_count == expected_count, f"Expected {expected_count} messages but got {actual_count}"
+    assert (
+        actual_count == expected_count
+    ), f"Expected {expected_count} messages but got {actual_count}"
 
     # Calculate expected values for comparison
     # For X1 message (maximize over X2 and X3)
@@ -291,10 +338,14 @@ def test_compute_r_max_sum():
     logger.info(f"ACTUAL X1 message shape: {x1_message.data.shape}")
     logger.info(f"EXPECTED X1 message: {expected_x1}")
     logger.info(f"ACTUAL X1 message: {x1_message.data}")
-    np.testing.assert_array_almost_equal(x1_message.data, expected_x1,
-                                         err_msg=f"X1 message mismatch: expected {expected_x1}, got {x1_message.data}")
+    np.testing.assert_array_almost_equal(
+        x1_message.data,
+        expected_x1,
+        err_msg=f"X1 message mismatch: expected {expected_x1}, got {x1_message.data}",
+    )
 
     logger.info("test_compute_r_max_sum completed successfully")
+
 
 def test_empty_messages():
     """Test handling of empty message lists"""
@@ -307,16 +358,21 @@ def test_empty_messages():
     expected_result = []
     actual_result = computator.compute_Q([])
     logger.info(f"EXPECTED: empty list, ACTUAL: {actual_result}")
-    assert actual_result == expected_result, f"Expected empty list but got {actual_result}"
+    assert (
+        actual_result == expected_result
+    ), f"Expected empty list but got {actual_result}"
 
     # compute_R with empty messages should return empty list
     logger.debug("Testing compute_R with empty messages")
     expected_result = []
     actual_result = computator.compute_R(np.array([]), [])
     logger.info(f"EXPECTED: empty list, ACTUAL: {actual_result}")
-    assert actual_result == expected_result, f"Expected empty list but got {actual_result}"
+    assert (
+        actual_result == expected_result
+    ), f"Expected empty list but got {actual_result}"
 
     logger.info("test_empty_messages completed successfully")
+
 
 def test_compute_r_min_sum_4vars():
     """Test compute_R method with min-sum algorithm for 4 variables"""
@@ -348,10 +404,12 @@ def test_compute_r_min_sum_4vars():
         Message(np.array([0.0, 1.0]), sender=var1, recipient=factor_node),
         Message(np.array([0.5, 0.0]), sender=var2, recipient=factor_node),
         Message(np.array([0.0, 0.2]), sender=var3, recipient=factor_node),
-        Message(np.array([0.3, 0.0]), sender=var4, recipient=factor_node)
+        Message(np.array([0.3, 0.0]), sender=var4, recipient=factor_node),
     ]
 
-    logger.debug(f"Created incoming messages: {[(m.sender, m.data) for m in incoming_messages]}")
+    logger.debug(
+        f"Created incoming messages: {[(m.sender, m.data) for m in incoming_messages]}"
+    )
 
     # Initialize min-sum computator
     computator = MinSumComputator()
@@ -364,7 +422,9 @@ def test_compute_r_min_sum_4vars():
     expected_count = 4
     actual_count = len(results)
     logger.info(f"EXPECTED count: {expected_count}, ACTUAL count: {actual_count}")
-    assert actual_count == expected_count, f"Expected {expected_count} messages but got {actual_count}"
+    assert (
+        actual_count == expected_count
+    ), f"Expected {expected_count} messages but got {actual_count}"
 
     # Calculate expected values for comparison
     # For X1 message (minimize over X2, X3, and X4)
@@ -382,8 +442,11 @@ def test_compute_r_min_sum_4vars():
     assert x1_message.sender == factor_node
     logger.info(f"EXPECTED X1 message: {expected_x1}")
     logger.info(f"ACTUAL X1 message: {x1_message.data}")
-    np.testing.assert_array_almost_equal(x1_message.data, expected_x1,
-                                      err_msg=f"X1 message mismatch: expected {expected_x1}, got {x1_message.data}")
+    np.testing.assert_array_almost_equal(
+        x1_message.data,
+        expected_x1,
+        err_msg=f"X1 message mismatch: expected {expected_x1}, got {x1_message.data}",
+    )
 
     # Verify message to X2
     x2_costs = cost_table.copy()
@@ -396,8 +459,11 @@ def test_compute_r_min_sum_4vars():
     assert x2_message.sender == factor_node
     logger.info(f"EXPECTED X2 message: {expected_x2}")
     logger.info(f"ACTUAL X2 message: {x2_message.data}")
-    np.testing.assert_array_almost_equal(x2_message.data, expected_x2,
-                                      err_msg=f"X2 message mismatch: expected {expected_x2}, got {x2_message.data}")
+    np.testing.assert_array_almost_equal(
+        x2_message.data,
+        expected_x2,
+        err_msg=f"X2 message mismatch: expected {expected_x2}, got {x2_message.data}",
+    )
 
     logger.info("test_compute_r_min_sum_4vars completed successfully")
 
@@ -429,10 +495,12 @@ def test_compute_r_min_sum_5vars():
         Message(np.array([0.2, 0.0]), sender=var2, recipient=factor_node),
         Message(np.array([0.0, 0.3]), sender=var3, recipient=factor_node),
         Message(np.array([0.4, 0.0]), sender=var4, recipient=factor_node),
-        Message(np.array([0.0, 0.5]), sender=var5, recipient=factor_node)
+        Message(np.array([0.0, 0.5]), sender=var5, recipient=factor_node),
     ]
 
-    logger.debug(f"Created incoming messages: {[(m.sender, m.data) for m in incoming_messages]}")
+    logger.debug(
+        f"Created incoming messages: {[(m.sender, m.data) for m in incoming_messages]}"
+    )
 
     # Initialize min-sum computator
     computator = MinSumComputator()
@@ -445,12 +513,16 @@ def test_compute_r_min_sum_5vars():
     expected_count = 5
     actual_count = len(results)
     logger.info(f"EXPECTED count: {expected_count}, ACTUAL count: {actual_count}")
-    assert actual_count == expected_count, f"Expected {expected_count} messages but got {actual_count}"
+    assert (
+        actual_count == expected_count
+    ), f"Expected {expected_count} messages but got {actual_count}"
 
     # Verify all messages have the correct shapes
     for i, var in enumerate([var1, var2, var3, var4, var5]):
         message = next(m for m in results if m.recipient == var)
-        assert message.data.shape == (2,), f"Expected message shape (2,), got {message.data.shape}"
+        assert message.data.shape == (
+            2,
+        ), f"Expected message shape (2,), got {message.data.shape}"
         assert message.sender == factor_node, "Factor node should be the sender"
 
     # Calculate expected values for X1 message (minimizing over all other variables)
@@ -460,16 +532,22 @@ def test_compute_r_min_sum_5vars():
     x1_costs = x1_costs + incoming_messages[2].data.reshape(1, 1, 2, 1, 1)
     x1_costs = x1_costs + incoming_messages[3].data.reshape(1, 1, 1, 2, 1)
     x1_costs = x1_costs + incoming_messages[4].data.reshape(1, 1, 1, 1, 2)
-    expected_x1 = np.min(x1_costs, axis=(1, 2, 3, 4))  # min over all variables except X1
+    expected_x1 = np.min(
+        x1_costs, axis=(1, 2, 3, 4)
+    )  # min over all variables except X1
 
     # Verify message to X1
     x1_message = next(m for m in results if m.recipient == var1)
     logger.info(f"EXPECTED X1 message: {expected_x1}")
     logger.info(f"ACTUAL X1 message: {x1_message.data}")
-    np.testing.assert_array_almost_equal(x1_message.data, expected_x1,
-                                      err_msg=f"X1 message mismatch: expected {expected_x1}, got {x1_message.data}")
+    np.testing.assert_array_almost_equal(
+        x1_message.data,
+        expected_x1,
+        err_msg=f"X1 message mismatch: expected {expected_x1}, got {x1_message.data}",
+    )
 
     logger.info("test_compute_r_min_sum_5vars completed successfully")
+
 
 def test_bidirectional_message_passing():
     """Test bidirectional message passing between factor and variable nodes"""
@@ -487,7 +565,7 @@ def test_bidirectional_message_passing():
     for i in range(3):
         for j in range(3):
             for k in range(3):
-                cost_table[i, j, k] = (i + 2*j + 3*k) % 10
+                cost_table[i, j, k] = (i + 2 * j + 3 * k) % 10
 
     logger.debug(f"Created 3D cost table with shape {cost_table.shape}")
 
@@ -495,7 +573,7 @@ def test_bidirectional_message_passing():
     var_to_factor_messages = [
         Message(np.array([0.0, 1.0, 2.0]), sender=var1, recipient=factor_node),
         Message(np.array([2.0, 0.0, 1.0]), sender=var2, recipient=factor_node),
-        Message(np.array([1.0, 2.0, 0.0]), sender=var3, recipient=factor_node)
+        Message(np.array([1.0, 2.0, 0.0]), sender=var3, recipient=factor_node),
     ]
 
     logger.info("STEP 1: Computing initial factor-to-variable messages")
@@ -507,13 +585,21 @@ def test_bidirectional_message_passing():
     factor_to_var_messages = min_sum.compute_R(cost_table, var_to_factor_messages)
 
     # Should be 3 outgoing messages from factor
-    assert len(factor_to_var_messages) == 3, f"Expected 3 messages but got {len(factor_to_var_messages)}"
+    assert (
+        len(factor_to_var_messages) == 3
+    ), f"Expected 3 messages but got {len(factor_to_var_messages)}"
 
     # Verify each message has the correct sender, recipient, and shape
     for msg in factor_to_var_messages:
         assert msg.sender == factor_node, "Message sender should be factor node"
-        assert msg.recipient in [var1, var2, var3], "Message recipient should be a variable node"
-        assert msg.data.shape == (3,), f"Message should have shape (3,), got {msg.data.shape}"
+        assert msg.recipient in [
+            var1,
+            var2,
+            var3,
+        ], "Message recipient should be a variable node"
+        assert msg.data.shape == (
+            3,
+        ), f"Message should have shape (3,), got {msg.data.shape}"
 
     # STEP 2: Send these messages back to variables and compute responses
     logger.info("STEP 2: Computing variable-to-factor messages")
@@ -522,13 +608,21 @@ def test_bidirectional_message_passing():
     var_to_factor_messages_2 = min_sum.compute_Q(factor_to_var_messages)
 
     # Should be 3 outgoing messages from variables
-    assert len(var_to_factor_messages_2) == 3, f"Expected 3 messages but got {len(var_to_factor_messages_2)}"
+    assert (
+        len(var_to_factor_messages_2) == 3
+    ), f"Expected 3 messages but got {len(var_to_factor_messages_2)}"
 
     # Verify each message has the correct sender, recipient, and shape
     for msg in var_to_factor_messages_2:
         assert msg.recipient == factor_node, "Message recipient should be factor node"
-        assert msg.sender in [var1, var2, var3], "Message sender should be a variable node"
-        assert msg.data.shape == (3,), f"Message should have shape (3,), got {msg.data.shape}"
+        assert msg.sender in [
+            var1,
+            var2,
+            var3,
+        ], "Message sender should be a variable node"
+        assert msg.data.shape == (
+            3,
+        ), f"Message should have shape (3,), got {msg.data.shape}"
 
     # STEP 3: Factor processes the updated messages
     logger.info("STEP 3: Computing updated factor-to-variable messages")
@@ -537,10 +631,15 @@ def test_bidirectional_message_passing():
     factor_to_var_messages_2 = min_sum.compute_R(cost_table, var_to_factor_messages_2)
 
     # Verify messages have changed from the first round
-    for i, (msg1, msg2) in enumerate(zip(factor_to_var_messages, factor_to_var_messages_2)):
-        assert not np.array_equal(msg1.data, msg2.data), f"Message {i} should have changed after iteration"
+    for i, (msg1, msg2) in enumerate(
+        zip(factor_to_var_messages, factor_to_var_messages_2)
+    ):
+        assert not np.array_equal(
+            msg1.data, msg2.data
+        ), f"Message {i} should have changed after iteration"
 
     logger.info("test_bidirectional_message_passing completed successfully")
+
 
 def test_message_content_verification():
     """Test the actual content of messages passed between nodes"""
@@ -552,17 +651,23 @@ def test_message_content_verification():
     var2 = MockNode("X2")
 
     # Create a simple 2x2 cost table
-    cost_table = np.array([
-        [1.0, 3.0],  # costs when X1=0, X2={0,1}
-        [4.0, 2.0]   # costs when X1=1, X2={0,1}
-    ])
+    cost_table = np.array(
+        [
+            [1.0, 3.0],  # costs when X1=0, X2={0,1}
+            [4.0, 2.0],  # costs when X1=1, X2={0,1}
+        ]
+    )
 
     logger.info(f"Cost table:\n{cost_table}")
 
     # ---- Step 1: Initial variable-to-factor messages ----
     var_to_factor_messages = [
-        Message(np.array([0.0, 0.0]), sender=var1, recipient=factor_node),  # Initial uniform belief
-        Message(np.array([0.0, 0.0]), sender=var2, recipient=factor_node)   # Initial uniform belief
+        Message(
+            np.array([0.0, 0.0]), sender=var1, recipient=factor_node
+        ),  # Initial uniform belief
+        Message(
+            np.array([0.0, 0.0]), sender=var2, recipient=factor_node
+        ),  # Initial uniform belief
     ]
 
     logger.info("Computing factor-to-variable messages (Round 1)")
@@ -617,13 +722,15 @@ def test_message_content_verification():
 
     logger.info("test_message_content_verification completed successfully")
 
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     logger.info("Running tests directly")
     pytest.main(["-xvs", "--log-cli-level=INFO", __file__])
+
 
 def test_explicit_connection_numbers():
     """Test compute_R with explicitly defined connection numbers"""
@@ -635,20 +742,22 @@ def test_explicit_connection_numbers():
     # Explicitly define connection numbers - intentionally NOT in message order
     factor_node.connection_numbers = {
         var2: 0,  # X2 gets dimension 0
-        var1: 1   # X1 gets dimension 1
+        var1: 1,  # X1 gets dimension 1
     }
 
     # Create a cost table - shape matches our dimension ordering (X2, X1)
-    cost_table = np.array([
-        [5.0, 2.0, 8.0],  # costs when X2=0, X1={0,1,2}
-        [1.0, 3.0, 4.0],  # costs when X2=1, X1={0,1,2}
-        [7.0, 0.0, 6.0]   # costs when X2=2, X1={0,1,2}
-    ])
+    cost_table = np.array(
+        [
+            [5.0, 2.0, 8.0],  # costs when X2=0, X1={0,1,2}
+            [1.0, 3.0, 4.0],  # costs when X2=1, X1={0,1,2}
+            [7.0, 0.0, 6.0],  # costs when X2=2, X1={0,1,2}
+        ]
+    )
 
     # Create messages in a DIFFERENT order than the connection numbers
     incoming_messages = [
         Message(np.array([0.0, 1.0, 3.0]), sender=var1, recipient=factor_node),
-        Message(np.array([2.0, 0.0, 4.0]), sender=var2, recipient=factor_node)
+        Message(np.array([2.0, 0.0, 4.0]), sender=var2, recipient=factor_node),
     ]
 
     # Initialize computator

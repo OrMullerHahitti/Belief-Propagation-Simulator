@@ -3,9 +3,11 @@ import numpy as np
 from bp_base.factor_graph import FactorGraph
 from bp_base.agents import VariableAgent, FactorAgent
 
+
 @pytest.fixture
 def simple_graph():
     pass
+
 
 def test_variable_agent_post_init(simple_graph):
     fg, v1, v2, f = simple_graph
@@ -24,6 +26,7 @@ def test_variable_agent_post_init(simple_graph):
     # Assignment and belief properties should work (even if mailbox is zeros)
     _ = v1.curr_assignment
     _ = v1.curr_belief
+
 
 def test_factor_agent_post_init(simple_graph):
     fg, v1, v2, f = simple_graph
