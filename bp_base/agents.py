@@ -124,14 +124,6 @@ class VariableAgent(BPAgent):
         """
         return self._history[-1] if self._history else []
 
-    # TODO create the self belief function
-
-    # @property
-    # def belief(self) -> np.ndarray:
-    #     pass
-    # __repr__ = lambda self: f"VariableAgent: {self.name}"
-
-
 ### ---- Factor Agent --- ###
 
 
