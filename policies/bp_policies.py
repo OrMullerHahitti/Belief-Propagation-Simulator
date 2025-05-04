@@ -48,9 +48,10 @@ class CostReductionPolicy(Policy):
     """
     def __init__(self, factor_graph: FactorGraph):
         super().__init__(PolicyType.FACTOR)
+        self.factor = factor_graph
 
 
-    def __call__(self)->None
+    def __call__(self)->None:
         mapping = self._get_reduction()
         for k, factor in mapping.items():
             factor.update_cost_table = factor.cost_table * k
