@@ -53,6 +53,17 @@ class FactorGraph:
         """
         for node in self.G.nodes():
             node.computator = computator
+
+    def normalize_messages(self) -> None:
+        """
+        Normalize the messages in the graph.
+        This is a placeholder for normalization logic.
+        """
+        for node in nx.bipartite.sets(self.G)[0]:
+            if isinstance(node, VariableAgent):
+                for message in node.mailer.inbox:
+                    # Normalize the message
+                    message.data -= np.min(message.data)
     def visualize(self) -> None:
         """
         Visualize the factor graph using matplotlib.
