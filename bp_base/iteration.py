@@ -10,6 +10,7 @@ class Iteration:
     Represents a single iteration in the Belief Propagation algorithm.
     Contains all relevant information about the iteration state.
     """
+
     def __init__(self):
         number: int = Field(ge=0)  # Current iteration number (0-based)
         max_iterations: int = Field(ge=1)  # Maximum number of iterations
@@ -57,13 +58,17 @@ class Iteration:
     def calculate_residual(self) -> float:
         """Calculate the data residual from previous iteration"""
         if self.Q_previous is None or self.R_previous is None:
-            return float('inf')
+            return float("inf")
 
         # Calculate maximum difference in messages
-        q_diff = max(np.max(np.abs(self.Q_messages[k] - self.Q_previous[k]))
-                     for k in self.Q_messages.keys())
-        r_diff = max(np.max(np.abs(self.R_messages[k] - self.R_previous[k]))
-                     for k in self.R_messages.keys())
+        q_diff = max(
+            np.max(np.abs(self.Q_messages[k] - self.Q_previous[k]))
+            for k in self.Q_messages.keys()
+        )
+        r_diff = max(
+            np.max(np.abs(self.R_messages[k] - self.R_previous[k]))
+            for k in self.R_messages.keys()
+        )
 
         self.message_residual = max(q_diff, r_diff)
         return self.message_residual

@@ -11,20 +11,27 @@ from bp_base.components import Message
 from bp_base.bp_engine import BPEngine
 from configs.loggers import Logger
 from utils.loading_utils import load_pickle, project_root
-log_dir = 'test_logs'
-logger = Logger(__name__,file = True)
+
+log_dir = "test_logs"
+logger = Logger(__name__, file=True)
+
+
 @pytest.fixture
 def simple_factor_graph():
-    pickle_path = os.path.join(project_root, 'configs', 'factor_graphs',
-                               'factor-graph-random-10-random_intlow1,high1000.4-number11.pkl')
+    pickle_path = os.path.join(
+        project_root,
+        "configs",
+        "factor_graphs",
+        "factor-graph-random-10-random_intlow1,high1000.4-number11.pkl",
+    )
 
     # Create two variables and one factor for a minimal test
 
-
     # Connect both variables to the factor
-    fg= load_pickle(pickle_path)
+    fg = load_pickle(pickle_path)
     logger.info("Factor graph created with nodes: %s", fg.G.nodes())
     return fg
+
 
 def test_bp_engine_one_cycle(simple_factor_graph):
     fg = simple_factor_graph
@@ -46,7 +53,12 @@ def test_bp_engine_one_cycle(simple_factor_graph):
         for agent_name, messages in step.messages.items():
             for msg in messages:
                 assert isinstance(msg, Message)
-                logger.info("Message from %s to %s: %s", msg.sender.name, msg.recipient.name, msg.data)
+                logger.info(
+                    "Message from %s to %s: %s",
+                    msg.sender.name,
+                    msg.recipient.name,
+                    msg.data,
+                )
 
     # Check beliefs after one cycle
     beliefs = engine.get_beliefs()

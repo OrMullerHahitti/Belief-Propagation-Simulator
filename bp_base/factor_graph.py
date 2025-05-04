@@ -10,18 +10,23 @@ from bp_base.computators import BPComputator
 
 logger = logging.getLogger(__name__)
 
+
 class FactorGraph:
     """
     Represents a bipartite factor graph for belief propagation.
     The graph structure is bipartite, with variable nodes (set 0) connected only to factor nodes (set 1).
     """
 
-    def __init__(self, variable_li: List[VariableAgent], factor_li: List[FactorAgent], 
-                 edges: Dict[FactorAgent, List[VariableAgent]]):
+    def __init__(
+        self,
+        variable_li: List[VariableAgent],
+        factor_li: List[FactorAgent],
+        edges: Dict[FactorAgent, List[VariableAgent]],
+    ):
         """
         Initialize the factor graph with variable nodes, factor nodes, and edges.
         Enforces bipartite structure: variables <-> factors only.
-        
+
         :param variable_li: List of variable agents
         :param factor_li: List of factor agents
         :param edges: Dict mapping factor agents to their connected variable agents
@@ -31,17 +36,17 @@ class FactorGraph:
 
         # Create a bipartite graph
         self.G = nx.Graph()
-        
+
         # Add nodes with bipartite attribute
         self.G.add_nodes_from(self.variables, bipartite=0)
         self.G.add_nodes_from(self.factors, bipartite=1)
-        
+
         # Add edges and set up factor nodes
         self._add_edges(edges)
-        
+
         # Initialize cost tables for factor nodes
         self._initialize_cost_tables()
-        
+
         # Initialize mailboxes for all nodes
         self._initialize_messages()
 
@@ -64,23 +69,39 @@ class FactorGraph:
                 for message in node.mailer.inbox:
                     # Normalize the message
                     message.data -= np.min(message.data)
+
     def visualize(self) -> None:
         """
         Visualize the factor graph using matplotlib.
         """
         import matplotlib.pyplot as plt
+
         pos = nx.bipartite_layout(self.G, nodes=self.variables)
-        nx.draw_networkx_nodes(self.G, pos, nodelist=self.variables, node_shape='o', node_color='lightblue', node_size=300)
-        nx.draw_networkx_nodes(self.G, pos, nodelist=self.factors, node_shape='s', node_color='lightgreen', node_size=300)
+        nx.draw_networkx_nodes(
+            self.G,
+            pos,
+            nodelist=self.variables,
+            node_shape="o",
+            node_color="lightblue",
+            node_size=300,
+        )
+        nx.draw_networkx_nodes(
+            self.G,
+            pos,
+            nodelist=self.factors,
+            node_shape="s",
+            node_color="lightgreen",
+            node_size=300,
+        )
         nx.draw_networkx_edges(self.G, pos)
         nx.draw_networkx_labels(self.G, pos)
         plt.show()
-        
+
     def _add_edges(self, edges: Dict[FactorAgent, List[VariableAgent]]) -> None:
         """
         Add edges between factor nodes and variable nodes.
         Enforces bipartite structure: only factor-variable edges allowed.
-        
+
         :param edges: Dictionary mapping factor nodes to lists of variable nodes
         """
         for factor, variables in edges.items():
@@ -89,8 +110,13 @@ class FactorGraph:
                 factor.connection_number = {}
             for i, var in enumerate(variables):
                 # Enforce bipartite: only connect factor <-> variable
-                if not ((factor in self.factors and var in self.variables) or (factor in self.variables and var in self.factors)):
-                    raise ValueError("Edges must connect a factor node to a variable node (bipartite structure).")
+                if not (
+                    (factor in self.factors and var in self.variables)
+                    or (factor in self.variables and var in self.factors)
+                ):
+                    raise ValueError(
+                        "Edges must connect a factor node to a variable node (bipartite structure)."
+                    )
                 self.G.add_edge(factor, var, dim=i)
                 # Set dimension index for the variable in the factor's cost table
                 factor.connection_number[var] = i
@@ -105,7 +131,7 @@ class FactorGraph:
                 # Initialize cost table for the factor node
                 node.initiate_cost_table()
                 logger.info("Cost table initialized for factor node: %s", node.name)
-    
+
     def _initialize_messages(self) -> None:
         """
         Initialize mailboxes for all nodes with zero messages.
@@ -121,8 +147,6 @@ class FactorGraph:
 
                     node.mailer.set_first_message(node, neighbor)
                     # Initialize messages to send
-
-
 
     def __getstate__(self):
         """
@@ -140,19 +164,19 @@ class FactorGraph:
         self.__dict__.update(state)
 
         # Make sure G is reconstructed if it's missing
-        if not hasattr(self, 'G') or self.G is None:
+        if not hasattr(self, "G") or self.G is None:
             import networkx as nx
+
             self.G = nx.Graph()
 
             # Rebuild graph from variables and factors
-            if hasattr(self, 'variables') and hasattr(self, 'factors'):
+            if hasattr(self, "variables") and hasattr(self, "factors"):
                 # Add nodes
                 self.G.add_nodes_from(self.variables, bipartite=0)
                 self.G.add_nodes_from(self.factors, bipartite=1)
 
                 # Rebuild edges from connection_number info
                 for factor in self.factors:
-                    if hasattr(factor, 'connection_number'):
+                    if hasattr(factor, "connection_number"):
                         for var, dim in factor.connection_number.items():
                             self.G.add_edge(factor, var, dim=dim)
-
