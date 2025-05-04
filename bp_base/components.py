@@ -46,13 +46,33 @@ class Message:
     def __add__(self, other):
         if not isinstance(other, Message):
             raise TypeError("Can only add Message to Message")
-        if self.sender != other.recipient or self.recipient != other.sender:
+        if self.sender.name != other.sender.name and self.recipient.name != other.recipient.name:
             raise ValueError("Cannot add messages from different senders or to different recipients")
         return Message(
             data=self.data + other.data,
             sender=self.sender,
             recipient=self.recipient
         )
+    def __mul__(self, other):
+        if  isinstance(other, Message):
+            if self.sender != other.recipient or self.recipient != other.sender:
+                raise ValueError("Cannot multiply messages from different senders or to different recipients")
+            else:
+                return Message(
+                data=self.data * other.data,
+                sender=self.sender,
+                recipient=self.recipient
+            )
+        elif isinstance(other, (int, float)):
+            return Message(
+                data=self.data * other,
+                sender=self.sender,
+                recipient=self.recipient
+            )
+        else:
+            raise TypeError("Can only multiply Message by int, float or Message")
+
+
 
 
 
