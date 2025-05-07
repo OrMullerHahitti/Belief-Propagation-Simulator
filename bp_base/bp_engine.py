@@ -7,19 +7,21 @@ import json
 import os
 from bp_base.agents import BPAgent, VariableAgent, FactorAgent
 from bp_base.components import Message
-from bp_base.computators import MaxSumComputator
+from bp_base.computators import MaxSumComputator, MinSumComputator
 from bp_base.factor_graph import FactorGraph
 from DCOP_base import Computator, Agent
 from functools import reduce
 from bp_base.typing import Policy, PolicyType
 from dataclasses import dataclass, field
 
+from configs.loggers import Logger
+
 T = typing.TypeVar("T")
 """ in this module we will implement the belief propagation with various policies with factor graph configs
 most of which are implemented in the factor graph module and will be max-sum with different policies and different structures
 we will start with the usual 3-cycle and then move to more complex structures"""
 
-
+logger = Logger(__name__)
 @dataclass
 class Step:
     """
@@ -92,7 +94,8 @@ class History:
 
     @property
     def name(self):
-        return f"{self.config['factor_graph'].name}_{self.config['computator']}_{self.config['policies'] if self.config['policies'] else ''}"
+        #TODO add something that is not a test
+        return f"test_1"
 
     def save_results(self, filename: str = None) -> str:
         """
@@ -142,8 +145,8 @@ class History:
         """
         save only the global costs as csv ready for plotting
         """
-        # 1) create the directory if it doesn't exist
-        os.makedirs(os.path.dirname("run_resaults_global_costs") or ".", exist_ok=True)
+        # Create the results directory explicitly
+        os.makedirs("results", exist_ok=True)
         # 2) write the data to a csv file
         with open(f"results/costs_{self.name}.csv", "w") as f:
             for cycle, cost in self.costs.items():
@@ -163,7 +166,7 @@ class BPEngine:
     def __init__(
         self,
         factor_graph: FactorGraph,
-        computator: Computator = MaxSumComputator(),
+        computator: Computator = MinSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
     ):
         """
@@ -179,7 +182,16 @@ class BPEngine:
             computator=computator, policies=policies, factor_graph=factor_graph
         )  # Store history of beliefs
 
-    # TODO:maybe apply here cost table policies too? or after a cycle? should think this over will open issue
+        # Pre-calculate graph diameter once - with fallback if it fails
+        try:
+            self.graph_diameter = nx.diameter(self.graph.G)
+            logger.info(f"Graph diameter calculated: {self.graph_diameter}")
+        except (nx.NetworkXError, nx.NetworkXNoPath):
+            # Fallback to a reasonable number for disconnected graphs
+            self.graph_diameter = 3
+            logger.warning(f"Could not compute graph diameter. Using default: {self.graph_diameter}")
+        self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+
     def step(self, i: int = 0) -> Step:
         """Run the factor graph algorithm."""
         step = Step(i)
@@ -214,15 +226,22 @@ class BPEngine:
 
     def cycle(self, j) -> Cycle:
         cy = Cycle(j)
-        # TODO add diameter in the factorgraph class
-        for i in range(nx.diameter(self.graph.G)):
-            cy.add(self.step(i))
+        # Use pre-computed diameter instead of calculating it each time
+        for i in range(self.graph_diameter+1):
+            logger.info(f"Starting step {i} of cycle {j}")
+            step_result = self.step(i)
+            cy.add(step_result)
+            logger.info(f"Completed step {i}")
+        
+        logger.info(f"Updating beliefs and assignments for cycle {j}")
         self.history.beliefs[j] = self.get_beliefs()
         self.history.assignments[j] = self.assignments
 
         # Calculate and store the global cost at the end of the cycle
+        logger.info(f"Calculating global cost for cycle {j}")
         global_cost = self.calculate_global_cost()
         self.history.costs[j] = global_cost
+        logger.info(f"Global cost after cycle {j}: {global_cost}")
 
         return cy
 
@@ -283,25 +302,23 @@ class BPEngine:
             for node in self.graph.G.nodes()
             if isinstance(node, VariableAgent)
         }
-    #TODO : this method exicsts in the factor graph class as well decide where it should be
+
     def calculate_global_cost(self) -> float:
         """
         Calculate the global cost based on the current assignments of variables and the cost tables of factors.
         :return: The global cost as a float.
         """
-        # Get current assignments
-        #TODO can run on bipartite instead
+        # PERFORMANCE IMPROVEMENT: Get variables and factors once using bipartite sets
+
+
         var_assignments = {
-            node: node.curr_assignment
-            for node in self.graph.G.nodes()
-            if isinstance(node, VariableAgent)
+            node: node.curr_assignment for node in self.var_nodes
         }
 
         total_cost = 0.0
-        # For each factor, calculate the cost based on the assignments of its connected variables
-        for node in self.graph.G.nodes():
-            if isinstance(node, FactorAgent) and node.cost_table is not None:
-                # Get the indices for the cost table based on the assignments of connected variables
+        # Only iterate through factor nodes
+        for node in self.factor_nodes:
+            if node.cost_table is not None:
                 indices = []
                 for var, dim in node.connection_number.items():
                     if var in var_assignments:
@@ -319,4 +336,5 @@ class BPEngine:
         Apply the policies to the factor graph.
         """
         return reduce(lambda acc, policy: policy(acc), policies, data)
+
 
