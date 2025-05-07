@@ -75,6 +75,7 @@ class History:
         self.cycles: Dict[int, Cycle] = {}
         self.beliefs: Dict[int, Dict[str, np.ndarray]] = {}
         self.assignments: Dict[int, Dict[str, int | float]] = {}
+        self.costs: Dict[int, float] = {}  # Add dictionary to store costs per cycle
 
     def __setitem__(self, key: int, value: Cycle):
         self.cycles[key] = value
@@ -106,6 +107,7 @@ class History:
             # "cycles":     self.cycles,
             "assignments": self.assignments,
             "beliefs": self.beliefs,
+            "costs": self.costs,  # Include costs in the saved data
         }
 
         #  normalize everything
@@ -136,6 +138,18 @@ class History:
             json.dump(data, f, indent=4)
 
         return filename
+    def save_csv(self)->str:
+        """
+        save only the global costs as csv ready for plotting
+        """
+        # 1) create the directory if it doesn't exist
+        os.makedirs(os.path.dirname("run_resaults_global_costs") or ".", exist_ok=True)
+        # 2) write the data to a csv file
+        with open(f"results/costs_{self.name}.csv", "w") as f:
+            for cycle, cost in self.costs.items():
+                f.write(f"{cycle},{cost}\n")
+        return f"results/costs_{self.name}.csv"
+
 
 
 ### TODO: create a wrapper to config everything beforehand
@@ -205,10 +219,15 @@ class BPEngine:
             cy.add(self.step(i))
         self.history.beliefs[j] = self.get_beliefs()
         self.history.assignments[j] = self.assignments
+
+        # Calculate and store the global cost at the end of the cycle
+        global_cost = self.calculate_global_cost()
+        self.history.costs[j] = global_cost
+
         return cy
 
     def run(
-        self, max_iter: int = 1000, save_json: bool = True, filename: str = None
+        self, max_iter: int = 1000, save_json: bool = False,save_csv:bool=True, filename: str = None
     ) -> None:
         """
         Run the factor graph algorithm for a maximum number of iterations.
@@ -231,6 +250,9 @@ class BPEngine:
             self.history.save_results(
                 "results.json"
             )  # TODO ; needs to be changed to a more general name
+        if save_csv:
+            self.history.save_csv()
+
         return None
 
     ### -------------------------------------------------------------------####
@@ -261,13 +283,14 @@ class BPEngine:
             for node in self.graph.G.nodes()
             if isinstance(node, VariableAgent)
         }
-
+    #TODO : this method exicsts in the factor graph class as well decide where it should be
     def calculate_global_cost(self) -> float:
         """
         Calculate the global cost based on the current assignments of variables and the cost tables of factors.
         :return: The global cost as a float.
         """
         # Get current assignments
+        #TODO can run on bipartite instead
         var_assignments = {
             node: node.curr_assignment
             for node in self.graph.G.nodes()
@@ -296,3 +319,4 @@ class BPEngine:
         Apply the policies to the factor graph.
         """
         return reduce(lambda acc, policy: policy(acc), policies, data)
+
