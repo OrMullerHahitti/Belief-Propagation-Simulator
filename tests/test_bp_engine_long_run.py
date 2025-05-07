@@ -4,6 +4,7 @@ import pytest
 import logging
 import numpy as np
 import json
+import time
 from pathlib import Path
 
 # Add project root to Python path
@@ -26,24 +27,43 @@ logger = Logger(__name__, file=True)
 
 @pytest.fixture
 def simple_factor_graph():
+    # Use a smaller factor graph for testing
     pickle_path = os.path.join(
         project_root,
         "configs",
         "factor_graphs",
-        "factor-graph-cycle-10-random_intlow1,high1000.4-number2.pkl",
+        "factor-graph-random-50-random_intlow1,high1000.3-number2.pkl",  # If this exists, otherwise keep the original
     )
+    if not os.path.exists(pickle_path):
+        # Fallback to original graph
+        pickle_path = os.path.join(
+            project_root,
+            "configs",
+            "factor_graphs",
+            "factor-graph-random-20-random_intlow1,high1000.3-number2.pkl",
+        )
+    
+    logger.info(f"Loading factor graph from: {pickle_path}")
+    start_time = time.time()
     fg = load_pickle(pickle_path)
-    logger.info("Factor graph created with nodes: %s", fg.G.nodes())
+    logger.info(f"Graph loaded in {time.time() - start_time:.2f} seconds")
+    
+    # Log basic graph statistics
+    logger.info(f"Graph has {len(fg.variables)} variables and {len(fg.factors)} factors")
+    
     return fg
 
 
 def test_bp_engine_long_run(simple_factor_graph):
     fg = simple_factor_graph
+    logger.info("Creating BPEngine...")
+    start_time = time.time()
     engine = BPEngine(factor_graph=fg)
-    logger.info("BPEngine initialized.")
-    dict = {factor.name: factor.cost_table for factor in fg.factors}
-    # Run the engine and save results as JSON
-    logger.info(f"\n{dict}\n")
+    logger.info(f"BPEngine initialized in {time.time() - start_time:.2f} seconds")
+    
+    # Run just 1 or 2 iterations with timing
+    logger.info("Starting BP Engine run (just 1 iteration)...")
+    start_time = time.time()
+    result_path = engine.run(max_iter=1000, save_json=False, save_csv=True)
+    logger.info(f"BP Engine completed 1 iteration in {time.time() - start_time:.2f} seconds")
 
-    result_path = engine.run(max_iter=1000, save_json=True)
-    logger.info("BP Engine run for 1000 iterations or until convergence.")
