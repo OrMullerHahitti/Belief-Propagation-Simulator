@@ -7,6 +7,8 @@ from pathlib import Path
 import colorlog  # pip install colorlog
 import pytest
 
+from utils.path_utils import project_root
+
 # Create logs directory if it doesn't exist
 log_dir = "test_logs"
 os.makedirs(log_dir, exist_ok=True)
@@ -48,29 +50,6 @@ logger.info("Logging is now set up with colored console output")
 
 
 # Function to find the project root directory
-def find_project_root():
-    """Find the project root directory by looking for a common marker like .git or a specific file"""
-    current_dir = Path.cwd()
-    while True:
-        # Check if this is the project root (containing typical root markers)
-        if any(
-            (current_dir / marker).exists()
-            for marker in [".git", "setup.py", "pyproject.toml", ".root"]
-        ):
-            return current_dir
-
-        # Check if we've reached the filesystem root
-        if current_dir == current_dir.parent:
-            raise FileNotFoundError("Project root not found")
-
-        # Move up one directory
-        current_dir = current_dir.parent
-
-
-# Make sure your project root is in the Python path
-project_root = find_project_root()
-sys.path.append(str(project_root))
-
 
 # Safely load pickle by handling errors - MOVED OUTSIDE TRY BLOCK
 def load_pickle(file_path):
