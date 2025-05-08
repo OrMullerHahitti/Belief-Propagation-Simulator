@@ -3,8 +3,12 @@
 ########################################################################
 from typing import Dict, Callable
 
+from utils.path_utils import find_project_root
+
 dirs = {"test": "test_logs"}
 
+
+#all dotted paths are relative to the project root and will be resolved using importlib
 GRAPH_TYPES: Dict[str, str] = {  # str  -> dotted‑path or import key
     # all the graph types builders will be registered here, and with build_... typing
     "cycle": "utils.create_factor_graphs_from_config.build_cycle_graph",
@@ -12,6 +16,7 @@ GRAPH_TYPES: Dict[str, str] = {  # str  -> dotted‑path or import key
     "octet-factor": "my_bp.graph_builders.build_octet_factor",  # TODO : implemnt octec-variable and octec-factor, not for MST
     "random": "utils.create_factor_graphs_from_config.build_random_graph",
 }
+PROJECT_ROOT: str = find_project_root()
 
 COMPUTATORS: Dict[str, str] = {  # str -> dotted‑path to BPComputator subclass
     "max-sum": "bp_base.computators.MaxSumComputator",
