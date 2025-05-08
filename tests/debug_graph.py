@@ -51,6 +51,7 @@ logger.info("Logging is now set up with colored console output")
 
 # Function to find the project root directory
 
+
 # Safely load pickle by handling errors - MOVED OUTSIDE TRY BLOCK
 def load_pickle(file_path):
     try:
