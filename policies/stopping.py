@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+
 class StoppingCriterion(ABC):
     @abstractmethod
     def should_stop(self, iteration: int, max_iters: int, Q, R, Q_old, R_old) -> bool:
@@ -16,13 +17,15 @@ class StoppingCriterion(ABC):
         :param Q_old, R_old: previous iteration data dicts
         """
         pass
+
+
 class MaxIterationsStopping(StoppingCriterion):
     """
     Stop after max_iters unconditionally.
     """
 
     def should_stop(self, iteration: int, max_iters: int, Q, R, Q_old, R_old) -> bool:
-        return (iteration >= max_iters)
+        return iteration >= max_iters
 
 
 class DeltaConvergenceStopping(StoppingCriterion):
@@ -46,4 +49,4 @@ class DeltaConvergenceStopping(StoppingCriterion):
         for key in R:
             max_diff = max(max_diff, np.max(np.abs(R[key] - R_old[key])))
 
-        return (max_diff < self.delta_threshold)
+        return max_diff < self.delta_threshold

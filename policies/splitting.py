@@ -1,11 +1,14 @@
 from bp_base.factor_graph import FactorGraph
 from bp_policies import SplittingPolicy
 import networkx as nx
+
+
 class ConstantSplittingPolicy(SplittingPolicy):
     """
     Constant splitting policy.
     """
-    def __init__(self, splitting_value: float,factor_graph: FactorGraph):
+
+    def __init__(self, splitting_value: float, factor_graph: FactorGraph):
         super().__init__(factor_graph)
         self.splitting_value = splitting_value
 

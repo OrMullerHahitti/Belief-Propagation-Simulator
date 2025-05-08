@@ -124,6 +124,7 @@ class VariableAgent(BPAgent):
         """
         return self._history[-1] if self._history else []
 
+
 ### ---- Factor Agent --- ###
 
 

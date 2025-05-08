@@ -8,7 +8,10 @@ from pathlib import Path
 def find_project_root():
     current_dir = Path.cwd()
     while True:
-        if any((current_dir / marker).exists() for marker in ['.git', 'setup.py', 'pyproject.toml']):
+        if any(
+            (current_dir / marker).exists()
+            for marker in [".git", "setup.py", "pyproject.toml"]
+        ):
             return current_dir
         if current_dir == current_dir.parent:
             return Path.cwd()
@@ -26,12 +29,16 @@ from bp_base.components import Message
 import networkx as nx
 
 # Try to load the pickle
-pickle_path = os.path.join(project_root, 'configs', 'factor_graphs',
-                           'factor-graph-cycle-3-random_intlow1,high100-number5.pkl')
+pickle_path = os.path.join(
+    project_root,
+    "configs",
+    "factor_graphs",
+    "factor-graph-cycle-3-random_intlow1,high100-number5.pkl",
+)
 print(f"Attempting to load: {pickle_path}")
 
 try:
-    with open(pickle_path, 'rb') as f:
+    with open(pickle_path, "rb") as f:
         fg = pickle.load(f)
     print(f"Graph loaded successfully: {type(fg)}")
     print(f"Number of nodes: {len(fg.G.nodes())}")
