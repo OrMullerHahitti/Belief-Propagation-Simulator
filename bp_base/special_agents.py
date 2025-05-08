@@ -12,7 +12,7 @@ class SplitFactorAgent(FactorAgent):
     A specialized factor agent that splits its messages into two parts.
     """
 
-    def __init__(self, name: str, domain: int, split: SplittingPolicy):
+    def __init__(self, name: str, domain: int, split: SplittingPolicy, kwargs: dict = None):
         super().__init__(name, domain, **kwargs)
         self.split_factor = 0.5  # Default split factor
 
