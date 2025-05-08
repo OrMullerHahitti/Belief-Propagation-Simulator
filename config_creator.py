@@ -3,6 +3,7 @@ from utils.path_utils import find_project_root
 
 if __name__ == "__main__":
     from utils.create_factor_graph_config import ConfigCreator
+
     # 1. Create a FactorGraphBuilder instance
     config_path = find_project_root() / "configs/factor_graph_configs"
     ConfigCreator(config_path).create_graph_config(
@@ -18,8 +19,10 @@ if __name__ == "__main__":
 
     # Build and save a factor graph from a config file
     for i in range(3):
-        cfg_path = (f"{find_project_root()}"
-                    f"\\configs/factor_graph_configs/random-50-random_intlow1,high1000.3.pkl")
+        cfg_path = (
+            f"{find_project_root()}"
+            f"\\configs/factor_graph_configs/random-50-random_intlow1,high1000.3.pkl"
+        )
         out_path = builder.build_and_save(cfg_path)
         print(f"Factor graph saved to: {out_path}")
         # 3. Load the factor graph from the saved file

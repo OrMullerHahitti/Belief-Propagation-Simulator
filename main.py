@@ -3,8 +3,9 @@ from pathlib import Path
 import pandas as pd
 from matplotlib import pyplot as plt
 
-#plot results:
-def plot_results_from_csv(csv :Path|str = "tests/results/costs_test_1.csv"):
+
+# plot results:
+def plot_results_from_csv(csv: Path | str = "tests/results/costs_test_1.csv"):
     """
     Plot the results from a CSV file.
 
@@ -22,12 +23,12 @@ def plot_results_from_csv(csv :Path|str = "tests/results/costs_test_1.csv"):
     plt.scatter(x, y)
 
     # Add labels and title
-    plt.xlabel('X-axis')
-    plt.ylabel('Y-axis')
-    plt.title('Scatter Plot of Results')
-
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
+    plt.title("Scatter Plot of Results")
 
     # Show the plot
     plt.show()
-plot_results_from_csv()
 
+
+plot_results_from_csv()

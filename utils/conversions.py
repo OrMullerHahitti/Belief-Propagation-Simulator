@@ -2,7 +2,10 @@ import numpy as np
 import pandas as pd
 from typing import Union, Dict, Hashable, Any
 
-def to_ndarray(data: Union[np.ndarray, Dict[Hashable, Any], pd.DataFrame, list]) -> np.ndarray:
+
+def to_ndarray(
+    data: Union[np.ndarray, Dict[Hashable, Any], pd.DataFrame, list],
+) -> np.ndarray:
     """
     Convert various data structures to a NumPy ndarray.
 

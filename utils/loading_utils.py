@@ -9,7 +9,10 @@ def find_project_root():
     current_dir = Path.cwd()
     while True:
         # Check if this is the project root (containing typical root markers)
-        if any((current_dir / marker).exists() for marker in ['.git', 'setup.py', 'pyproject.toml', '.root']):
+        if any(
+            (current_dir / marker).exists()
+            for marker in [".git", "setup.py", "pyproject.toml", ".root"]
+        ):
             return current_dir
 
         # Check if we've reached the filesystem root
@@ -24,10 +27,11 @@ def find_project_root():
 project_root = find_project_root()
 sys.path.append(str(project_root))
 
+
 # Safely load pickle by handling errors - MOVED OUTSIDE TRY BLOCK
 def load_pickle(file_path):
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             return pickle.load(f)
     except Exception as e:
         print(f"Error loading pickle: {e}")
