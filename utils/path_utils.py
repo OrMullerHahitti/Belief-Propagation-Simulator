@@ -1,7 +1,9 @@
+import sys
 from pathlib import Path
 
 
 # TODO : make this project root
+
 # finder BEETER (for example check if the root that im currently in OR the parent of the current file is not in the list of possible directories
 # which will be made by me in the config (some kind of mapping or a list of strings)
 def find_project_root():
@@ -21,6 +23,10 @@ def find_project_root():
 
         # Move up one directory
         current_dir = current_dir.parent
+
+# Make sure your project root is in the Python path
+project_root = find_project_root()
+sys.path.append(str(project_root))
 
 
 def create_directory(path: str) -> None:
