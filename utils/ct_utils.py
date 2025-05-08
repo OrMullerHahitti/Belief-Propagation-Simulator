@@ -4,17 +4,19 @@ from bp_base.typing import CostTable
 from scipy.special import logsumexp
 
 
-def _create_cost_table(connections: int, domain: int, policy:  Callable = np.random.randint, **policy_params) -> CostTable:
+def _create_cost_table(
+    connections: int, domain: int, policy: Callable = np.random.randint, **policy_params
+) -> CostTable:
     """
     Main funtion that will be used in variations below
     Create a random cost table with shape (d0, d1, ..., dn-1).
-    
+
     Args:
         connections: Number of connected variables to factor
         domain: domain size
         policy: policy function , e.g., np.random.randint, np.random.uniform, etc.
         policy_params: Additional parameters for the policy
-        
+
     Returns:
         n-dimensional cost table as numpy array
     """
@@ -26,12 +28,14 @@ def _create_cost_table(connections: int, domain: int, policy:  Callable = np.ran
 
     if callable(policy):
         # Use custom function to generate values
-        return policy(**policy_params,size=shape)
+        return policy(**policy_params, size=shape)
     else:
         raise ValueError(f"Unknown policy: {policy}")
+
+
 #####-------create_cost_table implementations --------#######
-#functions that implement create_cost_table with different policies:
-def create_random_int_table(n:int,domain: int,low=0,high=10) -> CostTable:
+# functions that implement create_cost_table with different policies:
+def create_random_int_table(n: int, domain: int, low=0, high=10) -> CostTable:
     """
     Create a random cost table with shape (domain, domain).
 
@@ -42,7 +46,9 @@ def create_random_int_table(n:int,domain: int,low=0,high=10) -> CostTable:
         Random cost table as numpy array
     """
     return _create_cost_table(n, domain, np.random.randint, low=low, high=high)
-def create_uniform_table(n:int,domain: int,low=0, high=1) -> CostTable:
+
+
+def create_uniform_table(n: int, domain: int, low=0, high=1) -> CostTable:
     """
     Create a uniform cost table with shape (domain, domain).
 
@@ -57,22 +63,25 @@ def create_uniform_table(n:int,domain: int,low=0, high=1) -> CostTable:
         :param low:
     """
     return _create_cost_table(n, domain, np.random.uniform, low=low, high=high)
-def create_normal_table(n:int,domain: int,loc=0,scale=1) -> CostTable:
+
+
+def create_normal_table(n: int, domain: int, loc=0, scale=1) -> CostTable:
     """
-        Create a normal cost table with shape (domain, domain).
+    Create a normal cost table with shape (domain, domain).
 
-        Args:
-            domain: Domain size
+    Args:
+        domain: Domain size
 
-        Returns:
-            Normal cost table as numpy array
-            :param domain: dimenstion size (conections)
-            :param loc: mean
-            :param scale: SD
-        """
+    Returns:
+        Normal cost table as numpy array
+        :param domain: dimenstion size (conections)
+        :param loc: mean
+        :param scale: SD
+    """
     return _create_cost_table(n, domain, np.random.normal, loc=loc, scale=scale)
 
-def create_exponential_table(n:int,domain: int,scale =1) -> CostTable:
+
+def create_exponential_table(n: int, domain: int, scale=1) -> CostTable:
     """
     Create an exponential cost table with shape (domain, domain).
 
@@ -85,6 +94,7 @@ def create_exponential_table(n:int,domain: int,scale =1) -> CostTable:
     """
     return _create_cost_table(n, domain, np.random.exponential, scale=scale)
 
+
 def create_symmetric_cost_table(n: int, m: int) -> CostTable:
     """
     Create a symmetric cost table of size n x m.
@@ -93,13 +103,10 @@ def create_symmetric_cost_table(n: int, m: int) -> CostTable:
     return (cost_table + cost_table.T) / 2
 
 
-
-
-
-
 # example for noramlizing cost table for 3*3 ndarray
 
-#TODO: ask roie: think of how to normalize, this is not good yet
+
+# TODO: ask roie: think of how to normalize, this is not good yet
 def normalize_cost_table_sum(cost_table: np.ndarray) -> CostTable:
     """
     Normalize the cost table so that the sum of all dimensions is equal.
@@ -113,10 +120,11 @@ def normalize_cost_table_sum(cost_table: np.ndarray) -> CostTable:
     total_sum = np.sum(cost_table)
     shape = cost_table.shape
     for dim in range(len(shape)):
-        curr_sum =np.sum(cost_table, axis=dim)
+        curr_sum = np.sum(cost_table, axis=dim)
         print(curr_sum)
-        cost_table = cost_table /(curr_sum * total_sum)
+        cost_table = cost_table / (curr_sum * total_sum)
     return cost_table
+
 
 def normalize_cost_table(cost_table: np.ndarray, axis: int = None) -> np.ndarray:
     """

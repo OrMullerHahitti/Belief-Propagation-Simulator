@@ -7,24 +7,27 @@ import numpy as np
 from bp_base.typing import Message
 from utils.randomes import create_random_table
 from networkx import Graph
+
+
 class Computator(ABC):
     """
     Abstract base class for a Computator.
     This class defines the interface for computing messages in a DCOP system.
     """
+
     def __init__(self):
         """
         Initialize the Computator.
         This method can be overridden in subclasses to perform additional initialization.
         """
         pass
+
     def __init_subclass__(cls, **kwargs):
         """
         This method is called when a subclass is created.
         It can be used to register the subclass in a registry or perform other initialization tasks.
         """
         super().__init_subclass__(**kwargs)
-
 
     @abstractmethod
     def compute_Q(self, messages: List[Message]) -> List[Message]:
@@ -36,7 +39,9 @@ class Computator(ABC):
         pass
 
     @abstractmethod
-    def compute_R(self, cost_table: np.ndarray, message: List[Message]) -> List[Message]:
+    def compute_R(
+        self, cost_table: np.ndarray, message: List[Message]
+    ) -> List[Message]:
         """
         Compute R messages based on the cost table and incoming message.
         :param cost_table: The cost table to be used for computation.
@@ -44,14 +49,17 @@ class Computator(ABC):
         :return: The computed R message.
         """
         pass
+
+
 class Agent(ABC):
     """
     The top-level abstract base class for any node in the DCOP problem.
     """
+
     def __init__(self, name: str, node_type: str = "general"):
         self.name = name  # Human-readable name for the node
         self.type = node_type  # Type of the node (e.g., 'variable', 'factor')
-        self._computator:Computator|None = None
+        self._computator: Computator | None = None
         self.mailer = None
 
     @property
@@ -84,15 +92,15 @@ class Agent(ABC):
             type_val = "unknown"
 
         return hash((name_val, type_val))
+
     __repr__ = lambda self: f"Agent({self.name}, {self.type})"
 
 
-#mailer class that will handle recieveing and sending the messages to the right nodes
+# mailer class that will handle recieveing and sending the messages to the right nodes
 class Mailer(Agent):
     def __init__(self):
         super().__init__("mailer", "mailer")
         self.mailbox = {}
-
 
     def send_message(self, recipient: Agent, message: Any) -> None:
         if recipient.name in self.mailbox:
@@ -108,7 +116,3 @@ class Mailer(Agent):
 
     def clear_mailbox(self) -> None:
         self.mailbox = {}
-
-
-
-

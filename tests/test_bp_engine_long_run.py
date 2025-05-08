@@ -42,15 +42,17 @@ def simple_factor_graph():
             "factor_graphs",
             "factor-graph-random-20-random_intlow1,high1000.3-number2.pkl",
         )
-    
+
     logger.info(f"Loading factor graph from: {pickle_path}")
     start_time = time.time()
     fg = load_pickle(pickle_path)
     logger.info(f"Graph loaded in {time.time() - start_time:.2f} seconds")
-    
+
     # Log basic graph statistics
-    logger.info(f"Graph has {len(fg.variables)} variables and {len(fg.factors)} factors")
-    
+    logger.info(
+        f"Graph has {len(fg.variables)} variables and {len(fg.factors)} factors"
+    )
+
     return fg
 
 
@@ -60,10 +62,11 @@ def test_bp_engine_long_run(simple_factor_graph):
     start_time = time.time()
     engine = BPEngine(factor_graph=fg)
     logger.info(f"BPEngine initialized in {time.time() - start_time:.2f} seconds")
-    
+
     # Run just 1 or 2 iterations with timing
     logger.info("Starting BP Engine run (just 1 iteration)...")
     start_time = time.time()
     result_path = engine.run(max_iter=1000, save_json=False, save_csv=True)
-    logger.info(f"BP Engine completed 1 iteration in {time.time() - start_time:.2f} seconds")
-
+    logger.info(
+        f"BP Engine completed 1 iteration in {time.time() - start_time:.2f} seconds"
+    )
