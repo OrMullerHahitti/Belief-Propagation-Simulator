@@ -1,4 +1,6 @@
 name: Autoformat with Black
+permissions:
+  contents: write
 
 on:
   push:
