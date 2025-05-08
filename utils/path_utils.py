@@ -18,30 +18,30 @@ def find_project_root():
         # Move up one directory
         current_dir = current_dir.parent
 
-import os
+def create_directory(path: str) -> None:
+    """Create a directory if it doesn't already exist."""
+    Path(path).mkdir(parents=True, exist_ok=True)
 
+def create_file(path: str, content: str = "") -> None:
+    """Create a file with optional content. Overwrites if it already exists."""
+    with open(path, 'w') as file:
+        file.write(content)
 
-# def find_project_root(start_dir=None):
-#     """Find the project root by looking for a specific marker file/directory."""
-#     if start_dir is None:
-#         start_dir = os.getcwd()
-#
-#     current_dir = os.path.abspath(start_dir)
-#
-#     # Keep going up until we find a marker or hit the filesystem root
-#     while True:
-#         # Check for a marker (e.g., .git directory, pyproject.toml, etc.)
-#         if os.path.exists(os.path.join(current_dir, '.git')) or \
-#                 os.path.exists(os.path.join(current_dir, 'pyproject.toml')):
-#             return current_dir
-#
-#         # Get the parent directory
-#         parent_dir = os.path.dirname(current_dir)
-#
-#         # If we've reached the filesystem root, stop
-#         if parent_dir == current_dir:
-#             raise FileNotFoundError("Could not find project root")
-#
-#         current_dir = parent_dir
+def get_absolute_path(relative_path: str) -> str:
+    """Convert a relative path to an absolute path."""
+    return str(Path(relative_path).resolve())
+
+def generate_unique_name(base_name: str, extension: str = "") -> str:
+    """Generate a unique name by appending a timestamp to the base name."""
+    from datetime import datetime
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    return f"{base_name}_{timestamp}{extension}"
+
+def list_files_in_directory(directory: str, extension_filter: str = None) -> list:
+    """List all files in a directory, optionally filtering by extension."""
+    path = Path(directory)
+    if extension_filter:
+        return [str(file) for file in path.glob(f"*.{extension_filter}")]
+    return [str(file) for file in path.iterdir() if file.is_file()]
 
 
