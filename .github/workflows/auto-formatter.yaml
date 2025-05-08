@@ -1,0 +1,40 @@
+name: Autoformat with Black
+
+on:
+  push:
+    branches:
+      - main  # Change this to your default branch if needed
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  black-autoformat:
+    name: Format and Push Back
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12' 
+
+      - name: Install Black
+        run: pip install black
+
+      - name: Run Black and commit changes if needed
+        run: |
+          black .
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "style: auto-format with black"
+            git push
+          else
+            echo "No formatting changes to commit."
