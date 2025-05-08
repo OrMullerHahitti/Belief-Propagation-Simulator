@@ -9,7 +9,5 @@ class MessagePolicy:
     pass
 
 
-def message_pipline(policies: List[MessagePolicy],message:Message) -> Message:
-    return pipe(message,policies)
-
-
+def message_pipline(policies: List[MessagePolicy], message: Message) -> Message:
+    return pipe(message, policies)

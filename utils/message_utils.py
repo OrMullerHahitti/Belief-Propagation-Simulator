@@ -2,6 +2,7 @@ from typing import List, Tuple
 
 from bp_base.components import Message
 
+
 def order_lists_of_messages(
     list1: List[Message], list2: List[Message]
 ) -> Tuple[List[Message], List[Message]]:

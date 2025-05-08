@@ -12,7 +12,10 @@ def find_project_root():
     current_dir = Path.cwd()
     while True:
         # Check if this is the project root (containing typical root markers)
-        if any((current_dir / marker).exists() for marker in ['.git', 'setup.py', 'pyproject.toml']):
+        if any(
+            (current_dir / marker).exists()
+            for marker in [".git", "setup.py", "pyproject.toml"]
+        ):
             return current_dir
 
         # Check if we've reached the filesystem root
@@ -33,17 +36,21 @@ sys.path.append(str(project_root))
 class SafeUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         # Handle potential module renames or reorganizations
-        if module == 'bp_base.factor_graph' and name == 'FactorGraph':
+        if module == "bp_base.factor_graph" and name == "FactorGraph":
             from bp_base.factor_graph import FactorGraph
+
             return FactorGraph
-        elif module == 'bp_base.agents' and name == 'VariableAgent':
+        elif module == "bp_base.agents" and name == "VariableAgent":
             from bp_base.agents import VariableAgent
+
             return VariableAgent
-        elif module == 'bp_base.agents' and name == 'FactorAgent':
+        elif module == "bp_base.agents" and name == "FactorAgent":
             from bp_base.agents import FactorAgent
+
             return FactorAgent
-        elif module == 'bp_base.components' and name == 'Message':
+        elif module == "bp_base.components" and name == "Message":
             from bp_base.components import Message
+
             return Message
         # Add more mappings as needed
 
@@ -59,7 +66,7 @@ class SafeUnpickler(pickle.Unpickler):
 # Safely load pickle file
 def load_pickle_safely(file_path):
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             return SafeUnpickler(f).load()
     except Exception as e:
         print(f"Error loading pickle: {e}")
@@ -71,34 +78,34 @@ def repair_factor_graph(fg):
     """Attempt to repair any issues with the loaded factor graph"""
 
     # Ensure G exists
-    if not hasattr(fg, 'G') or fg.G is None:
+    if not hasattr(fg, "G") or fg.G is None:
         print("Initializing missing NetworkX graph")
         fg.G = nx.Graph()
 
         # Reconstruct graph from variables and factors
-        if hasattr(fg, 'variables') and hasattr(fg, 'factors'):
+        if hasattr(fg, "variables") and hasattr(fg, "factors"):
             # Add nodes
             fg.G.add_nodes_from(fg.variables)
             fg.G.add_nodes_from(fg.factors)
 
             # Try to reconstruct edges
             for factor in fg.factors:
-                if hasattr(factor, 'connection_number'):
+                if hasattr(factor, "connection_number"):
                     for var, dim in factor.connection_number.items():
                         fg.G.add_edge(factor, var, dim=dim)
 
     # Ensure all required attributes exist
     for node in fg.G.nodes():
         # Ensure mailbox exists
-        if not hasattr(node, 'mailbox'):
+        if not hasattr(node, "mailbox"):
             node.mailbox = []
 
         # Ensure other attributes exist based on node type
-        if hasattr(node, 'type') and node.type == 'factor':
-            if not hasattr(node, 'cost_table') or node.cost_table is None:
+        if hasattr(node, "type") and node.type == "factor":
+            if not hasattr(node, "cost_table") or node.cost_table is None:
                 try:
                     # Try to initialize cost table if missing
-                    if hasattr(node, 'initiate_cost_table'):
+                    if hasattr(node, "initiate_cost_table"):
                         node.initiate_cost_table()
                 except Exception as e:
                     print(f"Could not initialize cost table for {node}: {e}")
@@ -115,19 +122,23 @@ try:
     print(f"NetworkX version: {nx.__version__}")
 
     # Try to load the pickle
-    pickle_path = os.path.join(project_root, 'configs', 'factor_graphs',
-                               'factor-graph-cycle-3-random_intlow1,high100-number5.pkl')
+    pickle_path = os.path.join(
+        project_root,
+        "configs",
+        "factor_graphs",
+        "factor-graph-cycle-3-random_intlow1,high100-number5.pkl",
+    )
     print(f"Attempting to load: {pickle_path}")
 
     # Check if file exists
     if not os.path.exists(pickle_path):
         print(f"File does not exist: {pickle_path}")
         # List available factor graph files
-        factor_graphs_dir = os.path.join(project_root, 'configs', 'factor_graphs')
+        factor_graphs_dir = os.path.join(project_root, "configs", "factor_graphs")
         if os.path.exists(factor_graphs_dir):
             print(f"Available factor graph files in {factor_graphs_dir}:")
             for file in os.listdir(factor_graphs_dir):
-                if file.startswith('factor-graph'):
+                if file.startswith("factor-graph"):
                     print(f"  - {file}")
                     # Update pickle_path to use an existing file
                     pickle_path = os.path.join(factor_graphs_dir, file)
@@ -168,15 +179,18 @@ try:
                 if fg.factors:
                     factor = fg.factors[0]
                     print(f"\nFirst factor: {factor.name}")
-                    if hasattr(factor, 'cost_table') and factor.cost_table is not None:
+                    if hasattr(factor, "cost_table") and factor.cost_table is not None:
                         print(f"Cost table shape: {factor.cost_table.shape}")
             except Exception as e:
                 print(f"Error inspecting graph: {e}")
 
             # Try to save the repaired graph
             try:
-                output_path = os.path.join(os.path.dirname(pickle_path), "repaired_" + os.path.basename(pickle_path))
-                with open(output_path, 'wb') as f:
+                output_path = os.path.join(
+                    os.path.dirname(pickle_path),
+                    "repaired_" + os.path.basename(pickle_path),
+                )
+                with open(output_path, "wb") as f:
                     pickle.dump(fg, f, protocol=pickle.HIGHEST_PROTOCOL)
                 print(f"\nRepaired graph saved to: {output_path}")
             except Exception as e:

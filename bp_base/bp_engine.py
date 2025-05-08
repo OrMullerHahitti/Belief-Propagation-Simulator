@@ -22,6 +22,8 @@ most of which are implemented in the factor graph module and will be max-sum wit
 we will start with the usual 3-cycle and then move to more complex structures"""
 
 logger = Logger(__name__)
+
+
 @dataclass
 class Step:
     """
@@ -94,7 +96,7 @@ class History:
 
     @property
     def name(self):
-        #TODO add something that is not a test
+        # TODO add something that is not a test
         return f"test_1"
 
     def save_results(self, filename: str = None) -> str:
@@ -141,7 +143,8 @@ class History:
             json.dump(data, f, indent=4)
 
         return filename
-    def save_csv(self)->str:
+
+    def save_csv(self) -> str:
         """
         save only the global costs as csv ready for plotting
         """
@@ -152,7 +155,6 @@ class History:
             for cycle, cost in self.costs.items():
                 f.write(f"{cycle},{cost}\n")
         return f"results/costs_{self.name}.csv"
-
 
 
 ### TODO: create a wrapper to config everything beforehand
@@ -189,7 +191,9 @@ class BPEngine:
         except (nx.NetworkXError, nx.NetworkXNoPath):
             # Fallback to a reasonable number for disconnected graphs
             self.graph_diameter = 3
-            logger.warning(f"Could not compute graph diameter. Using default: {self.graph_diameter}")
+            logger.warning(
+                f"Could not compute graph diameter. Using default: {self.graph_diameter}"
+            )
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
 
     def step(self, i: int = 0) -> Step:
@@ -227,12 +231,12 @@ class BPEngine:
     def cycle(self, j) -> Cycle:
         cy = Cycle(j)
         # Use pre-computed diameter instead of calculating it each time
-        for i in range(self.graph_diameter+1):
+        for i in range(self.graph_diameter + 1):
             logger.info(f"Starting step {i} of cycle {j}")
             step_result = self.step(i)
             cy.add(step_result)
             logger.info(f"Completed step {i}")
-        
+
         logger.info(f"Updating beliefs and assignments for cycle {j}")
         self.history.beliefs[j] = self.get_beliefs()
         self.history.assignments[j] = self.assignments
@@ -246,7 +250,11 @@ class BPEngine:
         return cy
 
     def run(
-        self, max_iter: int = 1000, save_json: bool = False,save_csv:bool=True, filename: str = None
+        self,
+        max_iter: int = 1000,
+        save_json: bool = False,
+        save_csv: bool = True,
+        filename: str = None,
     ) -> None:
         """
         Run the factor graph algorithm for a maximum number of iterations.
@@ -310,10 +318,7 @@ class BPEngine:
         """
         # PERFORMANCE IMPROVEMENT: Get variables and factors once using bipartite sets
 
-
-        var_assignments = {
-            node: node.curr_assignment for node in self.var_nodes
-        }
+        var_assignments = {node: node.curr_assignment for node in self.var_nodes}
 
         total_cost = 0.0
         # Only iterate through factor nodes
@@ -336,5 +341,3 @@ class BPEngine:
         Apply the policies to the factor graph.
         """
         return reduce(lambda acc, policy: policy(acc), policies, data)
-
-

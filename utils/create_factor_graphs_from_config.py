@@ -15,9 +15,9 @@ import re
 # 1.  Registries – reuse the same ones from config_creator.py
 # ──────────────────────────────────────────────────────────────
 from configs.global_config_mapping import (
-    GRAPH_TYPES,                # str  -> dotted path for a *graph‑topology* builder
-    CT_FACTORIES,               # str  -> cost‑table factory fn
-                  # helper that can load configs
+    GRAPH_TYPES,  # str  -> dotted path for a *graph‑topology* builder
+    CT_FACTORIES,  # str  -> cost‑table factory fn
+    # helper that can load configs
 )
 from utils.create_factor_graph_config import ConfigCreator, GraphConfig
 
@@ -55,7 +55,9 @@ def _next_index(base: Path, stem: str) -> int:
 class FactorGraphBuilder:
     """Build & pickle a FactorGraph from a GraphConfig."""
 
-    def __init__(self, output_dir: str | Path = find_project_root() / "configs/factor_graphs"):
+    def __init__(
+        self, output_dir: str | Path = find_project_root() / "configs/factor_graphs"
+    ):
         self.output_dir = Path(output_dir).expanduser().resolve()
         os.makedirs(self.output_dir, exist_ok=True)
 
@@ -78,15 +80,16 @@ class FactorGraphBuilder:
             domain_size=cfg.domain_size,
             ct_factory=ct_factory_fn,
             ct_params=cfg.ct_factory_params,
-            density = cfg.density
-
+            density=cfg.density,
         )
 
         # 4. Create the FactorGraph object
         fg = FactorGraph(variable_li=variables, factor_li=factors, edges=edges)
 
         # 5. Pickle‑dump under incremental filename
-        cfg_stem = Path(cfg.filename()).stem        # e.g.  max-sum-cycle-8-random_intlow0,high5
+        cfg_stem = Path(
+            cfg.filename()
+        ).stem  # e.g.  max-sum-cycle-8-random_intlow0,high5
         index = _next_index(self.output_dir, cfg_stem)
         out_name = f"factor-graph-{cfg_stem}-number{index}.pkl"
         out_path = self.output_dir / out_name
@@ -94,6 +97,7 @@ class FactorGraphBuilder:
             pickle.dump(fg, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
         return out_path
+
     @staticmethod
     def load_graph(path: str | Path) -> FactorGraph:
         """Load a pickled FactorGraph from <path>."""
@@ -107,11 +111,12 @@ class FactorGraphBuilder:
 # ──────────────────────────────────────────────────────────────
 def _make_variable(idx: int, domain: int) -> VariableAgent:
     name = f"x{idx}"
-    return VariableAgent(name=name,
-                         domain=domain)
+    return VariableAgent(name=name, domain=domain)
 
-def _make_factor(name: str, domain: int,
-                 ct_factory: Callable, ct_params: dict) -> FactorAgent:
+
+def _make_factor(
+    name: str, domain: int, ct_factory: Callable, ct_params: dict
+) -> FactorAgent:
     # we postpone cost‑table creation until FactorGraph initialises
     return FactorAgent(
         name=name,
@@ -119,17 +124,21 @@ def _make_factor(name: str, domain: int,
         ct_creation_func=ct_factory,
         param=ct_params,
     )
-def _make_connections_density(variable_list:List[VariableAgent],density :float) -> List[Tuple[VariableAgent,VariableAgent]]:
-    """
 
 
-    """
-    r_graph = nx.erdos_renyi_graph(len(variable_list),density)
-    variable_map = {i:variable for i,variable in enumerate(variable_list)}
-    full_graph = nx.relabel_nodes(r_graph,variable_map)
+def _make_connections_density(
+    variable_list: List[VariableAgent], density: float
+) -> List[Tuple[VariableAgent, VariableAgent]]:
+    """ """
+    r_graph = nx.erdos_renyi_graph(len(variable_list), density)
+    variable_map = {i: variable for i, variable in enumerate(variable_list)}
+    full_graph = nx.relabel_nodes(r_graph, variable_map)
     return list(list(full_graph.edges()))
 
-def _build_factor_edge_list(edges:List[Tuple[VariableAgent,VariableAgent]],domain_size,ct_factory,ct_params) -> Dict[FactorAgent,List[VariableAgent]]:
+
+def _build_factor_edge_list(
+    edges: List[Tuple[VariableAgent, VariableAgent]], domain_size, ct_factory, ct_params
+) -> Dict[FactorAgent, List[VariableAgent]]:
     """
     Build a dictionary of edges from a list of edges.
     :param edges: List of edges
@@ -139,16 +148,17 @@ def _build_factor_edge_list(edges:List[Tuple[VariableAgent,VariableAgent]],domai
     for edge in edges:
         a, b = edge
         fname = f"f{a.name[1:]}{b.name[1:]}"
-        fnode = _make_factor(fname, domain_size,ct_factory, ct_params)
+        fnode = _make_factor(fname, domain_size, ct_factory, ct_params)
         edge_dict[fnode] = [a, b]
     return edge_dict
+
 
 def build_random_graph(
     num_vars: int,
     domain_size: int,
     ct_factory: Callable,
     ct_params: Dict[str, Any],
-    density: float
+    density: float,
 ):
     """
     Build a random binary constraints graph.
@@ -162,11 +172,14 @@ def build_random_graph(
     variables: List[VariableAgent] = [
         _make_variable(i + 1, domain_size) for i in range(num_vars)
     ]
-    connections = _make_connections_density(variables,density)
-    edges: Dict[FactorAgent, List[VariableAgent]] = _build_factor_edge_list(connections,domain_size,ct_factory,ct_params)
+    connections = _make_connections_density(variables, density)
+    edges: Dict[FactorAgent, List[VariableAgent]] = _build_factor_edge_list(
+        connections, domain_size, ct_factory, ct_params
+    )
     factors = list(edges.keys())
 
     return variables, factors, edges
+
 
 ### ------------ IMPORTANT:  DO NOT CHANGE ------------------ ###
 def build_cycle_graph(
@@ -175,7 +188,7 @@ def build_cycle_graph(
     domain_size: int,
     ct_factory: Callable,
     ct_params: Dict[str, Any],
-    density:float
+    density: float,
 ):
     variables: List[VariableAgent] = [
         _make_variable(i + 1, domain_size) for i in range(num_vars)
@@ -195,8 +208,7 @@ def build_cycle_graph(
     for i in range(num_vars):
         a, b = variables[i], variables[(i + 1) % num_vars]
         fname = f"f{a.name[1:]}{b.name[1:]}"
-        fnode = _make_factor(fname, domain_size,
-                             ct_factory, ct_params)
+        fnode = _make_factor(fname, domain_size, ct_factory, ct_params)
         factors.append(fnode)
         edges[fnode] = [a, b]
 
