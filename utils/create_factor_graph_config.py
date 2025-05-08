@@ -103,10 +103,10 @@ class ConfigCreator:
         base_dir = find_project_root() / "configs/engine_configs"
         os.makedirs(self.base_dir, exist_ok=True)
 
-        # Pickle‑dump
-        file_path = base_dir / cfg.filename()
-        with file_path.open("wb") as fh:
-            pickle.dump(cfg, fh, protocol=pickle.HIGHEST_PROTOCOL)
+        # # Pickle‑dump
+        # file_path = base_dir / cfg.filename()
+        # with file_path.open("wb") as fh:
+        #     pickle.dump(cfg, fh, protocol=pickle.HIGHEST_PROTOCOL)
     # ------------------------------------------------------------------
     @staticmethod
     def load_config(path: str | Path) -> GraphConfig:
