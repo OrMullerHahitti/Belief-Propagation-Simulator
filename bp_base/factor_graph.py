@@ -38,7 +38,6 @@ class FactorGraph:
         self.factors = factor_li
         self._original_factors = deepcopy(factor_li)
 
-
         # Create a bipartite graph
         self.G = nx.Graph()
 
@@ -55,37 +54,37 @@ class FactorGraph:
         # Initialize mailboxes for all nodes
         self._initialize_messages()
 
-    @property 
-    def global_cost(self) -> int|float:
+    @property
+    def global_cost(self) -> int | float:
         """
         Calculate the global cost of the factor graph at the current state.
         Based on current variable assignments and factor cost tables.
         """
         # Get current assignments for all variables
         var_assignments = {var: var.curr_assignment for var in self.variables}
-        
+
         total_cost = 0.0
         # For each factor, calculate the cost based on the assignments of connected variables
         for factor in self.factors:
-            if factor.cost_table is not None: #additional check better coverage
+            if factor.cost_table is not None:  # additional check better coverage
                 indices = []
-                valid_lookup = True #converage
-                
+                valid_lookup = True  # converage
+
                 # Build the indices list in the right order according to connection_number in the factor
                 for var, dim in factor.connection_number.items():
                     if var in var_assignments:
-                        #build empty indices in compliance with the cost table
+                        # build empty indices in compliance with the cost table
                         while len(indices) <= dim:
                             indices.append(None)
                         indices[dim] = var_assignments[var]
                     else:
-                        valid_lookup = False #coverage
+                        valid_lookup = False  # coverage
                         break
-                
+
                 # If we have assignments for all connected variables, add the cost
                 if valid_lookup and None not in indices:
                     total_cost += factor.cost_table[tuple(indices)]
-        
+
         return total_cost
 
     @property
@@ -95,6 +94,7 @@ class FactorGraph:
         :return: Current assignment as a dictionary mapping variable agents to their assignments.
         """
         return {node: node.curr_assignment for node in self.variables}
+
     def set_computator(self, computator: Computator, **kwargs) -> None:
         """
         Set the computator for all nodes in the graph.
@@ -225,4 +225,3 @@ class FactorGraph:
                     if hasattr(factor, "connection_number"):
                         for var, dim in factor.connection_number.items():
                             self.G.add_edge(factor, var, dim=dim)
-
