@@ -24,9 +24,6 @@ class BPAgent(Protocol):
     mailbox: dict
 
 
-# TODO : add more protocols!
-
-
 CostTable: TypeAlias = np.ndarray
 
 
