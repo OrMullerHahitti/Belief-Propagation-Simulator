@@ -1,3 +1,4 @@
+import pickle
 import sys
 from pathlib import Path
 
@@ -38,6 +39,14 @@ def create_file(path: str, content: str = "") -> None:
     """Create a file with optional content. Overwrites if it already exists."""
     with open(path, "w") as file:
         file.write(content)
+def load_pickle(file_path: str|Path):
+    """Safely load a pickle file, handling errors."""
+    try:
+        with open(file_path, "rb") as f:
+            return pickle.load(f)
+    except Exception as e:
+        print(f"Error loading pickle: {e}")
+        return None
 
 
 def get_absolute_path(relative_path: str) -> str:
