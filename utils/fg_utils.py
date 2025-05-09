@@ -5,24 +5,7 @@ from pathlib import Path
 import networkx as nx
 import numpy as np
 
-
-# Function to find the project root directory
-def find_project_root():
-    """Find the project root directory by looking for a common marker like .git or a specific file"""
-    current_dir = Path.cwd()
-    while True:
-        # Check if this is the project root (containing typical root markers)
-        if any((current_dir / marker).exists() for marker in ['.git', 'setup.py', 'pyproject.toml']):
-            return current_dir
-
-        # Check if we've reached the filesystem root
-        if current_dir == current_dir.parent:
-            # If we can't find a marker, use the current working directory
-            return Path.cwd()
-
-        # Move up one directory
-        current_dir = current_dir.parent
-
+from utils.path_utils import find_project_root  # Added import
 
 # Make sure your project root is in the Python path
 project_root = find_project_root()

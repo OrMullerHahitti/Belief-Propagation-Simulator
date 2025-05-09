@@ -148,6 +148,32 @@ class FactorGraph:
                     node.mailer.set_first_message(node, neighbor)
                     # Initialize messages to send
 
+    def get_variable_agents(self) -> List[VariableAgent]:
+        """Return a list of all variable agents in the graph."""
+        return self.variables
+
+    def get_factor_agents(self) -> List[FactorAgent]:
+        """Return a list of all factor agents in the graph."""
+        return self.factors
+
+    @property
+    def diameter(self) -> int:
+        """Return the diameter of the factor graph."""
+        if not self.G:
+            return 0
+        # Check if graph is connected, diameter is infinite for disconnected graphs
+        if not nx.is_connected(self.G):
+            # Or handle as an error, or return a specific value e.g. -1 or float('inf')
+            # For now, returning the diameter of the largest connected component
+            if not list(nx.connected_components(self.G)):  # Handle empty graph case
+                return 0
+            largest_cc = max(nx.connected_components(self.G), key=len)
+            subgraph = self.G.subgraph(largest_cc)
+            if not subgraph.nodes():  # Handle case where largest_cc is empty or subgraph is empty
+                return 0
+            return nx.diameter(subgraph)
+        return nx.diameter(self.G)
+
     def __getstate__(self):
         """
         Custom method to control what gets pickled.
