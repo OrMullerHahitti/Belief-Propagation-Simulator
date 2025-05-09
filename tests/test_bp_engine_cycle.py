@@ -5,12 +5,12 @@ import pytest
 import logging
 import numpy as np
 
-from bp_base.factor_graph import FactorGraph
-from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.components import Message
 from bp_base.bp_engine import BPEngine
+from configs.global_config_mapping import PROJECT_ROOT
 from configs.loggers import Logger
-from utils.loading_utils import load_pickle, project_root
+from utils.path_utils import load_pickle
+
 
 log_dir = "test_logs"
 logger = Logger(__name__, file=True)
@@ -19,7 +19,7 @@ logger = Logger(__name__, file=True)
 @pytest.fixture
 def simple_factor_graph():
     pickle_path = os.path.join(
-        project_root,
+        PROJECT_ROOT,
         "configs",
         "factor_graphs",
         "test-factor.pkl",
