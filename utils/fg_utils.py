@@ -5,27 +5,7 @@ from pathlib import Path
 import networkx as nx
 import numpy as np
 
-
-# Function to find the project root directory
-def find_project_root():
-    """Find the project root directory by looking for a common marker like .git or a specific file"""
-    current_dir = Path.cwd()
-    while True:
-        # Check if this is the project root (containing typical root markers)
-        if any(
-            (current_dir / marker).exists()
-            for marker in [".git", "setup.py", "pyproject.toml"]
-        ):
-            return current_dir
-
-        # Check if we've reached the filesystem root
-        if current_dir == current_dir.parent:
-            # If we can't find a marker, use the current working directory
-            return Path.cwd()
-
-        # Move up one directory
-        current_dir = current_dir.parent
-
+from utils.path_utils import find_project_root  # Added import
 
 # Make sure your project root is in the Python path
 project_root = find_project_root()
@@ -66,7 +46,7 @@ class SafeUnpickler(pickle.Unpickler):
 # Safely load pickle file
 def load_pickle_safely(file_path):
     try:
-        with open(file_path, "rb") as f:
+        with open(file_path, 'rb') as f:
             return SafeUnpickler(f).load()
     except Exception as e:
         print(f"Error loading pickle: {e}")
@@ -78,19 +58,19 @@ def repair_factor_graph(fg):
     """Attempt to repair any issues with the loaded factor graph"""
 
     # Ensure G exists
-    if not hasattr(fg, "G") or fg.G is None:
+    if not hasattr(fg, 'G') or fg.G is None:
         print("Initializing missing NetworkX graph")
         fg.G = nx.Graph()
 
         # Reconstruct graph from variables and factors
-        if hasattr(fg, "variables") and hasattr(fg, "factors"):
+        if hasattr(fg, 'variables') and hasattr(fg, 'factors'):
             # Add nodes
             fg.G.add_nodes_from(fg.variables)
             fg.G.add_nodes_from(fg.factors)
 
             # Try to reconstruct edges
             for factor in fg.factors:
-                if hasattr(factor, "connection_number"):
+                if hasattr(factor, 'connection_number'):
                     for var, dim in factor.connection_number.items():
                         fg.G.add_edge(factor, var, dim=dim)
 
