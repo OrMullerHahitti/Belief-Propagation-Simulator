@@ -34,7 +34,7 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "test-factor",  # If this exists, otherwise keep the original
+        "test-factor.pkl",  # If this exists, otherwise keep the original
     )
     if not os.path.exists(pickle_path):
         # Fallback to original graph
