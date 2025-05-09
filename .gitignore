@@ -2,7 +2,7 @@ check.py
 /.idea
 /__pycache__/
 *.pyc
-
 __pycache__/
 .venv
-/older_stuff/kappa_calculations.py
+/older_stuff/
+
