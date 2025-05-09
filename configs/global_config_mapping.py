@@ -8,7 +8,7 @@ from utils.path_utils import find_project_root
 dirs = {"test": "test_logs"}
 
 
-#all dotted paths are relative to the project root and will be resolved using importlib
+# all dotted paths are relative to the project root and will be resolved using importlib
 GRAPH_TYPES: Dict[str, str] = {  # str  -> dotted‑path or import key
     # all the graph types builders will be registered here, and with build_... typing
     "cycle": "utils.create_factor_graphs_from_config.build_cycle_graph",
