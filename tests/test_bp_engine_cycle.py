@@ -22,7 +22,7 @@ def simple_factor_graph():
         project_root,
         "configs",
         "factor_graphs",
-        "factor-graph-random-10-random_intlow1,high1000.4-number11.pkl",
+        "test-factor.pkl",
     )
 
     # Create two variables and one factor for a minimal test

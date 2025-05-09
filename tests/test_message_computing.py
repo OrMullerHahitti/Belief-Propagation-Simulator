@@ -1,4 +1,4 @@
-\
+
 # Tests for message computing
 import pytest
 import numpy as np
