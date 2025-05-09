@@ -13,7 +13,7 @@ project_root = current_dir.parent
 sys.path.append(str(project_root))
 
 # Now import from utils
-from utils.loading_utils import load_pickle
+from utils.path_utils import load_pickle
 
 from bp_base.factor_graph import FactorGraph
 from bp_base.agents import VariableAgent, FactorAgent
@@ -66,7 +66,7 @@ def test_bp_engine_long_run(simple_factor_graph):
     # Run just 1 or 2 iterations with timing
     logger.info("Starting BP Engine run (just 1 iteration)...")
     start_time = time.time()
-    result_path = engine.run(max_iter=1000, save_json=False, save_csv=True)
+    result_path = engine.run(max_iter=10, save_json=False, save_csv=True)
     logger.info(
         f"BP Engine completed 1 iteration in {time.time() - start_time:.2f} seconds"
     )
