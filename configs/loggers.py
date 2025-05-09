@@ -14,7 +14,7 @@ import pytest
 from utils.path_utils import find_project_root
 
 # Create logs directory if it doesn't exist
-log_dir = find_project_root()/"configs"/"logs"
+log_dir = find_project_root() / "configs" / "logs"
 os.makedirs(log_dir, exist_ok=True)
 
 # Set up root logger
