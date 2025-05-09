@@ -25,7 +25,7 @@ jobs:
 
       - name: Test with pytest (with coverage + junit report)
         run: |
-          pytest --cov=belief_propagation_simulator --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
+          pytest --cov --cov-branch --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
