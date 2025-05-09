@@ -8,6 +8,10 @@ dirs ={
 
 dirs = {"test": "test_logs"}
 
+from utils.path_utils import find_project_root
+
+PROJECT_ROOT = find_project_root()
+
 
 # all dotted paths are relative to the project root and will be resolved using importlib
 GRAPH_TYPES: Dict[str, str] = {  # str  -> dotted‑path or import key
