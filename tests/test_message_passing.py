@@ -1,4 +1,5 @@
-\
+from random import randint
+
 # Tests for message passing
 import pytest
 import numpy as np
@@ -8,16 +9,14 @@ from bp_base.components import Message
 # Fixture for agents
 @pytest.fixture
 def var_agent_sender():
-    agent = VariableAgent(name="VarSender", domain_size=2)
+    agent = VariableAgent(name="VarSender", domain=2)
     # Ensure mailer is initialized as expected by BPAgent
-    agent.mailer = BPAgent.Mailer(agent) 
     agent.neighbors = {} # Initialize neighbors
     return agent
 
 @pytest.fixture
 def factor_agent_recipient():
-    agent = FactorAgent(name="FactorRecipient")
-    agent.mailer = BPAgent.Mailer(agent)
+    agent = FactorAgent(name="FactorRecipient",domain = 2,ct_creation_func=lambda : np.random.randint(0,10,(2,2)))
     agent.neighbors = {}
     # FactorAgent also needs a mailbox for receiving
     agent.mailbox = {} 
@@ -25,8 +24,7 @@ def factor_agent_recipient():
 
 @pytest.fixture
 def var_agent_recipient():
-    agent = VariableAgent(name="VarRecipient", domain_size=2)
-    agent.mailer = BPAgent.Mailer(agent)
+    agent = VariableAgent(name="VarRecipient", domain=2)
     agent.neighbors = {}
     agent.mailbox = {}
     return agent

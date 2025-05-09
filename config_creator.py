@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # Build and save a factor graph from a config file
     for i in range(3):
         cfg_path = (f"{find_project_root()}"
-                    f"\\configs/factor_graph_configs/cycle-10-random_intlow1,high1000.4.pkl")
+                    f"\\configs/factor_graph_configs/random-10-random_intlow1,high1000.4.pkl")
         out_path = builder.build_and_save(cfg_path)
         print(f"Factor graph saved to: {out_path}")
         # 3. Load the factor graph from the saved file

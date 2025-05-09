@@ -14,12 +14,14 @@ from functools import reduce
 from bp_base.typing import Policy, PolicyType
 from dataclasses import dataclass, field
 
+from configs.loggers import Logger
+
 """ in this module we will implement the belief propagation with various policies with factor graph configs
 most of which are implemented in the factor graph module and will be max-sum with different policies and different structures
 we will start with the usual 3-cycle and then move to more complex structures"""
 
 # Add logger configuration
-logger = logging.getLogger(__name__)
+logger = Logger(__name__, file=True)
 # Basic configuration for demonstration. You might want to configure this more globally.
 # logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -150,8 +152,7 @@ class History:
 
         raw = {
             "name": self.name,
-            "config_summary": serializable_config,
-            "iterations_data": self.iterations,
+            #"iterations_data": self.iterations,
             "cycles_data": self.cycles,
             "beliefs_per_iteration": self.beliefs,
             "assignments_per_iteration": self.assignments,
@@ -190,7 +191,7 @@ class BPEngine:
 
         self.history = History(
             factor_graph_name=self.graph.name if hasattr(self.graph, 'name') else 'UnnamedGraph',
-            computator=computator,
+            #computator=computator,
             policies=self.policies,
             policies_repr=policies_str,
             factor_graph=factor_graph
@@ -216,7 +217,7 @@ class BPEngine:
         return "_".join(policies_repr_parts)
 
     def step(self, i: int = 0) -> Step:
-        step_obj = Step(i)
+        step_i = Step(i)
 
         for var_agent in self.graph.get_variable_agents():
             var_agent.compute_messages()
@@ -232,15 +233,15 @@ class BPEngine:
         for factor_agent in self.graph.get_factor_agents():
             factor_agent.mailer.send()
             for message in factor_agent.mailer.outbox:
-                step_obj.add(message.recipient, message)
+                step_i.add(message.recipient, message)
             factor_agent.mailer.prepare()
             factor_agent.empty_mailbox()
 
-        if PolicyType.MESSAGE in self.policies:
-            for agent in self.graph.G.nodes():
-                pass  # TODO: Implement message policy application logic here
+        # if PolicyType.MESSAGE in self.policies:
+        #     for agent in self.graph.G.nodes():
+        #         pass  # TODO: Implement message policy application logic here
         
-        return step_obj
+        return step_i
 
     def run(
         self, max_iter: int = 1000, save_json: bool = True, filename: str = None
