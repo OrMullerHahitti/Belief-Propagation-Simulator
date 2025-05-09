@@ -214,7 +214,9 @@ class FactorGraph:
                 return 0
             largest_cc = max(nx.connected_components(self.G), key=len)
             subgraph = self.G.subgraph(largest_cc)
-            if not subgraph.nodes():  # Handle case where largest_cc is empty or subgraph is empty
+            if (
+                not subgraph.nodes()
+            ):  # Handle case where largest_cc is empty or subgraph is empty
                 return 0
             return nx.diameter(subgraph)
         return nx.diameter(self.G)

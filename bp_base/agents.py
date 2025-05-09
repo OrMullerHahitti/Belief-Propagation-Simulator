@@ -136,7 +136,11 @@ class FactorAgent(BPAgent):
     """
 
     def __init__(
-        self, name: str, domain: int, ct_creation_func: Callable, param: Dict[str, Any] |None = None
+        self,
+        name: str,
+        domain: int,
+        ct_creation_func: Callable,
+        param: Dict[str, Any] | None = None,
     ):
         node_type = "factor"
         super().__init__(name, node_type, domain)
