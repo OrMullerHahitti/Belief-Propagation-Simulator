@@ -46,7 +46,7 @@ class SafeUnpickler(pickle.Unpickler):
 # Safely load pickle file
 def load_pickle_safely(file_path):
     try:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             return SafeUnpickler(f).load()
     except Exception as e:
         print(f"Error loading pickle: {e}")
@@ -58,19 +58,19 @@ def repair_factor_graph(fg):
     """Attempt to repair any issues with the loaded factor graph"""
 
     # Ensure G exists
-    if not hasattr(fg, 'G') or fg.G is None:
+    if not hasattr(fg, "G") or fg.G is None:
         print("Initializing missing NetworkX graph")
         fg.G = nx.Graph()
 
         # Reconstruct graph from variables and factors
-        if hasattr(fg, 'variables') and hasattr(fg, 'factors'):
+        if hasattr(fg, "variables") and hasattr(fg, "factors"):
             # Add nodes
             fg.G.add_nodes_from(fg.variables)
             fg.G.add_nodes_from(fg.factors)
 
             # Try to reconstruct edges
             for factor in fg.factors:
-                if hasattr(factor, 'connection_number'):
+                if hasattr(factor, "connection_number"):
                     for var, dim in factor.connection_number.items():
                         fg.G.add_edge(factor, var, dim=dim)
 

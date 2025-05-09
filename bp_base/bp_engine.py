@@ -21,7 +21,7 @@ T = typing.TypeVar("T")
 most of which are implemented in the factor graph module and will be max-sum with different policies and different structures
 we will start with the usual 3-cycle and then move to more complex structures"""
 
-logger = Logger(__name__,file=True)
+logger = Logger(__name__, file=True)
 
 
 @dataclass

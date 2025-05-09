@@ -25,9 +25,6 @@ def find_project_root():
         current_dir = current_dir.parent
 
 
-
-
-
 def create_directory(path: str) -> None:
     """Create a directory if it doesn't already exist."""
     Path(path).mkdir(parents=True, exist_ok=True)
@@ -37,6 +34,7 @@ def create_file(path: str, content: str = "") -> None:
     """Create a file with optional content. Overwrites if it already exists."""
     with open(path, "w") as file:
         file.write(content)
+
 
 def load_pickle(file_path):
     try:
