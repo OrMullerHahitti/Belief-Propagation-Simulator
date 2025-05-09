@@ -145,10 +145,16 @@ class MailHandler:
     @property
     def inbox(self) -> List[Message]:
         return self._incoming
+    @inbox.setter
+    def inbox(self, li: List[Message]):
+        self._incoming = li
 
     @property
     def outbox(self) -> List[Message]:
         return self._outgoing
+    @outbox.setter
+    def outbox(self, li: List[Message]):
+        self._outgoing = li
 
     @property
     def clear(self):
