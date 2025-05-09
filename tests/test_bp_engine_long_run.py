@@ -42,7 +42,7 @@ def simple_factor_graph():
             PROJECT_ROOT,
             "configs",
             "factor_graphs",
-            "factor-graph-random-20-random_intlow1,high1000.3-number2.pkl",
+            "test-factor.pkl",
         )
 
     logger.info(f"Loading factor graph from: {pickle_path}")
