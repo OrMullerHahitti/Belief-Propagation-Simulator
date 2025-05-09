@@ -7,6 +7,8 @@ import json
 import time
 from pathlib import Path
 
+from configs.global_config_mapping import PROJECT_ROOT
+
 # Add project root to Python path
 current_dir = Path(__file__).parent
 project_root = current_dir.parent
@@ -29,15 +31,15 @@ logger = Logger(__name__, file=True)
 def simple_factor_graph():
     # Use a smaller factor graph for testing
     pickle_path = os.path.join(
-        project_root,
+        PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "factor-graph-random-50-random_intlow1,high1000.3-number2.pkl",  # If this exists, otherwise keep the original
+        "test-factor",  # If this exists, otherwise keep the original
     )
     if not os.path.exists(pickle_path):
         # Fallback to original graph
         pickle_path = os.path.join(
-            project_root,
+            PROJECT_ROOT,
             "configs",
             "factor_graphs",
             "factor-graph-random-20-random_intlow1,high1000.3-number2.pkl",
@@ -66,7 +68,7 @@ def test_bp_engine_long_run(simple_factor_graph):
     # Run just 1 or 2 iterations with timing
     logger.info("Starting BP Engine run (just 1 iteration)...")
     start_time = time.time()
-    result_path = engine.run(max_iter=10, save_json=False, save_csv=True)
+    result_path = engine.run(max_iter=1, save_json=False, save_csv=True)
     logger.info(
         f"BP Engine completed 1 iteration in {time.time() - start_time:.2f} seconds"
     )

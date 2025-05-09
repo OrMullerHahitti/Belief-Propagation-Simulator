@@ -4,14 +4,11 @@ import pytest
 import os
 from bp_base.factor_graph import FactorGraph # Assuming FactorGraph class
 from utils.path_utils import  find_project_root
-from utils.loading_utils import load_pickle
+from utils.path_utils import load_pickle
 
 
-# Define the root directory of the project for constructing paths
-# This might need adjustment based on where tests are run from
-# For now, assuming tests are run from the workspace root or paths are relative to it in a known way.
+
 TEST_WORKSPACE_ROOT = find_project_root()
-# Or use a more robust way to find the root if available, e.g., based on __file__
 
 @pytest.fixture
 def factor_graph_pickle_path():

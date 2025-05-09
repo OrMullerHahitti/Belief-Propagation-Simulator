@@ -14,7 +14,7 @@ import pytest
 from utils.path_utils import find_project_root
 
 # Create logs directory if it doesn't exist
-log_dir = find_project_root() / "logs"
+log_dir = find_project_root()/"configs"/"logs"
 os.makedirs(log_dir, exist_ok=True)
 
 # Set up root logger
@@ -38,6 +38,22 @@ class Logger(logging.Logger):
     """
 
     def __init__(self, name, level=logging.INFO, file=False):
+        """
+        Initializes a custom logging handler that supports both file and console-based logging
+        with colored output for better readability. The logger can log to a file if specified
+        and always outputs colored logs to the console.
+
+        Attributes:
+            file_handler (logging.FileHandler): Handles logging to a file. Initialized if file
+                logging is enabled.
+            console (colorlog.StreamHandler): Handles logging to the console with colored
+                messages.
+
+        Args:
+            name (str): The name of the logger.
+            level (int): The logging level. Default is logging.INFO.
+            file (bool): Whether to enable file-based logging. Default is False.
+        """
         super().__init__(name, level)
 
         if file:

@@ -25,9 +25,7 @@ def find_project_root():
         current_dir = current_dir.parent
 
 
-# Make sure your project root is in the Python path
-project_root = find_project_root()
-sys.path.append(str(project_root))
+
 
 
 def create_directory(path: str) -> None:
@@ -39,8 +37,8 @@ def create_file(path: str, content: str = "") -> None:
     """Create a file with optional content. Overwrites if it already exists."""
     with open(path, "w") as file:
         file.write(content)
-def load_pickle(file_path: str|Path):
-    """Safely load a pickle file, handling errors."""
+
+def load_pickle(file_path):
     try:
         with open(file_path, "rb") as f:
             return pickle.load(f)
