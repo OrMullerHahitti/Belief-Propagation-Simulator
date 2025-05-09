@@ -6,68 +6,14 @@ from pathlib import Path
 import sys
 from matplotlib import pyplot as plt
 
-import colorlog  # pip install colorlog
 import pytest
 
-# Create logs directory if it doesn't exist
-log_dir = "test_logs"
-os.makedirs(log_dir, exist_ok=True)
-
-# Set up root logger
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.INFO)
-
-# Clear any existing handlers
-if root_logger.handlers:
-    root_logger.handlers.clear()
-
-# Create console handler with colored formatting
-console_handler = colorlog.StreamHandler(sys.stdout)
-console_handler.setFormatter(
-    colorlog.ColoredFormatter(
-        "%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        log_colors={
-            "DEBUG": "cyan",
-            "INFO": "green",
-            "WARNING": "yellow",
-            "ERROR": "red",
-            "CRITICAL": "red,bg_white",
-        },
-    )
-)
-root_logger.addHandler(console_handler)
-
-# Add file handler
-file_handler = logging.FileHandler(os.path.join(log_dir, "debug_graph.log"))
-file_handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-)
-root_logger.addHandler(file_handler)
+from utils.path_utils import find_project_root
+from configs.loggers import Logger
 
 # Get logger for this module
-logger = logging.getLogger(__name__)
-logger.info("Logging is now set up with colored console output")
-
-
-# Function to find the project root directory
-def find_project_root():
-    """Find the project root directory by looking for a common marker like .git or a specific file"""
-    current_dir = Path.cwd()
-    while True:
-        # Check if this is the project root (containing typical root markers)
-        if any(
-            (current_dir / marker).exists()
-            for marker in [".git", "setup.py", "pyproject.toml"]
-        ):
-            return current_dir
-
-        # Check if we've reached the filesystem root
-        if current_dir == current_dir.parent:
-            raise FileNotFoundError("Project root not found")
-
-        # Move up one directory
-        current_dir = current_dir.parent
-
+logger = Logger(__name__, file=True)
+logger.info("Logging is now set up with colored console output via configs.loggers")
 
 # Make sure your project root is in the Python path
 project_root = find_project_root()

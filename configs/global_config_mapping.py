@@ -37,12 +37,36 @@ def ct_factory(name: str):
 #TODO: add docstrings to the functions
 @ct_factory("random_int")
 def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
+    """
+    Creates a cost table with random integer values.
+
+    Args:
+        n: Number of dimensions for the cost table (number of connected variables).
+        domain: Size of the domain for each variable/dimension.
+        low: The lower bound for random integer generation (inclusive).
+        high: The upper bound for random integer generation (exclusive).
+
+    Returns:
+        A numpy ndarray representing the cost table with shape (domain,) * n.
+    """
     import numpy as np
     shape = (domain,) * n
     return np.random.randint(low=low, high=high, size=shape)
 
 @ct_factory("uniform_float")
 def create_uniform_float_table(n: int, domain: int, low: float = 0.0, high: float = 1.0):
+    """
+    Creates a cost table with random float values from a uniform distribution.
+
+    Args:
+        n: Number of dimensions for the cost table (number of connected variables).
+        domain: Size of the domain for each variable/dimension.
+        low: The lower bound for the uniform distribution (inclusive).
+        high: The upper bound for the uniform distribution (exclusive).
+
+    Returns:
+        A numpy ndarray representing the cost table with shape (domain,) * n.
+    """
     import numpy as np
     shape = (domain,) * n
     return np.random.uniform(low=low, high=high, size=shape)
