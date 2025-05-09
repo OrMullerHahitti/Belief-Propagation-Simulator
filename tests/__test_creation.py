@@ -1,12 +1,20 @@
 # Tests for component creation
 import pytest
 import numpy as np
-from DCOP_base import Agent, Computator # Assuming Agent is in DCOP_base
-from bp_base.agents import VariableAgent, FactorAgent # Assuming these are in bp_base.agents
-from bp_base.components import Message # Assuming Message is in bp_base.components
-from bp_base.computators import MaxSumComputator # Assuming this is in bp_base.computators
-from bp_base.factor_graph import FactorGraph # Assuming this is in bp_base.factor_graph
-from unittest.mock import MagicMock # Ensure MagicMock is imported if not already at top level
+from DCOP_base import Agent, Computator  # Assuming Agent is in DCOP_base
+from bp_base.agents import (
+    VariableAgent,
+    FactorAgent,
+)  # Assuming these are in bp_base.agents
+from bp_base.components import Message  # Assuming Message is in bp_base.components
+from bp_base.computators import (
+    MaxSumComputator,
+)  # Assuming this is in bp_base.computators
+from bp_base.factor_graph import FactorGraph  # Assuming this is in bp_base.factor_graph
+from unittest.mock import (
+    MagicMock,
+)  # Ensure MagicMock is imported if not already at top level
+
 
 # Test for basic Agent creation
 def test_create_agent():
@@ -14,7 +22,8 @@ def test_create_agent():
     assert agent.name == "TestAgent"
     assert agent.type == "test_type"
     assert agent.computator is None
-    assert agent.mailer is None # Mailer might be initialized later or differently
+    assert agent.mailer is None  # Mailer might be initialized later or differently
+
 
 # Test for VariableAgent creation
 def test_create_variable_agent():
@@ -22,7 +31,8 @@ def test_create_variable_agent():
     assert var_agent.name == "V1"
     assert var_agent.domain == 2
     assert var_agent.type == "variable"
-    assert var_agent.belief is None # Initial belief
+    assert var_agent.belief is None  # Initial belief
+
 
 # Test for FactorAgent creation
 def test_create_factor_agent():
@@ -32,13 +42,15 @@ def test_create_factor_agent():
     assert factor_agent.type == "factor"
     assert factor_agent.cost_table is None
 
+
 # Test for FactorAgent creation with a cost table
 def test_create_factor_agent_with_cost_table():
     f_agent = FactorAgent(name="F_with_cost")
     cost_table_data = np.array([[0.1, 0.9], [0.8, 0.2]])
     # Assuming cost_table can be assigned directly or via a method
-    f_agent.cost_table = cost_table_data 
+    f_agent.cost_table = cost_table_data
     assert np.array_equal(f_agent.cost_table, cost_table_data)
+
 
 # Test for Message creation
 def test_create_message():
@@ -50,14 +62,19 @@ def test_create_message():
     assert msg.sender == sender_agent
     assert msg.recipient == recipient_agent
 
+
 # Test for MaxSumComputator creation
 def test_create_max_sum_computator():
     computator = MaxSumComputator()
-    assert isinstance(computator, Computator) # Check if it's an instance of the base Computator
+    assert isinstance(
+        computator, Computator
+    )  # Check if it's an instance of the base Computator
+
 
 # Test for FactorGraph creation (basic)
 def test_create_factor_graph():
-   pass
+    pass
+
 
 # Test for FactorGraph creation with nodes and edges
 def test_create_factor_graph_with_elements():
@@ -73,6 +90,7 @@ def test_create_factor_graph_with_elements():
     # assert fg.G.has_edge(v1, f1)
     # assert fg.G.has_edge(v2, f1)
 
+
 # Test FactorGraph creation with the constructor expecting lists and edge dict
 def test_create_factor_graph_with_constructor_lists():
     v1 = VariableAgent(name="V1", domain_size=2)
@@ -83,7 +101,7 @@ def test_create_factor_graph_with_constructor_lists():
     f1.initiate_cost_table = lambda: None
     v1.mailer = MagicMock()
     v2.mailer = MagicMock()
-    f1.mailer = MagicMock() # Factors also have mailers
+    f1.mailer = MagicMock()  # Factors also have mailers
 
     variable_list = [v1, v2]
     factor_list = [f1]
@@ -105,6 +123,7 @@ def test_create_factor_graph_with_constructor_lists():
     assert f1.connection_number[v1] == 0
     assert f1.connection_number[v2] == 1
 
+
 # Test FactorGraph creation with empty lists
 def test_create_empty_factor_graph():
     fg = FactorGraph(variable_li=[], factor_li=[], edges={})
@@ -114,11 +133,12 @@ def test_create_empty_factor_graph():
     assert len(fg.get_variable_agents()) == 0
     assert len(fg.get_factor_agents()) == 0
 
+
 # Test FactorGraph creation with invalid edges (e.g., Var-Var)
 def test_create_factor_graph_invalid_bipartite_edge():
     v1 = VariableAgent(name="V1", domain_size=2)
     v2 = VariableAgent(name="V2", domain_size=2)
-    v3 = VariableAgent(name="V3", domain_size=2) # Another variable agent
+    v3 = VariableAgent(name="V3", domain_size=2)  # Another variable agent
     f1 = FactorAgent(name="F1")
 
     # Mock methods as before
@@ -133,11 +153,20 @@ def test_create_factor_graph_invalid_bipartite_edge():
     f2.initiate_cost_table = lambda: None
     f2.mailer = MagicMock()
 
-    with pytest.raises(ValueError, match="Edges must connect a factor node to a variable node"):
-        FactorGraph(variable_li=[v1], factor_li=[f1, f2], edges={f1: [f2]}) # f2 is not a VariableAgent
+    with pytest.raises(
+        ValueError, match="Edges must connect a factor node to a variable node"
+    ):
+        FactorGraph(
+            variable_li=[v1], factor_li=[f1, f2], edges={f1: [f2]}
+        )  # f2 is not a VariableAgent
 
-    with pytest.raises(ValueError, match="Edges must connect a factor node to a variable node"):
-        FactorGraph(variable_li=[v1], factor_li=[f1], edges={f1: [f1]}) # f1 (a factor) in variable list for edge
+    with pytest.raises(
+        ValueError, match="Edges must connect a factor node to a variable node"
+    ):
+        FactorGraph(
+            variable_li=[v1], factor_li=[f1], edges={f1: [f1]}
+        )  # f1 (a factor) in variable list for edge
+
 
 # Test get_variable_agents and get_factor_agents
 def test_get_agents_from_factor_graph():
@@ -150,6 +179,7 @@ def test_get_agents_from_factor_graph():
     fg = FactorGraph(variable_li=[v1], factor_li=[f1], edges={f1: [v1]})
     assert fg.get_variable_agents() == [v1]
     assert fg.get_factor_agents() == [f1]
+
 
 # Test FactorGraph diameter property
 def test_factor_graph_diameter():
@@ -172,8 +202,10 @@ def test_factor_graph_diameter():
     v3.mailer = MagicMock()
     f2.mailer = MagicMock()
 
-    fg2 = FactorGraph(variable_li=[v1, v3], factor_li=[f1], edges={f1: [v1]}) # V3 is disconnected
-    assert fg2.diameter == 1 
+    fg2 = FactorGraph(
+        variable_li=[v1, v3], factor_li=[f1], edges={f1: [v1]}
+    )  # V3 is disconnected
+    assert fg2.diameter == 1
 
     # Graph: V1 - F1, V2 - F1. Still diameter 2.
     v1_again = VariableAgent(name="V1_again", domain_size=2)
@@ -183,7 +215,11 @@ def test_factor_graph_diameter():
     v1_again.mailer = MagicMock()
     v2_again.mailer = MagicMock()
     f1_again.mailer = MagicMock()
-    fg3 = FactorGraph(variable_li=[v1_again, v2_again], factor_li=[f1_again], edges={f1_again: [v1_again, v2_again]})
+    fg3 = FactorGraph(
+        variable_li=[v1_again, v2_again],
+        factor_li=[f1_again],
+        edges={f1_again: [v1_again, v2_again]},
+    )
     assert fg3.diameter == 2
 
     # Test FactorGraph.set_computator
@@ -191,5 +227,6 @@ def test_factor_graph_diameter():
     fg3.set_computator(computator)
     for node in fg3.G.nodes():
         assert node.computator == computator
+
 
 # TODO: Add more specific creation tests as needed, e.g., FactorGraph with nodes/edges

@@ -2,9 +2,6 @@
 # ----  Internal registries, global configs  ----------------------------------------
 ########################################################################
 from typing import Dict, Callable
-dirs ={
-    "test":"test_logs"
-}
 
 dirs = {"test": "test_logs"}
 
