@@ -59,11 +59,15 @@ def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
         A numpy ndarray representing the cost table with shape (domain,) * n.
     """
     import numpy as np
+
     shape = (domain,) * n
     return np.random.randint(low=low, high=high, size=shape)
 
+
 @ct_factory("uniform_float")
-def create_uniform_float_table(n: int, domain: int, low: float = 0.0, high: float = 1.0):
+def create_uniform_float_table(
+    n: int, domain: int, low: float = 0.0, high: float = 1.0
+):
     """
     Creates a cost table with random float values from a uniform distribution.
 
