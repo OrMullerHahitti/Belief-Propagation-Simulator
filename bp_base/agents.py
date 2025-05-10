@@ -144,8 +144,9 @@ class FactorAgent(BPAgent):
         self._original: np.ndarray | None = (
             None  # in case of a policy changes original cost table this is meant to save it
         )
+
     @classmethod
-    def create_from_cost_table(cls,name:str, cost_table: CostTable):
+    def create_from_cost_table(cls, name: str, cost_table: CostTable):
         return cls(
             name=name,
             domain=cost_table.shape[0],
