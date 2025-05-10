@@ -6,7 +6,7 @@ import json
 import os
 from bp_base.agents import VariableAgent, FactorAgent
 from bp_base.components import Message
-from bp_base.computators import MinSumComputator
+from bp_base.computators import MinSumComputator, MaxSumComputator
 from bp_base.factor_graph import FactorGraph
 from bp_base.DCOP_base import Computator, Agent
 from functools import reduce
@@ -167,7 +167,7 @@ class BPEngine:
     def __init__(
         self,
         factor_graph: FactorGraph,
-        computator: Computator = MinSumComputator(),
+        computator: Computator = MaxSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
     ):
         """
@@ -186,9 +186,10 @@ class BPEngine:
         # Pre-calculate graph diameter once - with fallback if it fails
         try:
             self.graph_diameter = nx.diameter(self.graph.G)
-            logger.info(f"Graph diameter calculated: {self.graph_diameter}")
+            logger.debug(f"Graph diameter calculated: {self.graph_diameter}")
         except (nx.NetworkXError, nx.NetworkXNoPath):
             # Fallback to a reasonable number for disconnected graphs
+            #TODO : this shouldnt be here graph must be connected.
             self.graph_diameter = 3
             logger.warning(
                 f"Could not compute graph diameter. Using default: {self.graph_diameter}"
@@ -202,7 +203,7 @@ class BPEngine:
         # TODO: save the messages into the _history of variable nodes
         # TODO change it to work on bipartite graph running on both sides one after another - best practice
         for agent in self.graph.G.nodes():
-            self.graph.normalize_messages()
+            #self.graph.normalize_messages()
             agent.compute_messages()
             agent.empty_mailbox()
             # clear the mailbox
@@ -229,6 +230,7 @@ class BPEngine:
 
     def cycle(self, j) -> Cycle:
         cy = Cycle(j)
+        self.graph.normalize_messages()
         # Use pre-computed diameter instead of calculating it each time
         for i in range(self.graph_diameter + 1):
             logger.info(f"Starting step {i} of cycle {j}")
@@ -317,7 +319,7 @@ class BPEngine:
         """
         # PERFORMANCE IMPROVEMENT: Get variables and factors once using bipartite sets
 
-        var_assignments = {node: node.curr_assignment for node in self.var_nodes}
+        var_assignments = {node.name: node.curr_assignment for node in self.var_nodes}
 
         total_cost = 0.0
         # Only iterate through factor nodes
