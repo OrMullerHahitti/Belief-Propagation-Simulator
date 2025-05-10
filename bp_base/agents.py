@@ -136,8 +136,8 @@ class FactorAgent(BPAgent):
         super().__init__(name, node_type, domain)
 
         self.cost_table: None = None if cost_table is None else cost_table.copy()
-        # TODO add the connection number on the edgeds of the graph it self
-        self.connection_number: Dict[VariableAgent, int] = {}
+        # Store variable names instead of objects to save memory
+        self.connection_number: Dict[str, int] = {}
         self.ct_creation_func = ct_creation_func
         self.ct_creation_params = param
 
@@ -179,19 +179,19 @@ class FactorAgent(BPAgent):
 
     def set_dim_for_variable(self, variable: VariableAgent, dim: int) -> None:
         """
-        Add a an index to repressent a variable nodes dimension in the CT.
+        Add an index to represent a variable node's dimension in the CT.
         :param variable: Variable node
         :param dim: dimension index
         """
-        self.connection_number[variable] = dim
+        self.connection_number[variable.name] = dim
 
     def set_name_for_factor(self) -> None:
         """
-        Set the name of the factor agent based on the connected variable agents.
+        Set the name of the factor agent based on the connected variable names.
         """
         if self.connection_number is None:
             raise ValueError("Domains not set. Cannot set name.")
-        self.name = f"f{''.join(str(variable.name[1:]) for variable in self.connection_number.keys())}_"
+        self.name = f"f{''.join(str(var_name[1:]) for var_name in self.connection_number.keys())}_"
 
     @property
     def mean_cost(self, axis=None) -> float:

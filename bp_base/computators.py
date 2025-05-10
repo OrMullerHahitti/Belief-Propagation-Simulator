@@ -43,7 +43,7 @@ class BPComputator(Computator):
         Returns:
             List of outgoing messages from variable to factors
         """
-        logger.info(f"Computing Q messages with {len(messages)} incoming messages")
+        logger.debug(f"Computing Q messages with {len(messages)} incoming messages")
 
         if not messages:
             logger.warning("No incoming messages, returning empty list")
@@ -78,7 +78,7 @@ class BPComputator(Computator):
 
             outgoing_messages.append(outgoing_message)
 
-        logger.info(f"Computed {len(outgoing_messages)} outgoing Q messages")
+        logger.debug(f"Computed {len(outgoing_messages)} outgoing Q messages")
         return outgoing_messages
 
     def compute_R(
@@ -93,7 +93,7 @@ class BPComputator(Computator):
         :param incoming_messages: A list of n messages, one from each variable -> factor
         :return: A list of n messages, factor -> each variable
         """
-        logger.info(
+        logger.debug(
             f"Computing R messages with {len(incoming_messages)} incoming messages and cost table shape {cost_table.shape if hasattr(cost_table, 'shape') else 'unknown'}"
         )
 
@@ -118,7 +118,7 @@ class BPComputator(Computator):
         for i, msg_i in enumerate(incoming_messages):
             variable_node = msg_i.sender
             try:
-                dim = factor.connection_number[variable_node]
+                dim = factor.connection_number[variable_node.name]
             except KeyError:
                 # Fallback: try to find a variable node with the same name and type
                 for var, idx in factor.connection_number.items():
@@ -142,7 +142,7 @@ class BPComputator(Computator):
                 if j != i:  # Skip the current variable
                     sender = msg_j.sender
                     try:
-                        sender_dim = factor.connection_number[sender]
+                        sender_dim = factor.connection_number[sender.name]
                     except KeyError:
                         # Fallback: try to find a variable node with the same name and type
                         for var, idx in factor.connection_number.items():
