@@ -1,10 +1,7 @@
 # Tests for message computing
 import pytest
-import numpy as np
 from bp_base.computators import MaxSumComputator
-from bp_base.components import Message
-from bp_base.agents import VariableAgent, FactorAgent
-from DCOP_base import Agent  # For basic sender/recipient typing if needed
+from bp_base.DCOP_base import Agent  # For basic sender/recipient typing if needed
 
 
 # Fixture for a MaxSumComputator

@@ -1,6 +1,4 @@
-from typing import final
-
-from DCOP_base.interfaces import NeighborAddingPolicy
+from bp_base.DCOP_base import NeighborAddingPolicy
 
 
 class CustomNeighborAddingPolicy(NeighborAddingPolicy):

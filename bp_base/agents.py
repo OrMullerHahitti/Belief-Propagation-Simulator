@@ -1,22 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import field
-from typing import Dict, List, TypeAlias, Any, Callable
+from typing import Dict, List, Any, Callable
 import numpy as np
-from pyexpat.errors import messages
 
 from bp_base.components import Message, CostTable, MailHandler
-from bp_base.computators import BPComputator
-from DCOP_base import Agent
-from utils.randomes import create_random_table
-
-from configs.hyper_parameters_config import (
-    MESSAGE_DOMAIN_SIZE,
-    CT_CREATION_FUNCTION,
-    CT_CREATION_PARAMS,
-    COMPUTATOR,
-)
+from bp_base.DCOP_base import Agent
 
 
 class BPAgent(Agent, ABC):
@@ -141,10 +130,12 @@ class FactorAgent(BPAgent):
         domain: int,
         ct_creation_func: Callable,
         param: Dict[str, Any] | None = None,
+        cost_table: CostTable | None = None,
     ):
         node_type = "factor"
         super().__init__(name, node_type, domain)
-        self.cost_table: CostTable | None = None
+
+        self.cost_table: None = None if cost_table is None else cost_table.copy()
         # TODO add the connection number on the edgeds of the graph it self
         self.connection_number: Dict[VariableAgent, int] = {}
         self.ct_creation_func = ct_creation_func
@@ -152,6 +143,15 @@ class FactorAgent(BPAgent):
 
         self._original: np.ndarray | None = (
             None  # in case of a policy changes original cost table this is meant to save it
+        )
+    @classmethod
+    def create_from_cost_table(cls,name:str, cost_table: CostTable):
+        return cls(
+            name=name,
+            domain=cost_table.shape[0],
+            ct_creation_func=lambda *args, **kwargs: cost_table,
+            param=None,
+            cost_table=cost_table,
         )
 
     def compute_messages(self) -> List[Message]:

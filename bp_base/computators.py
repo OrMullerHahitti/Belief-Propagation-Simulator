@@ -1,8 +1,8 @@
 import numpy as np
 import logging
-from typing import List, Dict, Tuple, Callable, Any
+from typing import List
 
-from DCOP_base import Computator
+from bp_base.DCOP_base import Computator
 from bp_base.typing import CostTable
 from bp_base.components import Message
 
