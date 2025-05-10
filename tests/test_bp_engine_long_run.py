@@ -34,7 +34,7 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "test-factor.pkl",  # If this exists, otherwise keep the original
+        "factor-graph-random-20-random_intlow1,high1000.3-number0.pkl",  # If this exists, otherwise keep the original
     )
     if not os.path.exists(pickle_path):
         # Fallback to original graph
@@ -68,7 +68,7 @@ def test_bp_engine_long_run(simple_factor_graph):
     # Run just 1 or 2 iterations with timing
     logger.info("Starting BP Engine run (just 1 iteration)...")
     start_time = time.time()
-    result_path = engine.run(max_iter=1, save_json=False, save_csv=True)
+    result_path = engine.run(max_iter=100, save_json=False, save_csv=True)
     logger.info(
         f"BP Engine completed 1 iteration in {time.time() - start_time:.2f} seconds"
     )
