@@ -4,7 +4,7 @@ from typing import Callable, TypeAlias, Any, List, Optional, Tuple
 
 import numpy as np
 
-from DCOP_base import Agent
+from bp_base.DCOP_base import Agent
 from older_stuff.kappa_calculations import Envelope
 
 Iteration: TypeAlias = Any  # for now only a place holder

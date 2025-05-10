@@ -1,12 +1,10 @@
 from __future__ import annotations
-from typing import Dict, List, Optional, Protocol, Any, Union, TypeVar, Generic
+from typing import Optional, Union
 import numpy as np
-from functools import singledispatch, singledispatchmethod
-from abc import abstractmethod, ABC
-from dataclasses import dataclass
+from functools import singledispatchmethod
 from typing import List, TypeAlias, TYPE_CHECKING
 
-from DCOP_base import Agent
+from bp_base.DCOP_base import Agent
 
 if TYPE_CHECKING:
     from bp_base.agents import BPAgent

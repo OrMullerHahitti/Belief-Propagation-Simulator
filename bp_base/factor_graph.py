@@ -1,15 +1,12 @@
 from copy import deepcopy
-from functools import reduce
 
 import networkx as nx
 import numpy as np
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict
 import logging
 
-from DCOP_base import Computator
+from bp_base.DCOP_base import Computator
 from bp_base.agents import VariableAgent, FactorAgent
-from bp_base.components import Message, CostTable
-from bp_base.computators import BPComputator
 
 logger = logging.getLogger(__name__)
 

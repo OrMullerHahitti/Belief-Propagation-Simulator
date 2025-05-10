@@ -2,7 +2,7 @@
 import random
 from abc import ABC, abstractmethod
 
-from DCOP_base.interfaces import Updator
+from bp_base.DCOP_base import Updator
 
 
 class Updator(ABC):
