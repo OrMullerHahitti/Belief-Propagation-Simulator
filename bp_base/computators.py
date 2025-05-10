@@ -8,6 +8,7 @@ from bp_base.components import Message
 
 # Set up logging
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class BPComputator(Computator):
@@ -103,12 +104,12 @@ class BPComputator(Computator):
 
         factor = incoming_messages[0].recipient
         ###----------------------meant only for tests------------------------###
-        if not hasattr(factor, "connection_numbers"):
-            # For mock nodes in tests, create a simulated connection_numbers dictionary
+        if not hasattr(factor, "connection_number"):
+            # For mock nodes in tests, create a simulated connection_number dictionary
             # based on the order of the incoming messages
-            factor.connection_numbers = {}
+            factor.connection_number = {}
             for i, msg in enumerate(incoming_messages):
-                factor.connection_numbers[msg.sender] = i
+                factor.connection_number[msg.sender] = i
         ###----------------------meant only for tests------------------------###
 
         outgoing_messages = []
@@ -116,7 +117,17 @@ class BPComputator(Computator):
         # For each variable index i, compute R_{f->i}
         for i, msg_i in enumerate(incoming_messages):
             variable_node = msg_i.sender
-            dim = factor.connection_numbers[variable_node]
+            try:
+                dim = factor.connection_number[variable_node]
+            except KeyError:
+                # Fallback: try to find a variable node with the same name and type
+                for var, idx in factor.connection_number.items():
+                    if var.name == variable_node.name and var.type == variable_node.type:
+                        dim = idx
+                        break
+                else:
+                    # If no matching variable node is found, raise a more informative error
+                    raise KeyError(f"Variable node {variable_node} not found in factor.connection_number and no matching node found")
 
             # Create a working copy of the cost table
             augmented_costs = cost_table.copy()
@@ -125,7 +136,17 @@ class BPComputator(Computator):
             for j, msg_j in enumerate(incoming_messages):
                 if j != i:  # Skip the current variable
                     sender = msg_j.sender
-                    sender_dim = factor.connection_numbers[sender]
+                    try:
+                        sender_dim = factor.connection_number[sender]
+                    except KeyError:
+                        # Fallback: try to find a variable node with the same name and type
+                        for var, idx in factor.connection_number.items():
+                            if var.name == sender.name and var.type == sender.type:
+                                sender_dim = idx
+                                break
+                        else:
+                            # If no matching variable node is found, raise a more informative error
+                            raise KeyError(f"Variable node {sender} not found in factor.connection_number and no matching node found")
 
                     # Create the slicing needed to broadcast the message correctly
                     broadcast_shape = [1] * len(cost_table.shape)
