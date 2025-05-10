@@ -7,6 +7,7 @@ from copy import deepcopy
 from bp_base.agents import FactorAgent
 from bp_base.factor_graph import FactorGraph
 
+
 def split_all_factors(
     fg: "FactorGraph",
     p: float = 0.5,
