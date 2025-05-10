@@ -14,6 +14,7 @@ from utils.splitting import split_all_factors
 logger = Logger(__name__, file=False)
 logger.setLevel(10)
 
+
 @pytest.fixture
 def factor_graph():
     pickle_path = os.path.join(
@@ -24,10 +25,13 @@ def factor_graph():
     )
     fg = load_pickle(pickle_path)
     return fg
-def test_splitting(factor_graph,p:float=0.4):
-    fg:FactorGraph = factor_graph
-    num_of_factors = len(fg.get_factor_agents())
-    split_all_factors(fg,p=p)
-    logger.debug(f"Number of factors before splitting: {num_of_factors}")
-    assert len(fg.get_factor_agents()) == num_of_factors*2 , "did not double the factors"
 
+
+def test_splitting(factor_graph, p: float = 0.4):
+    fg: FactorGraph = factor_graph
+    num_of_factors = len(fg.get_factor_agents())
+    split_all_factors(fg, p=p)
+    logger.debug(f"Number of factors before splitting: {num_of_factors}")
+    assert (
+        len(fg.get_factor_agents()) == num_of_factors * 2
+    ), "did not double the factors"
