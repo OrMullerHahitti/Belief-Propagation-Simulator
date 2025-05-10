@@ -75,7 +75,7 @@ class Agent(ABC):
         self._computator = computator
 
     def __eq__(self, other):
-        return self.name == other.name and self.type != other.type
+        return self.name == other.name and self.type == other.type
 
     def __hash__(self):
         # Add safety checks to prevent AttributeError
