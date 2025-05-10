@@ -122,12 +122,17 @@ class BPComputator(Computator):
             except KeyError:
                 # Fallback: try to find a variable node with the same name and type
                 for var, idx in factor.connection_number.items():
-                    if var.name == variable_node.name and var.type == variable_node.type:
+                    if (
+                        var.name == variable_node.name
+                        and var.type == variable_node.type
+                    ):
                         dim = idx
                         break
                 else:
                     # If no matching variable node is found, raise a more informative error
-                    raise KeyError(f"Variable node {variable_node} not found in factor.connection_number and no matching node found")
+                    raise KeyError(
+                        f"Variable node {variable_node} not found in factor.connection_number and no matching node found"
+                    )
 
             # Create a working copy of the cost table
             augmented_costs = cost_table.copy()
@@ -146,7 +151,9 @@ class BPComputator(Computator):
                                 break
                         else:
                             # If no matching variable node is found, raise a more informative error
-                            raise KeyError(f"Variable node {sender} not found in factor.connection_number and no matching node found")
+                            raise KeyError(
+                                f"Variable node {sender} not found in factor.connection_number and no matching node found"
+                            )
 
                     # Create the slicing needed to broadcast the message correctly
                     broadcast_shape = [1] * len(cost_table.shape)
