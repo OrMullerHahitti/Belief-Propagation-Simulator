@@ -7,7 +7,7 @@ import json
 import time
 from pathlib import Path
 
-from bp_base.engines import SplitEngine, DampingEngine, CostReductionOnceEngine, DampingAndSplitting
+from bp_base.engines import SplitEngine, DampingEngine
 from configs.global_config_mapping import PROJECT_ROOT
 
 # Add project root to Python path
@@ -64,10 +64,7 @@ def test_bp_engine_long_run(simple_factor_graph):
     logger.info("Creating BPEngine...")
     start_time = time.time()
     logger.debug(f"Factor graph: {len(fg.factors)}")
-    #engine = SplitEngine(factor_graph=fg)
-    #engine = DampingEngine(factor_graph=fg)
-    #engine = CostReductionOnceEngine(factor_graph=fg)
-    engine = DampingAndSplitting(factor_graph=fg)
+    engine = DampingEngine(factor_graph=fg)
     logger.info(f"BPEngine initialized in {time.time() - start_time:.2f} seconds")
 
 
