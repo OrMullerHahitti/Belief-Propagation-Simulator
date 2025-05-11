@@ -48,7 +48,7 @@ class GraphConfig:
     def filename(self) -> str:
         """<computator>-<type>-<numV>-<factory><compactParams>.pkl"""
         param_str = ",".join(f"{k}{v}" for k, v in self.ct_factory_params.items())
-        return f"{self.graph_type}-{self.num_variables}-{self.ct_factory_name}{param_str}{self.density if self.density else ""}.pkl"
+        return f"{self.graph_type}-{self.num_variables}-{self.ct_factory_name}{param_str}{self.density if self.density else ''}.pkl"
 
 
 ########################################################################
