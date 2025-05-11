@@ -1,4 +1,5 @@
 import pickle
+import random
 import sys
 import os
 from pathlib import Path
@@ -6,10 +7,16 @@ import networkx as nx
 import numpy as np
 
 from utils.path_utils import find_project_root  # Added import
+from bp_base.factor_graph import FactorGraph
 
 # Make sure your project root is in the Python path
 project_root = find_project_root()
 sys.path.append(str(project_root))
+def generate_random_cost(fg:FactorGraph):
+    cost=0
+    for fact in fg.factors:
+        random_index = tuple(np.random.randint(0, fact.domain, size = fact.cost_table.ndim))
+        cost+=fact.cost_table[random_index]
 
 
 # Custom unpickler to handle potential issues
