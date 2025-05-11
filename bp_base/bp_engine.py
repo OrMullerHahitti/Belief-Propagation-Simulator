@@ -89,9 +89,10 @@ class History:
     def compare_last_two_cycles(self):
         if len(self.cycles) < 2:
             return False
-        last_cycle = list(self.assignments.values())[-1]
-        second_last_cycle = list(self.assignments.values())[-2]
-        return list(last_cycle.values()) == list(second_last_cycle.values())
+        last_iteration = list(self.cycles)[-1]
+        last_cycle = list(self.assignments[last_iteration].values())
+        second_last_cycle = list(self.assignments[last_iteration - 1].values())
+        return last_cycle == second_last_cycle
 
     @property
     def name(self):
@@ -136,7 +137,6 @@ class History:
 
         data = normalize(raw)
 
-        # 3) write it out
         os.makedirs(os.path.dirname(filename) or ".", exist_ok=True)
         with open(filename, "w") as f:
             json.dump(data, f, indent=4)
@@ -147,7 +147,6 @@ class History:
         """
         save only the global costs as csv ready for plotting
         """
-        # Create the results directory explicitly
         os.makedirs("results", exist_ok=True)
         # 2) write the data to a csv file
         with open(f"results/costs_{self.name}.csv", "w") as f:
@@ -156,8 +155,6 @@ class History:
         return f"results/costs_{self.name}.csv"
 
 
-### TODO: create a wrapper to config everything beforehand
-### TODO: add a class to handle the policies and the history of the beliefs
 ### begining running the algorithm
 class BPEngine:
     """
@@ -169,6 +166,8 @@ class BPEngine:
         factor_graph: FactorGraph,
         computator: Computator = MaxSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
+        name: str = "test",
+
     ):
         """
         Initialize the belief propagation engine.
@@ -176,7 +175,10 @@ class BPEngine:
         :param computator:
         :param policies:
         """
+        self.name = name
         self.graph = factor_graph
+        self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+        self.post_init()
         self.graph.set_computator(computator)  # Store history of beliefs
         self.policies = policies  # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
         self.history = History(
@@ -184,50 +186,29 @@ class BPEngine:
         )  # Store history of beliefs
 
         # Pre-calculate graph diameter once - with fallback if it fails
-        try:
-            self.graph_diameter = nx.diameter(self.graph.G)
-            logger.debug(f"Graph diameter calculated: {self.graph_diameter}")
-        except (nx.NetworkXError, nx.NetworkXNoPath):
-            # Fallback to a reasonable number for disconnected graphs
-            # TODO : this shouldnt be here graph must be connected.
-            self.graph_diameter = 3
-            logger.warning(
-                f"Could not compute graph diameter. Using default: {self.graph_diameter}"
-            )
-        self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+        self.graph_diameter = nx.diameter(self.graph.G)
 
-    def __post__init__(self):
-        self.post_init()
+
 
     def step(self, i: int = 0) -> Step:
         """Run the factor graph algorithm."""
         step = Step(i)
         # compute messages to send and put them in the mailbox
-        # TODO: save the messages into the _history of variable nodes
-        # TODO change it to work on bipartite graph running on both sides one after another - best practice
-        for agent in self.graph.G.nodes():
-            # self.graph.normalize_messages()
-            agent.compute_messages()
-            agent.empty_mailbox()
-            # clear the mailbox
-            agent.mailer.send()
-            if isinstance(agent, FactorAgent):
-                for message in agent.mailer.outbox:
-                    step.add(message.recipient, message)
-            agent.mailer.prepare()
-            # both sending and receiving
+        for var in self.var_nodes:
+            var.compute_messages()
+            self.post_var_step()
+            var.empty_mailbox()
+            var.mailer.send()
+            var.mailer.prepare()
 
-            # apply message policies
-            # TODO next work
-            """ 
-            if self.policies and "message" in self.policies and self.policies["message"]:
-                for message in agent.messages_to_send:
-                    if isinstance(message, Message):
-                        message.data = self._apply_policies(self.policies["message"], message)
-                        """
-            # add the message to the mailbox
-
-        # send the messages to the right nodes
+        for factor in self.graph.G.nodes():
+            factor.compute_messages()
+            self.post_factor_step()
+            factor.empty_mailbox()
+            factor.mailer.send()
+            for message in factor.mailer.outbox:
+                step.add(message.recipient, message)
+            factor.mailer.prepare()
 
         return step
 
@@ -236,10 +217,10 @@ class BPEngine:
         self.graph.normalize_messages()
         # Use pre-computed diameter instead of calculating it each time
         for i in range(self.graph_diameter + 1):
-            logger.info(f"Starting step {i} of cycle {j}")
+            logger.debug(f"Starting step {i} of cycle {j}")
             step_result = self.step(i)
             cy.add(step_result)
-            logger.info(f"Completed step {i}")
+            logger.debug(f"Completed step {i}")
 
         logger.info(f"Updating beliefs and assignments for cycle {j}")
         self.history.beliefs[j] = self.get_beliefs()
@@ -342,6 +323,7 @@ class BPEngine:
     # abstract methods to try splitting damping and cost reduction
     def post_init(self) -> None:
         return
-
-    def post_step(self) -> None:
+    def post_var_step(self) -> None:
+        return
+    def post_factor_step(self) -> None:
         return
