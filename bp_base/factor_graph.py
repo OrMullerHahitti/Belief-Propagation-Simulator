@@ -59,6 +59,8 @@ class FactorGraph:
         """
         # Get current assignments for all variables
         var_assignments = {var: var.curr_assignment for var in self.variables}
+        # Create a mapping from variable names to their assignments
+        var_name_assignments = {var.name: var.curr_assignment for var in self.variables}
 
         total_cost = 0.0
         # For each factor, calculate the cost based on the assignments of connected variables
@@ -68,12 +70,12 @@ class FactorGraph:
                 valid_lookup = True  # converage
 
                 # Build the indices list in the right order according to connection_number in the factor
-                for var, dim in factor.connection_number.items():
-                    if var in var_assignments:
+                for var_name, dim in factor.connection_number.items():
+                    if var_name in var_name_assignments:
                         # build empty indices in compliance with the cost table
                         while len(indices) <= dim:
                             indices.append(None)
-                        indices[dim] = var_assignments[var]
+                        indices[dim] = var_name_assignments[var_name]
                     else:
                         valid_lookup = False  # coverage
                         break
@@ -160,8 +162,8 @@ class FactorGraph:
                         "Edges must connect a factor node to a variable node (bipartite structure)."
                     )
                 self.G.add_edge(factor, var, dim=i)
-                # Set dimension index for the variable in the factor's cost table
-                factor.connection_number[var] = i
+                # Set dimension index for the variable name in the factor's cost table
+                factor.connection_number[var.name] = i
         logger.info("FactorGraph is bipartite: variables <-> factors only.")
 
     def _initialize_cost_tables(self) -> None:
@@ -245,8 +247,13 @@ class FactorGraph:
                 self.G.add_nodes_from(self.variables, bipartite=0)
                 self.G.add_nodes_from(self.factors, bipartite=1)
 
+                # Create a mapping from variable names to variable objects
+                var_name_to_obj = {var.name: var for var in self.variables}
+
                 # Rebuild edges from connection_number info
                 for factor in self.factors:
                     if hasattr(factor, "connection_number"):
-                        for var, dim in factor.connection_number.items():
-                            self.G.add_edge(factor, var, dim=dim)
+                        for var_name, dim in factor.connection_number.items():
+                            if var_name in var_name_to_obj:
+                                var = var_name_to_obj[var_name]
+                                self.G.add_edge(factor, var, dim=dim)
