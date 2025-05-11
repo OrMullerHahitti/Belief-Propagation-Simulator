@@ -1,4 +1,3 @@
-
 import typing
 from typing import Dict, List
 import numpy as np
@@ -24,6 +23,7 @@ we will start with the usual 3-cycle and then move to more complex structures"""
 
 logger = Logger(__name__, file=True)
 
+
 ### begining running the algorithm
 class BPEngine:
     """
@@ -48,12 +48,12 @@ class BPEngine:
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
         self.post_init()
         self.graph.set_computator(computator)
-        init_cost = generate_random_cost(self.graph)# Store history of beliefs
+        init_cost = generate_random_cost(self.graph)  # Store history of beliefs
         self.policies = policies  # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
         self.history = History(
             computator=computator, policies=policies, factor_graph=factor_graph
         )
-        self.history.initialize_cost(init_cost)# Store history of beliefs
+        self.history.initialize_cost(init_cost)  # Store history of beliefs
         self.graph_diameter = nx.diameter(self.graph.G)
 
     def step(self, i: int = 0) -> Step:

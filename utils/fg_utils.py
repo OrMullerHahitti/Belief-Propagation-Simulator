@@ -12,11 +12,15 @@ from bp_base.factor_graph import FactorGraph
 # Make sure your project root is in the Python path
 project_root = find_project_root()
 sys.path.append(str(project_root))
-def generate_random_cost(fg:FactorGraph):
-    cost=0
+
+
+def generate_random_cost(fg: FactorGraph):
+    cost = 0
     for fact in fg.factors:
-        random_index = tuple(np.random.randint(0, fact.domain, size = fact.cost_table.ndim))
-        cost+=fact.cost_table[random_index]
+        random_index = tuple(
+            np.random.randint(0, fact.domain, size=fact.cost_table.ndim)
+        )
+        cost += fact.cost_table[random_index]
 
 
 # Custom unpickler to handle potential issues
