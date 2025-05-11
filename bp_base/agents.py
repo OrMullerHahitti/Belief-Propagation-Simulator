@@ -136,7 +136,9 @@ class FactorAgent(BPAgent):
         super().__init__(name, node_type, domain)
 
         self.cost_table: None = None if cost_table is None else cost_table.copy()
-        self.connection_number: Dict[str, int] = {} # Store variable names instead of objects to save memory
+        self.connection_number: Dict[str, int] = (
+            {}
+        )  # Store variable names instead of objects to save memory
         self.ct_creation_func = ct_creation_func
         self.ct_creation_params = param
 

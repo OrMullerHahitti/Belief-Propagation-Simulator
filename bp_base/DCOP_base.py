@@ -15,7 +15,6 @@ class Computator(ABC):
     This class defines the interface for computing messages in a DCOP system.
     """
 
-
     def __init_subclass__(cls, **kwargs):
         """
         This method is called when a subclass is created.
