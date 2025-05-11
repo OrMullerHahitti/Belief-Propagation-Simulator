@@ -59,6 +59,7 @@ def simple_factor_graph():
 
     return fg
 
+
 def test_bp_engine_long_run(simple_factor_graph):
     fg = simple_factor_graph
     logger.info("Creating BPEngine...")
@@ -66,7 +67,6 @@ def test_bp_engine_long_run(simple_factor_graph):
     logger.debug(f"Factor graph: {len(fg.factors)}")
     engine = DampingEngine(factor_graph=fg)
     logger.info(f"BPEngine initialized in {time.time() - start_time:.2f} seconds")
-
 
     # Run just 1 or 2 iterations with timing
     logger.info("Starting BP Engine run (just 1 iteration)...")

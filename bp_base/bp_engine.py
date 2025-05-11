@@ -167,7 +167,6 @@ class BPEngine:
         computator: Computator = MaxSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
         name: str = "test",
-
     ):
         """
         Initialize the belief propagation engine.
@@ -187,8 +186,6 @@ class BPEngine:
 
         # Pre-calculate graph diameter once - with fallback if it fails
         self.graph_diameter = nx.diameter(self.graph.G)
-
-
 
     def step(self, i: int = 0) -> Step:
         """Run the factor graph algorithm."""
@@ -323,7 +320,9 @@ class BPEngine:
     # abstract methods to try splitting damping and cost reduction
     def post_init(self) -> None:
         return
+
     def post_var_step(self) -> None:
         return
+
     def post_factor_step(self) -> None:
         return
