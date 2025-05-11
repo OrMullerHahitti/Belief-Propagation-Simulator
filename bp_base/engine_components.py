@@ -62,14 +62,14 @@ class History:
         self.assignments: Dict[int, Dict[str, int | float]] = {}
         self.costs: Dict[int, float] = {}  # Add dictionary to store costs per cycle
 
-
     def __setitem__(self, key: int, value: Cycle):
         self.cycles[key] = value
 
     def __getitem__(self, key: int):
         return self.cycles[key]
-    def initialize_cost(self,x:int|float)->None:
-        self.costs[0]=x
+
+    def initialize_cost(self, x: int | float) -> None:
+        self.costs[0] = x
 
     def compare_last_two_cycles(self):
         if len(self.cycles) < 2:
