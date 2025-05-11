@@ -195,6 +195,8 @@ class BPEngine:
                 f"Could not compute graph diameter. Using default: {self.graph_diameter}"
             )
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+    def __post__init__(self):
+        self.post_init()
 
     def step(self, i: int = 0) -> Step:
         """Run the factor graph algorithm."""
@@ -335,10 +337,8 @@ class BPEngine:
                     total_cost += node.cost_table[tuple(indices)]
 
         return total_cost
-
-    @staticmethod
-    def _apply_policies(policies: List[Policy], data: T) -> T:
-        """
-        Apply the policies to the factor graph.
-        """
-        return reduce(lambda acc, policy: policy(acc), policies, data)
+    #abstract methods to try splitting damping and cost reduction
+    def post_init(self) ->None:
+        return
+    def post_step(self) ->None:
+        return
