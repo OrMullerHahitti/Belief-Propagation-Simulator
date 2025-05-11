@@ -28,4 +28,4 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Mypy
-        run: mypy .
+        run: mypy --explicit-package-bases .
