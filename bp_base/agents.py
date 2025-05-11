@@ -86,7 +86,7 @@ class VariableAgent(BPAgent):
         """
         self.mailer.stage_sending(self.computator.compute_Q(self.mailer.inbox))
 
-    # TODO : make this more modular right now its only for maxsum
+    # TODO : make this more modular right now its only for sum- kind
     @property
     def belief(self) -> np.ndarray:
         """
