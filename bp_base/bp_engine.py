@@ -189,12 +189,13 @@ class BPEngine:
             logger.debug(f"Graph diameter calculated: {self.graph_diameter}")
         except (nx.NetworkXError, nx.NetworkXNoPath):
             # Fallback to a reasonable number for disconnected graphs
-            #TODO : this shouldnt be here graph must be connected.
+            # TODO : this shouldnt be here graph must be connected.
             self.graph_diameter = 3
             logger.warning(
                 f"Could not compute graph diameter. Using default: {self.graph_diameter}"
             )
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+
     def __post__init__(self):
         self.post_init()
 
@@ -205,7 +206,7 @@ class BPEngine:
         # TODO: save the messages into the _history of variable nodes
         # TODO change it to work on bipartite graph running on both sides one after another - best practice
         for agent in self.graph.G.nodes():
-            #self.graph.normalize_messages()
+            # self.graph.normalize_messages()
             agent.compute_messages()
             agent.empty_mailbox()
             # clear the mailbox
@@ -337,8 +338,10 @@ class BPEngine:
                     total_cost += node.cost_table[tuple(indices)]
 
         return total_cost
-    #abstract methods to try splitting damping and cost reduction
-    def post_init(self) ->None:
+
+    # abstract methods to try splitting damping and cost reduction
+    def post_init(self) -> None:
         return
-    def post_step(self) ->None:
+
+    def post_step(self) -> None:
         return
