@@ -50,8 +50,13 @@ class BPEngine:
         self.graph.set_computator(computator)
         init_cost = generate_random_cost(self.graph)  # Store history of beliefs
         self.policies = policies  # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
+        # Get the engine type from the class name
+        engine_type = self.__class__.__name__
         self.history = History(
-            computator=computator, policies=policies, factor_graph=factor_graph
+            engine_type=engine_type,
+            computator=computator, 
+            policies=policies, 
+            factor_graph=factor_graph
         )
         self.history.initialize_cost(init_cost)  # Store history of beliefs
         self.graph_diameter = nx.diameter(self.graph.G)
@@ -106,6 +111,7 @@ class BPEngine:
         save_json: bool = False,
         save_csv: bool = True,
         filename: str = None,
+        config_name: str = None,
     ) -> None:
         """
         Run the factor graph algorithm for a maximum number of iterations.
@@ -113,11 +119,17 @@ class BPEngine:
         Args:
             max_iter (int): Maximum number of iterations to run.
             save_json (bool): Whether to save the results as a JSON file.
-            filename (str, optional): The name of the file to save. If None, a default name will be used.
+            save_csv (bool): Whether to save the results as a CSV file.
+            filename (str, optional): The name of the file to save for JSON. If None, a default name will be used.
+            config_name (str, optional): The name of the configuration for CSV. If None, the engine name will be used.
 
         Returns:
             str or None: The path to the saved file if save_json is True, None otherwise.
         """
+        # If config_name is not provided, create one based on engine parameters
+        if config_name is None:
+            config_name = self._generate_config_name()
+
         for i in range(max_iter):
             self.history[i] = self.cycle(i)
             if self._is_converged():
@@ -129,9 +141,29 @@ class BPEngine:
                 "results.json"
             )  # TODO ; needs to be changed to a more general name
         if save_csv:
-            self.history.save_csv()
+            self.history.save_csv(config_name)
 
         return None
+
+    def _generate_config_name(self) -> str:
+        """
+        Generate a configuration name based on the engine parameters.
+
+        Returns:
+            str: A string representing the configuration.
+        """
+        # Start with the engine name
+        config_name = self.name
+
+        # Add parameters specific to each engine type
+        if hasattr(self, 'p'):
+            config_name += f"_p{self.p}"
+        if hasattr(self, 'cr'):
+            config_name += f"_cr{self.cr}"
+        if hasattr(self, 'damping_factor'):
+            config_name += f"_df{self.damping_factor}"
+
+        return config_name
 
     ### -------------------------------------------------------------------####
     # from here we will implement the getters/properties for the beliefs and the assignments
