@@ -5,7 +5,7 @@ from typing import Tuple, List, Iterable
 from bp_base.factor_graph import FactorGraph
 
 
-def damp_after_cycle(var_a: Iterable[VariableAgent], x: float):
+def damp(var_a: Iterable[VariableAgent], x: float):
     for variable in var_a:
         if isinstance(variable, VariableAgent):
             for messages in sorted(

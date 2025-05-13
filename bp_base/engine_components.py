@@ -59,12 +59,13 @@ class Cycle:
 
 
 class History:
-    def __init__(self, **kwargs):
+    def __init__(self, engine_type: str = "Engine", **kwargs):
         self.config = dict(kwargs)
         self.cycles: Dict[int, Cycle] = {}
         self.beliefs: Dict[int, Dict[str, np.ndarray]] = {}
         self.assignments: Dict[int, Dict[str, int | float]] = {}
         self.costs: Dict[int, float] = {}  # Add dictionary to store costs per cycle
+        self.engine_type = engine_type
 
     def __setitem__(self, key: int, value: Cycle):
         self.cycles[key] = value
@@ -132,13 +133,29 @@ class History:
 
         return filename
 
-    def save_csv(self) -> str:
+    def save_csv(self, config_name: str = None) -> str:
         """
-        save only the global costs as csv ready for plotting
+        Save only the global costs as csv ready for plotting.
+
+        Args:
+            config_name (str, optional): The name of the configuration. If None, uses self.name.
+
+        Returns:
+            str: The path to the saved CSV file.
         """
-        os.makedirs("results", exist_ok=True)
-        # 2) write the data to a csv file
-        with open(f"results/costs_{self.name}.csv", "w") as f:
+        # Create the directory structure: results/[engine_type]/
+        engine_dir = os.path.join("results", self.engine_type)
+        os.makedirs(engine_dir, exist_ok=True)
+
+        # Use config_name if provided, otherwise use self.name
+        file_name = config_name if config_name else self.name
+
+        # Create the file path: results/[engine_type]/[config_name].csv
+        file_path = os.path.join(engine_dir, f"{file_name}.csv")
+
+        # Write the data to the CSV file
+        with open(file_path, "w") as f:
             for cycle, cost in self.costs.items():
                 f.write(f"{cycle},{cost}\n")
-        return f"results/costs_{self.name}.csv"
+
+        return file_path
