@@ -2,7 +2,7 @@ from bp_base.bp_engine import History, BPEngine, Cycle, Step
 from utils.cost_reduction import cost_reduction_all_factors
 
 from utils.splitting import split_all_factors
-from utils.damping import damp_after_cycle
+from utils.damping import damp
 
 
 class SplitEngine(BPEngine):
@@ -20,7 +20,7 @@ class DampingEngine(BPEngine):
         self.damping_factor = damping_factor
 
     def post_cycle(self):
-        damp_after_cycle(self.var_nodes, self.damping_factor)
+        damp(self.var_nodes, self.damping_factor)
 
 
 class CostReductionOnceEngine(BPEngine):
