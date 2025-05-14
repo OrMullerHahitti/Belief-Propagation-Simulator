@@ -27,7 +27,7 @@ def find_project_root():
 
 def create_directory(path: str) -> None:
     """Create a directory if it doesn't already exist."""
-    Path(find_project_root()/path).mkdir(parents=True, exist_ok=True)
+    Path(find_project_root() / path).mkdir(parents=True, exist_ok=True)
 
 
 def create_file(path: str, content: str = "") -> None:
