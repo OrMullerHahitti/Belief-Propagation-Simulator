@@ -7,7 +7,7 @@ import json
 import time
 from pathlib import Path
 
-from bp_base.engines import SplitEngine, DampingEngine
+from bp_base.engines_realizations import SplitEngine, DampingEngine
 from configs.global_config_mapping import PROJECT_ROOT
 
 # Add project root to Python path

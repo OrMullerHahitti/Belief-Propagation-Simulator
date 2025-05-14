@@ -35,7 +35,7 @@ class BPEngine:
         factor_graph: FactorGraph,
         computator: Computator = MinSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
-        name: str = "Engine",
+        name: str = "BPEngine",
     ):
         """
         Initialize the belief propagation engine.
@@ -67,7 +67,6 @@ class BPEngine:
         # compute messages to send and put them in the mailbox
         for var in self.var_nodes:
             var.compute_messages()
-            self.post_var_step()
             var.empty_mailbox()
             var.mailer.send()
             var.mailer.prepare()
@@ -92,6 +91,9 @@ class BPEngine:
             step_result = self.step(i)
             cy.add(step_result)
             logger.debug(f"Completed step {i}")
+        if j == 2:
+            self.post_two_cycles()
+        self.post_var_cycle()
 
         logger.info(f"Updating beliefs and assignments for cycle {j}")
         self.history.beliefs[j] = self.get_beliefs()
@@ -165,7 +167,6 @@ class BPEngine:
 
         return config_name
 
-    ### -------------------------------------------------------------------####
     # from here we will implement the getters/properties for the beliefs and the assignments
     def get_beliefs(self) -> Dict[str, np.ndarray]:
         """Return the beliefs of the factor graph.
@@ -222,8 +223,11 @@ class BPEngine:
     def post_init(self) -> None:
         return
 
-    def post_var_step(self) -> None:
+    def post_var_cycle(self) -> None:
         return
 
     def post_factor_step(self) -> None:
         return
+
+    def post_two_cycles(self):
+        pass

@@ -9,7 +9,7 @@ def damp(var_a: Iterable[VariableAgent], x: float):
     for variable in var_a:
         if isinstance(variable, VariableAgent):
             for messages in sorted(
-                zip(variable.last_iteration, variable.mailer.outbox),
-                key=lambda y: y[0].recipient,
+                zip(variable.last_iteration, variable.mailer.inbox),
+                key=lambda y: y[0].sender.name,
             ):
                 messages[1].data = (1 - x) * messages[0].data + x * messages[1].data
