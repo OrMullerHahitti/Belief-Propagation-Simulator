@@ -144,7 +144,8 @@ class History:
             str: The path to the saved CSV file.
         """
         # Create the directory structure: results/[engine_type]/
-        engine_dir = os.path.join("results", self.engine_type)
+        from configs.global_config_mapping import PROJECT_ROOT
+        engine_dir = os.path.join(PROJECT_ROOT,"results", self.engine_type)
         os.makedirs(engine_dir, exist_ok=True)
 
         # Use config_name if provided, otherwise use self.name

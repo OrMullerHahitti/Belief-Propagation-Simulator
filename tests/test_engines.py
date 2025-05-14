@@ -3,7 +3,7 @@ import numpy as np
 import os
 from bp_base.factor_graph import FactorGraph
 from bp_base.agents import VariableAgent, FactorAgent
-from bp_base.engines import (
+from bp_base.engines_realizations import (
     SplitEngine,
     DampingEngine,
     CostReductionOnceEngine,
