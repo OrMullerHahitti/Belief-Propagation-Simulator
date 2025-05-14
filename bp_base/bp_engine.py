@@ -54,9 +54,9 @@ class BPEngine:
         engine_type = self.__class__.__name__
         self.history = History(
             engine_type=engine_type,
-            computator=computator, 
-            policies=policies, 
-            factor_graph=factor_graph
+            computator=computator,
+            policies=policies,
+            factor_graph=factor_graph,
         )
         self.history.initialize_cost(init_cost)  # Store history of beliefs
         self.graph_diameter = nx.diameter(self.graph.G)
@@ -158,11 +158,11 @@ class BPEngine:
         config_name = self.name
 
         # Add parameters specific to each engine type
-        if hasattr(self, 'p'):
+        if hasattr(self, "p"):
             config_name += f"_p{self.p}"
-        if hasattr(self, 'cr'):
+        if hasattr(self, "cr"):
             config_name += f"_cr{self.cr}"
-        if hasattr(self, 'damping_factor'):
+        if hasattr(self, "damping_factor"):
             config_name += f"_df{self.damping_factor}"
 
         return config_name

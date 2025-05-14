@@ -4,63 +4,73 @@ from bp_base.factor_graph import FactorGraph
 from bp_base.agents import VariableAgent, FactorAgent
 from utils.splitting import split_all_factors
 
+
 def create_simple_factor_graph():
     """Create a simple factor graph for testing."""
     fg = FactorGraph()
-    
+
     # Create variable agents
     var1 = VariableAgent(name="var1", domain_size=2)
     var2 = VariableAgent(name="var2", domain_size=2)
-    
+
     # Create factor agent with a simple cost table
     cost_table = np.array([[1.0, 2.0], [3.0, 4.0]])
     factor = FactorAgent(name="factor", cost_table=cost_table)
-    
+
     # Add nodes to the graph
     fg.G.add_node(var1)
     fg.G.add_node(var2)
     fg.G.add_node(factor)
-    
+
     # Add edges
     fg.G.add_edge(var1, factor)
     fg.G.add_edge(var2, factor)
-    
+
     # Set up connection numbers
     factor.connection_number = {"var1": 0, "var2": 1}
-    
+
     # Add factor to the factors list
     fg.factors.append(factor)
-    
+
     return fg
+
 
 def test_split_all_factors():
     """Test that split_all_factors correctly splits factors."""
     # Create a simple factor graph
     fg = create_simple_factor_graph()
-    
+
     # Get the original number of factors
     original_factor_count = len(fg.factors)
     original_factor_names = [f.name for f in fg.factors]
-    
+
     # Get the original cost table
     original_cost_table = fg.factors[0].cost_table.copy()
-    
+
     # Apply the splitting
     p = 0.5
     split_all_factors(fg, p)
-    
+
     # Check that the number of factors has doubled
-    assert len(fg.factors) == original_factor_count * 2, "Number of factors should double after splitting"
-    
+    assert (
+        len(fg.factors) == original_factor_count * 2
+    ), "Number of factors should double after splitting"
+
     # Check that the original factor is removed
     for name in original_factor_names:
-        assert not any(f.name == name for f in fg.factors), f"Original factor {name} should be removed"
-    
+        assert not any(
+            f.name == name for f in fg.factors
+        ), f"Original factor {name} should be removed"
+
     # Check that the new factors have the correct names
     for name in original_factor_names:
-        assert any(f.name == f"{name}'" for f in fg.factors), f"New factor {name}' should exist"
-        assert any(f.name == f"{name}''" for f in fg.factors), f"New factor {name}'' should exist"
-    
+        assert any(
+            f.name == f"{name}'" for f in fg.factors
+        ), f"New factor {name}' should exist"
+        assert any(
+            f.name == f"{name}''" for f in fg.factors
+        ), f"New factor {name}'' should exist"
+
     # Check that the cost tables are correctly scaled
     for f in fg.factors:
         if f.name.endswith("'"):
@@ -69,25 +79,26 @@ def test_split_all_factors():
             np.testing.assert_array_almost_equal(f.cost_table, expected_cost)
         elif f.name.endswith("''"):
             original_name = f.name[:-2]
-            expected_cost = (1-p) * original_cost_table
+            expected_cost = (1 - p) * original_cost_table
             np.testing.assert_array_almost_equal(f.cost_table, expected_cost)
+
 
 def test_split_all_factors_invalid_p():
     """Test that split_all_factors raises an error for invalid p values."""
     fg = create_simple_factor_graph()
-    
+
     # Test p = 0
     with pytest.raises(AssertionError):
         split_all_factors(fg, 0.0)
-    
+
     # Test p = 1
     with pytest.raises(AssertionError):
         split_all_factors(fg, 1.0)
-    
+
     # Test p < 0
     with pytest.raises(AssertionError):
         split_all_factors(fg, -0.1)
-    
+
     # Test p > 1
     with pytest.raises(AssertionError):
         split_all_factors(fg, 1.1)

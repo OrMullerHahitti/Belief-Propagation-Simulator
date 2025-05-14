@@ -8,11 +8,12 @@ from bp_base.engines_realizations import (
     DampingEngine,
     CostReductionOnceEngine,
     CostReductionAndDamping,
-    DampingAndSplitting
+    DampingAndSplitting,
 )
 from utils.splitting import split_all_factors
 from utils.cost_reduction import cost_reduction_all_factors
 from utils.damping import damp
+
 
 # Helper function to create a simple factor graph for testing
 def create_simple_factor_graph():
@@ -37,6 +38,7 @@ def create_simple_factor_graph():
 
     return fg
 
+
 def test_split_engine():
     """Test that SplitEngine correctly applies splitting."""
     # Create a simple factor graph
@@ -50,11 +52,14 @@ def test_split_engine():
     engine = SplitEngine(factor_graph=fg, p=p)
 
     # Check that the number of factors has doubled (splitting was applied in post_init)
-    assert len(fg.factors) == original_factor_count * 2, "SplitEngine should double the number of factors"
+    assert (
+        len(fg.factors) == original_factor_count * 2
+    ), "SplitEngine should double the number of factors"
 
     # Check that the factors have the correct names
     assert any(f.name == "factor'" for f in fg.factors), "Split factor should exist"
     assert any(f.name == "factor''" for f in fg.factors), "Split factor should exist"
+
 
 def test_cost_reduction_once_engine():
     """Test that CostReductionOnceEngine correctly applies cost reduction."""
@@ -71,6 +76,7 @@ def test_cost_reduction_once_engine():
     # Check that the cost table was reduced
     reduced_cost_table = fg.factors[0].cost_table
     np.testing.assert_array_almost_equal(reduced_cost_table, original_cost_table * p)
+
 
 def test_damping_engine():
     """Test that DampingEngine correctly applies damping."""
@@ -97,8 +103,11 @@ def test_damping_engine():
     engine.post_cycle()
 
     # Check that the message was damped
-    expected_data = (1 - damping_factor) * prev_msg.data + damping_factor * np.array([3.0, 4.0])
+    expected_data = (1 - damping_factor) * prev_msg.data + damping_factor * np.array(
+        [3.0, 4.0]
+    )
     np.testing.assert_array_almost_equal(curr_msg.data, expected_data)
+
 
 def test_cost_reduction_and_damping_engine():
     """Test that CostReductionAndDamping engine correctly applies both operations."""
@@ -111,7 +120,9 @@ def test_cost_reduction_and_damping_engine():
     # Create a CostReductionAndDamping engine with the factor graph
     p = 0.5
     damping_factor = 0.5
-    engine = CostReductionAndDamping(factor_graph=fg, p=p, damping_factor=damping_factor)
+    engine = CostReductionAndDamping(
+        factor_graph=fg, p=p, damping_factor=damping_factor
+    )
 
     # Check that the cost table was reduced
     reduced_cost_table = fg.factors[0].cost_table
@@ -133,8 +144,11 @@ def test_cost_reduction_and_damping_engine():
     engine.post_cycle()
 
     # Check that the message was damped
-    expected_data = (1 - damping_factor) * prev_msg.data + damping_factor * np.array([3.0, 4.0])
+    expected_data = (1 - damping_factor) * prev_msg.data + damping_factor * np.array(
+        [3.0, 4.0]
+    )
     np.testing.assert_array_almost_equal(curr_msg.data, expected_data)
+
 
 def test_engine_csv_output():
     """Test that the engine correctly saves iteration:global cost to a CSV file."""
@@ -146,7 +160,9 @@ def test_engine_csv_output():
         CostReductionOnceEngine(factor_graph=fg, p=0.5, name="test_csv_cr"),
         DampingEngine(factor_graph=fg, damping_factor=0.7, name="test_csv_damping"),
         SplitEngine(factor_graph=fg, p=0.3, name="test_csv_split"),
-        CostReductionAndDamping(factor_graph=fg, p=0.4, damping_factor=0.6, name="test_csv_cr_damping")
+        CostReductionAndDamping(
+            factor_graph=fg, p=0.4, damping_factor=0.6, name="test_csv_cr_damping"
+        ),
     ]
 
     for engine in engines:
@@ -171,19 +187,25 @@ def test_engine_csv_output():
         # Check the format of each line
         for line in lines:
             parts = line.strip().split(",")
-            assert len(parts) == 2, "Each line should have two values separated by a comma"
+            assert (
+                len(parts) == 2
+            ), "Each line should have two values separated by a comma"
 
             # Check that the first value is an integer (iteration)
             try:
                 int(parts[0])
             except ValueError:
-                pytest.fail(f"First value '{parts[0]}' should be an integer (iteration)")
+                pytest.fail(
+                    f"First value '{parts[0]}' should be an integer (iteration)"
+                )
 
             # Check that the second value is a float (global cost)
             try:
                 float(parts[1])
             except ValueError:
-                pytest.fail(f"Second value '{parts[1]}' should be a float (global cost)")
+                pytest.fail(
+                    f"Second value '{parts[1]}' should be a float (global cost)"
+                )
 
         # Clean up the file
         os.remove(csv_path)
