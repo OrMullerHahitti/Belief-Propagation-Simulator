@@ -19,7 +19,7 @@ class DampingEngine(BPEngine):
         super().__init__(*args, **kwargs)
         self.damping_factor = damping_factor
 
-    def post_cycle(self):
+    def post_var_cycle(self):
         damp(self.var_nodes, self.damping_factor)
 
 
@@ -28,7 +28,7 @@ class CostReductionOnceEngine(BPEngine):
         self.cr = p
         super().__init__(*args, **kwargs)
 
-    def post_init(self):
+    def post_two_cycles(self):
         cost_reduction_all_factors(self.factor_nodes, self.cr)
 
 
