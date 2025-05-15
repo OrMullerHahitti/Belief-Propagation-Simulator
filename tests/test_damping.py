@@ -1,8 +1,7 @@
-import pytest
 import numpy as np
 from bp_base.agents import VariableAgent
 from bp_base.components import Message
-from utils.damping import damp
+from policies.damping import damp
 
 
 class MockRecipient:

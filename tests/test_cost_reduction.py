@@ -1,11 +1,10 @@
-import pytest
 import numpy as np
 from bp_base.agents import FactorAgent
-from utils.cost_reduction import cost_reduction_all_factors
+from policies.cost_reduction import cost_reduction_all_factors_one
 
 
-def test_cost_reduction_all_factors():
-    """Test that cost_reduction_all_factors correctly reduces costs."""
+def test_cost_reduction_all_factors_one():
+    """Test that cost_reduction_all_factors_one correctly reduces costs."""
     # Create factor agents with cost tables
     cost_table1 = np.array([[1.0, 2.0], [3.0, 4.0]])
     cost_table2 = np.array([[5.0, 6.0], [7.0, 8.0]])
@@ -18,7 +17,7 @@ def test_cost_reduction_all_factors():
 
     # Apply cost reduction
     reduction_factor = 0.5
-    cost_reduction_all_factors(factors, reduction_factor)
+    cost_reduction_all_factors_one(factors, reduction_factor)
 
     # Check that cost tables are correctly scaled
     np.testing.assert_array_almost_equal(
@@ -30,31 +29,31 @@ def test_cost_reduction_all_factors():
     assert factor3.cost_table is None, "None cost table should remain None"
 
 
-def test_cost_reduction_all_factors_zero():
+def test_cost_reduction_all_factors_one_zero():
     """Test cost reduction with a zero factor."""
     cost_table = np.array([[1.0, 2.0], [3.0, 4.0]])
     factor = FactorAgent(name="factor", cost_table=cost_table.copy())
 
     # Apply cost reduction with zero
-    cost_reduction_all_factors([factor], 0.0)
+    cost_reduction_all_factors_one([factor], 0.0)
 
     # Check that cost table is zeroed
     np.testing.assert_array_almost_equal(factor.cost_table, np.zeros_like(cost_table))
 
 
-def test_cost_reduction_all_factors_negative():
+def test_cost_reduction_all_factors_one_negative():
     """Test cost reduction with a negative factor."""
     cost_table = np.array([[1.0, 2.0], [3.0, 4.0]])
     factor = FactorAgent(name="factor", cost_table=cost_table.copy())
 
     # Apply cost reduction with negative value
-    cost_reduction_all_factors([factor], -1.0)
+    cost_reduction_all_factors_one([factor], -1.0)
 
     # Check that cost table is negated
     np.testing.assert_array_almost_equal(factor.cost_table, -cost_table)
 
 
-def test_cost_reduction_all_factors_empty_list():
+def test_cost_reduction_all_factors_one_empty_list():
     """Test cost reduction with an empty list of factors."""
     # This should not raise any errors
-    cost_reduction_all_factors([], 0.5)
+    cost_reduction_all_factors_one([], 0.5)
