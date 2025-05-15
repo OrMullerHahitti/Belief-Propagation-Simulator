@@ -42,7 +42,7 @@ class BPAgent(Agent, ABC):
         """
         Clear the mailbox.
         """
-        self._history.append(self.mailer.inbox)
+        self._history.append(self.mailer.inbox) #TODO need to adress shallow adding.
         self.mailer.clear_inbox()
 
     def empty_outgoing(self):
