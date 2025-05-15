@@ -1,8 +1,8 @@
-from bp_base.bp_engine import History, BPEngine, Cycle, Step
-from utils.cost_reduction import cost_reduction_all_factors
+from bp_base.bp_engine import BPEngine
+from policies.cost_reduction import cost_reduction_all_factors_one_one
 
-from utils.splitting import split_all_factors
-from utils.damping import damp
+from policies.splitting import split_all_factors
+from policies.damping import damp
 
 
 class SplitEngine(BPEngine):
@@ -29,7 +29,7 @@ class CostReductionOnceEngine(BPEngine):
         super().__init__(*args, **kwargs)
 
     def post_two_cycles(self):
-        cost_reduction_all_factors(self.factor_nodes, self.cr)
+        cost_reduction_all_factors_one(self.factor_nodes, self.cr)
 
 
 # cost reduction and damping

@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 from bp_base.factor_graph import FactorGraph
 from bp_base.agents import VariableAgent, FactorAgent
-from utils.splitting import split_all_factors
+from policies.splitting import split_all_factors
 
 
 def create_simple_factor_graph():
