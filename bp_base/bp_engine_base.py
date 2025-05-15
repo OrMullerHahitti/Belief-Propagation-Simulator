@@ -84,7 +84,6 @@ class BPEngine:
 
     def cycle(self, j) -> Cycle:
         cy = Cycle(j)
-        self.graph.normalize_messages()
         # Use pre-computed diameter instead of calculating it each time
         for i in range(self.graph_diameter + 1):
             logger.debug(f"Starting step {i} of cycle {j}")
@@ -93,7 +92,9 @@ class BPEngine:
             logger.debug(f"Completed step {i}")
         if j == 2:
             self.post_two_cycles()
+        self.graph.normalize_messages()
         self.post_var_cycle()
+        self.post_factor_cycle()
 
         logger.info(f"Updating beliefs and assignments for cycle {j}")
         self.history.beliefs[j] = self.get_beliefs()
@@ -133,6 +134,8 @@ class BPEngine:
             config_name = self._generate_config_name()
 
         for i in range(max_iter):
+            for var in self.var_nodes:
+                var.append_last_iteration()
             self.history[i] = self.cycle(i)
             if self._is_converged():
                 break
@@ -227,6 +230,8 @@ class BPEngine:
         return
 
     def post_factor_step(self) -> None:
+        return
+    def post_factor_cycle(self):
         return
 
     def post_two_cycles(self):

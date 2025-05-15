@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Dict, List, Any, Callable
 import numpy as np
 
@@ -42,7 +43,7 @@ class BPAgent(Agent, ABC):
         """
         Clear the mailbox.
         """
-        self._history.append(self.mailer.inbox) #TODO need to adress shallow adding.
+        # Save a lightweight snapshot: (sender_name, recipient_name, data array)
         self.mailer.clear_inbox()
 
     def empty_outgoing(self):
@@ -62,6 +63,8 @@ class BPAgent(Agent, ABC):
         This should be implemented by subclasses.
         """
         pass
+
+
 
 
 ##### ----- Variable Agent ----- #####
@@ -111,7 +114,12 @@ class VariableAgent(BPAgent):
         Get the last iteration messages.
         :return: List of last iteration messages.
         """
-        return self._history[-1] if self._history else []
+        if not self._history:
+            return []
+        return self._history[-1]
+
+    def append_last_iteration(self):
+        self._history.append([msg.copy() for msg in self.inbox])
 
 
 ### ---- Factor Agent --- ###
@@ -215,3 +223,4 @@ class FactorAgent(BPAgent):
         return f"FactorAgent: {self.name}"
 
     __str__ = lambda self: self.name.upper()
+
