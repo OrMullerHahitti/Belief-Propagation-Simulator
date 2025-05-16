@@ -209,16 +209,20 @@ class BPEngine:
 
         total_cost = 0.0
         # Only iterate through factor nodes
-        for node in self.factor_nodes:
-            if node.cost_table is not None:
+        for factor in self.factor_nodes:
+            #TODO : can make it easier using factor.global_cost but will do it in a later version
+            if factor.cost_table is not None:
                 indices = []
-                for var, dim in node.connection_number.items():
+                for var, dim in factor.connection_number.items():
                     if var in var_assignments:
                         indices.append(var_assignments[var])
 
                 # If we have assignments for all connected variables, add the cost
-                if len(indices) == len(node.connection_number):
-                    total_cost += node.cost_table[tuple(indices)]
+                if len(indices) == len(factor.connection_number):
+                    if factor.original_cost_table is not None:
+                        total_cost += factor.original_cost_table[tuple(indices)]
+                    else:
+                        total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
 
