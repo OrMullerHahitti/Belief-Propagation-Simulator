@@ -82,7 +82,10 @@ class FactorGraph:
 
                 # If we have assignments for all connected variables, add the cost
                 if valid_lookup and None not in indices:
-                    total_cost += factor.cost_table[tuple(indices)]
+                    if factor.original_cost_table is not None:
+                        total_cost += factor.original_cost_table[tuple(indices)]
+                    else:
+                        total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
 

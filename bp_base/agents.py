@@ -202,6 +202,15 @@ class FactorAgent(BPAgent):
             raise ValueError("Domains not set. Cannot set name.")
         self.name = f"f{''.join(str(var_name[1:]) for var_name in self.connection_number.keys())}_"
 
+    def save_original(self):
+        """
+        Save the original cost table.
+        """
+        if self._original is None:
+            self._original = np.copy(self.cost_table)
+        else:
+            return
+
     @property
     def mean_cost(self, axis=None) -> float:
         return np.mean(self.cost_table, axis=axis)
@@ -213,11 +222,6 @@ class FactorAgent(BPAgent):
     @property
     def original_cost_table(self) -> np.ndarray | None:
         return self._original
-
-    @original_cost_table.setter
-    def original_cost_table(self, value: np.ndarray) -> None:
-        if self._original is None:
-            self._original = value
 
     def __repr__(self):
         return f"FactorAgent: {self.name}"
