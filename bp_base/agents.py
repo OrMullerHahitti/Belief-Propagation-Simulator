@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Dict, List, Any, Callable
 import numpy as np
 
@@ -42,7 +43,6 @@ class BPAgent(Agent, ABC):
         """
         Clear the mailbox.
         """
-        self._history.append(self.mailer.inbox)  # TODO need to adress shallow adding.
         self.mailer.clear_inbox()
 
     def empty_outgoing(self):
@@ -62,6 +62,8 @@ class BPAgent(Agent, ABC):
         This should be implemented by subclasses.
         """
         pass
+
+
 
 
 ##### ----- Variable Agent ----- #####
@@ -111,7 +113,12 @@ class VariableAgent(BPAgent):
         Get the last iteration messages.
         :return: List of last iteration messages.
         """
-        return self._history[-1] if self._history else []
+        if not self._history:
+            return []
+        return self._history[-1]
+
+    def append_last_iteration(self):
+        self._history.append([msg.copy() for msg in self.inbox])
 
 
 ### ---- Factor Agent --- ###
@@ -194,6 +201,15 @@ class FactorAgent(BPAgent):
             raise ValueError("Domains not set. Cannot set name.")
         self.name = f"f{''.join(str(var_name[1:]) for var_name in self.connection_number.keys())}_"
 
+    def save_original(self):
+        """
+        Save the original cost table.
+        """
+        if self._original is None:
+            self._original = np.copy(self.cost_table)
+        else:
+            return
+
     @property
     def mean_cost(self, axis=None) -> float:
         return np.mean(self.cost_table, axis=axis)
@@ -206,12 +222,8 @@ class FactorAgent(BPAgent):
     def original_cost_table(self) -> np.ndarray | None:
         return self._original
 
-    @original_cost_table.setter
-    def original_cost_table(self, value: np.ndarray) -> None:
-        if self._original is None:
-            self._original = value
-
     def __repr__(self):
         return f"FactorAgent: {self.name}"
 
     __str__ = lambda self: self.name.upper()
+

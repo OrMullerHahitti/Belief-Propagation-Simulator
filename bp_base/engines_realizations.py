@@ -1,5 +1,5 @@
-from bp_base.bp_engine import BPEngine
-from policies.cost_reduction import cost_reduction_all_factors_one_one
+from bp_base.bp_engine_base import BPEngine
+from policies.cost_reduction import cost_reduction_all_factors_once, discount
 
 from policies.splitting import split_all_factors
 from policies.damping import damp
@@ -29,7 +29,7 @@ class CostReductionOnceEngine(BPEngine):
         super().__init__(*args, **kwargs)
 
     def post_two_cycles(self):
-        cost_reduction_all_factors_one(self.factor_nodes, self.cr)
+        cost_reduction_all_factors_once(self.factor_nodes, self.cr)
 
 
 # cost reduction and damping
@@ -43,8 +43,23 @@ class CostReductionAndDamping(CostReductionOnceEngine, DampingEngine):
 class DampingAndSplitting(SplitEngine, DampingEngine):
     def __init__(self, *args, p: float = 0.5, damping_factor: float = 0.9, **kwargs):
         self.damping_factor = damping_factor
-        self.p = p
+
+        super().__init__(*args,p=p, **kwargs)
+
+
+class DiscountEngine(BPEngine):
+    def __init__(self, *args, discount_factor: float = 0.9, **kwargs):
+        self.discount_factor = discount_factor
         super().__init__(*args, **kwargs)
+
+    def post_factor_cycle(self):
+        discount(self.factor_nodes, self.discount_factor)
+
+
+class DampAndDiscountBPEngine(DampingEngine, DiscountEngine):
+    def __init__(self, *args, discount_factor: float = 0.9, damping_factor: float = 0.9, **kwargs):
+        self.discount_factor = discount_factor
+        super().__init__(*args, damping_factor=damping_factor, **kwargs)
 
 
 if __name__ == "__main__":

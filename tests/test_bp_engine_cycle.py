@@ -6,7 +6,7 @@ import logging
 import numpy as np
 
 from bp_base.components import Message
-from bp_base.bp_engine import BPEngine
+from bp_base.bp_engine_base import BPEngine
 from configs.global_config_mapping import PROJECT_ROOT
 from configs.loggers import Logger
 from utils.path_utils import load_pickle
