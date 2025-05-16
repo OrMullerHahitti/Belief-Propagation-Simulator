@@ -44,7 +44,7 @@ class DampingAndSplitting(SplitEngine, DampingEngine):
     def __init__(self, *args, p: float = 0.5, damping_factor: float = 0.9, **kwargs):
         self.damping_factor = damping_factor
 
-        super().__init__(*args,p=p, **kwargs)
+        super().__init__(*args, p=p, **kwargs)
 
 
 class DiscountEngine(BPEngine):
@@ -57,7 +57,9 @@ class DiscountEngine(BPEngine):
 
 
 class DampAndDiscountBPEngine(DampingEngine, DiscountEngine):
-    def __init__(self, *args, discount_factor: float = 0.9, damping_factor: float = 0.9, **kwargs):
+    def __init__(
+        self, *args, discount_factor: float = 0.9, damping_factor: float = 0.9, **kwargs
+    ):
         self.discount_factor = discount_factor
         super().__init__(*args, damping_factor=damping_factor, **kwargs)
 

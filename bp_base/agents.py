@@ -64,8 +64,6 @@ class BPAgent(Agent, ABC):
         pass
 
 
-
-
 ##### ----- Variable Agent ----- #####
 
 
@@ -226,4 +224,3 @@ class FactorAgent(BPAgent):
         return f"FactorAgent: {self.name}"
 
     __str__ = lambda self: self.name.upper()
-
