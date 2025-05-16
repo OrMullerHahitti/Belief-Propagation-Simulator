@@ -84,7 +84,6 @@ class BPEngine:
 
     def cycle(self, j) -> Cycle:
         cy = Cycle(j)
-        self.graph.normalize_messages()
         # Use pre-computed diameter instead of calculating it each time
         for i in range(self.graph_diameter + 1):
             logger.debug(f"Starting step {i} of cycle {j}")
@@ -93,7 +92,9 @@ class BPEngine:
             logger.debug(f"Completed step {i}")
         if j == 2:
             self.post_two_cycles()
+        self.graph.normalize_messages()
         self.post_var_cycle()
+        self.post_factor_cycle()
 
         logger.info(f"Updating beliefs and assignments for cycle {j}")
         self.history.beliefs[j] = self.get_beliefs()
@@ -133,6 +134,8 @@ class BPEngine:
             config_name = self._generate_config_name()
 
         for i in range(max_iter):
+            for var in self.var_nodes:
+                var.append_last_iteration()
             self.history[i] = self.cycle(i)
             if self._is_converged():
                 break
@@ -206,16 +209,20 @@ class BPEngine:
 
         total_cost = 0.0
         # Only iterate through factor nodes
-        for node in self.factor_nodes:
-            if node.cost_table is not None:
+        for factor in self.factor_nodes:
+            #TODO : can make it easier using factor.global_cost but will do it in a later version
+            if factor.cost_table is not None:
                 indices = []
-                for var, dim in node.connection_number.items():
+                for var, dim in factor.connection_number.items():
                     if var in var_assignments:
                         indices.append(var_assignments[var])
 
                 # If we have assignments for all connected variables, add the cost
-                if len(indices) == len(node.connection_number):
-                    total_cost += node.cost_table[tuple(indices)]
+                if len(indices) == len(factor.connection_number):
+                    if factor.original_cost_table is not None:
+                        total_cost += factor.original_cost_table[tuple(indices)]
+                    else:
+                        total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
 
@@ -227,6 +234,8 @@ class BPEngine:
         return
 
     def post_factor_step(self) -> None:
+        return
+    def post_factor_cycle(self):
         return
 
     def post_two_cycles(self):
