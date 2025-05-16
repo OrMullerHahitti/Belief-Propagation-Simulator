@@ -210,7 +210,7 @@ class BPEngine:
         total_cost = 0.0
         # Only iterate through factor nodes
         for factor in self.factor_nodes:
-            #TODO : can make it easier using factor.global_cost but will do it in a later version
+            # TODO : can make it easier using factor.global_cost but will do it in a later version
             if factor.cost_table is not None:
                 indices = []
                 for var, dim in factor.connection_number.items():
@@ -235,6 +235,7 @@ class BPEngine:
 
     def post_factor_step(self) -> None:
         return
+
     def post_factor_cycle(self):
         return
 
