@@ -43,7 +43,6 @@ class BPAgent(Agent, ABC):
         """
         Clear the mailbox.
         """
-        # Save a lightweight snapshot: (sender_name, recipient_name, data array)
         self.mailer.clear_inbox()
 
     def empty_outgoing(self):
