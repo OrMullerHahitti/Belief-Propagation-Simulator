@@ -12,7 +12,8 @@ from bp_base.engines_realizations import (
     DampingEngine,
     CostReductionOnceEngine,
     DampingAndSplitting,
-    CostReductionAndDamping, DampAndDiscountBPEngine,
+    CostReductionAndDamping,
+    DampAndDiscountBPEngine,
 )
 from configs.global_config_mapping import PROJECT_ROOT
 
@@ -73,7 +74,7 @@ def test_bp_engine_long_run(simple_factor_graph):
     logger.debug(f"Factor graph: {len(fg.factors)}")
     # engine = BPEngine(factor_graph=fg)
     # engine = SplitEngine(factor_graph=fg)
-    #engine = DampingEngine(factor_graph=fg)
+    # engine = DampingEngine(factor_graph=fg)
     # engine= CostReductionAndDamping(factor_graph=fg)
     # engine = CostReductionOnceEngine(factor_graph=fg)
     # engine = DampingAndSplitting(factor_graph=fg)
