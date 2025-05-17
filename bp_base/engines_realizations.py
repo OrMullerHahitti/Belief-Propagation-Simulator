@@ -2,7 +2,7 @@ from bp_base.bp_engine_base import BPEngine
 from policies.cost_reduction import cost_reduction_all_factors_once, discount
 
 from policies.splitting import split_all_factors
-from policies.damping import TD,damp
+from policies.damping import TD, damp
 
 
 class SplitEngine(BPEngine):
@@ -57,18 +57,16 @@ class DiscountEngine(BPEngine):
 
 
 class TDAndDiscountBPEngine(TDEngine, DiscountEngine):
-    def __init__(
-        self, *args, **kwargs
-    ):
+    def __init__(self, *args, **kwargs):
         kwargs.setdefault("discount_factor", 0.995)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
+
 
 class DampingEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
         self.damping_factor = damping_factor
         super().__init__(*args, **kwargs)
+
     def post_var_compute(self):
         damp(self.var_nodes, self.damping_factor)
-
-
