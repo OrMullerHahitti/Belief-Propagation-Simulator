@@ -44,6 +44,23 @@ def ct_factory(name: str):
 #########################################################################
 # TODO : add the rest of the cost table factories which i already made, i think it would be better if theyre al in one place, can still leave the other one for future uses
 # TODO: add docstrings to the functions
+@ct_factory("poisson")
+def create_poisson_table(n: int, domain: int, rate: float = 1.0):
+    """
+    Creates a cost table with Poisson-distributed values.
+
+    Args:
+        n: Number of dimensions for the cost table (number of connected variables).
+        domain: Size of the domain for each variable/dimension.
+        rate: The rate parameter for the Poisson distribution.
+
+    Returns:
+        A numpy ndarray representing the cost table with shape (domain,) * n.
+    """
+    import numpy as np
+
+    shape = (domain,) * n
+    return np.random.poisson(lam=rate, size=shape)
 @ct_factory("random_int")
 def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
     """

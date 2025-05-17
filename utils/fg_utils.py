@@ -14,13 +14,14 @@ project_root = find_project_root()
 sys.path.append(str(project_root))
 
 
-def generate_random_cost(fg: FactorGraph):
+def generate_random_cost(fg: FactorGraph)->int|float:
     cost = 0
     for fact in fg.factors:
         random_index = tuple(
             np.random.randint(0, fact.domain, size=fact.cost_table.ndim)
         )
         cost += fact.cost_table[random_index]
+    return cost
 
 
 # Custom unpickler to handle potential issues
