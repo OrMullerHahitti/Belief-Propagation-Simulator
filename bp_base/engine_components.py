@@ -4,7 +4,7 @@ from dataclasses import field, dataclass
 from typing import Dict, List
 
 import numpy as np
-
+import pandas as pd
 from bp_base.DCOP_base import Agent
 from bp_base.components import Message
 
@@ -154,10 +154,18 @@ class History:
 
         # Create the file path: results/[engine_type]/[config_name].csv
         file_path = os.path.join(engine_dir, f"{file_name}.csv")
+        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+            # first simulation
+            df = pd.DataFrame({'1': self.costs.values()})
+        else:
+            df = pd.read_csv(file_path, index_col=0)
+            next_col = df.shape[1] + 1
+            df[str(next_col)] = self.costs.values()
+        df.to_csv(file_path,index=False)
 
-        # Write the data to the CSV file
-        with open(file_path, "w") as f:
-            for cycle, cost in self.costs.items():
-                f.write(f"{cycle},{cost}\n")
+        # # Write the data to the CSV file
+        # with open(file_path, "w") as f:
+        #     for cycle, cost in self.costs.items():
+        #         f.write(f"{cost}\n")
 
         return file_path
