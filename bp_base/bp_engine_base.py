@@ -33,7 +33,7 @@ class BPEngine:
     def __init__(
         self,
         factor_graph: FactorGraph,
-        computator: Computator = MaxSumComputator(),
+        computator: Computator = MinSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
         name: str = "BPEngine",
     ):
@@ -49,8 +49,6 @@ class BPEngine:
         self.post_init()
         self.graph.set_computator(computator)
         init_cost = generate_random_cost(self.graph)  # Store history of beliefs
-        self.policies = policies  # Store policies - with all different kinds - message , cost table, stopping critiria, etc.
-        # Get the engine type from the class name
         engine_type = self.__class__.__name__
         self.history = History(
             engine_type=engine_type,
@@ -67,6 +65,7 @@ class BPEngine:
         # compute messages to send and put them in the mailbox
         for var in self.var_nodes:
             var.compute_messages()
+            self.post_var_compute()
             var.empty_mailbox()
             var.mailer.send()
             var.mailer.prepare()
@@ -92,7 +91,7 @@ class BPEngine:
             logger.debug(f"Completed step {i}")
         if j == 2:
             self.post_two_cycles()
-        self.graph.normalize_messages()
+        #self.graph.normalize_messages()
         self.post_var_cycle()
         self.post_factor_cycle()
 
@@ -103,7 +102,7 @@ class BPEngine:
         # Calculate and store the global cost at the end of the cycle
         logger.info(f"Calculating global cost for cycle {j}")
         global_cost = self.calculate_global_cost()
-        self.history.costs[j] = global_cost
+        self.history.costs.append(global_cost)
         logger.info(f"Global cost after cycle {j}: {global_cost}")
 
         return cy
@@ -240,4 +239,6 @@ class BPEngine:
         return
 
     def post_two_cycles(self):
+        pass
+    def post_var_compute(self):
         pass

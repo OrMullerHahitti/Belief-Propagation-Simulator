@@ -2,7 +2,7 @@ from bp_base.bp_engine_base import BPEngine
 from policies.cost_reduction import cost_reduction_all_factors_once, discount
 
 from policies.splitting import split_all_factors
-from policies.damping import damp
+from policies.damping import TD,damp
 
 
 class SplitEngine(BPEngine):
@@ -14,13 +14,13 @@ class SplitEngine(BPEngine):
         split_all_factors(self.graph, self.p)
 
 
-class DampingEngine(BPEngine):
+class TDEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
         super().__init__(*args, **kwargs)
         self.damping_factor = damping_factor
 
     def post_var_cycle(self):
-        damp(self.var_nodes, self.damping_factor)
+        TD(self.var_nodes, self.damping_factor)
 
 
 class CostReductionOnceEngine(BPEngine):
@@ -33,15 +33,15 @@ class CostReductionOnceEngine(BPEngine):
 
 
 # cost reduction and damping
-class CostReductionAndDamping(CostReductionOnceEngine, DampingEngine):
+class CostReductionAndTD(CostReductionOnceEngine, TDEngine):
     def __init__(self, *args, p: float = 0.5, damping_factor: float = 0.9, **kwargs):
         self.cr = p
         self.damping_factor = damping_factor
         super().__init__(*args, **kwargs)
 
 
-class DampingAndSplitting(SplitEngine, DampingEngine):
-    def __init__(self, *args, p: float = 0.5, damping_factor: float = 0.9, **kwargs):
+class TDAndSplitting(SplitEngine, TDEngine):
+    def __init__(self, *args, p: float = 0.3, damping_factor: float = 0.9, **kwargs):
         self.damping_factor = damping_factor
 
         super().__init__(*args, p=p, **kwargs)
@@ -56,11 +56,19 @@ class DiscountEngine(BPEngine):
         discount(self.factor_nodes, self.discount_factor)
 
 
-class DampAndDiscountBPEngine(DampingEngine, DiscountEngine):
+class TDAndDiscountBPEngine(TDEngine, DiscountEngine):
     def __init__(
         self, *args, **kwargs
     ):
         kwargs.setdefault("discount_factor", 0.995)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
+
+class DampingEngine(BPEngine):
+    def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
+        self.damping_factor = damping_factor
+        super().__init__(*args, **kwargs)
+    def post_var_compute(self):
+        damp(self.var_nodes, self.damping_factor)
+
 

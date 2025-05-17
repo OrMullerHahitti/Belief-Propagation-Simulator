@@ -1,3 +1,5 @@
+import numpy as np
+
 from bp_base.agents import FactorAgent, VariableAgent
 from bp_base.components import Message
 from typing import Tuple, List, Iterable
@@ -5,7 +7,7 @@ from typing import Tuple, List, Iterable
 from bp_base.factor_graph import FactorGraph
 
 
-def damp(var_a: Iterable[VariableAgent], x: float):
+def TD(var_a: Iterable[VariableAgent], x: float):
     for variable in var_a:
         if isinstance(variable, VariableAgent):
             for messages in sorted(
@@ -13,3 +15,22 @@ def damp(var_a: Iterable[VariableAgent], x: float):
                 key=lambda y: y[0].sender.name,
             ):
                 messages[1].data = (1 - x) * messages[0].data + x * messages[1].data
+def damp(
+    var_a: Iterable[VariableAgent], x: float, damp_factor: float = 0.5
+) -> None:
+    """
+    Apply damping to the messages of the variable agents.
+    :param var_a: Iterable of variable agents.
+    :param x: Damping factor.
+    :param damp_factor: Damping factor (default is 0.5).
+    """
+    for variable in var_a:
+        for messages in (
+                sorted(zip(variable.mailer.outbox, variable.mailer.inbox),
+                               key=lambda y: y[0].sender.name)
+        ):
+            messages[0].data = (
+                1 - damp_factor
+            ) * messages[1].data + damp_factor * messages[0].data
+
+

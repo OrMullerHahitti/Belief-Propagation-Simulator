@@ -9,11 +9,11 @@ from pathlib import Path
 
 from bp_base.engines_realizations import (
     SplitEngine,
-    DampingEngine,
+    TDEngine,
     CostReductionOnceEngine,
-    DampingAndSplitting,
-    CostReductionAndDamping,
-    DampAndDiscountBPEngine,
+    TDAndSplitting,
+    CostReductionAndTD,
+    TDAndDiscountBPEngine, DampingEngine,
 )
 from configs.global_config_mapping import PROJECT_ROOT
 
@@ -43,7 +43,7 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "factor-graph-random-50-random_intlow1,high100000.25-number0.pkl",  # If this exists, otherwise keep the original
+        "factor-graph-random-30-random_intlow100,high2000.25-number49.pkl",  # If this exists, otherwise keep the original
     )
     if not os.path.exists(pickle_path):
         # Fallback to original graph
@@ -72,19 +72,19 @@ def test_bp_engine_long_run(simple_factor_graph):
     logger.info("Creating BPEngine...")
     start_time = time.time()
     logger.debug(f"Factor graph: {len(fg.factors)}")
-    # engine = BPEngine(factor_graph=fg)
+    #engine = BPEngine(factor_graph=fg)
     # engine = SplitEngine(factor_graph=fg)
-    # engine = DampingEngine(factor_graph=fg)
+    # engine = TDEngine(factor_graph=fg)
     # engine= CostReductionAndDamping(factor_graph=fg)
-    # engine = CostReductionOnceEngine(factor_graph=fg)
-    # engine = DampingAndSplitting(factor_graph=fg)
-    engine = DampAndDiscountBPEngine(factor_graph=fg)
+    #engine = CostReductionOnceEngine(factor_graph=fg)
+    engine = DampingEngine(factor_graph=fg)
+    #engine = DampAndDiscountBPEngine(factor_graph=fg)
     logger.info(f"BPEngine initialized in {time.time() - start_time:.2f} seconds")
 
     # Run just 1 or 2 iterations with timing
     logger.info("Starting BP Engine run (just 1 iteration)...")
     start_time = time.time()
-    engine.run(max_iter=200, save_json=False, save_csv=True)
+    engine.run(max_iter=50, save_json=False, save_csv=True)
     logger.debug(f"Factor graph: {len(fg.factors)}")
 
     logger.info(
