@@ -64,7 +64,7 @@ class History:
         self.cycles: Dict[int, Cycle] = {}
         self.beliefs: Dict[int, Dict[str, np.ndarray]] = {}
         self.assignments: Dict[int, Dict[str, int | float]] = {}
-        self.costs: List[int|float]=[]  # Add dictionary to store costs per cycle
+        self.costs: List[int | float] = []  # Add dictionary to store costs per cycle
         self.engine_type = engine_type
 
     def __setitem__(self, key: int, value: Cycle):
@@ -74,8 +74,8 @@ class History:
         return self.cycles[key]
 
     def initialize_cost(self, x: int | float) -> None:
-        for _ in range(5): #to create the first bench mark to show in the plots
-            self.costs.append(x)  #first cost should be randomized
+        for _ in range(5):  # to create the first bench mark to show in the plots
+            self.costs.append(x)  # first cost should be randomized
 
     def compare_last_two_cycles(self):
         if len(self.cycles) < 2:
@@ -146,6 +146,7 @@ class History:
         """
         # Create the directory structure: results/[engine_type]/
         from configs.global_config_mapping import PROJECT_ROOT
+
         engine_dir = os.path.join(PROJECT_ROOT, "results", self.engine_type)
         os.makedirs(engine_dir, exist_ok=True)
 
@@ -156,12 +157,12 @@ class History:
         file_path = os.path.join(engine_dir, f"{file_name}.csv")
         if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
             # first simulation
-            df = pd.DataFrame({'1': self.costs})
+            df = pd.DataFrame({"1": self.costs})
         else:
             df = pd.read_csv(file_path, index_col=0)
             next_col = df.shape[1] + 2
             df[str(next_col)] = self.costs
-        df.to_csv(file_path,index=False,header=True)
+        df.to_csv(file_path, index=False, header=True)
 
         # # Write the data to the CSV file
         # with open(file_path, "w") as f:

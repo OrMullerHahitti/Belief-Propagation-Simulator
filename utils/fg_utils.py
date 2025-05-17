@@ -14,7 +14,7 @@ project_root = find_project_root()
 sys.path.append(str(project_root))
 
 
-def generate_random_cost(fg: FactorGraph)->int|float:
+def generate_random_cost(fg: FactorGraph) -> int | float:
     cost = 0
     for fact in fg.factors:
         random_index = tuple(
