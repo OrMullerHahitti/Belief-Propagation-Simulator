@@ -33,7 +33,7 @@ class BPEngine:
     def __init__(
         self,
         factor_graph: FactorGraph,
-        computator: Computator = MinSumComputator(),
+        computator: Computator = MaxSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
         name: str = "BPEngine",
     ):

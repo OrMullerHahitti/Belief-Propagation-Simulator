@@ -58,11 +58,9 @@ class DiscountEngine(BPEngine):
 
 class DampAndDiscountBPEngine(DampingEngine, DiscountEngine):
     def __init__(
-        self, *args, discount_factor: float = 0.9, damping_factor: float = 0.9, **kwargs
+        self, *args, **kwargs
     ):
-        self.discount_factor = discount_factor
-        super().__init__(*args, damping_factor=damping_factor, **kwargs)
+        kwargs.setdefault("discount_factor", 0.995)
+        kwargs.setdefault("damping_factor", 0.9)
+        super().__init__(*args, **kwargs)
 
-
-if __name__ == "__main__":
-    SplitEngine()
