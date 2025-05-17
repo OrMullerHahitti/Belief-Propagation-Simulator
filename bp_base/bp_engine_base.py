@@ -91,7 +91,7 @@ class BPEngine:
             logger.debug(f"Completed step {i}")
         if j == 2:
             self.post_two_cycles()
-        #self.graph.normalize_messages()
+        # self.graph.normalize_messages()
         self.post_var_cycle()
         self.post_factor_cycle()
 
@@ -240,5 +240,6 @@ class BPEngine:
 
     def post_two_cycles(self):
         pass
+
     def post_var_compute(self):
         pass
