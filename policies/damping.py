@@ -17,17 +17,12 @@ def TD(var_a: Iterable[VariableAgent], x: float):
                 messages[1].data = (1 - x) * messages[0].data + x * messages[1].data
 
 
-def damp(var_a: Iterable[VariableAgent], x: float) -> None:
+def damp(variable: VariableAgent, x: float) -> None:
     """
     Apply damping to the messages of the variable agents.
+    For each message in the outbox, update as:
+    new_message = (sum of messages from factor to variable) * (1-x) + x * (corresponding variable message in the inbox)
     :param var_a: Iterable of variable agents.
     :param x: Damping factor.
     """
-    for variable in var_a:
-        for messages in sorted(
-            zip(variable.mailer.outbox, variable.mailer.inbox),
-            key=lambda y: y[0].sender.name,
-        ):
-            messages[0].data = (1 - x) * messages[
-                1
-            ].data + x * messages[0].data
+    pass

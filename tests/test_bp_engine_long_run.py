@@ -44,7 +44,7 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "factor-graph-random-30-random_intlow100,high2000.25-number49.pkl",  # If this exists, otherwise keep the original
+        "factor-graph-random-50-random_intlow100,high2000.3-number29.pkl",  # If this exists, otherwise keep the original
     )
     if not os.path.exists(pickle_path):
         # Fallback to original graph
