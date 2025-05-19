@@ -19,10 +19,19 @@ def TD(var_a: Iterable[VariableAgent], x: float):
 
 def damp(variable: VariableAgent, x: float) -> None:
     """
-    Apply damping to the messages of the variable agents.
+    Apply damping to the outgoing messages of a variable agent.
     For each message in the outbox, update as:
-    new_message = (sum of messages from factor to variable) * (1-x) + x * (corresponding variable message in the inbox)
-    :param var_a: Iterable of variable agents.
+    new_message = (1-x) * last_message + x * current_message
+    :param variable: Variable agent whose outbox will be damped.
     :param x: Damping factor.
     """
-    pass
+    last_iter = variable.last_iteration
+    outbox = variable.mailer.outbox
+    if not last_iter or not outbox:
+        return
+    # Create a mapping from recipient name to last message
+    last_msg_map = {msg.recipient.name: msg for msg in last_iter}
+    for msg in outbox:
+        last_msg = last_msg_map.get(msg.recipient.name)
+        if last_msg is not None:
+            msg.data = (1 - x) * last_msg.data + x * msg.data
