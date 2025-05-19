@@ -51,7 +51,7 @@ class BPEngine:
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
         self.post_init()
         self.graph.set_computator(computator)
-        init_cost = generate_random_cost(self.graph)  # Store history of beliefs
+        #init_cost = generate_random_cost(self.graph)  # Store history of beliefs
         engine_type = self.__class__.__name__
         self.history = History(
             engine_type=engine_type,
@@ -59,7 +59,7 @@ class BPEngine:
             policies=policies,
             factor_graph=factor_graph,
         )
-        self.history.initialize_cost(init_cost)  # Store history of beliefs
+        #self.history.initialize_cost(init_cost)  # Store history of beliefs
         self.graph_diameter = nx.diameter(self.graph.G)
         init_normalization(self.factor_nodes)
 
@@ -82,6 +82,8 @@ class BPEngine:
             for message in factor.mailer.outbox:
                 step.add(message.recipient, message)
             factor.mailer.prepare()
+        global_cost = self.calculate_global_cost()
+        self.history.costs.append(global_cost)
 
         return step
 
@@ -105,9 +107,8 @@ class BPEngine:
 
         # Calculate and store the global cost at the end of the cycle
         logger.debug(f"Calculating global cost for cycle {j}")
-        global_cost = self.calculate_global_cost()
-        self.history.costs.append(global_cost)
-        logger.debug(f"Global cost after cycle {j}: {global_cost}")
+
+        #logger.debug(f"Global cost after cycle {j}: {global_cost}")
 
         return cy
 
