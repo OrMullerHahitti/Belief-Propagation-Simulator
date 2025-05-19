@@ -78,6 +78,7 @@ class VariableAgent(BPAgent):
 
         """
         node_type = "variable"
+
         super().__init__(name, node_type, domain)
 
     def compute_messages(self) -> None:
