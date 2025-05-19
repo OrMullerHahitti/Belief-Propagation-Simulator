@@ -117,7 +117,7 @@ class VariableAgent(BPAgent):
         return self._history[-1]
 
     def append_last_iteration(self):
-        self._history.append([msg.copy() for msg in self.inbox])
+        self._history.append([msg.copy() for msg in self.mailer.outbox])
 
 
 ### ---- Factor Agent --- ###
