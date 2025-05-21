@@ -45,7 +45,7 @@ class TDAndSplitting(SplitEngine, TDEngine):
     def __init__(self, *args, p: float = 0.3, damping_factor: float = 0.9, **kwargs):
         kwargs.setdefault("discount_factor", 0.995)
         kwargs.setdefault("damping_factor", 0.9)
-        super().__init__(*args,  **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 class DiscountEngine(BPEngine):
@@ -69,7 +69,6 @@ class DampingEngine(BPEngine):
         self.damping_factor = damping_factor
         super().__init__(*args, **kwargs)
 
-    def post_var_compute(self,var:VariableAgent):
+    def post_var_compute(self, var: VariableAgent):
         damp(var, self.damping_factor)
         var.append_last_iteration()
-
