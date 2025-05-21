@@ -36,8 +36,7 @@ class BPAgent(Agent, ABC):
         Send a message to the recipient.
         :param message: Message to be sent.
         """
-        for message in self.mailer.outbox:
-            self.mailer.send_message(message)
+        self.mailer.send()
 
     def empty_mailbox(self) -> None:
         """
