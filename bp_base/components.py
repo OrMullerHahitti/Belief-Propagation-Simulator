@@ -51,7 +51,7 @@ class Message:
             raise TypeError("Can only add Message to Message")
         if (
             self.sender.name != other.sender.name
-            and self.recipient.name != other.recipient.name
+            or self.recipient.name != other.recipient.name
         ):
             raise ValueError(
                 "Cannot add messages from different senders or to different recipients"
