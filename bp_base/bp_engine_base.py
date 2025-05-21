@@ -39,6 +39,7 @@ class BPEngine:
         computator: Computator = MinSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
         name: str = "BPEngine",
+        normalize: bool = True,
     ):
         """
         Initialize the belief propagation engine.
@@ -46,6 +47,7 @@ class BPEngine:
         :param computator:
         :param policies:
         """
+
         self.name = name
         self.graph = factor_graph
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
@@ -61,7 +63,8 @@ class BPEngine:
         )
         #self.history.initialize_cost(init_cost)  # Store history of beliefs
         self.graph_diameter = nx.diameter(self.graph.G)
-        init_normalization(self.factor_nodes)
+        if normalize:
+            init_normalization(self.factor_nodes)
 
     def step(self, i: int = 0) -> Step:
         """Run the factor graph algorithm."""

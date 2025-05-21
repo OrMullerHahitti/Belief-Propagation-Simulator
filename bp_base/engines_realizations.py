@@ -65,7 +65,7 @@ class TDAndDiscountBPEngine(TDEngine, DiscountEngine):
 
 
 class DampingEngine(BPEngine):
-    def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
+    def __init__(self, *args, damping_factor: float = 0.1, **kwargs):
         self.damping_factor = damping_factor
         super().__init__(*args, **kwargs)
 
