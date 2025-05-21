@@ -51,10 +51,7 @@ class BPComputator(Computator):
 
         # The recipient of all incoming messages is the same variable node
         variable = messages[0].recipient
-
-        # Generate outgoing messages, one for each incoming message
         outgoing_messages = []
-
         for i, msg_i in enumerate(messages):
             factor = msg_i.sender
 
