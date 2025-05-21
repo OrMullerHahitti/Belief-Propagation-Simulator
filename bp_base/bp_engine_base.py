@@ -1,7 +1,9 @@
+import logging
 import typing
 from typing import Dict, List
 import numpy as np
 import networkx as nx
+from policies.normalize_cost import init_normalization
 import json
 import os
 from bp_base.agents import VariableAgent, FactorAgent
@@ -22,6 +24,7 @@ most of which are implemented in the factor graph module and will be max-sum wit
 we will start with the usual 3-cycle and then move to more complex structures"""
 
 logger = Logger(__name__, file=True)
+logger.setLevel(100)
 
 
 ### begining running the algorithm
@@ -36,6 +39,7 @@ class BPEngine:
         computator: Computator = MinSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
         name: str = "BPEngine",
+        normalize: bool = True,
     ):
         """
         Initialize the belief propagation engine.
@@ -43,12 +47,13 @@ class BPEngine:
         :param computator:
         :param policies:
         """
+
         self.name = name
         self.graph = factor_graph
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
         self.post_init()
         self.graph.set_computator(computator)
-        init_cost = generate_random_cost(self.graph)  # Store history of beliefs
+        #init_cost = generate_random_cost(self.graph)  # Store history of beliefs
         engine_type = self.__class__.__name__
         self.history = History(
             engine_type=engine_type,
@@ -56,8 +61,10 @@ class BPEngine:
             policies=policies,
             factor_graph=factor_graph,
         )
-        self.history.initialize_cost(init_cost)  # Store history of beliefs
+        #self.history.initialize_cost(init_cost)  # Store history of beliefs
         self.graph_diameter = nx.diameter(self.graph.G)
+        if normalize:
+            init_normalization(self.factor_nodes)
 
     def step(self, i: int = 0) -> Step:
         """Run the factor graph algorithm."""
@@ -65,7 +72,7 @@ class BPEngine:
         # compute messages to send and put them in the mailbox
         for var in self.var_nodes:
             var.compute_messages()
-            self.post_var_compute()
+            self.post_var_compute(var)
             var.empty_mailbox()
             var.mailer.send()
             var.mailer.prepare()
@@ -78,6 +85,8 @@ class BPEngine:
             for message in factor.mailer.outbox:
                 step.add(message.recipient, message)
             factor.mailer.prepare()
+        global_cost = self.calculate_global_cost()
+        self.history.costs.append(global_cost)
 
         return step
 
@@ -95,15 +104,14 @@ class BPEngine:
         self.post_var_cycle()
         self.post_factor_cycle()
 
-        logger.info(f"Updating beliefs and assignments for cycle {j}")
+        logger.debug(f"Updating beliefs and assignments for cycle {j}")
         self.history.beliefs[j] = self.get_beliefs()
         self.history.assignments[j] = self.assignments
 
         # Calculate and store the global cost at the end of the cycle
-        logger.info(f"Calculating global cost for cycle {j}")
-        global_cost = self.calculate_global_cost()
-        self.history.costs.append(global_cost)
-        logger.info(f"Global cost after cycle {j}: {global_cost}")
+        logger.debug(f"Calculating global cost for cycle {j}")
+
+        #logger.debug(f"Global cost after cycle {j}: {global_cost}")
 
         return cy
 
@@ -224,6 +232,8 @@ class BPEngine:
                         total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
+    def __str__(self):
+        return f"{self.name})"
 
     # abstract methods to try splitting damping and cost reduction
     def post_init(self) -> None:
@@ -241,5 +251,5 @@ class BPEngine:
     def post_two_cycles(self):
         pass
 
-    def post_var_compute(self):
+    def post_var_compute(self,var:VariableAgent):
         pass

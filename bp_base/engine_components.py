@@ -134,39 +134,36 @@ class History:
 
         return filename
 
-    def save_csv(self, config_name: str = None) -> str:
+    def save_csv(self, config_name: str | None = None) -> str:
         """
-        Save only the global costs as csv ready for plotting.
-
-        Args:
-            config_name (str, optional): The name of the configuration. If None, uses self.name.
-
-        Returns:
-            str: The path to the saved CSV file.
+        Persist the global costs of each run in a CSV file that grows column-wise.
+        Each column corresponds to one simulation run.
         """
-        # Create the directory structure: results/[engine_type]/
         from configs.global_config_mapping import PROJECT_ROOT
 
         engine_dir = os.path.join(PROJECT_ROOT, "results", self.engine_type)
         os.makedirs(engine_dir, exist_ok=True)
 
-        # Use config_name if provided, otherwise use self.name
         file_name = config_name if config_name else self.name
-
-        # Create the file path: results/[engine_type]/[config_name].csv
         file_path = os.path.join(engine_dir, f"{file_name}.csv")
+
+        # Series with the costs of the current run
+        new_series = pd.Series(self.costs)
+
         if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
-            # first simulation
-            df = pd.DataFrame({"1": self.costs})
+            # First run → just write the column
+            df = pd.DataFrame({"1": new_series})
         else:
-            df = pd.read_csv(file_path, index_col=0)
-            next_col = df.shape[1] + 2
-            df[str(next_col)] = self.costs
-        df.to_csv(file_path, index=False, header=True)
+            # Load existing runs (keep default integer index)
+            df = pd.read_csv(file_path)
 
-        # # Write the data to the CSV file
-        # with open(file_path, "w") as f:
-        #     for cycle, cost in self.costs.items():
-        #         f.write(f"{cost}\n")
+            next_col_name = str(df.shape[1] + 1)
+            # Make sure both have the same index length
+            max_len = max(len(df), len(new_series))
+            df = df.reindex(range(max_len))
+            new_series = new_series.reindex(range(max_len))
 
+            df[next_col_name] = new_series
+
+        df.to_csv(file_path, index=False)
         return file_path
