@@ -142,10 +142,9 @@ class BPEngine:
 
         for i in range(max_iter):
             for var in self.var_nodes:
-                var.append_last_iteration()
-            self.history[i] = self.cycle(i)
-            if self._is_converged():
-                break
+                self.history[i] = self.cycle(i)
+                if self._is_converged():
+                    break
 
         # Save results as JSON if requested
         if save_json:
