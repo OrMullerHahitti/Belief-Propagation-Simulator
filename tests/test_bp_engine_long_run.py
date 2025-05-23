@@ -44,7 +44,7 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "factor-graph-random-50-random_intlow100,high2000.3-number29.pkl",  # If this exists, otherwise keep the original
+        "factor-graph-cycle-3-random_intlow100,high2000.3-number29.pkl",  # If this exists, otherwise keep the original
     )
     if not os.path.exists(pickle_path):
         # Fallback to original graph
@@ -73,12 +73,12 @@ def test_bp_engine_long_run(simple_factor_graph):
     logger.info("Creating BPEngine...")
     start_time = time.time()
     logger.debug(f"Factor graph: {len(fg.factors)}")
-    # engine = BPEngine(factor_graph=fg)
+    engine = BPEngine(factor_graph=fg)
     # engine = SplitEngine(factor_graph=fg)
     # engine = TDEngine(factor_graph=fg)
     # engine= CostReductionAndDamping(factor_graph=fg)
     # engine = CostReductionOnceEngine(factor_graph=fg)
-    engine = DampingEngine(factor_graph=fg)
+    #engine = DampingEngine(factor_graph=fg)
     # engine = DampAndDiscountBPEngine(factor_graph=fg)
     logger.info(f"BPEngine initialized in {time.time() - start_time:.2f} seconds")
 
