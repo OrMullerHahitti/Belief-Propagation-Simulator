@@ -1,6 +1,6 @@
 import numpy as np
 from bp_base.agents import FactorAgent
-from policies.cost_reduction import cost_reduction_all_factors_one
+from policies.cost_reduction import cost_reduction_all_factors_once
 
 
 def test_cost_reduction_all_factors_one():
