@@ -97,7 +97,8 @@ class FactorGraphBuilder:
             pickle.dump(fg, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
         return out_path
-    def build_and_return(self,cfg_path: str | Path) -> FactorGraph:
+
+    def build_and_return(self, cfg_path: str | Path) -> FactorGraph:
         """
         Load <cfg_path> (a pickled GraphConfig), create a FactorGraph
         instance, return the FactorGraph object.

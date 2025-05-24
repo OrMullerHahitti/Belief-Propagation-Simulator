@@ -55,12 +55,13 @@ def simple_factor_graph():
     )
     return fg
 
+
 def test_bp_engine_long_run(simple_factor_graph):
     fg = simple_factor_graph
     logger.info("Creating BPEngine...")
     start_time = time.time()
     logger.debug(f"Factor graph: {len(fg.factors)}")
-    #engine = BPEngine(factor_graph=fg)
+    # engine = BPEngine(factor_graph=fg)
     # engine = SplitEngine(factor_graph=fg)
     # engine = TDEngine(factor_graph=fg)
     # engine= CostReductionAndDamping(factor_graph=fg)

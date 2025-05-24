@@ -27,17 +27,17 @@ class Message:
         Create a copy of this message with a new data array.
         """
         return Message(
-            data=np.copy(self.data),
-            sender=self.sender,
-            recipient=self.recipient
+            data=np.copy(self.data), sender=self.sender, recipient=self.recipient
         )
 
     def __hash__(self):
         return hash((self.sender.name, self.recipient.name))
 
     def __eq__(self, other):
-        return (self.sender.name == other.sender.name and
-                self.recipient.name == other.recipient.name)
+        return (
+            self.sender.name == other.sender.name
+            and self.recipient.name == other.recipient.name
+        )
 
     def __ne__(self, other):
         return not self == other

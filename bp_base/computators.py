@@ -85,16 +85,16 @@ class BPComputator(Computator):
 
             # Create outgoing message
             outgoing_message = Message(
-                data=combined_data,
-                sender=variable,
-                recipient=factor
+                data=combined_data, sender=variable, recipient=factor
             )
             outgoing_messages.append(outgoing_message)
 
         logger.debug(f"Computed {len(outgoing_messages)} outgoing Q messages")
         return outgoing_messages
 
-    def compute_R(self, cost_table: CostTable, incoming_messages: List[Message]) -> List[Message]:
+    def compute_R(
+        self, cost_table: CostTable, incoming_messages: List[Message]
+    ) -> List[Message]:
         """
         Compute factor->variable messages (R messages).
 
@@ -113,7 +113,7 @@ class BPComputator(Computator):
         factor = incoming_messages[0].recipient
 
         # Handle test cases that might not have connection_number
-        if not hasattr(factor, 'connection_number') or not factor.connection_number:
+        if not hasattr(factor, "connection_number") or not factor.connection_number:
             # For tests, create connection_number based on message order
             factor.connection_number = {}
             for i, msg in enumerate(incoming_messages):
@@ -156,9 +156,7 @@ class BPComputator(Computator):
 
             # Create outgoing message
             outgoing_message = Message(
-                data=reduced_msg,
-                sender=factor,
-                recipient=variable_node
+                data=reduced_msg, sender=factor, recipient=variable_node
             )
             outgoing_messages.append(outgoing_message)
 

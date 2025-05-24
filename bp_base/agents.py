@@ -113,12 +113,12 @@ class FactorAgent(BPAgent):
     """
 
     def __init__(
-            self,
-            name: str,
-            domain: int,
-            ct_creation_func: Callable,
-            param: Dict[str, Any] | None = None,
-            cost_table: CostTable | None = None,
+        self,
+        name: str,
+        domain: int,
+        ct_creation_func: Callable,
+        param: Dict[str, Any] | None = None,
+        cost_table: CostTable | None = None,
     ):
         node_type = "factor"
         super().__init__(name, node_type, domain)
@@ -144,8 +144,7 @@ class FactorAgent(BPAgent):
         """Compute messages to be sent to variable nodes."""
         if self.computator and self.cost_table is not None and self.inbox:
             messages = self.computator.compute_R(
-                cost_table=self.cost_table,
-                incoming_messages=self.inbox
+                cost_table=self.cost_table, incoming_messages=self.inbox
             )
             self.mailer.stage_sending(messages)
 
@@ -174,7 +173,7 @@ class FactorAgent(BPAgent):
 
         var_indices = []
         for var_name in sorted(self.connection_number.keys()):
-            if var_name.startswith('x'):
+            if var_name.startswith("x"):
                 var_indices.append(var_name[1:])
 
         self.name = f"f{''.join(var_indices)}_"
