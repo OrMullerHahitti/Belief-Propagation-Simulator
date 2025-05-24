@@ -2,11 +2,10 @@ import numpy as np
 import logging
 from typing import List
 
-from bp_base.DCOP_base import Computator
+from bp_base.DCOP_base import Computator, Agent
 from bp_base.typing import CostTable
 from bp_base.components import Message
 
-# Set up logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
@@ -19,15 +18,36 @@ class BPComputator(Computator):
 
     def __init__(self, reduce_func, combine_func):
         """
-        Initialize the computator with the appropriate combination and reduction operations.
-
-        :param reduce_func: Function used to reduce over dimensions (e.g., min, max)
-        :param combine_func: Function used to combine messages (e.g., add, multiply)
+        Initialize the computator with the appropriate operations.
         """
         self.reduce_func = reduce_func
         self.combine_func = combine_func
         logger.info(
-            f"Initialized Computator with reduce_func={reduce_func.__name__}, combine_func={combine_func.__name__}"
+            f"Initialized Computator with reduce_func={reduce_func.__name__}, "
+            f"combine_func={combine_func.__name__}"
+        )
+
+    def _get_node_dimension(self, factor, node: Agent) -> int:
+        """
+        Safely get dimension index for a node in factor's connection_number.
+        Handles both string keys and object keys for backward compatibility.
+        """
+        # Try direct name lookup first (preferred)
+        if node.name in factor.connection_number:
+            return factor.connection_number[node.name]
+
+        # Handle legacy case where objects are used as keys
+        for key, dim in factor.connection_number.items():
+            if isinstance(key, Agent) and key.name == node.name:
+                return dim
+            elif isinstance(key, str) and key == node.name:
+                return dim
+
+        # If not found, provide helpful error
+        available_keys = list(factor.connection_number.keys())
+        raise KeyError(
+            f"Node '{node.name}' not found in factor '{factor.name}' connections. "
+            f"Available connections: {available_keys}"
         )
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
@@ -36,12 +56,6 @@ class BPComputator(Computator):
 
         For each outgoing message to a factor f, the variable combines all
         incoming messages from factors EXCEPT f.
-
-        Args:
-            messages: List of incoming messages from factors to the variable
-
-        Returns:
-            List of outgoing messages from variable to factors
         """
         logger.debug(f"Computing Q messages with {len(messages)} incoming messages")
 
@@ -49,9 +63,11 @@ class BPComputator(Computator):
             logger.warning("No incoming messages, returning empty list")
             return []
 
-        # The recipient of all incoming messages is the same variable node
+        # All messages have the same recipient (the variable node)
         variable = messages[0].recipient
         outgoing_messages = []
+
+        # For each incoming message, create an outgoing message back to sender
         for i, msg_i in enumerate(messages):
             factor = msg_i.sender
 
@@ -59,122 +75,94 @@ class BPComputator(Computator):
             other_messages = [msg_j.data for j, msg_j in enumerate(messages) if j != i]
 
             if other_messages:
-                # Combine messages from other factors
-                combined_data = other_messages[0].copy()  # so the dim is right
+                # Start with copy to preserve dimensions
+                combined_data = other_messages[0].copy()
                 for msg_data in other_messages[1:]:
                     combined_data = self.combine_func(combined_data, msg_data)
-
             else:
-                # If no other messages, send uniform/uninformative message
+                # If no other messages, send uniform/zero message
                 combined_data = np.zeros_like(msg_i.data)
 
-            # Create outgoing message to this factor
+            # Create outgoing message
             outgoing_message = Message(
-                data=combined_data, sender=variable, recipient=factor
+                data=combined_data,
+                sender=variable,
+                recipient=factor
             )
-
             outgoing_messages.append(outgoing_message)
 
         logger.debug(f"Computed {len(outgoing_messages)} outgoing Q messages")
         return outgoing_messages
 
-    def compute_R(
-        self, cost_table: CostTable, incoming_messages: List[Message]
-    ) -> List[Message]:
+    def compute_R(self, cost_table: CostTable, incoming_messages: List[Message]) -> List[Message]:
         """
-        Compute factor->variable messages. We assume:
-          - 'cost_table' is an n-dimensional array (d, d, ..., d).
-          - 'incoming_messages[i]' is Q_{i->f}, shape (d,), from variable i.
+        Compute factor->variable messages (R messages).
 
-        :param cost_table: The factor's cost table
-        :param incoming_messages: A list of n messages, one from each variable -> factor
-        :return: A list of n messages, factor -> each variable
+        The factor combines its cost table with messages from all variables
+        except the recipient, then marginalizes.
         """
         logger.debug(
-            f"Computing R messages with {len(incoming_messages)} incoming messages and cost table shape {cost_table.shape if hasattr(cost_table, 'shape') else 'unknown'}"
+            f"Computing R messages with {len(incoming_messages)} incoming messages "
+            f"and cost table shape {cost_table.shape if hasattr(cost_table, 'shape') else 'unknown'}"
         )
 
-        n = len(incoming_messages)
-        if n == 0:
+        if not incoming_messages:
             logger.warning("No incoming messages, returning empty list")
             return []
 
         factor = incoming_messages[0].recipient
-        ###----------------------meant only for tests------------------------###
-        if not hasattr(factor, "connection_number"):
-            # For mock nodes in tests, create a simulated connection_number dictionary
-            # based on the order of the incoming messages
+
+        # Handle test cases that might not have connection_number
+        if not hasattr(factor, 'connection_number') or not factor.connection_number:
+            # For tests, create connection_number based on message order
             factor.connection_number = {}
             for i, msg in enumerate(incoming_messages):
-                factor.connection_number[msg.sender] = i
-        ###----------------------meant only for tests------------------------###
+                factor.connection_number[msg.sender.name] = i
 
         outgoing_messages = []
 
-        # For each variable index i, compute R_{f->i}
+        # For each variable, compute outgoing message
         for i, msg_i in enumerate(incoming_messages):
             variable_node = msg_i.sender
-            try:
-                dim = factor.connection_number[variable_node.name]
-            except KeyError:
-                # Fallback: try to find a variable node with the same name and type
-                for var, idx in factor.connection_number.items():
-                    if (
-                        var.name == variable_node.name
-                        and var.type == variable_node.type
-                    ):
-                        dim = idx
-                        break
-                else:
-                    # If no matching variable node is found, raise a more informative error
-                    raise KeyError(
-                        f"Variable node {variable_node} not found in factor.connection_number and no matching node found"
-                    )
 
-            # Create a working copy of the cost table
+            try:
+                dim = self._get_node_dimension(factor, variable_node)
+            except KeyError as e:
+                logger.error(f"Failed to find dimension: {e}")
+                raise
+
+            # Start with copy of cost table
             augmented_costs = cost_table.copy()
 
-            # Add messages from all other variables to the costs
+            # Add messages from all OTHER variables
             for j, msg_j in enumerate(incoming_messages):
-                if j != i:  # Skip the current variable
+                if j != i:  # Skip the recipient variable
                     sender = msg_j.sender
-                    try:
-                        sender_dim = factor.connection_number[sender.name]
-                    except KeyError:
-                        # Fallback: try to find a variable node with the same name and type
-                        for var, idx in factor.connection_number.items():
-                            if var.name == sender.name and var.type == sender.type:
-                                sender_dim = idx
-                                break
-                        else:
-                            # If no matching variable node is found, raise a more informative error
-                            raise KeyError(
-                                f"Variable node {sender} not found in factor.connection_number and no matching node found"
-                            )
+                    sender_dim = self._get_node_dimension(factor, sender)
 
-                    # Create the slicing needed to broadcast the message correctly
+                    # Create broadcasting shape
                     broadcast_shape = [1] * len(cost_table.shape)
                     broadcast_shape[sender_dim] = len(msg_j.data)
 
-                    # Reshape the message for proper broadcasting
+                    # Reshape message for broadcasting
                     reshaped_msg = msg_j.data.reshape(broadcast_shape)
 
-                    # Add the message to the cost table
-                    augmented_costs = self.combine_func(
-                        augmented_costs, reshaped_msg
-                    )  # if sum for example adding all messages
+                    # Combine with cost table
+                    augmented_costs = self.combine_func(augmented_costs, reshaped_msg)
 
-            # Reduce (min/max) over all dimensions except i
-            axes = tuple(j for j in range(len(cost_table.shape)) if j != dim)
-            reduced_msg = self.reduce_func(augmented_costs, axis=axes)
+            # Marginalize over all dimensions except the recipient's
+            axes_to_reduce = tuple(j for j in range(len(cost_table.shape)) if j != dim)
+            reduced_msg = self.reduce_func(augmented_costs, axis=axes_to_reduce)
 
-            # Create the outgoing message
+            # Create outgoing message
             outgoing_message = Message(
-                data=reduced_msg, sender=factor, recipient=variable_node
+                data=reduced_msg,
+                sender=factor,
+                recipient=variable_node
             )
-
             outgoing_messages.append(outgoing_message)
 
+        logger.debug(f"Computed {len(outgoing_messages)} outgoing R messages")
         return outgoing_messages
 
 
@@ -186,7 +174,7 @@ class MinSumComputator(BPComputator):
 
     def __init__(self):
         super().__init__(reduce_func=np.min, combine_func=np.add)
-        logger.info(f"Initialized MinSumComputator")
+        logger.info("Initialized MinSumComputator")
 
 
 class MaxSumComputator(BPComputator):
@@ -197,4 +185,4 @@ class MaxSumComputator(BPComputator):
 
     def __init__(self):
         super().__init__(reduce_func=np.max, combine_func=np.add)
-        logger.info(f"Initialized MaxSumComputator")
+        logger.info("Initialized MaxSumComputator")
