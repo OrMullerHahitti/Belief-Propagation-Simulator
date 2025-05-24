@@ -44,7 +44,7 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "factor-graph-cycle-3-random_intlow100,high2000.3-number7.pkl",  # If this exists, otherwise keep the original
+        "factor-graph-random-30-random_intlow100,high2000.3-number0.pkl",  # If this exists, otherwise keep the original
     )
     logger.info(f"Loading factor graph from: {pickle_path}")
     start_time = time.time()
