@@ -44,41 +44,29 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "factor-graph-cycle-3-random_intlow100,high2000.3-number29.pkl",  # If this exists, otherwise keep the original
+        "factor-graph-cycle-3-random_intlow100,high2000.3-number7.pkl",  # If this exists, otherwise keep the original
     )
-    if not os.path.exists(pickle_path):
-        # Fallback to original graph
-        pickle_path = os.path.join(
-            PROJECT_ROOT,
-            "configs",
-            "factor_graphs",
-            "test-factor.pkl",
-        )
-
     logger.info(f"Loading factor graph from: {pickle_path}")
     start_time = time.time()
     fg = load_pickle(pickle_path)
     logger.info(f"Graph loaded in {time.time() - start_time:.2f} seconds")
-
-    # Log basic graph statistics
     logger.info(
         f"Graph has {len(fg.variables)} variables and {len(fg.factors)} factors"
     )
-
     return fg
-
 
 def test_bp_engine_long_run(simple_factor_graph):
     fg = simple_factor_graph
     logger.info("Creating BPEngine...")
     start_time = time.time()
     logger.debug(f"Factor graph: {len(fg.factors)}")
-    engine = BPEngine(factor_graph=fg)
+    #engine = BPEngine(factor_graph=fg)
     # engine = SplitEngine(factor_graph=fg)
     # engine = TDEngine(factor_graph=fg)
     # engine= CostReductionAndDamping(factor_graph=fg)
     # engine = CostReductionOnceEngine(factor_graph=fg)
-    # engine = DampingEngine(factor_graph=fg)
+    engine = DampingEngine(factor_graph=fg)
+
     # engine = DampAndDiscountBPEngine(factor_graph=fg)
     logger.info(f"BPEngine initialized in {time.time() - start_time:.2f} seconds")
 
@@ -86,8 +74,6 @@ def test_bp_engine_long_run(simple_factor_graph):
     logger.info("Starting BP Engine run (just 1 iteration)...")
     start_time = time.time()
     engine.run(max_iter=50, save_json=False, save_csv=True)
-    logger.debug(f"Factor graph: {len(fg.factors)}")
-
     logger.info(
         f"BP Engine completed 1 iteration in {time.time() - start_time:.2f} seconds"
     )

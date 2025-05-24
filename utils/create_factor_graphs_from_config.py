@@ -97,6 +97,31 @@ class FactorGraphBuilder:
             pickle.dump(fg, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
         return out_path
+    def build_and_return(self,cfg_path: str | Path) -> FactorGraph:
+        """
+        Load <cfg_path> (a pickled GraphConfig), create a FactorGraph
+        instance, return the FactorGraph object.
+        """
+        # 1. Load config
+        cfg: GraphConfig = ConfigCreator.load_config(cfg_path)
+
+        # 2. Resolve callables/classes
+        graph_builder_fn: Callable = _resolve(GRAPH_TYPES[cfg.graph_type])
+        ct_factory_fn: Callable = CT_FACTORIES[cfg.ct_factory_name]
+
+        # 3. Build agents & edges
+        variables, factors, edges = graph_builder_fn(
+            num_vars=cfg.num_variables,
+            domain_size=cfg.domain_size,
+            ct_factory=ct_factory_fn,
+            ct_params=cfg.ct_factory_params,
+            density=cfg.density,
+        )
+
+        # 4. Create the FactorGraph object
+        fg = FactorGraph(variable_li=variables, factor_li=factors, edges=edges)
+
+        return fg
 
     @staticmethod
     def load_graph(path: str | Path) -> FactorGraph:
