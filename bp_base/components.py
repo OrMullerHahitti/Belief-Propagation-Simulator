@@ -60,6 +60,11 @@ class MailHandler:
         self._outgoing: List[Message] = []
         self._clear_after_staging = True
 
+    def set_pruning_policy(self, policy):
+        """Set message pruning policy."""
+        self.pruning_policy = getattr(self, 'pruning_policy', None)
+        self.pruning_policy = policy
+
     def _make_key(self, agent: Agent) -> str:
         """Create unique key for agent to handle identity issues."""
         return f"{agent.name}_{agent.type}"
@@ -75,10 +80,17 @@ class MailHandler:
 
     @singledispatchmethod
     def receive_messages(self, message: Message):
-        """Handle a single Message - replaces any existing from same sender."""
+        """Handle a single Message with optional pruning."""
+        # Check for pruning policy
+        if hasattr(self, 'pruning_policy') and self.pruning_policy is not None:
+            # Get the owner agent (recipient)
+            owner = message.recipient
+            if not self.pruning_policy.should_accept_message(owner, message):
+                return  # Message pruned
+
+        # Accept message
         key = self._make_key(message.sender)
         self._incoming[key] = message
-
     @receive_messages.register(list)
     def _(self, messages: list[Message]):
         """Handle a list of Messages."""
