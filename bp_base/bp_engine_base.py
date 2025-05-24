@@ -3,7 +3,7 @@ import typing
 from typing import Dict, List, Optional
 import numpy as np
 import networkx as nx
-from policies.normalize_cost import init_normalization,normalize_after_cycle
+from policies.normalize_cost import init_normalization, normalize_after_cycle
 import json
 import os
 from bp_base.agents import VariableAgent, FactorAgent
@@ -32,14 +32,14 @@ class BPEngine:
     """
 
     def __init__(
-            self,
-            factor_graph: FactorGraph,
-            computator: Computator = MinSumComputator(),
-            policies: Dict[PolicyType, List[Policy]] | None = None,
-            name: str = "BPEngine",
-            normalize: bool = True,
-            convergence_config: ConvergenceConfig | None = None,
-            monitor_performance: bool = False,
+        self,
+        factor_graph: FactorGraph,
+        computator: Computator = MinSumComputator(),
+        policies: Dict[PolicyType, List[Policy]] | None = None,
+        name: str = "BPEngine",
+        normalize: bool = True,
+        convergence_config: ConvergenceConfig | None = None,
+        monitor_performance: bool = False,
     ):
         """
         Initialize the belief propagation engine.
@@ -66,7 +66,6 @@ class BPEngine:
         # Normalization
         if normalize:
             init_normalization(list(self.factor_nodes))
-
 
         # Add convergence and performance monitoring
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
@@ -149,12 +148,12 @@ class BPEngine:
         return cy
 
     def run(
-            self,
-            max_iter: int = 1000,
-            save_json: bool = False,
-            save_csv: bool = True,
-            filename: str = None,
-            config_name: str = None,
+        self,
+        max_iter: int = 1000,
+        save_json: bool = False,
+        save_csv: bool = True,
+        filename: str = None,
+        config_name: str = None,
     ) -> Optional[str]:
         """
         Run the factor graph algorithm for a maximum number of iterations.
@@ -242,7 +241,9 @@ class BPEngine:
                         indices[dim] = var_assignments[var_name]
 
                 # Check if we have all indices
-                if None not in indices and len(indices) == len(factor.connection_number):
+                if None not in indices and len(indices) == len(
+                    factor.connection_number
+                ):
                     if factor.original_cost_table is not None:
                         total_cost += factor.original_cost_table[tuple(indices)]
                     else:

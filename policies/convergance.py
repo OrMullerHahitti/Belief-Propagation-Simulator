@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ConvergenceConfig:
     """Configuration for convergence detection."""
+
     belief_threshold: float = 1e-6
     assignment_threshold: int = 0  # For discrete assignments
     min_iterations: int = 10
@@ -27,8 +28,9 @@ class ConvergenceMonitor:
         self.iteration = 0
         self.convergence_history = []
 
-    def check_convergence(self, beliefs: Dict[str, np.ndarray],
-                          assignments: Dict[str, int]) -> bool:
+    def check_convergence(
+        self, beliefs: Dict[str, np.ndarray], assignments: Dict[str, int]
+    ) -> bool:
         """Check if algorithm has converged based on beliefs and assignments."""
         self.iteration += 1
 
@@ -50,7 +52,10 @@ class ConvergenceMonitor:
                     # Relative change
                     prev_norm = np.linalg.norm(self.prev_beliefs[var])
                     if prev_norm > 0:
-                        change = np.linalg.norm(beliefs[var] - self.prev_beliefs[var]) / prev_norm
+                        change = (
+                            np.linalg.norm(beliefs[var] - self.prev_beliefs[var])
+                            / prev_norm
+                        )
                     else:
                         change = np.linalg.norm(beliefs[var])
                 else:
@@ -74,12 +79,14 @@ class ConvergenceMonitor:
         )
 
         # Store convergence info
-        self.convergence_history.append({
-            'iteration': self.iteration,
-            'max_belief_change': max_belief_change,
-            'belief_converged': belief_converged,
-            'assignment_converged': assignment_converged
-        })
+        self.convergence_history.append(
+            {
+                "iteration": self.iteration,
+                "max_belief_change": max_belief_change,
+                "belief_converged": belief_converged,
+                "assignment_converged": assignment_converged,
+            }
+        )
 
         # Update state
         self._update_state(beliefs, assignments)
@@ -95,8 +102,9 @@ class ConvergenceMonitor:
             self.stable_count = 0
             return False
 
-    def _update_state(self, beliefs: Dict[str, np.ndarray],
-                      assignments: Dict[str, int]):
+    def _update_state(
+        self, beliefs: Dict[str, np.ndarray], assignments: Dict[str, int]
+    ):
         """Update internal state with current beliefs and assignments."""
         self.prev_beliefs = {k: v.copy() for k, v in beliefs.items()}
         self.prev_assignments = assignments.copy()
@@ -116,8 +124,10 @@ class ConvergenceMonitor:
             return {}
 
         return {
-            'total_iterations': self.iteration,
-            'converged': self.stable_count >= self.config.patience,
-            'final_max_belief_change': self.convergence_history[-1]['max_belief_change'],
-            'history': self.convergence_history
+            "total_iterations": self.iteration,
+            "converged": self.stable_count >= self.config.patience,
+            "final_max_belief_change": self.convergence_history[-1][
+                "max_belief_change"
+            ],
+            "history": self.convergence_history,
         }
