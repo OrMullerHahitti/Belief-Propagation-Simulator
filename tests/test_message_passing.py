@@ -159,13 +159,14 @@ def create_3_cycle_3_domain_factor_graph():
         f1: [v1, v2],
         f2: [v2, v3],
         f3: [v1, v3],
-        f4: [v3]  # Additional factor connected to v3 only
+        f4: [v3],  # Additional factor connected to v3 only
     }
 
     # Create the factor graph
     fg = FactorGraph(variable_li=[v1, v2, v3], factor_li=[f1, f2, f3, f4], edges=edges)
 
     return fg
+
 
 def test_message_passing_3_cycle_3_domain():
     """
@@ -175,7 +176,9 @@ def test_message_passing_3_cycle_3_domain():
     fg = create_3_cycle_3_domain_factor_graph()
 
     # Log basic graph statistics
-    logger.info(f"Graph has {len(fg.variables)} variables and {len(fg.factors)} factors")
+    logger.info(
+        f"Graph has {len(fg.variables)} variables and {len(fg.factors)} factors"
+    )
     logger.info(f"Graph diameter: {fg.diameter}")
 
     # Create the BPEngine
@@ -208,7 +211,9 @@ def test_message_passing_3_cycle_3_domain():
         logger.info(f"Variable {var.name} assignment: {var.curr_assignment}")
 
     # Check that the history contains the expected number of cycles
-    assert len(engine.history.cycles) == max_iterations, f"Expected {max_iterations} cycles, got {len(engine.history.cycles)}"
+    assert (
+        len(engine.history.cycles) == max_iterations
+    ), f"Expected {max_iterations} cycles, got {len(engine.history.cycles)}"
 
     # Check that the history contains beliefs and assignments for each cycle
     for i in range(max_iterations):
@@ -216,7 +221,9 @@ def test_message_passing_3_cycle_3_domain():
         assert i in engine.history.assignments, f"No assignments for cycle {i}"
 
     # Check that the global cost was calculated for each cycle
-    assert len(engine.history.costs) >= max_iterations, f"Expected at least {max_iterations} costs, got {len(engine.history.costs)}"
+    assert (
+        len(engine.history.costs) >= max_iterations
+    ), f"Expected at least {max_iterations} costs, got {len(engine.history.costs)}"
 
     # Check that messages were passed correctly by examining the history
     logger.info("Checking messages in history")
@@ -226,20 +233,35 @@ def test_message_passing_3_cycle_3_domain():
             for agent_name, messages in step.messages.items():
                 for message in messages:
                     # Check that the message has the expected structure
-                    assert message.sender is not None, f"Message from {agent_name} has no sender"
-                    assert message.recipient is not None, f"Message from {agent_name} has no recipient"
-                    assert message.data is not None, f"Message from {agent_name} has no data"
+                    assert (
+                        message.sender is not None
+                    ), f"Message from {agent_name} has no sender"
+                    assert (
+                        message.recipient is not None
+                    ), f"Message from {agent_name} has no recipient"
+                    assert (
+                        message.data is not None
+                    ), f"Message from {agent_name} has no data"
 
                     # Check that the message data has the expected shape (domain size)
-                    expected_domain = message.sender.domain if hasattr(message.sender, 'domain') else 3
-                    assert message.data.shape == (expected_domain,), f"Message data shape {message.data.shape} does not match expected domain size {expected_domain}"
+                    expected_domain = (
+                        message.sender.domain
+                        if hasattr(message.sender, "domain")
+                        else 3
+                    )
+                    assert message.data.shape == (
+                        expected_domain,
+                    ), f"Message data shape {message.data.shape} does not match expected domain size {expected_domain}"
 
                     # Log the message for debugging
-                    logger.info(f"Message from {message.sender.name} to {message.recipient.name}: {message.data}")
+                    logger.info(
+                        f"Message from {message.sender.name} to {message.recipient.name}: {message.data}"
+                    )
 
     logger.info("Test completed successfully")
 
     return engine
+
 
 if __name__ == "__main__":
     # Run the test directly
@@ -247,7 +269,9 @@ if __name__ == "__main__":
 
     # Print the final assignments
     print("Final assignments:")
-    for var_name, assignment in engine.history.assignments[max(engine.history.assignments.keys())].items():
+    for var_name, assignment in engine.history.assignments[
+        max(engine.history.assignments.keys())
+    ].items():
         print(f"{var_name}: {assignment}")
 
     # Print the final global cost
