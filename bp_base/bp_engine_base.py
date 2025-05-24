@@ -3,7 +3,7 @@ import typing
 from typing import Dict, List, Optional
 import numpy as np
 import networkx as nx
-from policies.normalize_cost import init_normalization
+from policies.normalize_cost import init_normalization,normalize_after_cycle
 import json
 import os
 from bp_base.agents import VariableAgent, FactorAgent
@@ -13,7 +13,7 @@ from bp_base.engine_components import History, Cycle, Step
 from bp_base.factor_graph import FactorGraph
 from bp_base.DCOP_base import Computator, Agent
 from bp_base.typing import Policy, PolicyType
-from policies.convergence import ConvergenceMonitor, ConvergenceConfig
+from policies.convergance import ConvergenceMonitor, ConvergenceConfig
 from utils.performance import PerformanceMonitor
 from dataclasses import dataclass, field
 
@@ -38,7 +38,7 @@ class BPEngine:
             policies: Dict[PolicyType, List[Policy]] | None = None,
             name: str = "BPEngine",
             normalize: bool = True,
-            convergence_config: Optional[ConvergenceConfig] = None,
+            convergence_config: ConvergenceConfig | None = None,
             monitor_performance: bool = False,
     ):
         """
@@ -66,6 +66,7 @@ class BPEngine:
         # Normalization
         if normalize:
             init_normalization(list(self.factor_nodes))
+
 
         # Add convergence and performance monitoring
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
