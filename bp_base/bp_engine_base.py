@@ -37,7 +37,7 @@ class BPEngine:
         computator: Computator = MinSumComputator(),
         policies: Dict[PolicyType, List[Policy]] | None = None,
         name: str = "BPEngine",
-        normalize: bool = True,
+        normalize: bool = False,
         convergence_config: ConvergenceConfig | None = None,
         monitor_performance: bool = False,
     ):
@@ -67,7 +67,7 @@ class BPEngine:
         if normalize:
             init_normalization(list(self.factor_nodes))
 
-        # Add convergence and performance monitoring
+
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
         self.performance_monitor = PerformanceMonitor() if monitor_performance else None
 
@@ -127,21 +127,16 @@ class BPEngine:
         cy = Cycle(j)
 
         # Run diameter + 1 steps
-        for i in range(self.graph_diameter + 1):
-            logger.debug(f"Starting step {i} of cycle {j}")
+        for i in range(self.graph_diameter):
             step_result = self.step(i)
             cy.add(step_result)
-            logger.debug(f"Completed step {i}")
-
         # Post-cycle operations
         if j == 2:
             self.post_two_cycles()
-
         self.post_var_cycle()
         self.post_factor_cycle()
 
         # Update beliefs and assignments
-        logger.debug(f"Updating beliefs and assignments for cycle {j}")
         self.history.beliefs[j] = self.get_beliefs()
         self.history.assignments[j] = self.assignments
 
