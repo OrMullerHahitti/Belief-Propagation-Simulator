@@ -10,8 +10,8 @@ def create_simple_factor_graph():
     fg = FactorGraph()
 
     # Create variable agents
-    var1 = VariableAgent(name="var1", domain_size=2)
-    var2 = VariableAgent(name="var2", domain_size=2)
+    var1 = VariableAgent(name="var1", domain=2)
+    var2 = VariableAgent(name="var2", domain=2)
 
     # Create factor agent with a simple cost table
     cost_table = np.array([[1.0, 2.0], [3.0, 4.0]])
