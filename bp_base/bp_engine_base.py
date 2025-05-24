@@ -135,7 +135,7 @@ class BPEngine:
             self.post_two_cycles()
         self.post_var_cycle()
         self.post_factor_cycle()
-
+        normalize_after_cycle(self.graph)
         # Update beliefs and assignments
         self.history.beliefs[j] = self.get_beliefs()
         self.history.assignments[j] = self.assignments
