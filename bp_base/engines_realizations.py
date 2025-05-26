@@ -1,6 +1,6 @@
 from bp_base.agents import VariableAgent
 from bp_base.bp_engine_base import BPEngine
-from policies.cost_reduction import cost_reduction_all_factors_once, discount
+from policies.cost_reduction import cost_reduction_all_factors_once, discount, discount_attentive
 
 from policies.splitting import split_all_factors
 from policies.damping import TD, damp
@@ -49,12 +49,11 @@ class TDAndSplitting(SplitEngine, TDEngine):
 
 
 class DiscountEngine(BPEngine):
-    def __init__(self, *args, discount_factor: float = 0.9, **kwargs):
-        self.discount_factor = discount_factor
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def post_factor_cycle(self):
-        discount(self.factor_nodes, self.discount_factor)
+        discount_attentive(self.graph)
 
 
 class TDAndDiscountBPEngine(TDEngine, DiscountEngine):
@@ -72,6 +71,24 @@ class DampingEngine(BPEngine):
     def post_var_compute(self, var: VariableAgent):
         damp(var, self.damping_factor)
         var.append_last_iteration()
+
+class DampingSCFGEngine(DampingEngine,SplitEngine):
+    """BP Engine with damping and splitting."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("p", 0.6)
+        kwargs.setdefault("damping_factor", 0.9)
+        super().__init__(*args, **kwargs)
+
+class DampingDiscountEngine(DampingEngine, DiscountEngine):
+    """BP Engine with damping and discounting."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("discount_factor", 0.99)
+        kwargs.setdefault("damping_factor", 0.9)
+        super().__init__(*args, **kwargs)
+
+
 
 
 class MessagePruningEngine(BPEngine):

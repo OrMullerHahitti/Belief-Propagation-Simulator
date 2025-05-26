@@ -40,17 +40,21 @@ class BPEngine:
         normalize: bool = False,
         convergence_config: ConvergenceConfig | None = None,
         monitor_performance: bool = False,
+        normalize_messages: bool = True,
     ):
         """
         Initialize the belief propagation engine.
         """
+        self.normalize_messages = normalize_messages
         self.name = name
         self.graph = factor_graph
-        self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
 
         # Initialize components
         self.post_init()
+        self._initialize_messages()
         self.graph.set_computator(computator)
+        self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -143,7 +147,7 @@ class BPEngine:
         cy = Cycle(j)
 
         # Run diameter + 1 steps
-        for i in range(self.graph_diameter):
+        for i in range(self.graph_diameter+1):
             step_result = self.step(i)
             cy.add(step_result)
         # Post-cycle operations
@@ -151,7 +155,8 @@ class BPEngine:
             self.post_two_cycles()
         self.post_var_cycle()
         self.post_factor_cycle()
-        normalize_after_cycle(self.var_nodes)
+        if self.normalize_messages:
+            normalize_after_cycle(self.var_nodes)
         # Update beliefs and assignments
         self.history.beliefs[j] = self.get_beliefs()
         self.history.assignments[j] = self.assignments
@@ -261,6 +266,21 @@ class BPEngine:
                         total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
+    def _initialize_messages(self) -> None:
+        """
+        Initialize mailboxes for all nodes with zero messages.
+        Each node creates outgoing messages to all its neighbors.
+        """
+        # For each node, create outgoing messages to all its neighbors
+        for node in self.graph.G.nodes():
+            neighbors = list(self.graph.G.neighbors(node))
+            if isinstance(node, VariableAgent):
+                for neighbor in neighbors:
+                    # Check if neighbor has a domain attribute
+                    logger.info("Initializing mailbox for node: %s", node)
+
+                    node.mailer.set_first_message(node, neighbor)
+                    # Initialize messages to send
 
     def __str__(self):
         return f"{self.name}"

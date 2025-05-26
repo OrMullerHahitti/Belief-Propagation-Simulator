@@ -23,10 +23,16 @@ def normalize_after_cycle(variables: List[VariableAgent]):
     Normalize the message data of all variables in the factor graph after each cycle.
     """
     for var in variables:
+        if var.last_iteration is not None:
+            # Normalize the last iteration messages
+            for message in var.last_iteration:
+                if message.data is not None:
+                    message.data = message.data - message.data.min()
         for message in var.mailer.inbox:
             if message.data is not None:
                 # Normalize the message data
                 message.data = message.data - message.data.min()
+
 
 
 
