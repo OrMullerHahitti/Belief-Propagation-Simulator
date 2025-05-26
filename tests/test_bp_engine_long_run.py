@@ -14,7 +14,7 @@ from bp_base.engines_realizations import (
     TDAndSplitting,
     CostReductionAndTD,
     TDAndDiscountBPEngine,
-    DampingEngine,
+    DampingEngine, DampingSCFGEngine,
 )
 from configs.global_config_mapping import PROJECT_ROOT
 from policies.convergance import ConvergenceConfig
@@ -45,7 +45,7 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "factor-graph-random-30-random_intlow100,high2000.3-number0.pkl",  # If this exists, otherwise keep the original
+        "factor-graph-random-30-random_intlow100,high2000.3-number1.pkl",  # If this exists, otherwise keep the original
     )
     logger.info(f"Loading factor graph from: {pickle_path}")
     start_time = time.time()
@@ -62,14 +62,19 @@ def test_bp_engine_long_run(simple_factor_graph):
     logger.info("Creating BPEngine...")
     start_time = time.time()
     logger.debug(f"Factor graph: {len(fg.factors)}")
-    engine = BPEngine(factor_graph=fg,normalize=True,convergence_config=ConvergenceConfig(),monitor_performance=True)
+    #engine = BPEngine(factor_graph=fg,normalize=True,convergence_config=ConvergenceConfig(),monitor_performance=True)
     # engine = SplitEngine(factor_graph=fg)
     # engine = TDEngine(factor_graph=fg)
     # engine= CostReductionAndDamping(factor_graph=fg)
     # engine = CostReductionOnceEngine(factor_graph=fg)
-    #engine = DampingEngine(factor_graph=fg)
-
+    #engine = DampingEngine(factor_graph=fg,normalize=True,convergence_config=ConvergenceConfig(),monitor_performance=True)
     # engine = DampAndDiscountBPEngine(factor_graph=fg)
+    engine = DampingSCFGEngine(
+        factor_graph=fg,
+        normalize=True,
+        convergence_config=ConvergenceConfig(),
+        monitor_performance=True,
+    )
     logger.info(f"BPEngine initialized in {time.time() - start_time:.2f} seconds")
 
     # Run just 1 or 2 iterations with timing
