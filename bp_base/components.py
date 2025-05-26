@@ -70,8 +70,14 @@ class MailHandler:
         return f"{agent.name}_{agent.type}"
 
     def set_first_message(self, owner: BPAgent, neighbor: BPAgent) -> None:
-        """Initialize with zero message from neighbor."""
+        """
+        Initialize with zero message from neighbor.
+        Supports both original neighbors and split factor neighbors (with ' or '' suffix).
+        """
         key = self._make_key(neighbor)
+
+
+        # Default initialization with zeros
         self._incoming[key] = Message(
             np.zeros(self._message_domain_size),
             neighbor,

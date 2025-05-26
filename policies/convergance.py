@@ -12,7 +12,7 @@ class ConvergenceConfig:
 
     belief_threshold: float = 1e-6
     assignment_threshold: int = 0  # For discrete assignments
-    min_iterations: int = 10
+    min_iterations: int = 0
     patience: int = 5  # How many iterations to wait after apparent convergence
     use_relative_change: bool = False  # Use relative vs absolute change
 
