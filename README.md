@@ -9,6 +9,8 @@ The **Belief-Propagation-Simulator** is a Python-based tool designed to simulate
 - **Extensible Framework**: Designed to support future extensions for algorithms that can run on factor graphs (e.g., DSA, other inference algorithms).
 - **Graph State Persistence**: Save and load graph states efficiently using pickle files.
 - **Debugging and Logging**: Integrated logging for debugging and monitoring.
+### preliminary resaults:
+![image](bp_VS_damping_VS_damping_spfg.png)
 >This project is a work in progress and is not yet fully functional. The current implementation focuses on the basic structure and functionality of the simulator, with plans for future enhancements and optimizations.
 >
 > it will be up and running very soon.
