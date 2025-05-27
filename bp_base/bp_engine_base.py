@@ -55,7 +55,6 @@ class BPEngine:
         self.graph.set_computator(computator)
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
 
-
         # Setup history
         engine_type = self.__class__.__name__
         self.history = History(
@@ -118,7 +117,7 @@ class BPEngine:
             factor.mailer.prepare()
 
         # Notify pruning policy of step completion
-        if hasattr(self, 'message_pruning_policy') and self.message_pruning_policy:
+        if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
             self.message_pruning_policy.step_completed()
 
         # Calculate costs and track metrics
@@ -129,15 +128,17 @@ class BPEngine:
         if self.performance_monitor:
             all_agents = list(self.graph.G.nodes())
             pruning_stats = {}
-            if hasattr(self, 'message_pruning_policy') and self.message_pruning_policy:
+            if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
                 pruning_stats = self.message_pruning_policy.get_stats()
 
             msg_metrics = self.performance_monitor.track_message_metrics(
                 i, all_agents, pruning_stats
             )
-            self.performance_monitor.end_step(start_time, i,
-                                              [msg for agent in all_agents
-                                               for msg in agent.mailer.outbox])
+            self.performance_monitor.end_step(
+                start_time,
+                i,
+                [msg for agent in all_agents for msg in agent.mailer.outbox],
+            )
 
         return step
 
@@ -146,7 +147,7 @@ class BPEngine:
         cy = Cycle(j)
 
         # Run diameter + 1 steps
-        for i in range(self.graph_diameter+1):
+        for i in range(self.graph_diameter + 1):
             step_result = self.step(i)
             cy.add(step_result)
         # Post-cycle operations
@@ -265,6 +266,7 @@ class BPEngine:
                         total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
+
     def _initialize_messages(self) -> None:
         """
         Initialize mailboxes for all nodes with zero messages.

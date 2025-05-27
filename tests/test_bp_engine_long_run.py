@@ -14,7 +14,8 @@ from bp_base.engines_realizations import (
     TDAndSplitting,
     CostReductionAndTD,
     TDAndDiscountBPEngine,
-    DampingEngine, DampingSCFGEngine,
+    DampingEngine,
+    DampingSCFGEngine,
 )
 from configs.global_config_mapping import PROJECT_ROOT
 from policies.convergance import ConvergenceConfig
@@ -62,7 +63,7 @@ def test_bp_engine_long_run(simple_factor_graph):
     logger.info("Creating BPEngine...")
     start_time = time.time()
     logger.debug(f"Factor graph: {len(fg.factors)}")
-    #engine = BPEngine(factor_graph=fg,normalize=True,convergence_config=ConvergenceConfig(),monitor_performance=True)
+    # engine = BPEngine(factor_graph=fg,normalize=True,convergence_config=ConvergenceConfig(),monitor_performance=True)
     engine = BPEngine(
         factor_graph=fg,
         normalize=True,
@@ -73,7 +74,7 @@ def test_bp_engine_long_run(simple_factor_graph):
     # engine = TDEngine(factor_graph=fg)
     # engine= CostReductionAndDamping(factor_graph=fg)
     # engine = CostReductionOnceEngine(factor_graph=fg)
-    #engine = DampingEngine(factor_graph=fg,normalize=True,convergence_config=ConvergenceConfig(),monitor_performance=True)
+    # engine = DampingEngine(factor_graph=fg,normalize=True,convergence_config=ConvergenceConfig(),monitor_performance=True)
 
     # engine = DampAndDiscountBPEngine(factor_graph=fg)
     engine = DampingSCFGEngine(
