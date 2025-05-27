@@ -9,7 +9,7 @@ from bp_base.factor_graph import FactorGraph
 
 
 def split_all_factors(
-    fg: "FactorGraph",
+    fg: FactorGraph,
     p: float = 0.5,
 ) -> None:
     """
@@ -22,10 +22,13 @@ def split_all_factors(
     G: nx.Graph = fg.G
 
     # Work on a *copy* of the factors list to avoid mutation issues
-    original_factors: List["FactorAgent"] = list(fg.factors)
+    original_factors: List[FactorAgent] = list(fg.factors)
 
     for f in original_factors:
-        # 1. build new agents
+
+
+
+        #  build new agents
         cost1 = p * f.cost_table
         cost2 = (1.0 - p) * f.cost_table
 
@@ -36,15 +39,18 @@ def split_all_factors(
         f1.connection_number = deepcopy(f.connection_number)
         f2.connection_number = deepcopy(f.connection_number)
 
-        # 2. add nodes and replicate edges + edge attributes
+
+
+        #  add nodes and replicate edges + edge attributes
         for v, edge_data in G[f].items():
             G.add_edge(f1, v, **edge_data)
             G.add_edge(f2, v, **edge_data)
 
-        # 3. register in FactorGraph bookkeeping
+        # register in FactorGraph
         fg.factors.append(f1)
         fg.factors.append(f2)
 
-        # 4. remove old node and its reference
+        #  remove old node and its reference
         G.remove_node(f)
         fg.factors.remove(f)
+

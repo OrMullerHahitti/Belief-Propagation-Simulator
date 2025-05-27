@@ -48,8 +48,6 @@ class FactorGraph:
         # Initialize cost tables for factor nodes
         self._initialize_cost_tables()
 
-        # Initialize mailboxes for all nodes
-        self._initialize_messages()
 
     @property
     def global_cost(self) -> int | float:
@@ -179,21 +177,7 @@ class FactorGraph:
                 node.initiate_cost_table()
                 logger.info("Cost table initialized for factor node: %s", node.name)
 
-    def _initialize_messages(self) -> None:
-        """
-        Initialize mailboxes for all nodes with zero messages.
-        Each node creates outgoing messages to all its neighbors.
-        """
-        # For each node, create outgoing messages to all its neighbors
-        for node in self.G.nodes():
-            neighbors = list(self.G.neighbors(node))
-            if isinstance(node, VariableAgent):
-                for neighbor in neighbors:
-                    # Check if neighbor has a domain attribute
-                    logger.info("Initializing mailbox for node: %s", node)
 
-                    node.mailer.set_first_message(node, neighbor)
-                    # Initialize messages to send
 
     def get_variable_agents(self) -> List[VariableAgent]:
         """Return a list of all variable agents in the graph."""
@@ -210,8 +194,7 @@ class FactorGraph:
             return 0
         # Check if graph is connected, diameter is infinite for disconnected graphs
         if not nx.is_connected(self.G):
-            # Or handle as an error, or return a specific value e.g. -1 or float('inf')
-            # For now, returning the diameter of the largest connected component
+
             if not list(nx.connected_components(self.G)):  # Handle empty graph case
                 return 0
             largest_cc = max(nx.connected_components(self.G), key=len)

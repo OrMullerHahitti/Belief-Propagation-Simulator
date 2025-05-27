@@ -94,11 +94,11 @@ class VariableAgent(BPAgent):
             belief -= belief_min
 
         return belief
-
+    #TODO: make it argmin or argmax based on the problem type
     @property
     def curr_assignment(self) -> int | float:
         """Compute the current assignment based on beliefs."""
-        return int(np.argmax(self.belief))
+        return int(np.argmin(self.belief))
 
     def __str__(self):
         return self.name.upper()

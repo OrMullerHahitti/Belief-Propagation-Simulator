@@ -40,17 +40,21 @@ class BPEngine:
         normalize: bool = False,
         convergence_config: ConvergenceConfig | None = None,
         monitor_performance: bool = False,
+        normalize_messages: bool = True,
     ):
         """
         Initialize the belief propagation engine.
         """
+        self.normalize_messages = normalize_messages
         self.name = name
         self.graph = factor_graph
-        self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
 
         # Initialize components
         self.post_init()
+        self._initialize_messages()
         self.graph.set_computator(computator)
+        self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -70,23 +74,29 @@ class BPEngine:
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
         self.performance_monitor = PerformanceMonitor() if monitor_performance else None
 
+    def set_message_pruning_policy(self, policy):
+        """Set message pruning policy for all agents."""
+        self.message_pruning_policy = policy
+        for agent in self.graph.G.nodes():
+            agent.mailer.set_pruning_policy(policy)
+
     def step(self, i: int = 0) -> Step:
-        """Run one step of belief propagation with proper synchronization."""
+        """Run one step with message pruning support."""
         if self.performance_monitor:
             start_time = self.performance_monitor.start_step()
 
         step = Step(i)
 
-        # Phase 1: All variables compute messages (but don't send yet)
+        # Phase 1: All variables compute messages
         for var in self.var_nodes:
             var.compute_messages()
             self.post_var_compute(var)
 
-        # Phase 2: All variables send messages at once
+        # Phase 2: All variables send messages
         for var in self.var_nodes:
             var.mailer.send()
 
-        # Phase 3: Clear variable mailboxes and prepare for next round
+        # Phase 3: Clear and prepare variables
         for var in self.var_nodes:
             var.empty_mailbox()
             var.mailer.prepare()
@@ -96,28 +106,38 @@ class BPEngine:
             factor.compute_messages()
             self.post_factor_step()
 
-        # Phase 5: All factors send messages at once
+        # Phase 5: All factors send messages
         for factor in self.factor_nodes:
             factor.mailer.send()
-            # Record messages in step
             for message in factor.mailer.outbox:
                 step.add(message.recipient, message)
 
-        # Phase 6: Clear factor mailboxes and prepare
+        # Phase 6: Clear and prepare factors
         for factor in self.factor_nodes:
             factor.empty_mailbox()
             factor.mailer.prepare()
 
-        # Calculate global cost after all messages are sent
+        # Notify pruning policy of step completion
+        if hasattr(self, 'message_pruning_policy') and self.message_pruning_policy:
+            self.message_pruning_policy.step_completed()
+
+        # Calculate costs and track metrics
         global_cost = self.calculate_global_cost()
         self.history.costs.append(global_cost)
 
-        # Performance monitoring
+        # Track message metrics if monitoring
         if self.performance_monitor:
-            all_messages = []
-            for node in self.graph.G.nodes():
-                all_messages.extend(node.mailer.outbox)
-            self.performance_monitor.end_step(start_time, i, all_messages)
+            all_agents = list(self.graph.G.nodes())
+            pruning_stats = {}
+            if hasattr(self, 'message_pruning_policy') and self.message_pruning_policy:
+                pruning_stats = self.message_pruning_policy.get_stats()
+
+            msg_metrics = self.performance_monitor.track_message_metrics(
+                i, all_agents, pruning_stats
+            )
+            self.performance_monitor.end_step(start_time, i,
+                                              [msg for agent in all_agents
+                                               for msg in agent.mailer.outbox])
 
         return step
 
@@ -126,7 +146,7 @@ class BPEngine:
         cy = Cycle(j)
 
         # Run diameter + 1 steps
-        for i in range(self.graph_diameter):
+        for i in range(self.graph_diameter+1):
             step_result = self.step(i)
             cy.add(step_result)
         # Post-cycle operations
@@ -134,7 +154,8 @@ class BPEngine:
             self.post_two_cycles()
         self.post_var_cycle()
         self.post_factor_cycle()
-        normalize_after_cycle(self.graph)
+        if self.normalize_messages:
+            normalize_after_cycle(self.var_nodes)
         # Update beliefs and assignments
         self.history.beliefs[j] = self.get_beliefs()
         self.history.assignments[j] = self.assignments
@@ -244,6 +265,21 @@ class BPEngine:
                         total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
+    def _initialize_messages(self) -> None:
+        """
+        Initialize mailboxes for all nodes with zero messages.
+        Each node creates outgoing messages to all its neighbors.
+        """
+        # For each node, create outgoing messages to all its neighbors
+        for node in self.graph.G.nodes():
+            neighbors = list(self.graph.G.neighbors(node))
+            if isinstance(node, VariableAgent):
+                for neighbor in neighbors:
+                    # Check if neighbor has a domain attribute
+                    logger.info("Initializing mailbox for node: %s", node)
+
+                    node.mailer.set_first_message(node, neighbor)
+                    # Initialize messages to send
 
     def __str__(self):
         return f"{self.name}"
