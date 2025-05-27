@@ -35,7 +35,6 @@ class BPEngine:
         self,
         factor_graph: FactorGraph,
         computator: Computator = MinSumComputator(),
-        policies: Dict[PolicyType, List[Policy]] | None = None,
         name: str = "BPEngine",
         normalize: bool = False,
         convergence_config: ConvergenceConfig | None = None,
@@ -60,7 +59,6 @@ class BPEngine:
         self.history = History(
             engine_type=engine_type,
             computator=computator,
-            policies=policies,
             factor_graph=factor_graph,
         )
 
@@ -72,12 +70,6 @@ class BPEngine:
 
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
         self.performance_monitor = PerformanceMonitor() if monitor_performance else None
-
-    def set_message_pruning_policy(self, policy):
-        """Set message pruning policy for all agents."""
-        self.message_pruning_policy = policy
-        for agent in self.graph.G.nodes():
-            agent.mailer.set_pruning_policy(policy)
 
     def step(self, i: int = 0) -> Step:
         """Run one step with message pruning support."""
