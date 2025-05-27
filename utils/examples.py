@@ -8,7 +8,11 @@ import os
 from pathlib import Path
 
 from configs.global_config_mapping import CT_FACTORIES
-from utils.create_factor_graphs_from_config import FactorGraphBuilder, build_cycle_graph, build_random_graph
+from utils.create_factor_graphs_from_config import (
+    FactorGraphBuilder,
+    build_cycle_graph,
+    build_random_graph,
+)
 from utils.path_utils import find_project_root
 import sys
 
@@ -26,10 +30,14 @@ def create_simple_factor_graph_cycle() -> FactorGraph:
     return fg
 
 
-
-
-def create_factor_graph(graph_type="cycle", num_vars=5, domain_size=3, ct_factory="random_int", ct_params=None,
-                        density=0.5):
+def create_factor_graph(
+    graph_type="cycle",
+    num_vars=5,
+    domain_size=3,
+    ct_factory="random_int",
+    ct_params=None,
+    density=0.5,
+):
     """
     Create a factor graph directly without going through the config and pickle process.
 
@@ -55,8 +63,7 @@ def create_factor_graph(graph_type="cycle", num_vars=5, domain_size=3, ct_factor
             domain_size=domain_size,
             ct_factory=ct_factory_fn,
             ct_params=ct_params,
-            density=density
-
+            density=density,
         )
 
     if graph_type == "random":
@@ -65,7 +72,7 @@ def create_factor_graph(graph_type="cycle", num_vars=5, domain_size=3, ct_factor
             domain_size=domain_size,
             ct_factory=ct_factory_fn,
             ct_params=ct_params,
-            density=density
+            density=density,
         )
     else:
         raise ValueError(f"Unknown graph type: {graph_type}")

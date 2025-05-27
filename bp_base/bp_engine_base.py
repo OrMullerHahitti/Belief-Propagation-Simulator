@@ -67,7 +67,6 @@ class BPEngine:
         if normalize:
             init_normalization(list(self.factor_nodes))
 
-
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
         self.performance_monitor = PerformanceMonitor() if monitor_performance else None
 
