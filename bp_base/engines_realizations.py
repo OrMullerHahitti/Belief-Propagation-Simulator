@@ -36,12 +36,14 @@ class CostReductionOnceEngine(BPEngine):
     def post_two_cycles(self):
         cost_reduction_all_factors_once(self.factor_nodes, self.cr)
 
+
 class DiscountEngine(BPEngine):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def post_factor_cycle(self):
         discount_attentive(self.graph)
+
 
 class DampingEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
@@ -96,7 +98,6 @@ class MessagePruningEngine(BPEngine):
             min_iterations=self.min_iterations,
             adaptive_threshold=self.adaptive_threshold,
         )
-
 
 
 class TDAndPruningEngine(TDEngine, MessagePruningEngine):
