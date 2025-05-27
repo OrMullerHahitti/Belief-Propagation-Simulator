@@ -48,7 +48,6 @@ class FactorGraph:
         self._initialize_cost_tables()
         self._original_factors = deepcopy(factor_li)
 
-
     @property
     def global_cost(self) -> int | float:
         """
