@@ -48,7 +48,6 @@ class FactorGraph:
         # Initialize cost tables for factor nodes
         self._initialize_cost_tables()
 
-
     @property
     def global_cost(self) -> int | float:
         """
@@ -176,8 +175,6 @@ class FactorGraph:
                 # Initialize cost table for the factor node
                 node.initiate_cost_table()
                 logger.info("Cost table initialized for factor node: %s", node.name)
-
-
 
     def get_variable_agents(self) -> List[VariableAgent]:
         """Return a list of all variable agents in the graph."""

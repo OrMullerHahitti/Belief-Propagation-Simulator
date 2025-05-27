@@ -34,20 +34,18 @@ def normalize_after_cycle(variables: List[VariableAgent]):
                 message.data = message.data - message.data.min()
 
 
-
-
-
-
 class MessagePruningPolicy(Policy):
     """
     Policy that prunes redundant messages based on L2-norm threshold.
     Prevents message explosion by filtering out similar consecutive messages.
     """
 
-    def __init__(self,
-                 prune_threshold: float = 1e-4,
-                 min_iterations: int = 5,
-                 adaptive_threshold: bool = True):
+    def __init__(
+        self,
+        prune_threshold: float = 1e-4,
+        min_iterations: int = 5,
+        adaptive_threshold: bool = True,
+    ):
         super().__init__(PolicyType.MESSAGE)
         self.prune_threshold = prune_threshold
         self.min_iterations = min_iterations
@@ -107,7 +105,7 @@ class MessagePruningPolicy(Policy):
             "pruning_rate": self.pruned_count / self.total_count,
             "total_messages": self.total_count,
             "pruned_messages": self.pruned_count,
-            "iterations": self.iteration_count
+            "iterations": self.iteration_count,
         }
 
     def reset(self):

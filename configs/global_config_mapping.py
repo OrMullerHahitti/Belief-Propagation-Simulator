@@ -62,6 +62,7 @@ def create_poisson_table(n: int, domain: int, rate: float = 1.0):
     shape = (domain,) * n
     return np.random.poisson(lam=rate, size=shape)
 
+
 @ct_factory("random_int")
 def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
     """

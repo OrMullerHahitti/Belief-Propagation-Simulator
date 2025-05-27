@@ -25,7 +25,7 @@ def run_baseline_comparison():
         num_variables=10,
         domain_size=3,
         ct_factory="random_int",
-        ct_params={"low": 0, "high": 10}
+        ct_params={"low": 0, "high": 10},
     )
 
     # Build factor graph
@@ -40,11 +40,11 @@ def run_baseline_comparison():
     regular_engine = BPEngine(
         factor_graph=factor_graph,
         computator=MinSumComputator(),
-        monitor_performance=True
+        monitor_performance=True,
     )
     regular_engine.run(max_iter=50, save_csv=False)
     regular_summary = regular_engine.performance_monitor.get_summary()
-    results['regular'] = regular_summary
+    results["regular"] = regular_summary
 
     # Test pruning engine
     print("Testing MessagePruningEngine...")
@@ -52,12 +52,12 @@ def run_baseline_comparison():
         factor_graph=factor_graph,
         computator=MinSumComputator(),
         prune_threshold=1e-4,
-        monitor_performance=True
+        monitor_performance=True,
     )
     pruning_engine.run(max_iter=50, save_csv=False)
     pruning_summary = pruning_engine.performance_monitor.get_summary()
     pruning_stats = pruning_engine.message_pruning_policy.get_stats()
-    results['pruning'] = {**pruning_summary, **pruning_stats}
+    results["pruning"] = {**pruning_summary, **pruning_stats}
 
     # Print comparison
     print("\n=== BASELINE COMPARISON ===")
@@ -74,9 +74,10 @@ def run_baseline_comparison():
     print(f"  Avg memory: {results['pruning'].get('avg_memory_mb', 'N/A')} MB")
 
     # Calculate improvements
-    if results['regular']['total_messages'] > 0:
-        msg_reduction = (results['regular']['total_messages'] -
-                         results['pruning']['total_messages']) / results['regular']['total_messages']
+    if results["regular"]["total_messages"] > 0:
+        msg_reduction = (
+            results["regular"]["total_messages"] - results["pruning"]["total_messages"]
+        ) / results["regular"]["total_messages"]
         print(f"\nMessage reduction: {msg_reduction:.2%}")
 
     return results
