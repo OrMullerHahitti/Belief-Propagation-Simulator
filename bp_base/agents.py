@@ -179,10 +179,12 @@ class FactorAgent(BPAgent):
 
         self.name = f"f{''.join(var_indices)}_"
 
-    def save_original(self):
+    def save_original(self,ct:CostTable|None=None) -> None:
         """Save the original cost table before modifications."""
-        if self._original is None and self.cost_table is not None:
+        if self._original is None and self.cost_table is not None and ct is None:
             self._original = np.copy(self.cost_table)
+        elif ct is not None and self._original is None and self.cost_table is not None:
+            self._original=np.copy(ct)
 
     @property
     def mean_cost(self) -> float:

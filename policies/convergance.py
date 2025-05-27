@@ -14,7 +14,7 @@ class ConvergenceConfig:
     assignment_threshold: int = 0  # For discrete assignments
     min_iterations: int = 0
     patience: int = 5  # How many iterations to wait after apparent convergence
-    use_relative_change: bool = False  # Use relative vs absolute change
+    use_relative_change: bool = True  # Use relative vs absolute change
 
 
 class ConvergenceMonitor:

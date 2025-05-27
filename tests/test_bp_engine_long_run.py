@@ -46,7 +46,7 @@ def simple_factor_graph():
         PROJECT_ROOT,
         "configs",
         "factor_graphs",
-        "factor-graph-random-30-random_intlow100,high2000.3-number1.pkl",  # If this exists, otherwise keep the original
+        "factor-graph-random-30-random_intlow100,high2000.3-number2.pkl",  # If this exists, otherwise keep the original
     )
     logger.info(f"Loading factor graph from: {pickle_path}")
     start_time = time.time()
@@ -88,7 +88,7 @@ def test_bp_engine_long_run(simple_factor_graph):
     # Run just 1 or 2 iterations with timing
     logger.info("Starting BP Engine run (just 1 iteration)...")
     start_time = time.time()
-    engine.run(max_iter=50, save_json=False, save_csv=True)
+    engine.run(max_iter=30, save_json=False, save_csv=True)
     logger.info(
         f"BP Engine completed 1 iteration in {time.time() - start_time:.2f} seconds"
     )

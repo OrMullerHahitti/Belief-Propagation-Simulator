@@ -11,8 +11,8 @@ from policies.damping import TD, damp
 
 
 class SplitEngine(BPEngine):
-    def __init__(self, *args, p: float = 0.5, **kwargs):
-        self.p = p
+    def __init__(self, *args, split_factor: float = 0.5, **kwargs):
+        self.p = split_factor
         super().__init__(*args, **kwargs)
 
     def post_init(self) -> None:
@@ -81,7 +81,7 @@ class DampingSCFGEngine(DampingEngine, SplitEngine):
     """BP Engine with damping and splitting."""
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("p", 0.6)
+        kwargs.setdefault("split_factor", 0.6)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
 

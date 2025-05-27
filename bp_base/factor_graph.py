@@ -33,7 +33,6 @@ class FactorGraph:
         """
         self.variables = variable_li
         self.factors = factor_li
-        self._original_factors = deepcopy(factor_li)
 
         # Create a bipartite graph
         self.G = nx.Graph()
@@ -47,6 +46,8 @@ class FactorGraph:
 
         # Initialize cost tables for factor nodes
         self._initialize_cost_tables()
+        self._original_factors = deepcopy(factor_li)
+
 
     @property
     def global_cost(self) -> int | float:
