@@ -24,6 +24,9 @@ def split_all_factors(
     # Work on a *copy* of the factors list to avoid mutation issues
     original_factors: List[FactorAgent] = list(fg.factors)
 
+
+
+
     for f in original_factors:
 
         #  build new agents
@@ -49,3 +52,6 @@ def split_all_factors(
         #  remove old node and its reference
         G.remove_node(f)
         fg.factors.remove(f)
+
+
+

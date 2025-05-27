@@ -246,7 +246,7 @@ class BPEngine:
         var_assignments = {node.name: node.curr_assignment for node in self.var_nodes}
 
         total_cost = 0.0
-        for factor in self.factor_nodes:
+        for factor in self.graph._original_factors:
             if factor.cost_table is not None:
                 indices = []
                 for var_name, dim in factor.connection_number.items():
