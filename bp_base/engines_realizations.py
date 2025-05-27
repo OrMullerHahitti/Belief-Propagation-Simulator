@@ -29,28 +29,12 @@ class TDEngine(BPEngine):
 
 
 class CostReductionOnceEngine(BPEngine):
-    def __init__(self, *args, p: float = 0.5, **kwargs):
-        self.cr = p
+    def __init__(self, *args, reduction_factor: float = 0.6, **kwargs):
+        self.cr = reduction_factor
         super().__init__(*args, **kwargs)
 
     def post_two_cycles(self):
         cost_reduction_all_factors_once(self.factor_nodes, self.cr)
-
-
-# cost reduction and damping
-class CostReductionAndTD(CostReductionOnceEngine, TDEngine):
-    def __init__(self, *args, p: float = 0.5, damping_factor: float = 0.9, **kwargs):
-        self.cr = p
-        self.damping_factor = damping_factor
-        super().__init__(*args, **kwargs)
-
-
-class TDAndSplitting(SplitEngine, TDEngine):
-    def __init__(self, *args, p: float = 0.3, damping_factor: float = 0.9, **kwargs):
-        kwargs.setdefault("discount_factor", 0.995)
-        kwargs.setdefault("damping_factor", 0.9)
-        super().__init__(*args, **kwargs)
-
 
 class DiscountEngine(BPEngine):
     def __init__(self, *args, **kwargs):
@@ -58,14 +42,6 @@ class DiscountEngine(BPEngine):
 
     def post_factor_cycle(self):
         discount_attentive(self.graph)
-
-
-class TDAndDiscountBPEngine(TDEngine, DiscountEngine):
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("discount_factor", 0.99)
-        kwargs.setdefault("damping_factor", 0.9)
-        super().__init__(*args, **kwargs)
-
 
 class DampingEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
@@ -86,11 +62,11 @@ class DampingSCFGEngine(DampingEngine, SplitEngine):
         super().__init__(*args, **kwargs)
 
 
-class DampingDiscountEngine(DampingEngine, DiscountEngine):
+class DampingCROnceEngine(DampingEngine, CostReductionOnceEngine):
     """BP Engine with damping and discounting."""
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("discount_factor", 0.99)
+        kwargs.setdefault("reduction_factor", 0.4)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
 
@@ -120,7 +96,7 @@ class MessagePruningEngine(BPEngine):
             min_iterations=self.min_iterations,
             adaptive_threshold=self.adaptive_threshold,
         )
-        self.set_message_pruning_policy(pruning_policy)
+
 
 
 class TDAndPruningEngine(TDEngine, MessagePruningEngine):
