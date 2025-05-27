@@ -18,6 +18,7 @@ def discount(fac_a: Iterable[FactorAgent], x: float):
             factor.save_original()
             factor.cost_table = factor.cost_table * x
 
+
 def discount_attentive(fg: FactorGraph):
     variables = {n for n, d in fg.G.nodes(data=True) if d.get("bipartite") == 0}
 
