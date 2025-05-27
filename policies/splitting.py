@@ -26,8 +26,6 @@ def split_all_factors(
 
     for f in original_factors:
 
-
-
         #  build new agents
         cost1 = p * f.cost_table
         cost2 = (1.0 - p) * f.cost_table
@@ -38,8 +36,6 @@ def split_all_factors(
         # copy dimension-mapping so message axes stay aligned
         f1.connection_number = deepcopy(f.connection_number)
         f2.connection_number = deepcopy(f.connection_number)
-
-
 
         #  add nodes and replicate edges + edge attributes
         for v, edge_data in G[f].items():
@@ -53,4 +49,3 @@ def split_all_factors(
         #  remove old node and its reference
         G.remove_node(f)
         fg.factors.remove(f)
-

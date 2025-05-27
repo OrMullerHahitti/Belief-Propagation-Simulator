@@ -12,10 +12,12 @@ logger = logging.getLogger(__name__)
 class MessagePruningPolicy(Policy):
     """Policy that prunes redundant messages to prevent memory explosion."""
 
-    def __init__(self,
-                 prune_threshold: float = 1e-4,
-                 min_iterations: int = 5,
-                 adaptive_threshold: bool = True):
+    def __init__(
+        self,
+        prune_threshold: float = 1e-4,
+        min_iterations: int = 5,
+        adaptive_threshold: bool = True,
+    ):
         super().__init__(PolicyType.MESSAGE)
         self.prune_threshold = prune_threshold
         self.min_iterations = min_iterations
@@ -49,8 +51,10 @@ class MessagePruningPolicy(Policy):
         # Prune if below threshold
         if diff_norm < threshold:
             self.pruned_count += 1
-            logger.debug(f"Pruned message {new_message.sender.name} -> "
-                         f"{new_message.recipient.name}, diff: {diff_norm:.6f}")
+            logger.debug(
+                f"Pruned message {new_message.sender.name} -> "
+                f"{new_message.recipient.name}, diff: {diff_norm:.6f}"
+            )
             return False
 
         return True
@@ -65,7 +69,7 @@ class MessagePruningPolicy(Policy):
             "pruning_rate": self.pruned_count / max(self.total_count, 1),
             "total_messages": self.total_count,
             "pruned_messages": self.pruned_count,
-            "iterations": self.iteration_count
+            "iterations": self.iteration_count,
         }
 
     def reset(self):

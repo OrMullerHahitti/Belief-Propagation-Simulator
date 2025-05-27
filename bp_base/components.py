@@ -62,7 +62,7 @@ class MailHandler:
 
     def set_pruning_policy(self, policy):
         """Set message pruning policy."""
-        self.pruning_policy = getattr(self, 'pruning_policy', None)
+        self.pruning_policy = getattr(self, "pruning_policy", None)
         self.pruning_policy = policy
 
     def _make_key(self, agent: Agent) -> str:
@@ -76,7 +76,6 @@ class MailHandler:
         """
         key = self._make_key(neighbor)
 
-
         # Default initialization with zeros
         self._incoming[key] = Message(
             np.zeros(self._message_domain_size),
@@ -88,7 +87,7 @@ class MailHandler:
     def receive_messages(self, message: Message):
         """Handle a single Message with optional pruning."""
         # Check for pruning policy
-        if hasattr(self, 'pruning_policy') and self.pruning_policy is not None:
+        if hasattr(self, "pruning_policy") and self.pruning_policy is not None:
             # Get the owner agent (recipient)
             owner = message.recipient
             if not self.pruning_policy.should_accept_message(owner, message):
@@ -97,6 +96,7 @@ class MailHandler:
         # Accept message
         key = self._make_key(message.sender)
         self._incoming[key] = message
+
     @receive_messages.register(list)
     def _(self, messages: list[Message]):
         """Handle a list of Messages."""
