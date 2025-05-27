@@ -7,7 +7,6 @@ from bp_base.engines_realizations import (
     SplitEngine,
     DampingEngine,
     CostReductionOnceEngine,
-
 )
 
 
