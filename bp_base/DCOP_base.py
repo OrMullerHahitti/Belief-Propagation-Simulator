@@ -109,4 +109,3 @@ class Mailer(Agent):
 
     def clear_mailbox(self) -> None:
         self.mailbox = {}
-
