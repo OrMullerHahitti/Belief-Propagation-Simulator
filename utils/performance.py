@@ -29,6 +29,14 @@ class CycleMetrics:
     steps: List[StepMetrics]
     belief_change: Optional[float] = None
     cost: Optional[float] = None
+@dataclass
+class MessageMetrics:
+    """Metrics for message usage and pruning."""
+    total_messages: int = 0
+    pruned_messages: int = 0
+    avg_message_size_bytes: float = 0.0
+    memory_per_message_kb: float = 0.0
+    pruning_rate: float = 0.0
 
 
 class PerformanceMonitor:
@@ -93,6 +101,29 @@ class PerformanceMonitor:
             f"memory: {memory_mb:.1f}MB"
         )
 
+        return metrics
+
+    def track_message_metrics(self, step_num: int, all_agents: List,
+                              pruning_stats: Dict = None) -> MessageMetrics:
+        """Track message-specific memory and pruning metrics."""
+        total_msgs = sum(len(agent.mailer.inbox) for agent in all_agents)
+        total_size_bytes = sum(
+            sum(msg.data.nbytes for msg in agent.mailer.inbox)
+            for agent in all_agents
+        )
+
+        pruning_stats = pruning_stats or {}
+
+        metrics = MessageMetrics(
+            total_messages=total_msgs,
+            pruned_messages=pruning_stats.get('pruned_messages', 0),
+            avg_message_size_bytes=total_size_bytes / max(total_msgs, 1),
+            memory_per_message_kb=(total_size_bytes / max(total_msgs, 1)) / 1024,
+            pruning_rate=pruning_stats.get('pruning_rate', 0.0)
+        )
+
+        logger.debug(f"Step {step_num}: {total_msgs} messages, "
+                     f"pruning rate: {metrics.pruning_rate:.2%}")
         return metrics
 
     def start_cycle(self, cycle_num: int):
