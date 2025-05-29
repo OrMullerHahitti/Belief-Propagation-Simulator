@@ -50,7 +50,6 @@ class FactorGraph:
         self._lb = None  # Lower bound, can be set later
         self._ub = None  # Upper bound, can be set later
 
-
     @property
     def lb(self) -> int | float:
         """
@@ -68,7 +67,6 @@ class FactorGraph:
         if not isinstance(value, (int, float)):
             raise ValueError("Lower bound must be an integer or float.")
         self._lb = value
-
 
     @property
     def global_cost(self) -> int | float:

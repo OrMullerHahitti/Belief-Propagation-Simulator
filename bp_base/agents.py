@@ -42,6 +42,7 @@ class BPAgent(Agent, ABC):
     @property
     def inbox(self):
         return self.mailer.inbox
+
     @property
     def outbox(self):
         return self.mailer.outbox
@@ -58,7 +59,7 @@ class BPAgent(Agent, ABC):
             return []
         return self._history[-1]
 
-    def last_cycle(self,diameter:int=1) -> List[Message]:
+    def last_cycle(self, diameter: int = 1) -> List[Message]:
         """Get the last cycle messages."""
         if not self._history:
             return []
