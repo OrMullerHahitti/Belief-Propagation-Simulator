@@ -47,6 +47,28 @@ class FactorGraph:
         # Initialize cost tables for factor nodes
         self._initialize_cost_tables()
         self._original_factors = deepcopy(factor_li)
+        self._lb = None  # Lower bound, can be set later
+        self._ub = None  # Upper bound, can be set later
+
+
+    @property
+    def lb(self) -> int | float:
+        """
+        Get the lower bound of the factor graph.
+        This is a placeholder and should be set externally.
+        """
+        return self._lb
+
+    @lb.setter
+    def lb(self, value: int | float) -> None:
+        """
+        Set the lower bound of the factor graph.
+        :param value: The lower bound value to set
+        """
+        if not isinstance(value, (int, float)):
+            raise ValueError("Lower bound must be an integer or float.")
+        self._lb = value
+
 
     @property
     def global_cost(self) -> int | float:

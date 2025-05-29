@@ -21,8 +21,8 @@ class SplitEngine(BPEngine):
 
 class TDEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
-        super().__init__(*args, **kwargs)
         self.damping_factor = damping_factor
+        super().__init__(*args, **kwargs)
 
     def post_var_cycle(self):
         TD(self.var_nodes, self.damping_factor)
