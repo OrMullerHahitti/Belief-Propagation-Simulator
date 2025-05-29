@@ -197,7 +197,7 @@ except Exception as e:
     print(f"Unexpected error: {e}")
 
 
-def get_bound(factor_graph: FactorGraph,reduce_func = np.min) -> float:
+def get_bound(factor_graph: FactorGraph, reduce_func=np.min) -> float:
     """
     Get the lower bound of the factor graph by summing the minimum costs of each factor.
 
