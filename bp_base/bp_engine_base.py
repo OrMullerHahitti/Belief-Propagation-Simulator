@@ -18,7 +18,7 @@ from utils.performance import PerformanceMonitor
 from dataclasses import dataclass, field
 
 from configs.loggers import Logger
-from utils.fg_utils import generate_random_cost
+from utils.fg_utils import generate_random_cost, get_bound
 
 T = typing.TypeVar("T")
 
@@ -278,7 +278,6 @@ class BPEngine:
     def __str__(self):
         return f"{self.name}"
 
-    # Hook methods for subclasses
     def post_init(self) -> None:
         pass
 

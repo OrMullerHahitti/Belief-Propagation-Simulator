@@ -7,14 +7,18 @@ from typing import Tuple, List, Iterable
 from bp_base.factor_graph import FactorGraph
 
 
-def TD(var_a: Iterable[VariableAgent], x: float):
-    for variable in var_a:
-        if isinstance(variable, VariableAgent):
-            for messages in sorted(
-                zip(variable.last_iteration, variable.mailer.inbox),
-                key=lambda y: y[0].sender.name,
-            ):
-                messages[1].data = (1 - x) * messages[0].data + x * messages[1].data
+def TD(variables: List[VariableAgent], x: float,diameter:int = 1):
+    for variable in variables:
+        last_iter = variable.last_cycle(diameter)
+        outbox = variable.mailer.outbox
+        if not last_iter or not outbox:
+            return
+        # Create a mapping from recipient name to last message
+        last_msg_map = {msg.recipient.name: msg for msg in last_iter}
+        for msg in outbox:
+            last_msg = last_msg_map.get(msg.recipient.name)
+            if last_msg is not None:
+                msg.data = x * last_msg.data + (1 - x) * msg.data
 
 
 def damp(variable: VariableAgent, x: float) -> None:
@@ -34,4 +38,4 @@ def damp(variable: VariableAgent, x: float) -> None:
     for msg in outbox:
         last_msg = last_msg_map.get(msg.recipient.name)
         if last_msg is not None:
-            msg.data = (1 - x) * last_msg.data + x * msg.data
+            msg.data = x * last_msg.data + (1-x) * msg.data

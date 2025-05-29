@@ -195,3 +195,21 @@ except ImportError as e:
     print("Make sure all required modules are installed and in your Python path.")
 except Exception as e:
     print(f"Unexpected error: {e}")
+
+
+def get_bound(factor_graph: FactorGraph,reduce_func = np.min) -> float:
+    """
+    Get the lower bound of the factor graph by summing the minimum costs of each factor.
+
+    Args:
+        factor_graph (FactorGraph): The factor graph to analyze.
+        reduce_func (callable): A function to reduce the cost table, default is np.min.
+
+    Returns:
+        float: The lower bound of the factor graph.
+    """
+    bound = 0.0
+    for factor in factor_graph.factors:
+        if hasattr(factor, "cost_table") and factor.cost_table is not None:
+            bound += reduce_func(factor.cost_table)
+    return bound
