@@ -21,7 +21,7 @@ class EngineConfig:
     message_policies: List[str]
     factor_policies: List[str]
 
-    # Anything else you want (seed, max_iters…) can be added later.
+    # Anything else (seed, max_iters…) can be added later.
 
     # ------------------------------------------------------------------
     def filename(self) -> str:
@@ -42,7 +42,7 @@ class GraphConfig:
     ct_factory_params: Dict[str, Any]
     density: float | None = None  # Placeholder for future use, replace as needed
 
-    # Anything else you want (seed, max_iters…) can be added later.
+    # Anything else  (seed, max_iters…) can be added later.
 
     # ------------------------------------------------------------------
     def filename(self) -> str:
