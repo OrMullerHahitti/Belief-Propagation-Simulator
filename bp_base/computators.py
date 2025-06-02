@@ -28,14 +28,14 @@ class BPComputator:
         Same interface as original but with performance improvements.
         """
         # Use cached connection lookup if available
-        if hasattr(factor, '_connection_cache'):
-            return factor._connection_cache.get(node.name,
-                                                factor.connection_number.get(node.name, 0))
+        if hasattr(factor, "_connection_cache"):
+            return factor._connection_cache.get(
+                node.name, factor.connection_number.get(node.name, 0)
+            )
 
         # Original logic with caching
-        if not hasattr(factor, '_connection_cache'):
+        if not hasattr(factor, "_connection_cache"):
             factor._connection_cache = {}
-
 
         if node.name in factor.connection_number:
             factor._connection_cache[node.name] = factor.connection_number[node.name]
@@ -70,11 +70,13 @@ class BPComputator:
 
         # Fast path for single message
         if n_messages == 1:
-            return [Message(
-                data=np.zeros_like(messages[0].data),
-                sender=variable,
-                recipient=messages[0].sender
-            )]
+            return [
+                Message(
+                    data=np.zeros_like(messages[0].data),
+                    sender=variable,
+                    recipient=messages[0].sender,
+                )
+            ]
 
         # Vectorized computation when possible
         try:
@@ -94,11 +96,13 @@ class BPComputator:
                 else:
                     combined_data = np.zeros_like(messages[i].data)
 
-                outgoing_messages.append(Message(
-                    data=combined_data,
-                    sender=variable,
-                    recipient=messages[i].sender
-                ))
+                outgoing_messages.append(
+                    Message(
+                        data=combined_data,
+                        sender=variable,
+                        recipient=messages[i].sender,
+                    )
+                )
 
             return outgoing_messages
 
@@ -107,7 +111,9 @@ class BPComputator:
             outgoing_messages = []
             for i, msg_i in enumerate(messages):
                 factor = msg_i.sender
-                other_messages = [msg_j.data for j, msg_j in enumerate(messages) if j != i]
+                other_messages = [
+                    msg_j.data for j, msg_j in enumerate(messages) if j != i
+                ]
 
                 if other_messages:
                     combined_data = other_messages[0].copy()
@@ -116,9 +122,9 @@ class BPComputator:
                 else:
                     combined_data = np.zeros_like(msg_i.data)
 
-                outgoing_messages.append(Message(
-                    data=combined_data, sender=variable, recipient=factor
-                ))
+                outgoing_messages.append(
+                    Message(data=combined_data, sender=variable, recipient=factor)
+                )
 
             return outgoing_messages
 
@@ -183,9 +189,9 @@ class BPComputator:
             if reduced_msg.ndim > 1:
                 reduced_msg = reduced_msg.ravel()
 
-            outgoing_messages.append(Message(
-                data=reduced_msg, sender=factor, recipient=variable_node
-            ))
+            outgoing_messages.append(
+                Message(data=reduced_msg, sender=factor, recipient=variable_node)
+            )
 
         return outgoing_messages
 
