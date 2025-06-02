@@ -142,7 +142,7 @@ class PerformanceMonitor:
         cycle_num: int,
         belief_change: Optional[float] = None,
         cost: Optional[float] = None,
-    ) -> CycleMetrics:
+    ) -> CycleMetrics | None:
         """Record cycle metrics."""
         if self._cycle_start_time is None:
             logger.warning("end_cycle called without start_cycle")
