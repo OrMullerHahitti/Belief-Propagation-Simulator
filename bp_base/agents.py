@@ -122,7 +122,6 @@ class FactorAgent(BPAgent):
     """
     Represents a factor node, storing a function that links multiple variables.
     """
-
     def __init__(
         self,
         name: str,
@@ -151,7 +150,7 @@ class FactorAgent(BPAgent):
             cost_table=cost_table,
         )
 
-    def compute_messages(self) -> List[Message]:
+    def compute_messages(self) -> None:
         """Compute messages to be sent to variable nodes."""
         if self.computator and self.cost_table is not None and self.inbox:
             messages = self.computator.compute_R(
