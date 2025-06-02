@@ -122,6 +122,7 @@ class FactorAgent(BPAgent):
     """
     Represents a factor node, storing a function that links multiple variables.
     """
+
     def __init__(
         self,
         name: str,
