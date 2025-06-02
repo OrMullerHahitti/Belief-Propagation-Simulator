@@ -28,14 +28,14 @@ class BPComputator:
         Same interface as original but with performance improvements.
         """
         # Use cached connection lookup if available
-        if hasattr(factor, "_connection_cache"):
-            return factor._connection_cache.get(
-                node.name, factor.connection_number.get(node.name, 0)
-            )
+        if hasattr(factor, '_connection_cache'):
+            return factor._connection_cache.get(node.name,
+                                                factor.connection_number.get(node.name, 0))
 
         # Original logic with caching
-        if not hasattr(factor, "_connection_cache"):
+        if not hasattr(factor, '_connection_cache'):
             factor._connection_cache = {}
+
 
         if node.name in factor.connection_number:
             factor._connection_cache[node.name] = factor.connection_number[node.name]
@@ -140,41 +140,37 @@ class BPComputator:
         cost_table_shape = cost_table.shape
         ndim = len(cost_table_shape)
 
-        # Precompute broadcasted messages for all variables
-        broadcasted_msgs = []
-        for msg in incoming_messages:
-            sender_dim = self._get_node_dimension(factor, msg.sender)
-            cache_key = (ndim, sender_dim, len(msg.data))
-            if cache_key not in self._broadcast_cache:
-                broadcast_shape = [1] * ndim
-                broadcast_shape[sender_dim] = len(msg.data)
-                self._broadcast_cache[cache_key] = tuple(broadcast_shape)
-            broadcast_shape = self._broadcast_cache[cache_key]
-            broadcasted_msgs.append(msg.data.reshape(broadcast_shape))
-
-        # Compute combined cost table once if using additive combine_func
-        aggregated_costs = cost_table.copy()
-        if self.combine_func == np.add:
-            for br_msg in broadcasted_msgs:
-                aggregated_costs = aggregated_costs + br_msg
-
         # Optimized computation for each message
         for i, msg_i in enumerate(incoming_messages):
             variable_node = msg_i.sender
 
             try:
                 dim = self._get_node_dimension(factor, variable_node)
-            except KeyError:
+            except KeyError as e:
+                # Same error handling as original
                 raise
 
-            if self.combine_func == np.add:
-                augmented_costs = aggregated_costs - broadcasted_msgs[i]
-            else:
-                augmented_costs = cost_table.copy()
-                for j, br_msg in enumerate(broadcasted_msgs):
-                    if j != i:
-                        augmented_costs = self.combine_func(augmented_costs, br_msg)
+            # Optimized cost augmentation
+            augmented_costs = cost_table.copy()
 
+            # Vectorized addition of messages from other variables
+            for j, msg_j in enumerate(incoming_messages):
+                if j != i:
+                    sender = msg_j.sender
+                    sender_dim = self._get_node_dimension(factor, sender)
+
+                    # Cached broadcast shape computation
+                    cache_key = (ndim, sender_dim, len(msg_j.data))
+                    if cache_key not in self._broadcast_cache:
+                        broadcast_shape = [1] * ndim
+                        broadcast_shape[sender_dim] = len(msg_j.data)
+                        self._broadcast_cache[cache_key] = tuple(broadcast_shape)
+
+                    broadcast_shape = self._broadcast_cache[cache_key]
+                    reshaped_msg = msg_j.data.reshape(broadcast_shape)
+                    augmented_costs = self.combine_func(augmented_costs, reshaped_msg)
+
+            # Marginalize over all dimensions except the recipient's
             axes_to_reduce = tuple(j for j in range(ndim) if j != dim)
             if axes_to_reduce:
                 reduced_msg = self.reduce_func(augmented_costs, axis=axes_to_reduce)
