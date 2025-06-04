@@ -74,8 +74,6 @@ class FactorGraph:
         Calculate the global cost of the factor graph at the current state.
         Based on current variable assignments and factor cost tables.
         """
-        # Get current assignments for all variables
-        var_assignments = {var: var.curr_assignment for var in self.variables}
         # Create a mapping from variable names to their assignments
         var_name_assignments = {var.name: var.curr_assignment for var in self.variables}
 
