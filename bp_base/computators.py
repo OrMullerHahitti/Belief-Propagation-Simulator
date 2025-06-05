@@ -28,14 +28,14 @@ class BPComputator:
         Same interface as original but with performance improvements.
         """
         # Use cached connection lookup if available
-        if hasattr(factor, '_connection_cache'):
-            return factor._connection_cache.get(node.name,
-                                                factor.connection_number.get(node.name, 0))
+        if hasattr(factor, "_connection_cache"):
+            return factor._connection_cache.get(
+                node.name, factor.connection_number.get(node.name, 0)
+            )
 
         # Original logic with caching
-        if not hasattr(factor, '_connection_cache'):
+        if not hasattr(factor, "_connection_cache"):
             factor._connection_cache = {}
-
 
         if node.name in factor.connection_number:
             factor._connection_cache[node.name] = factor.connection_number[node.name]
