@@ -1,10 +1,10 @@
 # protocols
 from abc import abstractmethod
 from enum import Enum
-from typing import List, Tuple, Dict
+from typing import List, Dict
 
-from bp_base.agents import VariableAgent, FactorAgent
-from bp_base.components import Message
+from base_all.agents import VariableAgent, FactorAgent
+from base_all.components import Message
 from bp_base.factor_graph import FactorGraph
 
 

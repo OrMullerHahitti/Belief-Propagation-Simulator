@@ -5,8 +5,8 @@ from typing import Dict, List
 
 import numpy as np
 import pandas as pd
-from bp_base.DCOP_base import Agent
-from bp_base.components import Message
+from base_all.DCOP_base import Agent
+from base_all.components import Message
 
 
 @dataclass

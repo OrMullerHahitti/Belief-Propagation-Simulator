@@ -1,8 +1,6 @@
 import pickle
-import random
 import sys
 import os
-from pathlib import Path
 import networkx as nx
 import numpy as np
 
@@ -33,15 +31,15 @@ class SafeUnpickler(pickle.Unpickler):
 
             return FactorGraph
         elif module == "bp_base.agents" and name == "VariableAgent":
-            from bp_base.agents import VariableAgent
+            from base_all.agents import VariableAgent
 
             return VariableAgent
         elif module == "bp_base.agents" and name == "FactorAgent":
-            from bp_base.agents import FactorAgent
+            from base_all.agents import FactorAgent
 
             return FactorAgent
         elif module == "bp_base.components" and name == "Message":
-            from bp_base.components import Message
+            from base_all.components import Message
 
             return Message
         # Add more mappings as needed
@@ -108,8 +106,8 @@ def repair_factor_graph(fg):
 try:
     # Import all the required classes
     from bp_base.factor_graph import FactorGraph
-    from bp_base.agents import VariableAgent, FactorAgent
-    from bp_base.components import Message
+    from base_all.agents import VariableAgent, FactorAgent
+    from base_all.components import Message
 
     print(f"NetworkX version: {nx.__version__}")
 

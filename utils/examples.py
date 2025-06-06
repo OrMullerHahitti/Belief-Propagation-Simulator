@@ -1,11 +1,6 @@
 # create simple factorgraph cycle domain 3 3 variables
 from bp_base.factor_graph import FactorGraph
-from bp_base.agents import VariableAgent, FactorAgent
-from bp_base.components import Message
-from typing import List, Tuple, Iterable
-import networkx as nx
 import os
-from pathlib import Path
 
 from configs.global_config_mapping import CT_FACTORIES
 from utils.create_factor_graphs_from_config import (

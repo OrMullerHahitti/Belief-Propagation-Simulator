@@ -1,13 +1,13 @@
 # Tests for component creation
 import pytest
 import numpy as np
-from bp_base.DCOP_base import Agent, Computator  # Assuming Agent is in DCOP_base
-from bp_base.agents import (
+from base_all.DCOP_base import Agent, Computator  # Assuming Agent is in DCOP_base
+from base_all.agents import (
     VariableAgent,
     FactorAgent,
 )  # Assuming these are in bp_base.agents
-from bp_base.components import Message  # Assuming Message is in bp_base.components
-from bp_base.computators import (
+from base_all.components import Message  # Assuming Message is in bp_base.components
+from bp_base.bp_computators import (
     MaxSumComputator,
 )  # Assuming this is in bp_base.computators
 from bp_base.factor_graph import FactorGraph  # Assuming this is in bp_base.factor_graph
@@ -93,8 +93,8 @@ def test_create_factor_graph_with_elements():
 
 # Test FactorGraph creation with the constructor expecting lists and edge dict
 def test_create_factor_graph_with_constructor_lists():
-    v1 = VariableAgent(name="V1", domain_size=2)
-    v2 = VariableAgent(name="V2", domain_size=2)
+    v1 = VariableAgent(name="V1", domain=2)
+    v2 = VariableAgent(name="V2", domain=2)
     f1 = FactorAgent(name="F1")
 
     # Mock initiate_cost_table and set_first_message to avoid side effects / complex setup

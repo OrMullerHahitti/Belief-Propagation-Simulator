@@ -1,6 +1,5 @@
-from bp_base.agents import FactorAgent, VariableAgent
-from bp_base.components import Message
-from typing import Tuple, List, Iterable
+from base_all.agents import FactorAgent
+from typing import Iterable
 
 from bp_base.factor_graph import FactorGraph
 
