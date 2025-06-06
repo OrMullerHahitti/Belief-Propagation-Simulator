@@ -16,7 +16,7 @@ import numpy as np
 PolicyType = Literal["message", "cost_table", "stopping_criteria", "assignment"]
 
 
-class BPAgent(Protocol):
+class FGAgent(Protocol):
     """Base protocol type for Belief Propagation agents"""
 
     name: str

@@ -1,5 +1,5 @@
 # configs for FactorAgents
-from bp_base.computators import MaxSumComputator
+from bp_base.bp_computators import MaxSumComputator
 from utils import ct_utils
 
 # message parameters

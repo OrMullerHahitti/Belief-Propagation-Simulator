@@ -1,7 +1,7 @@
-from typing import Dict, Optional
+from typing import Dict
 import numpy as np
-from bp_base.agents import BPAgent
-from bp_base.components import Message
+from base_all.agents import BPAgent
+from base_all.components import Message
 from bp_base.typing import PolicyType
 from policies.bp_policies import Policy
 import logging

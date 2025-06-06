@@ -9,7 +9,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from bp_base.engines_realizations import BPEngine, MessagePruningEngine
 from utils.create_factor_graph_config import ConfigCreator
 from utils.create_factor_graphs_from_config import FactorGraphBuilder
-from bp_base.computators import MinSumComputator
+from bp_base.bp_computators import MinSumComputator
 import logging
 
 logging.basicConfig(level=logging.INFO)

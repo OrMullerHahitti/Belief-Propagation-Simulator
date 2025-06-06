@@ -1,10 +1,15 @@
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import List
 import logging
-from functools import lru_cache
 
-from bp_base.DCOP_base import Agent
-from bp_base.components import Message
+try:
+    import numba
+    HAS_NUMBA = True
+except ImportError:
+    HAS_NUMBA = False
+
+from base_all.DCOP_base import Agent
+from base_all.components import Message
 
 # Minimal logging for computators
 logger = logging.getLogger(__name__)
@@ -16,11 +21,17 @@ class BPComputator:
     Vectorized, cache-friendly version of the original BPComputator.
     """
 
-    def __init__(self, reduce_func, combine_func):
+    def __init__(self, reduce_func, combine_func, parallel=False):
         self.reduce_func = reduce_func
         self.combine_func = combine_func
         # Cache frequently used operations
         self._broadcast_cache = {}
+        # Initialize attributes used by optimized version
+        # but make them backward compatible
+        self._use_jit = False
+        self._parallel = False
+        self._operation_type = 0  # Default to addition
+        self._current_factor = None
 
     def _get_node_dimension(self, factor, node) -> int:
         """

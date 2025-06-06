@@ -5,8 +5,8 @@ import numpy as np
 from typing import List, Dict
 import logging
 
-from bp_base.DCOP_base import Computator
-from bp_base.agents import VariableAgent, FactorAgent
+from base_all.DCOP_base import Computator
+from base_all.agents import VariableAgent, FactorAgent
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +192,7 @@ class FactorGraph:
             if isinstance(node, FactorAgent):
                 # Initialize cost table for the factor node
                 node.initiate_cost_table()
-                logger.info("Cost table initialized for factor node: %s", node.name)
+                logger.debug("Cost table initialized for factor node: %s", node.name)
 
     def get_variable_agents(self) -> List[VariableAgent]:
         """Return a list of all variable agents in the graph."""
