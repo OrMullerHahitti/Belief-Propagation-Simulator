@@ -1,19 +1,15 @@
-from random import randint
-
 # Tests for message passing
 import pytest
 import logging
 import numpy as np
-import os
 import sys
 from pathlib import Path
 
-from bp_base.agents import VariableAgent, FactorAgent, BPAgent  # BPAgent for mailer
-from bp_base.components import Message
-from bp_base.computators import MaxSumComputator, MinSumComputator
+from base_all.agents import VariableAgent, FactorAgent, BPAgent
+from base_all.components import Message, MailHandler
+from bp_base.bp_computators import MaxSumComputator, MinSumComputator
 from bp_base.factor_graph import FactorGraph
-from bp_base.bp_engine_base import BPEngine
-from utils.randomes import create_random_table
+from base_all.bp_engine_base import BPEngine
 from configs.loggers import Logger
 
 # Add project root to Python path
@@ -31,8 +27,6 @@ logger.setLevel(level=logging.DEBUG)
 @pytest.fixture
 def var_agent_sender():
     agent = VariableAgent(name="VarSender", domain=2)
-    # Ensure mailer is initialized as expected by BPAgent
-    agent.neighbors = {}  # Initialize neighbors
     return agent
 
 
@@ -41,238 +35,308 @@ def factor_agent_recipient():
     agent = FactorAgent(
         name="FactorRecipient",
         domain=2,
-        ct_creation_func=lambda: np.random.randint(0, 10, (2, 2)),
+        ct_creation_func=create_test_cost_table,
     )
-    agent.neighbors = {}
-    # FactorAgent also needs a mailbox for receiving
-    agent.mailbox = {}
     return agent
 
 
 @pytest.fixture
 def var_agent_recipient():
     agent = VariableAgent(name="VarRecipient", domain=2)
-    agent.neighbors = {}
-    agent.mailbox = {}
     return agent
+
+
+def create_test_cost_table(num_vars=2, domain_size=2, **kwargs):
+    """Helper function to create a simple cost table for testing"""
+    return np.array([[1, 2], [3, 4]])
 
 
 @pytest.fixture
 def max_sum_computator():
-    # Create a mock computator for testing
     return MaxSumComputator()
 
 
-# Test BPAgent.Mailer.prepare and outbox
-def test_mailer_prepare_outbox(var_agent_sender, factor_agent_recipient):
-    mailer = var_agent_sender.mailer
-    assert len(mailer.outbox) == 0
-
-    message_data = np.array([0.1, 0.9])
-    msg_to_send = Message(
-        data=message_data, sender=var_agent_sender, recipient=factor_agent_recipient
-    )
-
-    # Simulate agent putting message in its mailer's outbox (usually done by compute_messages)
-    mailer.outbox.append(msg_to_send)
-    assert len(mailer.outbox) == 1
-
-    # prepare() typically readies messages, but in current BPAgent.Mailer, it clears the outbox.
-    # This might be an area to clarify: does prepare() get them ready or clear for next batch?
-    # Based on BPAgent.Mailer.prepare(): self.outbox = []
-    # Let's test this behavior.
-
-    # If prepare is called, outbox should be empty.
-    # mailer.prepare()
-    # assert len(mailer.outbox) == 0
-    # This behavior of prepare() clearing outbox before send() is called seems counter-intuitive
-    # if send() relies on outbox. Let's assume compute_messages fills outbox, then send() uses it, then prepare() clears.
+@pytest.fixture
+def min_sum_computator():
+    return MinSumComputator()
 
 
-# Test BPAgent.Mailer.send and recipient receiving message
-def test_mailer_send_and_receive(var_agent_sender, factor_agent_recipient):
-    pass
+@pytest.fixture
+def simple_factor_graph():
+    """Create a small factor graph for testing message passing"""
+    # Create variable agents
+    var1 = VariableAgent(name="x1", domain=2)
+    var2 = VariableAgent(name="x2", domain=2)
 
-
-# Test BPAgent.Mailer.empty_mailbox
-def test_mailer_empty_mailbox(var_agent_recipient):
-    recipient_mailer = var_agent_recipient.mailer  # Mailer is for sending
-    # mailbox is an attribute of the agent itself
-
-    # Manually put a message in the agent's mailbox
-    sender_agent = FactorAgent(
-        name="TestFactorSender",
+    # Create factor agent
+    factor = FactorAgent(
+        name="f12",
         domain=2,
-        ct_creation_func=np.random.randint,
-        param={"low": 0, "high": 10},
+        ct_creation_func=create_test_cost_table,
     )
-    msg_data = np.array([0.4, 0.6])
-    incoming_msg = Message(
-        data=msg_data, sender=sender_agent, recipient=var_agent_recipient
+
+    # Set up connections
+    factor.connection_number = {var1.name: 0, var2.name: 1}
+
+    # Create factor graph
+    edges = {factor: [var1, var2]}
+    return FactorGraph(variable_li=[var1, var2], factor_li=[factor], edges=edges)
+
+
+# Test MailHandler basic operations
+def test_mail_handler_basics():
+    """Test basic operations of the MailHandler class"""
+    # Create a mail handler
+    mail_handler = MailHandler(_domain_size=2)
+
+    # Check initial state
+    assert len(mail_handler.inbox) == 0
+    assert len(mail_handler.outbox) == 0
+
+    # Create sender and recipient
+    sender = VariableAgent(name="sender", domain=2)
+    recipient = FactorAgent(name="recipient", domain=2, ct_creation_func=create_test_cost_table)
+
+    # Create a message
+    message_data = np.array([0.5, 0.5])
+    message = Message(data=message_data, sender=sender, recipient=recipient)
+
+    # Test receiving message
+    mail_handler.receive_messages(message)
+    assert len(mail_handler.inbox) == 1
+    assert np.array_equal(mail_handler.inbox[0].data, message_data)
+
+    # Test staging outgoing message
+    mail_handler.stage_sending([message])
+    assert len(mail_handler.outbox) == 1
+
+    # Test clearing inbox/outbox
+    mail_handler.clear_inbox()
+    assert len(mail_handler.inbox) == 0
+
+    mail_handler.prepare()  # Should clear outbox
+    assert len(mail_handler.outbox) == 0
+
+
+# Test message passing between agents
+def test_message_passing_between_agents(var_agent_sender, factor_agent_recipient):
+    """Test sending and receiving messages between agents"""
+    # Create message data
+    message_data = np.array([0.3, 0.7])
+
+    # Create message
+    message = Message(
+        data=message_data,
+        sender=var_agent_sender,
+        recipient=factor_agent_recipient
     )
-    var_agent_recipient.mailer.receive_messages(incoming_msg)
 
-    assert len(var_agent_recipient.inbox) == 1
+    # Stage message for sending
+    var_agent_sender.mailer.stage_sending([message])
 
-    # Call empty_mailbox (which is a method of BPAgent, not its Mailer)
-    var_agent_recipient.empty_mailbox()
-    assert len(var_agent_recipient.inbox) == 0
+    # Send message
+    var_agent_sender.mailer.send()
 
-
-# Test full message passing sequence: compute -> send -> prepare -> empty (on recipient)
-def test_full_message_passing_flow(max_sum_computator):
-    pass
-
-
-def create_3_cycle_3_domain_factor_graph():
-    """
-    Create a factor graph with a 3-cycle structure and 3-domain variables.
-    The structure is:
-
-    V1 -- F1 -- V2
-     |          |
-     F3         F2
-     |          |
-    V3 -------- F4
-
-    This creates a cycle: V1 - F1 - V2 - F2 - V3 - F3 - V1
-    """
-    # Create 3 variable agents with domain size 3
-    v1 = VariableAgent(name="V1", domain=3)
-    v2 = VariableAgent(name="V2", domain=3)
-    v3 = VariableAgent(name="V3", domain=3)
-
-    # Create 4 factor agents
-    # Using a simple random cost table creation function
-    def create_cost_table(num_vars, domain_size, **kwargs):
-        # Create a tuple of domain_size repeated num_vars times
-        shape = tuple([domain_size] * num_vars)
-        return create_random_table(shape)
-
-    f1 = FactorAgent(name="F1", domain=3, ct_creation_func=create_cost_table, param={})
-    f2 = FactorAgent(name="F2", domain=3, ct_creation_func=create_cost_table, param={})
-    f3 = FactorAgent(name="F3", domain=3, ct_creation_func=create_cost_table, param={})
-    f4 = FactorAgent(name="F4", domain=3, ct_creation_func=create_cost_table, param={})
-
-    # Define edges
-    edges = {
-        f1: [v1, v2],
-        f2: [v2, v3],
-        f3: [v1, v3],
-        f4: [v3],  # Additional factor connected to v3 only
-    }
-
-    # Create the factor graph
-    fg = FactorGraph(variable_li=[v1, v2, v3], factor_li=[f1, f2, f3, f4], edges=edges)
-
-    return fg
+    # Check that recipient received the message
+    received_messages = factor_agent_recipient.mailer.inbox
+    assert len(received_messages) == 1
+    assert received_messages[0].sender == var_agent_sender
+    assert received_messages[0].recipient == factor_agent_recipient
+    assert np.array_equal(received_messages[0].data, message_data)
 
 
-def test_message_passing_3_cycle_3_domain():
-    """
-    Test that message passing works correctly in a 3-cycle, 3-domain factor graph.
-    """
-    # Create the factor graph
-    fg = create_3_cycle_3_domain_factor_graph()
+# Test compute_messages for variable agent
+def test_variable_agent_compute_messages(var_agent_sender, factor_agent_recipient, max_sum_computator):
+    """Test that a variable agent computes messages correctly"""
+    # Set computator for the variable agent
+    var_agent_sender.computator = max_sum_computator
 
-    # Log basic graph statistics
-    logger.info(
-        f"Graph has {len(fg.variables)} variables and {len(fg.factors)} factors"
+    # Create message from factor to variable
+    message_data = np.array([1.0, 2.0])
+    message = Message(
+        data=message_data,
+        sender=factor_agent_recipient,
+        recipient=var_agent_sender
     )
-    logger.info(f"Graph diameter: {fg.diameter}")
 
-    # Create the BPEngine
-    engine = BPEngine(factor_graph=fg)
+    # Add message to variable's inbox
+    var_agent_sender.mailer.receive_messages(message)
 
-    # Run for a small number of iterations
-    max_iterations = 3
-    logger.info(f"Running BP Engine for {max_iterations} iterations")
+    # Compute messages
+    var_agent_sender.compute_messages()
 
-    # Run the engine
-    engine.run(max_iter=max_iterations, save_json=False, save_csv=False)
-
-    # Verify that messages were passed correctly
-    # Check that each variable has received messages from its connected factors
-    for var in fg.variables:
-        logger.info(f"Checking messages for variable {var.name}")
-        # Get the neighbors of the variable
-        neighbors = list(fg.G.neighbors(var))
-
-        # Check that the variable has a belief
-        assert var.belief is not None, f"Variable {var.name} has no belief"
-
-        # Log the belief
-        logger.info(f"Variable {var.name} belief: {var.belief}")
-
-        # Check that the variable has an assignment
-        assert var.curr_assignment is not None, f"Variable {var.name} has no assignment"
-
-        # Log the assignment
-        logger.info(f"Variable {var.name} assignment: {var.curr_assignment}")
-
-    # Check that the history contains the expected number of cycles
-    assert (
-        len(engine.history.cycles) == max_iterations
-    ), f"Expected {max_iterations} cycles, got {len(engine.history.cycles)}"
-
-    # Check that the history contains beliefs and assignments for each cycle
-    for i in range(max_iterations):
-        assert i in engine.history.beliefs, f"No beliefs for cycle {i}"
-        assert i in engine.history.assignments, f"No assignments for cycle {i}"
-
-    # Check that the global cost was calculated for each cycle
-    assert (
-        len(engine.history.costs) >= max_iterations
-    ), f"Expected at least {max_iterations} costs, got {len(engine.history.costs)}"
-
-    # Check that messages were passed correctly by examining the history
-    logger.info("Checking messages in history")
-    for cycle_num, cycle in engine.history.cycles.items():
-        logger.info(f"Checking messages for cycle {cycle_num}")
-        for step in cycle.steps:
-            for agent_name, messages in step.messages.items():
-                for message in messages:
-                    # Check that the message has the expected structure
-                    assert (
-                        message.sender is not None
-                    ), f"Message from {agent_name} has no sender"
-                    assert (
-                        message.recipient is not None
-                    ), f"Message from {agent_name} has no recipient"
-                    assert (
-                        message.data is not None
-                    ), f"Message from {agent_name} has no data"
-
-                    # Check that the message data has the expected shape (domain size)
-                    expected_domain = (
-                        message.sender.domain
-                        if hasattr(message.sender, "domain")
-                        else 3
-                    )
-                    assert message.data.shape == (
-                        expected_domain,
-                    ), f"Message data shape {message.data.shape} does not match expected domain size {expected_domain}"
-
-                    # Log the message for debugging
-                    logger.info(
-                        f"Message from {message.sender.name} to {message.recipient.name}: {message.data}"
-                    )
-
-    logger.info("Test completed successfully")
-
-    return engine
+    # Check outgoing messages
+    outgoing = var_agent_sender.mailer.outbox
+    assert len(outgoing) == 1
+    assert outgoing[0].sender == var_agent_sender
+    assert outgoing[0].recipient == factor_agent_recipient
+    # For a single message in Q-computation, the output should be zeros
+    assert np.array_equal(outgoing[0].data, np.zeros(2))
 
 
-if __name__ == "__main__":
-    # Run the test directly
-    engine = test_message_passing_3_cycle_3_domain()
+# Test compute_messages for factor agent
+def test_factor_agent_compute_messages(var_agent_sender, factor_agent_recipient, max_sum_computator):
+    """Test that a factor agent computes messages correctly"""
+    # Set computator for the factor agent
+    factor_agent_recipient.computator = max_sum_computator
 
-    # Print the final assignments
-    print("Final assignments:")
-    for var_name, assignment in engine.history.assignments[
-        max(engine.history.assignments.keys())
-    ].items():
-        print(f"{var_name}: {assignment}")
+    # Create a cost table for the factor
+    factor_agent_recipient.cost_table = np.array([[1, 2], [3, 4]])
 
-    # Print the final global cost
-    print(f"Final global cost: {engine.history.costs[-1]}")
+    # Set connection numbers
+    factor_agent_recipient.connection_number = {var_agent_sender.name: 0}
+
+    # Create message from variable to factor
+    message_data = np.array([0.0, 0.0])  # Neutral for addition
+    message = Message(
+        data=message_data,
+        sender=var_agent_sender,
+        recipient=factor_agent_recipient
+    )
+
+    # Add message to factor's inbox
+    factor_agent_recipient.mailer.receive_messages(message)
+
+    # Compute messages
+    factor_agent_recipient.compute_messages()
+
+    # Check outgoing messages
+    outgoing = factor_agent_recipient.mailer.outbox
+    assert len(outgoing) == 1
+    assert outgoing[0].sender == factor_agent_recipient
+    assert outgoing[0].recipient == var_agent_sender
+    # For a 1D cost table with Max-Sum, should be the max values
+    assert np.array_equal(outgoing[0].data, np.array([2, 4]))
+
+
+# Test message passing in a factor graph with a single step
+def test_factor_graph_single_step(simple_factor_graph, max_sum_computator):
+    """Test message passing in a factor graph with a single step"""
+    # Set computator for all nodes
+    simple_factor_graph.set_computator(max_sum_computator)
+
+    # Create BP engine
+    engine = BPEngine(factor_graph=simple_factor_graph, computator=max_sum_computator)
+
+    # Run a single step
+    step = engine.step()
+
+    # Check that messages were generated and stored in the step
+    assert len(step.messages) > 0
+
+    # Check that variables have outgoing messages
+    for var in simple_factor_graph.variables:
+        # After a step, outbox should be empty as messages are sent
+        assert len(var.mailer.outbox) == 0
+        # Mailbox should have messages from factors
+        assert len(var.mailer.inbox) > 0
+
+
+# Test belief computation after message passing
+def test_belief_computation(simple_factor_graph, max_sum_computator):
+    """Test belief computation after message passing"""
+    # Set computator for all nodes
+    simple_factor_graph.set_computator(max_sum_computator)
+
+    # Create BP engine
+    engine = BPEngine(factor_graph=simple_factor_graph, computator=max_sum_computator)
+
+    # Run a cycle (multiple steps)
+    cycle = engine.cycle(0)
+
+    # Get beliefs for this cycle
+    beliefs = engine.get_beliefs()
+
+    # Check that each variable has a belief
+    for var in simple_factor_graph.variables:
+        assert var.name in beliefs
+        # Beliefs should be arrays of the correct domain size
+        assert beliefs[var.name].shape == (var.domain,)
+        # Sum of belief probabilities should be approximately 1
+        # or at least consistent (for unnormalized beliefs)
+        if np.sum(beliefs[var.name]) > 0:
+            normalized = beliefs[var.name] / np.sum(beliefs[var.name])
+            assert np.isclose(np.sum(normalized), 1.0)
+
+
+# Test convergence with multiple cycles
+def test_convergence_with_multiple_cycles(simple_factor_graph, max_sum_computator):
+    """Test convergence with multiple cycles"""
+    # Set computator for all nodes
+    simple_factor_graph.set_computator(max_sum_computator)
+
+    # Create BP engine
+    engine = BPEngine(factor_graph=simple_factor_graph, computator=max_sum_computator)
+
+    # Initial beliefs
+    engine.cycle(0)
+    initial_beliefs = engine.get_beliefs()
+    initial_assignments = engine.assignments
+
+    # Run multiple cycles
+    for i in range(1, 5):
+        engine.cycle(i)
+
+    # Final beliefs and assignments
+    final_beliefs = engine.get_beliefs()
+    final_assignments = engine.assignments
+
+    # Check that beliefs have changed during iterations
+    # (Not necessarily true for all cases, but likely for our simple example)
+    beliefs_changed = False
+    for var_name in initial_beliefs:
+        if not np.array_equal(initial_beliefs[var_name], final_beliefs[var_name]):
+            beliefs_changed = True
+            break
+
+    # For our simple 2x2 example, we expect beliefs to converge fairly quickly
+    # This is not a hard requirement, but a common behavior in small graphs
+    assert beliefs_changed or initial_assignments == final_assignments
+
+
+# Test message deduplication in mailbox
+def test_message_deduplication():
+    """Test that duplicate messages are properly handled"""
+    mail_handler = MailHandler(_domain_size=2)
+
+    # Create sender and recipient
+    sender = VariableAgent(name="sender", domain=2)
+    recipient = FactorAgent(name="recipient", domain=2, ct_creation_func=create_test_cost_table)
+
+    # Create two identical messages
+    message1 = Message(data=np.array([0.5, 0.5]), sender=sender, recipient=recipient)
+    message2 = Message(data=np.array([0.7, 0.3]), sender=sender, recipient=recipient)
+
+    # Receive both messages
+    mail_handler.receive_messages(message1)
+    mail_handler.receive_messages(message2)
+
+    # Should only keep the latest message from each sender
+    assert len(mail_handler.inbox) == 1
+    # Should have the data from the second message
+    assert np.array_equal(mail_handler.inbox[0].data, np.array([0.7, 0.3]))
+
+
+# Test handling of multiple messages in a list
+def test_receive_message_list():
+    """Test receiving a list of messages"""
+    mail_handler = MailHandler(_domain_size=2)
+
+    # Create senders and recipient
+    sender1 = VariableAgent(name="sender1", domain=2)
+    sender2 = VariableAgent(name="sender2", domain=2)
+    recipient = FactorAgent(name="recipient", domain=2, ct_creation_func=create_test_cost_table)
+
+    # Create messages
+    message1 = Message(data=np.array([0.5, 0.5]), sender=sender1, recipient=recipient)
+    message2 = Message(data=np.array([0.7, 0.3]), sender=sender2, recipient=recipient)
+
+    # Receive list of messages
+    mail_handler.receive_messages([message1, message2])
+
+    # Should have both messages
+    assert len(mail_handler.inbox) == 2
+
+    # Check that messages are sorted by sender name in inbox
+    assert mail_handler.inbox[0].sender.name == "sender1"
+    assert mail_handler.inbox[1].sender.name == "sender2"

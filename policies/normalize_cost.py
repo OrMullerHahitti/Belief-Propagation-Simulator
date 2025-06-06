@@ -1,12 +1,7 @@
-from typing import List
-
-from bp_base.agents import FactorAgent, VariableAgent
-from bp_base.factor_graph import FactorGraph
-import networkx as nx
 from typing import Dict, List
 import numpy as np
-from bp_base.agents import VariableAgent, FactorAgent
-from bp_base.components import Message
+from base_all.agents import VariableAgent, FactorAgent
+from base_all.components import Message
 from bp_base.typing import PolicyType
 from policies.bp_policies import Policy
 

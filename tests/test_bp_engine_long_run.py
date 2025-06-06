@@ -2,16 +2,10 @@ import os
 import sys
 import pytest
 import logging
-import numpy as np
-import json
 import time
 from pathlib import Path
 
 from bp_base.engines_realizations import (
-    SplitEngine,
-    TDEngine,
-    CostReductionOnceEngine,
-    DampingEngine,
     DampingSCFGEngine,
 )
 from configs.global_config_mapping import PROJECT_ROOT
@@ -25,10 +19,7 @@ sys.path.append(str(project_root))
 # Now import from utils
 from utils.path_utils import load_pickle
 
-from bp_base.factor_graph import FactorGraph
-from bp_base.agents import VariableAgent, FactorAgent
-from bp_base.components import Message
-from bp_base.bp_engine_base import BPEngine
+from base_all.bp_engine_base import BPEngine
 from configs.loggers import Logger
 
 log_dir = "test_logs"

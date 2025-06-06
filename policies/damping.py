@@ -1,10 +1,5 @@
-import numpy as np
-
-from bp_base.agents import FactorAgent, VariableAgent
-from bp_base.components import Message
-from typing import Tuple, List, Iterable
-
-from bp_base.factor_graph import FactorGraph
+from base_all.agents import VariableAgent
+from typing import List
 
 
 def TD(variables: List[VariableAgent], x: float, diameter: int = 1):

@@ -1,8 +1,7 @@
-from bp_base.agents import VariableAgent
-from bp_base.bp_engine_base import BPEngine
+from base_all.agents import VariableAgent
+from base_all.bp_engine_base import BPEngine
 from policies.cost_reduction import (
     cost_reduction_all_factors_once,
-    discount,
     discount_attentive,
 )
 
@@ -14,6 +13,7 @@ class SplitEngine(BPEngine):
     def __init__(self, *args, split_factor: float = 0.5, **kwargs):
         self.p = split_factor
         super().__init__(*args, **kwargs)
+
 
     def post_init(self) -> None:
         split_all_factors(self.graph, self.p)

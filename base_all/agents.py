@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from copy import deepcopy
 from typing import Dict, List, Any, Callable
 import numpy as np
 
-from bp_base.components import Message, CostTable, MailHandler
-from bp_base.DCOP_base import Agent
+from base_all.components import Message, CostTable, MailHandler
+from base_all.DCOP_base import Agent
 
 
-class BPAgent(Agent, ABC):
+class FGAgent(Agent, ABC):
     """
     Abstract base class for belief propagation (BP) nodes.
     Extends the Node class with methods relevant to data passing,
@@ -72,7 +71,7 @@ class BPAgent(Agent, ABC):
             self._history.pop(0)  # Remove oldest to maintain size limit
 
 
-class VariableAgent(BPAgent):
+class VariableAgent(FGAgent):
     """
     Represents a variable node in DCOP, holding a variable and its domain.
     """
@@ -82,7 +81,7 @@ class VariableAgent(BPAgent):
         super().__init__(name, node_type, domain)
 
     def compute_messages(self) -> None:
-        """Called by the BPAgent framework to compute outgoing messages."""
+        """Called by the FGAgent framework to compute outgoing messages."""
         if self.computator and self.mailer.inbox:
             messages = self.computator.compute_Q(self.mailer.inbox)
             self.mailer.stage_sending(messages)
@@ -118,7 +117,7 @@ class VariableAgent(BPAgent):
         return f"VariableAgent({self.name}, domain={self.domain})"
 
 
-class FactorAgent(BPAgent):
+class FactorAgent(FGAgent):
     """
     Represents a factor node, storing a function that links multiple variables.
     """

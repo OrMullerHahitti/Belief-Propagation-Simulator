@@ -1,13 +1,13 @@
 from __future__ import annotations
-from typing import Optional, Union, Dict
+from typing import Optional, Dict
 import numpy as np
 from functools import singledispatchmethod
 from typing import List, TypeAlias, TYPE_CHECKING
 
-from bp_base.DCOP_base import Agent
+from base_all.DCOP_base import Agent
 
 if TYPE_CHECKING:
-    from bp_base.agents import BPAgent
+    from base_all.agents import FGAgent
 
 CostTable: TypeAlias = np.ndarray
 
@@ -69,7 +69,7 @@ class MailHandler:
         """Create unique key for agent to handle identity issues."""
         return f"{agent.name}_{agent.type}"
 
-    def set_first_message(self, owner: BPAgent, neighbor: BPAgent) -> None:
+    def set_first_message(self, owner: FGAgent, neighbor: FGAgent) -> None:
         """
         Initialize with zero message from neighbor.
         Supports both original neighbors and split factor neighbors (with ' or '' suffix).

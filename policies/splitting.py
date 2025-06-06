@@ -4,7 +4,7 @@ from typing import List
 import networkx as nx
 from copy import deepcopy
 
-from bp_base.agents import FactorAgent
+from base_all.agents import FactorAgent
 from bp_base.factor_graph import FactorGraph
 
 
