@@ -9,7 +9,7 @@ from base_all.agents import VariableAgent, FactorAgent, BPAgent
 from base_all.components import Message, MailHandler
 from bp_base.bp_computators import MaxSumComputator, MinSumComputator
 from bp_base.factor_graph import FactorGraph
-from base_all.bp_engine_base import BPEngine
+from bp_base.bp_engine_base import BPEngine
 from configs.loggers import Logger
 
 # Add project root to Python path
