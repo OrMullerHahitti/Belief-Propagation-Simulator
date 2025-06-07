@@ -1,6 +1,7 @@
 import numpy as np
-from typing import List, Optional
+from typing import List
 import logging
+from functools import lru_cache
 
 try:
     import numba
@@ -17,146 +18,31 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.CRITICAL)
 
 
-def _compute_Q_numpy(msg_data: np.ndarray) -> np.ndarray:
-    """Compute Q messages using pure numpy operations."""
-    total_sum = np.sum(msg_data, axis=0)
-    result = np.empty_like(msg_data)
-    for i in range(msg_data.shape[0]):
-        result[i] = total_sum - msg_data[i]
-    return result
-
-
-def _compute_R_numpy(
-    cost_table: np.ndarray,
-    incoming: np.ndarray,
-    dims: np.ndarray,
-    reduce_type: int,
-    op_type: int,
-) -> np.ndarray:
-    """Compute R messages using numpy for environments without numba."""
-    n_messages = incoming.shape[0]
-    domain = incoming.shape[1]
-    ndim = cost_table.ndim
-    out = np.empty((n_messages, domain))
-    for i in range(n_messages):
-        augmented = cost_table.copy()
-        for j in range(n_messages):
-            if j != i:
-                broadcast_shape = [1] * ndim
-                broadcast_shape[dims[j]] = domain
-                reshaped = incoming[j].reshape(tuple(broadcast_shape))
-                if op_type == 0:
-                    augmented = augmented + reshaped
-                else:
-                    augmented = augmented * reshaped
-        axes = tuple(k for k in range(ndim) if k != dims[i])
-        if axes:
-            if reduce_type == 0:
-                reduced = augmented.min(axis=axes)
-            else:
-                reduced = augmented.max(axis=axes)
-        else:
-            reduced = augmented
-        if reduced.ndim > 1:
-            reduced = reduced.ravel()
-        out[i] = reduced
-    return out
-
-
-if HAS_NUMBA:
-    from numba import njit
-
-    @njit
-    def _compute_Q_jit(msg_data: np.ndarray) -> np.ndarray:
-        """JIT-compiled helper mirroring :func:`_compute_Q_numpy`."""
-        total_sum = np.sum(msg_data, axis=0)
-        out = np.empty_like(msg_data)
-        for i in range(msg_data.shape[0]):
-            out[i] = total_sum - msg_data[i]
-        return out
-
-    @njit
-    def _compute_R_jit(
-        cost_table: np.ndarray,
-        incoming: np.ndarray,
-        dims: np.ndarray,
-        reduce_type: int,
-        op_type: int,
-    ) -> np.ndarray:
-        """JIT-compiled helper mirroring :func:`_compute_R_numpy`."""
-        n_messages = incoming.shape[0]
-        domain = incoming.shape[1]
-        ndim = cost_table.ndim
-        out = np.empty((n_messages, domain))
-        for i in range(n_messages):
-            augmented = cost_table.copy()
-            for j in range(n_messages):
-                if j != i:
-                    broadcast_shape = [1] * ndim
-                    broadcast_shape[dims[j]] = domain
-                    reshaped = incoming[j].reshape(tuple(broadcast_shape))
-                    if op_type == 0:
-                        augmented = augmented + reshaped
-                    else:
-                        augmented = augmented * reshaped
-            axes_list = [k for k in range(ndim) if k != dims[i]]
-            if len(axes_list) > 0:
-                axes = tuple(axes_list)
-                if reduce_type == 0:
-                    reduced = augmented.min(axis=axes)
-                else:
-                    reduced = augmented.max(axis=axes)
-            else:
-                reduced = augmented
-            if reduced.ndim > 1:
-                reduced = reduced.ravel()
-            out[i] = reduced
-        return out
-
-else:
-    _compute_Q_jit = _compute_Q_numpy
-    _compute_R_jit = _compute_R_numpy
-
-
 class BPComputator:
     """
     Vectorized, cache-friendly version of the original BPComputator.
+    Same interface as original but optimized for performance.
     """
 
-    def __init__(self, reduce_func, combine_func, use_jit: bool = True):
+    def __init__(self, reduce_func, combine_func, parallel=False):
         self.reduce_func = reduce_func
         self.combine_func = combine_func
-
         # Cache frequently used operations
         self._broadcast_cache = {}
-
-        # Determine if JIT should be used
-        self._use_jit = bool(use_jit and HAS_NUMBA)
-
-        # Operation/reduction types used by jitted functions
-        if combine_func is np.add:
-            self._operation_type = 0
-        elif combine_func is np.multiply:
-            self._operation_type = 1
-        else:
-            self._operation_type = -1
-
-        if reduce_func is np.min:
-            self._reduce_type = 0
-        elif reduce_func is np.max:
-            self._reduce_type = 1
-        else:
-            self._reduce_type = -1
-
+        self._connection_cache = {}
+        # Initialize attributes used by optimized version
+        # but make them backward compatible
+        self._use_jit = False
+        self._parallel = False
+        self._operation_type = 0  # Default to addition
         self._current_factor = None
 
-        # Choose implementations based on JIT availability
-        if self._use_jit:
-            self._compute_Q_impl = _compute_Q_jit
-            self._compute_R_impl = _compute_R_jit
-        else:
-            self._compute_Q_impl = _compute_Q_numpy
-            self._compute_R_impl = _compute_R_numpy
+    @lru_cache(maxsize=1024)
+    def _get_broadcast_shape(self, ndim: int, sender_dim: int, msg_len: int) -> tuple:
+        """Cached broadcast shape computation."""
+        shape = [1] * ndim
+        shape[sender_dim] = msg_len
+        return tuple(shape)
 
     def _get_node_dimension(self, factor, node) -> int:
         """
@@ -164,45 +50,47 @@ class BPComputator:
         Same interface as original but with performance improvements.
         """
         # Use cached connection lookup if available
-        if hasattr(factor, "_connection_cache"):
-            return factor._connection_cache.get(
-                node.name, factor.connection_number.get(node.name, 0)
-            )
+        cache_key = (id(factor), node.name)
+
+        if cache_key in self._connection_cache:
+            return self._connection_cache[cache_key]
 
         # Original logic with caching
-        if not hasattr(factor, "_connection_cache"):
-            factor._connection_cache = {}
-
-        if node.name in factor.connection_number:
-            factor._connection_cache[node.name] = factor.connection_number[node.name]
-            return factor.connection_number[node.name]
+        if hasattr(factor, 'connection_number') and factor.connection_number:
+            if node.name in factor.connection_number:
+                dim = factor.connection_number[node.name]
+                self._connection_cache[cache_key] = dim
+                return dim
 
         # Handle legacy case where objects are used as keys
-        for key, dim in factor.connection_number.items():
+        for key, dim in getattr(factor, 'connection_number', {}).items():
             if isinstance(key, Agent) and key.name == node.name:
-                factor._connection_cache[node.name] = dim
+                self._connection_cache[cache_key] = dim
                 return dim
             elif isinstance(key, str) and key == node.name:
-                factor._connection_cache[node.name] = dim
+                self._connection_cache[cache_key] = dim
                 return dim
 
         # Error handling (same as original)
-        available_keys = list(factor.connection_number.keys())
+        available_keys = list(getattr(factor, 'connection_number', {}).keys())
         raise KeyError(
             f"Node '{node.name}' not found in factor '{factor.name}' connections. "
             f"Available connections: {available_keys}"
         )
 
-    def compute_Q(
-        self, messages: List[Message], use_jit: Optional[bool] = None
-    ) -> List[Message]:
-        """Compute Q messages with optional JIT acceleration."""
+    def compute_Q(self, messages: List[Message]) -> List[Message]:
+        """
+        Optimized Q message computation - same interface as original.
+        Uses vectorized operations for better performance.
+        """
         if not messages:
             return []
 
+        #the recipient is the same for all messages
         variable = messages[0].recipient
         n_messages = len(messages)
 
+        # Fast path for single message
         if n_messages == 1:
             return [
                 Message(
@@ -212,76 +100,122 @@ class BPComputator:
                 )
             ]
 
-        msg_data = np.stack([msg.data for msg in messages])
-
-        use_jit = self._use_jit if use_jit is None else bool(use_jit and HAS_NUMBA)
-
+        # Vectorized computation when possible
         try:
-            results = (self._compute_Q_impl if use_jit else _compute_Q_numpy)(msg_data)
-        except Exception:
-            results = _compute_Q_numpy(msg_data)
+            # Stack all message data for vectorized operations
+            msg_data = np.stack([msg.data for msg in messages])
+            total_sum = np.sum(msg_data, axis=0)
+            outgoing_messages = []
 
-        return [
-            Message(data=results[i], sender=variable, recipient=messages[i].sender)
-            for i in range(n_messages)
-        ]
+            # Vectorized computation: subtract own message from total
+            for i in range(n_messages):
+                combined_data = total_sum - msg_data[i]
+                outgoing_messages.append(
+                    Message(
+                        data=combined_data,
+                        sender=variable,
+                        recipient=messages[i].sender,
+                    )
+                )
 
-    def compute_R(
-        self,
-        cost_table,
-        incoming_messages: List[Message],
-        use_jit: Optional[bool] = None,
-    ) -> List[Message]:
-        """Compute R messages with optional JIT acceleration."""
+            return outgoing_messages
+
+        except (ValueError, TypeError):
+            # Fallback to original algorithm if vectorization fails
+            outgoing_messages = []
+            for i, msg_i in enumerate(messages):
+                factor = msg_i.sender
+                other_messages = [
+                    msg_j.data for j, msg_j in enumerate(messages) if j != i
+                ]
+
+                if other_messages:
+                    combined_data = other_messages[0].copy()
+                    for msg_data in other_messages[1:]:
+                        combined_data = self.combine_func(combined_data, msg_data)
+                else:
+                    combined_data = np.zeros_like(msg_i.data)
+
+                outgoing_messages.append(
+                    Message(data=combined_data, sender=variable, recipient=factor)
+                )
+
+            return outgoing_messages
+
+    def compute_R(self, cost_table, incoming_messages: List[Message]) -> List[Message]:
+        """
+        Optimized R message computation - same interface as original.
+        Uses caching and vectorized operations for better performance.
+        """
         if not incoming_messages:
             return []
 
         factor = incoming_messages[0].recipient
 
+        # Initialize connection cache if needed (same logic as original)
         if not hasattr(factor, "connection_number") or not factor.connection_number:
-            factor.connection_number = {
-                msg.sender.name: i for i, msg in enumerate(incoming_messages)
-            }
+            factor.connection_number = {}
+            for i, msg in enumerate(incoming_messages):
+                factor.connection_number[msg.sender.name] = i
 
-        dims = np.array(
-            [self._get_node_dimension(factor, msg.sender) for msg in incoming_messages]
-        )
-        msg_data = np.stack([msg.data for msg in incoming_messages])
+        outgoing_messages = []
+        cost_table_shape = cost_table.shape
+        ndim = len(cost_table_shape)
 
-        use_jit = self._use_jit if use_jit is None else bool(use_jit and HAS_NUMBA)
+        # Optimized computation for each message
+        for i, msg_i in enumerate(incoming_messages):
+            variable_node = msg_i.sender
 
-        try:
-            results = (self._compute_R_impl if use_jit else _compute_R_numpy)(
-                cost_table, msg_data, dims, self._reduce_type, self._operation_type
+            try:
+                dim = self._get_node_dimension(factor, variable_node)
+            except KeyError as e:
+                # Same error handling as original
+                raise
+
+            # Optimized cost augmentation
+            augmented_costs = cost_table.copy()
+
+            # Vectorized addition of messages from other variables
+            for j, msg_j in enumerate(incoming_messages):
+                if j != i:
+                    sender = msg_j.sender
+                    sender_dim = self._get_node_dimension(factor, sender)
+
+                    # Cached broadcast shape computation
+                    broadcast_shape = self._get_broadcast_shape(ndim, sender_dim, len(msg_j.data))
+                    reshaped_msg = msg_j.data.reshape(broadcast_shape)
+                    augmented_costs = self.combine_func(augmented_costs, reshaped_msg)
+
+            # Marginalize over all dimensions except the recipient's
+            axes_to_reduce = tuple(j for j in range(ndim) if j != dim)
+            if axes_to_reduce:
+                reduced_msg = self.reduce_func(augmented_costs, axis=axes_to_reduce)
+            else:
+                reduced_msg = augmented_costs
+
+            if reduced_msg.ndim > 1:
+                reduced_msg = reduced_msg.ravel()
+
+            outgoing_messages.append(
+                Message(data=reduced_msg, sender=factor, recipient=variable_node)
             )
-        except Exception:
-            results = _compute_R_numpy(
-                cost_table, msg_data, dims, self._reduce_type, self._operation_type
-            )
 
-        return [
-            Message(
-                data=results[i], sender=factor, recipient=incoming_messages[i].sender
-            )
-            for i in range(len(incoming_messages))
-        ]
+        return outgoing_messages
 
 
 class MinSumComputator(BPComputator):
     """
-    Optimized Min-sum algorithm - drop-in replacement.
-    Same interface as original but with performance improvements.
+     Min-sum algorithm.
     """
 
-    def __init__(self, use_jit: bool = True):
-        super().__init__(reduce_func=np.min, combine_func=np.add, use_jit=use_jit)
+    def __init__(self):
+        super().__init__(reduce_func=np.min, combine_func=np.add)
 
 
 class MaxSumComputator(BPComputator):
     """
-    Optimized Max-sum algorithm - drop-in replacement.
-    Same interface as original but with performance improvements.
+    Max-sum algorithm .
     """
 
-    def __init__(self, use_jit: bool = True):
-        super().__init__(reduce_func=np.max, combine_func=np.add, use_jit=use_jit)
+    def __init__(self):
+        super().__init__(reduce_func=np.max, combine_func=np.add)

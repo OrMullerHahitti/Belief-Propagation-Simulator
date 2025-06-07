@@ -1,5 +1,5 @@
 from base_all.agents import VariableAgent
-from base_all.bp_engine_base import BPEngine
+from bp_base.bp_engine_base import BPEngine
 from policies.cost_reduction import (
     cost_reduction_all_factors_once,
     discount_attentive,
