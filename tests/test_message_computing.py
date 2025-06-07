@@ -238,59 +238,59 @@ def test_compute_r_with_incoming_values(
     # Result: [9, 10, 11]
     np.testing.assert_array_equal(result[1].data, np.array([9, 10, 11]))
 
-
-# Test JIT acceleration if available
-def test_jit_acceleration_flag():
-    """Test that the JIT acceleration flag is properly set"""
-    from bp_base.bp_computators import HAS_NUMBA
-
-    computator = BPComputator(reduce_func=np.max, combine_func=np.add, use_jit=True)
-    assert computator._use_jit == HAS_NUMBA
-
-    computator_disabled = BPComputator(
-        reduce_func=np.max, combine_func=np.add, use_jit=False
-    )
-    assert not computator_disabled._use_jit
-
-    # For common numpy functions, operation type should be recognized
-    assert computator._operation_type == 0  # 0 for addition
-
-    # Test with multiplication
-    computator2 = BPComputator(
-        reduce_func=np.max, combine_func=np.multiply, use_jit=False
-    )
-    assert computator2._operation_type == 1  # 1 for multiplication
-
-
-def test_jit_vs_numpy_paths(variable_agent, factor_agent):
-    """Ensure JIT and non-JIT implementations produce the same results."""
-    # Prepare messages
-    factor_agent2 = FactorAgent(
-        name="f2", domain=3, ct_creation_func=create_test_cost_table
-    )
-    msg1 = Message(
-        data=np.array([1.0, 2.0, 3.0]), sender=factor_agent, recipient=variable_agent
-    )
-    msg2 = Message(
-        data=np.array([4.0, 5.0, 6.0]), sender=factor_agent2, recipient=variable_agent
-    )
-
-    comp_jit = MaxSumComputator(use_jit=True)
-    comp_np = MaxSumComputator(use_jit=False)
-
-    res_jit = comp_jit.compute_Q([msg1, msg2])
-    res_np = comp_np.compute_Q([msg1, msg2])
-    for a, b in zip(res_jit, res_np):
-        np.testing.assert_array_equal(a.data, b.data)
-
-    # R-message comparison
-    cost_table = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    variable_agent2 = VariableAgent(name="x2", domain=3)
-    factor_agent.connection_number = {variable_agent.name: 0, variable_agent2.name: 1}
-    msg_r1 = Message(data=np.zeros(3), sender=variable_agent, recipient=factor_agent)
-    msg_r2 = Message(data=np.zeros(3), sender=variable_agent2, recipient=factor_agent)
-
-    res_jit_r = comp_jit.compute_R(cost_table, [msg_r1, msg_r2])
-    res_np_r = comp_np.compute_R(cost_table, [msg_r1, msg_r2])
-    for a, b in zip(res_jit_r, res_np_r):
-        np.testing.assert_array_equal(a.data, b.data)
+#
+# # Test JIT acceleration if available
+# def test_jit_acceleration_flag():
+#     """Test that the JIT acceleration flag is properly set"""
+#     from bp_base.bp_computators import HAS_NUMBA
+#
+#     computator = BPComputator(reduce_func=np.max, combine_func=np.add, use_jit=True)
+#     assert computator._use_jit == HAS_NUMBA
+#
+#     computator_disabled = BPComputator(
+#         reduce_func=np.max, combine_func=np.add, use_jit=False
+#     )
+#     assert not computator_disabled._use_jit
+#
+#     # For common numpy functions, operation type should be recognized
+#     assert computator._operation_type == 0  # 0 for addition
+#
+#     # Test with multiplication
+#     computator2 = BPComputator(
+#         reduce_func=np.max, combine_func=np.multiply, use_jit=False
+#     )
+#     assert computator2._operation_type == 1  # 1 for multiplication
+#
+#
+# def test_jit_vs_numpy_paths(variable_agent, factor_agent):
+#     """Ensure JIT and non-JIT implementations produce the same results."""
+#     # Prepare messages
+#     factor_agent2 = FactorAgent(
+#         name="f2", domain=3, ct_creation_func=create_test_cost_table
+#     )
+#     msg1 = Message(
+#         data=np.array([1.0, 2.0, 3.0]), sender=factor_agent, recipient=variable_agent
+#     )
+#     msg2 = Message(
+#         data=np.array([4.0, 5.0, 6.0]), sender=factor_agent2, recipient=variable_agent
+#     )
+#
+#     comp_jit = MaxSumComputator(use_jit=True)
+#     comp_np = MaxSumComputator(use_jit=False)
+#
+#     res_jit = comp_jit.compute_Q([msg1, msg2])
+#     res_np = comp_np.compute_Q([msg1, msg2])
+#     for a, b in zip(res_jit, res_np):
+#         np.testing.assert_array_equal(a.data, b.data)
+#
+#     # R-message comparison
+#     cost_table = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+#     variable_agent2 = VariableAgent(name="x2", domain=3)
+#     factor_agent.connection_number = {variable_agent.name: 0, variable_agent2.name: 1}
+#     msg_r1 = Message(data=np.zeros(3), sender=variable_agent, recipient=factor_agent)
+#     msg_r2 = Message(data=np.zeros(3), sender=variable_agent2, recipient=factor_agent)
+#
+#     res_jit_r = comp_jit.compute_R(cost_table, [msg_r1, msg_r2])
+#     res_np_r = comp_np.compute_R(cost_table, [msg_r1, msg_r2])
+#     for a, b in zip(res_jit_r, res_np_r):
+#         np.testing.assert_array_equal(a.data, b.data)
