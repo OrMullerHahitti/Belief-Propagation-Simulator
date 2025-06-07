@@ -16,7 +16,6 @@ class Message:
     """
     Represents a message in the BP algorithm.
     """
-
     def __init__(self, data: np.ndarray, sender: Agent, recipient: Agent):
         self.data = data
         self.sender = sender

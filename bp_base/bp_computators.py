@@ -1,9 +1,11 @@
 import numpy as np
 from typing import List
 import logging
+from functools import lru_cache
 
 try:
     import numba
+
     HAS_NUMBA = True
 except ImportError:
     HAS_NUMBA = False
@@ -19,6 +21,7 @@ logger.setLevel(logging.CRITICAL)
 class BPComputator:
     """
     Vectorized, cache-friendly version of the original BPComputator.
+    Same interface as original but optimized for performance.
     """
 
     def __init__(self, reduce_func, combine_func, parallel=False):
@@ -26,6 +29,7 @@ class BPComputator:
         self.combine_func = combine_func
         # Cache frequently used operations
         self._broadcast_cache = {}
+        self._connection_cache = {}
         # Initialize attributes used by optimized version
         # but make them backward compatible
         self._use_jit = False
@@ -33,36 +37,42 @@ class BPComputator:
         self._operation_type = 0  # Default to addition
         self._current_factor = None
 
+    @lru_cache(maxsize=1024)
+    def _get_broadcast_shape(self, ndim: int, sender_dim: int, msg_len: int) -> tuple:
+        """Cached broadcast shape computation."""
+        shape = [1] * ndim
+        shape[sender_dim] = msg_len
+        return tuple(shape)
+
     def _get_node_dimension(self, factor, node) -> int:
         """
         Optimized dimension lookup with caching.
         Same interface as original but with performance improvements.
         """
         # Use cached connection lookup if available
-        if hasattr(factor, "_connection_cache"):
-            return factor._connection_cache.get(
-                node.name, factor.connection_number.get(node.name, 0)
-            )
+        cache_key = (id(factor), node.name)
+
+        if cache_key in self._connection_cache:
+            return self._connection_cache[cache_key]
 
         # Original logic with caching
-        if not hasattr(factor, "_connection_cache"):
-            factor._connection_cache = {}
-
-        if node.name in factor.connection_number:
-            factor._connection_cache[node.name] = factor.connection_number[node.name]
-            return factor.connection_number[node.name]
+        if hasattr(factor, 'connection_number') and factor.connection_number:
+            if node.name in factor.connection_number:
+                dim = factor.connection_number[node.name]
+                self._connection_cache[cache_key] = dim
+                return dim
 
         # Handle legacy case where objects are used as keys
-        for key, dim in factor.connection_number.items():
+        for key, dim in getattr(factor, 'connection_number', {}).items():
             if isinstance(key, Agent) and key.name == node.name:
-                factor._connection_cache[node.name] = dim
+                self._connection_cache[cache_key] = dim
                 return dim
             elif isinstance(key, str) and key == node.name:
-                factor._connection_cache[node.name] = dim
+                self._connection_cache[cache_key] = dim
                 return dim
 
         # Error handling (same as original)
-        available_keys = list(factor.connection_number.keys())
+        available_keys = list(getattr(factor, 'connection_number', {}).keys())
         raise KeyError(
             f"Node '{node.name}' not found in factor '{factor.name}' connections. "
             f"Available connections: {available_keys}"
@@ -76,6 +86,7 @@ class BPComputator:
         if not messages:
             return []
 
+        #the recipient is the same for all messages
         variable = messages[0].recipient
         n_messages = len(messages)
 
@@ -171,13 +182,7 @@ class BPComputator:
                     sender_dim = self._get_node_dimension(factor, sender)
 
                     # Cached broadcast shape computation
-                    cache_key = (ndim, sender_dim, len(msg_j.data))
-                    if cache_key not in self._broadcast_cache:
-                        broadcast_shape = [1] * ndim
-                        broadcast_shape[sender_dim] = len(msg_j.data)
-                        self._broadcast_cache[cache_key] = tuple(broadcast_shape)
-
-                    broadcast_shape = self._broadcast_cache[cache_key]
+                    broadcast_shape = self._get_broadcast_shape(ndim, sender_dim, len(msg_j.data))
                     reshaped_msg = msg_j.data.reshape(broadcast_shape)
                     augmented_costs = self.combine_func(augmented_costs, reshaped_msg)
 
@@ -200,8 +205,7 @@ class BPComputator:
 
 class MinSumComputator(BPComputator):
     """
-    Optimized Min-sum algorithm - drop-in replacement.
-    Same interface as original but with performance improvements.
+     Min-sum algorithm.
     """
 
     def __init__(self):
@@ -210,8 +214,7 @@ class MinSumComputator(BPComputator):
 
 class MaxSumComputator(BPComputator):
     """
-    Optimized Max-sum algorithm - drop-in replacement.
-    Same interface as original but with performance improvements.
+    Max-sum algorithm .
     """
 
     def __init__(self):
