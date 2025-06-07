@@ -19,7 +19,7 @@ sys.path.append(str(project_root))
 # Now import from utils
 from utils.path_utils import load_pickle
 
-from base_all.bp_engine_base import BPEngine
+from bp_base.bp_engine_base import BPEngine
 from configs.loggers import Logger
 
 log_dir = "test_logs"

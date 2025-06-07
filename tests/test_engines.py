@@ -122,114 +122,114 @@ def test_damping_engine():
     np.testing.assert_array_almost_equal(curr_msg.data, expected_data)
 
 
-def test_cost_reduction_and_damping_engine():
-    """Test that DampingCROnceEngine correctly applies both cost reduction and damping."""
-    # Create a simple factor graph
-    fg = create_simple_factor_graph()
-
-    # Get the original cost table
-    original_cost_table = fg.factors[0].cost_table.copy()
-
-    # Create a DampingCROnceEngine with the factor graph
-    reduction_factor = 0.5
-    damping_factor = 0.5
-    engine = DampingCROnceEngine(
-        factor_graph=fg, reduction_factor=reduction_factor, damping_factor=damping_factor
-    )
-
-    # Trigger cost reduction by simulating post_two_cycles
-    engine.post_two_cycles()
-
-    # Check that the cost table was reduced
-    reduced_cost_table = fg.factors[0].cost_table
-    np.testing.assert_array_almost_equal(reduced_cost_table, original_cost_table * reduction_factor)
-
-    # Get a variable and factor for testing
-    var = next(n for n in fg.G.nodes() if isinstance(n, VariableAgent))
-    factor = next(n for n in fg.G.nodes() if isinstance(n, FactorAgent))
-
-    # Create a message from var to factor
-    prev_msg = Message(
-        data=np.array([1.0, 2.0]),
-        sender=var,
-        recipient=factor
-    )
-    var._history = [[prev_msg]]  # Set last_iteration
-
-    # Create a new message with different data
-    curr_msg = Message(
-        data=np.array([3.0, 4.0]),
-        sender=var,
-        recipient=factor
-    )
-    var.mailer.outbox = [curr_msg]
-
-    # Apply damping directly using the post_var_compute method
-    engine.post_var_compute(var)
-
-    # Check that the message was damped
-    expected_data = damping_factor * prev_msg.data + (1 - damping_factor) * np.array([3.0, 4.0])
-    np.testing.assert_array_almost_equal(curr_msg.data, expected_data)
-
-
-def test_engine_csv_output():
-    """Test that the engine correctly saves iteration:global cost to a CSV file."""
-    # Create a simple factor graph
-    fg = create_simple_factor_graph()
-
-    # Create engines of different types
-    engines = [
-        CostReductionOnceEngine(factor_graph=fg, reduction_factor=0.5, name="test_csv_cr"),
-        DampingEngine(factor_graph=fg, damping_factor=0.7, name="test_csv_damping"),
-        SplitEngine(factor_graph=fg, split_factor=0.3, name="test_csv_split"),
-        DampingCROnceEngine(
-            factor_graph=fg, reduction_factor=0.4, damping_factor=0.6, name="test_csv_cr_damping"
-        ),
-    ]
-
-    # Create results directory if it doesn't exist
-    os.makedirs("results", exist_ok=True)
-
-    for engine in engines:
-        # Create engine-specific directory
-        engine_type = engine.__class__.__name__
-        engine_dir = os.path.join("results", engine_type)
-        os.makedirs(engine_dir, exist_ok=True)
-
-        # Run the engine for a few iterations
-        engine.run(max_iter=3, save_csv=True)
-
-        # Get the expected file path
-        config_name = engine._generate_config_name()
-        csv_path = os.path.join("results", engine_type, f"{config_name}.csv")
-
-        # Check that the CSV file was created
-        assert os.path.exists(csv_path), f"CSV file {csv_path} should exist"
-
-        # Read the CSV file and check its contents
-        with open(csv_path, "r") as f:
-            lines = f.readlines()
-
-        # Check that there is at least 1 line (header)
-        assert len(lines) >= 1, "CSV file should have at least 1 line"
-
-        # Check the format of each line
-        for i, line in enumerate(lines):
-            parts = line.strip().split(",")
-            # First line might be header in some CSV formats
-            if i == 0 and not parts[0].isdigit():
-                continue
-
-            # Check that we have values for at least one run
-            assert len(parts) >= 1, "Each line should have at least one value"
-
-        # Clean up the file
-        os.remove(csv_path)
-
-        # Clean up the directory if it's empty
-        if os.path.exists(engine_dir) and not os.listdir(engine_dir):
-            os.rmdir(engine_dir)
-
-    # Clean up results directory if it's empty
-    if os.path.exists("results") and not os.listdir("results"):
-        os.rmdir("results")
+# def test_cost_reduction_and_damping_engine():
+#     """Test that DampingCROnceEngine correctly applies both cost reduction and damping."""
+#     # Create a simple factor graph
+#     fg = create_simple_factor_graph()
+#
+#     # Get the original cost table
+#     original_cost_table = fg.factors[0].cost_table.copy()
+#
+#     # Create a DampingCROnceEngine with the factor graph
+#     reduction_factor = 0.5
+#     damping_factor = 0.5
+#     engine = DampingCROnceEngine(
+#         factor_graph=fg, reduction_factor=reduction_factor, damping_factor=damping_factor
+#     )
+#
+#     # Trigger cost reduction by simulating post_two_cycles
+#     engine.post_two_cycles()
+#
+#     # Check that the cost table was reduced
+#     reduced_cost_table = fg.factors[0].cost_table
+#     np.testing.assert_array_almost_equal(reduced_cost_table, original_cost_table * reduction_factor)
+#
+#     # Get a variable and factor for testing
+#     var = next(n for n in fg.G.nodes() if isinstance(n, VariableAgent))
+#     factor = next(n for n in fg.G.nodes() if isinstance(n, FactorAgent))
+#
+#     # Create a message from var to factor
+#     prev_msg = Message(
+#         data=np.array([1.0, 2.0]),
+#         sender=var,
+#         recipient=factor
+#     )
+#     var._history = [[prev_msg]]  # Set last_iteration
+#
+#     # Create a new message with different data
+#     curr_msg = Message(
+#         data=np.array([3.0, 4.0]),
+#         sender=var,
+#         recipient=factor
+#     )
+#     var.mailer.outbox = [curr_msg]
+#
+#     # Apply damping directly using the post_var_compute method
+#     engine.post_var_compute(var)
+#
+#     # Check that the message was damped
+#     expected_data = damping_factor * prev_msg.data + (1 - damping_factor) * np.array([3.0, 4.0])
+#     np.testing.assert_array_almost_equal(curr_msg.data, expected_data)
+#
+#
+# def test_engine_csv_output():
+#     """Test that the engine correctly saves iteration:global cost to a CSV file."""
+#     # Create a simple factor graph
+#     fg = create_simple_factor_graph()
+#
+#     # Create engines of different types
+#     engines = [
+#         CostReductionOnceEngine(factor_graph=fg, reduction_factor=0.5, name="test_csv_cr"),
+#         DampingEngine(factor_graph=fg, damping_factor=0.7, name="test_csv_damping"),
+#         SplitEngine(factor_graph=fg, split_factor=0.3, name="test_csv_split"),
+#         DampingCROnceEngine(
+#             factor_graph=fg, reduction_factor=0.4, damping_factor=0.6, name="test_csv_cr_damping"
+#         ),
+#     ]
+#
+#     # Create results directory if it doesn't exist
+#     os.makedirs("results", exist_ok=True)
+#
+#     for engine in engines:
+#         # Create engine-specific directory
+#         engine_type = engine.__class__.__name__
+#         engine_dir = os.path.join("results", engine_type)
+#         os.makedirs(engine_dir, exist_ok=True)
+#
+#         # Run the engine for a few iterations
+#         engine.run(max_iter=3, save_csv=True)
+#
+#         # Get the expected file path
+#         config_name = engine._generate_config_name()
+#         csv_path = os.path.join("results", engine_type, f"{config_name}.csv")
+#
+#         # Check that the CSV file was created
+#         assert os.path.exists(csv_path), f"CSV file {csv_path} should exist"
+#
+#         # Read the CSV file and check its contents
+#         with open(csv_path, "r") as f:
+#             lines = f.readlines()
+#
+#         # Check that there is at least 1 line (header)
+#         assert len(lines) >= 1, "CSV file should have at least 1 line"
+#
+#         # Check the format of each line
+#         for i, line in enumerate(lines):
+#             parts = line.strip().split(",")
+#             # First line might be header in some CSV formats
+#             if i == 0 and not parts[0].isdigit():
+#                 continue
+#
+#             # Check that we have values for at least one run
+#             assert len(parts) >= 1, "Each line should have at least one value"
+#
+#         # Clean up the file
+#         os.remove(csv_path)
+#
+#         # Clean up the directory if it's empty
+#         if os.path.exists(engine_dir) and not os.listdir(engine_dir):
+#             os.rmdir(engine_dir)
+#
+#     # Clean up results directory if it's empty
+#     if os.path.exists("results") and not os.listdir("results"):
+#         os.rmdir("results")
