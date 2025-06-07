@@ -10,10 +10,11 @@ The **Belief-Propagation-Simulator** is a Python-based tool designed to simulate
 - **Graph State Persistence**: Save and load graph states efficiently using pickle files.
 - **Debugging and Logging**: Integrated logging for debugging and monitoring.
 ### preliminary resaults:
-![image](bp_VS_damping_VS_damping_spfg.png)
+![image](https://github.com/user-attachments/assets/8a33d046-ac4d-41d9-b6ed-245618b6f937)
+
 >This project is a work in progress and is not yet fully functional. The current implementation focuses on the basic structure and functionality of the simulator, with plans for future enhancements and optimizations.
 >
-> it will be up and running very soon.
+> extending to search problems as well.
 ## Installation
 To set up the project, clone the repository and install the required dependencies:
 ```bash
