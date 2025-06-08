@@ -5,7 +5,7 @@ import numpy as np
 import sys
 from pathlib import Path
 
-from base_all.agents import VariableAgent, FactorAgent, BPAgent
+from base_all.agents import VariableAgent, FactorAgent, FGAgent
 from base_all.components import Message, MailHandler
 from bp_base.bp_computators import MaxSumComputator, MinSumComputator
 from bp_base.factor_graph import FactorGraph

@@ -4,9 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Callable, Set, TypeAlias
 import numpy as np
 
-from bp_base.typing import Message
-from utils.randomes import create_random_table
-from networkx import Graph
+from base_all.protocols import Message
 
 
 class Computator(ABC):

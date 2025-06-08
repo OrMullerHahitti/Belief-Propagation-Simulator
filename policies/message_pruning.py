@@ -2,7 +2,7 @@ from typing import Dict
 import numpy as np
 from base_all.agents import BPAgent
 from base_all.components import Message
-from bp_base.typing import PolicyType
+from base_all.protocols import PolicyType
 from policies.bp_policies import Policy
 import logging
 
