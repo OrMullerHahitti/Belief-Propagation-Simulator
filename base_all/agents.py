@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Callable
+from typing import List, Callable, Any, Dict
+
 import numpy as np
 
 from base_all.components import Message, CostTable, MailHandler

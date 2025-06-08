@@ -1,6 +1,6 @@
 import numpy as np
-from typing import List, Union, Callable, Tuple
-from bp_base.typing import CostTable
+from typing import Callable
+from base_all.protocols import CostTable
 from scipy.special import logsumexp
 
 
