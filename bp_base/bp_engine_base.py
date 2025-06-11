@@ -40,12 +40,11 @@ class BPEngine:
         self.normalize_messages = normalize_messages
         self.name = name
         self.graph = factor_graph
-
-        # Initialize components
         self.post_init()
         self._initialize_messages()
         self.graph.set_computator(computator)
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -132,7 +131,7 @@ class BPEngine:
         cy = Cycle(j)
 
         # Run diameter + 1 steps
-        for i in range(self.graph_diameter + 1):
+        for i in range(self.graph_diameter):
             step_result = self.step(i)
             cy.add(step_result)
         # Post-cycle operations
