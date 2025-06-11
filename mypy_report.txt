@@ -1,0 +1,147 @@
+utils/path_utils.py:61: error: Incompatible default for argument "extension_filter" (default has type "None", argument has type "str")  [assignment]
+utils/path_utils.py:61: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+utils/path_utils.py:61: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+utils/create_factor_graph_config.py:29: error: "EngineConfig" has no attribute "damping_params"  [attr-defined]
+utils/create_factor_graph_config.py:31: error: "EngineConfig" has no attribute "damping_type"  [attr-defined]
+utils/convex_hull.py:484: error: Argument "slope" to "Line" has incompatible type "ndarray[Any, Any]"; expected "float"  [arg-type]
+utils/convex_hull.py:484: error: Argument "intercept" to "Line" has incompatible type "ndarray[Any, Any]"; expected "float"  [arg-type]
+utils/convex_hull.py:706: error: Need type annotation for "unique_points" (hint: "unique_points: list[<type>] = ...")  [var-annotated]
+utils/convex_hull.py:707: error: Need type annotation for "processed_ks" (hint: "processed_ks: set[<type>] = ...")  [var-annotated]
+utils/convex_hull.py:752: error: Name "active_segment_for_i" already defined on line 578  [no-redef]
+policies/convergance.py:29: error: Need type annotation for "convergence_history" (hint: "convergence_history: list[<type>] = ...")  [var-annotated]
+policies/convergance.py:71: error: Item "None" of "dict[str, int] | None" has no attribute "get"  [union-attr]
+configs/global_config_mapping.py:21: error: Name "PROJECT_ROOT" already defined on line 10  [no-redef]
+base_all/protocols.py:115: error: Incompatible default for argument "filename" (default has type "None", argument has type "str")  [assignment]
+base_all/protocols.py:115: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+base_all/protocols.py:115: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+utils/ct_utils.py:120: error: Need type annotation for "total_sum"  [var-annotated]
+utils/ct_utils.py:129: error: Incompatible default for argument "axis" (default has type "None", argument has type "int")  [assignment]
+utils/ct_utils.py:129: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+utils/ct_utils.py:129: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+utils/ct_utils.py:141: error: Need type annotation for "log_potentials"  [var-annotated]
+base_all/DCOP_base.py:87: error: "object" has no attribute "name"  [attr-defined]
+base_all/DCOP_base.py:87: error: "object" has no attribute "type"  [attr-defined]
+utils/performance.py:70: error: Incompatible types in assignment (expression has type "float", variable has type "floating[Any]")  [assignment]
+utils/performance.py:94: error: Argument "avg_message_size" to "StepMetrics" has incompatible type "floating[Any]"; expected "float"  [arg-type]
+utils/performance.py:110: error: Incompatible default for argument "pruning_stats" (default has type "None", argument has type "dict[Any, Any]")  [assignment]
+utils/performance.py:110: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+utils/performance.py:110: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+utils/performance.py:214: error: Incompatible return value type (got "dict[str, floating[Any] | float | Literal[0]]", expected "dict[str, float]")  [return-value]
+base_all/agents.py:22: error: Need type annotation for "_history" (hint: "_history: list[<type>] = ...")  [var-annotated]
+base_all/agents.py:24: error: Incompatible types in assignment (expression has type "MailHandler", variable has type "None")  [assignment]
+base_all/agents.py:28: error: "None" has no attribute "receive_messages"  [attr-defined]
+base_all/agents.py:32: error: "None" has no attribute "send"  [attr-defined]
+base_all/agents.py:36: error: "None" has no attribute "clear_inbox"  [attr-defined]
+base_all/agents.py:84: error: Return type "None" of "compute_messages" incompatible with return type "list[Message]" in supertype "FGAgent"  [override]
+base_all/agents.py:86: error: "None" has no attribute "inbox"  [attr-defined]
+base_all/agents.py:87: error: "None" has no attribute "inbox"  [attr-defined]
+base_all/agents.py:88: error: "None" has no attribute "stage_sending"  [attr-defined]
+base_all/agents.py:102: error: Need type annotation for "belief_min"  [var-annotated]
+base_all/agents.py:154: error: Return type "None" of "compute_messages" incompatible with return type "list[Message]" in supertype "FGAgent"  [override]
+base_all/agents.py:160: error: "None" has no attribute "stage_sending"  [attr-defined]
+search/search_computator.py:55: error: Return type "list[base_all.components.Message]" of "compute_Q" incompatible with return type "list[base_all.protocols.Message]" in supertype "Computator"  [override]
+search/search_computator.py:55: error: Argument 1 of "compute_Q" is incompatible with supertype "Computator"; supertype defines the argument type as "list[Message]"  [override]
+search/search_computator.py:55: note: This violates the Liskov substitution principle
+search/search_computator.py:55: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#incompatible-overrides
+search/search_computator.py:86: error: Return type "list[base_all.components.Message]" of "compute_R" incompatible with return type "list[base_all.protocols.Message]" in supertype "Computator"  [override]
+search/search_computator.py:86: error: Argument 2 of "compute_R" is incompatible with supertype "Computator"; supertype defines the argument type as "list[Message]"  [override]
+search/search_computator.py:86: note: This violates the Liskov substitution principle
+search/search_computator.py:86: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#incompatible-overrides
+search/search_computator.py:178: error: Need type annotation for "current_gains" (hint: "current_gains: dict[<type>, <type>] = ...")  [var-annotated]
+search/search_computator.py:180: error: Need type annotation for "coalitions" (hint: "coalitions: list[<type>] = ...")  [var-annotated]
+search/search_computator.py:181: error: Need type annotation for "best_values" (hint: "best_values: dict[<type>, <type>] = ...")  [var-annotated]
+policies/normalize_cost.py:26: error: "None" has no attribute "inbox"  [attr-defined]
+policies/normalize_cost.py:44: error: "<typing special form>" has no attribute "MESSAGE"  [attr-defined]
+policies/normalize_cost.py:81: error: Unsupported operand types for * ("float" and "SupportsDunderLT[Any]")  [operator]
+policies/normalize_cost.py:81: error: Unsupported operand types for * ("float" and "SupportsDunderGT[Any]")  [operator]
+policies/normalize_cost.py:81: note: Right operand is of type "SupportsDunderLT[Any] | SupportsDunderGT[Any]"
+policies/normalize_cost.py:117: error: Incompatible default for argument "pruning_policy" (default has type "None", argument has type "MessagePruningPolicy")  [assignment]
+policies/normalize_cost.py:117: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+policies/normalize_cost.py:117: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+policies/message_pruning.py:3: error: Module "base_all.agents" has no attribute "BPAgent"; maybe "Agent"?  [attr-defined]
+policies/message_pruning.py:21: error: "<typing special form>" has no attribute "MESSAGE"  [attr-defined]
+policies/message_pruning.py:49: error: Unsupported operand types for * ("float" and "SupportsDunderLT[Any]")  [operator]
+policies/message_pruning.py:49: error: Unsupported operand types for * ("float" and "SupportsDunderGT[Any]")  [operator]
+policies/message_pruning.py:49: note: Right operand is of type "SupportsDunderLT[Any] | SupportsDunderGT[Any]"
+policies/damping.py:8: error: "None" has no attribute "outbox"  [attr-defined]
+policies/damping.py:28: error: "None" has no attribute "outbox"  [attr-defined]
+bp_base/factor_graph.py:59: error: Incompatible return value type (got "None", expected "int | float")  [return-value]
+bp_base/factor_graph.py:69: error: Incompatible types in assignment (expression has type "int | float", variable has type "None")  [assignment]
+bp_base/factor_graph.py:84: error: Need type annotation for "indices" (hint: "indices: list[<type>] = ...")  [var-annotated]
+bp_base/factor_graph.py:113: error: Value expression in dictionary comprehension has incompatible type "int | float"; expected type "int"  [misc]
+bp_base/factor_graph.py:131: error: "None" has no attribute "inbox"  [attr-defined]
+bp_base/engine_components.py:49: error: Argument 1 of "__eq__" is incompatible with supertype "object"; supertype defines the argument type as "object"  [override]
+bp_base/engine_components.py:49: note: This violates the Liskov substitution principle
+bp_base/engine_components.py:49: note: See https://mypy.readthedocs.io/en/stable/common_issues.html#incompatible-overrides
+bp_base/engine_components.py:49: note: It is recommended for "__eq__" to work with arbitrary objects, for example:
+bp_base/engine_components.py:49: note:     def __eq__(self, other: object) -> bool:
+bp_base/engine_components.py:49: note:         if not isinstance(other, Cycle):
+bp_base/engine_components.py:49: note:             return NotImplemented
+bp_base/engine_components.py:49: note:         return <logic to compare two Cycle instances>
+bp_base/engine_components.py:93: error: Incompatible default for argument "filename" (default has type "None", argument has type "str")  [assignment]
+bp_base/engine_components.py:93: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+bp_base/engine_components.py:93: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+bp_base/bp_computators.py:157: error: "Agent" has no attribute "connection_number"  [attr-defined]
+bp_base/bp_computators.py:159: error: "Agent" has no attribute "connection_number"  [attr-defined]
+utils/fg_utils.py:19: error: Item "None" of "ndarray[Any, Any] | None" has no attribute "ndim"  [union-attr]
+utils/fg_utils.py:21: error: Value of type "ndarray[Any, Any] | None" is not indexable  [index]
+utils/create_factor_graphs_from_config.py:219: error: Need type annotation for "edges" (hint: "edges: list[<type>] = ...")  [var-annotated]
+utils/create_factor_graphs_from_config.py:224: error: Name "variables" already defined on line 216  [no-redef]
+utils/create_factor_graphs_from_config.py:229: error: Name "edges" already defined on line 219  [no-redef]
+utils/create_factor_graphs_from_config.py:236: error: No overload variant of "__setitem__" of "list" matches argument types "FactorAgent", "list[VariableAgent]"  [call-overload]
+utils/create_factor_graphs_from_config.py:236: note: Possible overload variants:
+utils/create_factor_graphs_from_config.py:236: note:     def __setitem__(self, SupportsIndex, Any, /) -> None
+utils/create_factor_graphs_from_config.py:236: note:     def __setitem__(self, slice[Any, Any, Any], Iterable[Any], /) -> None
+policies/splitting.py:30: error: Unsupported operand types for * ("float" and "None")  [operator]
+policies/splitting.py:30: note: Right operand is of type "ndarray[Any, Any] | None"
+policies/splitting.py:31: error: Unsupported operand types for * ("float" and "None")  [operator]
+policies/splitting.py:31: note: Right operand is of type "ndarray[Any, Any] | None"
+policies/splitting.py:33: error: Argument "cost_table" to "create_from_cost_table" of "FactorAgent" has incompatible type "float | Any"; expected "ndarray[Any, Any]"  [arg-type]
+policies/splitting.py:34: error: Argument "cost_table" to "create_from_cost_table" of "FactorAgent" has incompatible type "float | Any"; expected "ndarray[Any, Any]"  [arg-type]
+policies/bp_policies.py:22: error: "PolicyType" has no attribute "type"  [attr-defined]
+policies/bp_policies.py:29: error: "object" has no attribute "p_type"  [attr-defined]
+policies/bp_policies.py:55: error: Unsupported operand types for * ("Message" and "float")  [operator]
+policies/bp_policies.py:57: error: "None" has no attribute "inbox"  [attr-defined]
+policies/bp_policies.py:57: error: Argument "key" to "sorted" has incompatible type "Callable[[tuple[Message, Any]], Agent]"; expected "Callable[[tuple[Message, Any]], SupportsDunderLT[Any] | SupportsDunderGT[Any]]"  [arg-type]
+policies/bp_policies.py:57: error: Incompatible return value type (got "Agent", expected "SupportsDunderLT[Any] | SupportsDunderGT[Any]")  [return-value]
+policies/bp_policies.py:78: error: "FactorAgent" has no attribute "update_cost_table"; maybe "initiate_cost_table"?  [attr-defined]
+policies/bp_policies.py:78: error: Unsupported operand types for * ("None" and "float")  [operator]
+policies/bp_policies.py:78: note: Left operand is of type "ndarray[Any, Any] | None"
+policies/bp_policies.py:97: error: "FactorAgent" has no attribute "update_cost_table"; maybe "initiate_cost_table"?  [attr-defined]
+policies/bp_policies.py:97: error: Unsupported operand types for * ("None" and "float")  [operator]
+policies/bp_policies.py:97: note: Left operand is of type "ndarray[Any, Any] | None"
+bp_base/bp_engine_base.py:30: error: Incompatible default for argument "computator" (default has type "MinSumComputator", argument has type "Computator")  [assignment]
+bp_base/bp_engine_base.py:156: error: Incompatible default for argument "filename" (default has type "None", argument has type "str")  [assignment]
+bp_base/bp_engine_base.py:156: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+bp_base/bp_engine_base.py:156: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+bp_base/bp_engine_base.py:157: error: Incompatible default for argument "config_name" (default has type "None", argument has type "str")  [assignment]
+bp_base/bp_engine_base.py:157: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+bp_base/bp_engine_base.py:157: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+bp_base/bp_engine_base.py:207: error: Incompatible return value type (got "dict[str, Any | None]", expected "dict[str, ndarray[Any, Any]]")  [return-value]
+bp_base/bp_engine_base.py:236: error: Need type annotation for "indices" (hint: "indices: list[<type>] = ...")  [var-annotated]
+bp_base/bp_engine_base.py:268: error: "None" has no attribute "set_first_message"  [attr-defined]
+search/search_engine.py:96: error: Incompatible types in assignment (expression has type "dict[str, int | float]", variable has type "None")  [assignment]
+search/search_engine.py:97: error: Unsupported operand types for + ("None" and "int")  [operator]
+search/search_engine.py:97: note: Left operand is of type "int | None"
+search/search_engine.py:130: error: Return type "dict[str, Any]" of "run" incompatible with return type "str | None" in supertype "BPEngine"  [override]
+search/search_engine.py:135: error: Incompatible default for argument "filename" (default has type "None", argument has type "str")  [assignment]
+search/search_engine.py:135: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+search/search_engine.py:135: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+search/search_engine.py:136: error: Incompatible default for argument "config_name" (default has type "None", argument has type "str")  [assignment]
+search/search_engine.py:136: note: PEP 484 prohibits implicit Optional. Accordingly, mypy has changed its default to no_implicit_optional=True
+search/search_engine.py:136: note: Use https://github.com/hauntsaninja/no_implicit_optional to automatically upgrade your codebase
+search/search_engine.py:166: error: Unsupported operand types for + ("None" and "int")  [operator]
+search/search_engine.py:166: note: Left operand is of type "int | None"
+search/search_engine.py:174: error: Incompatible types in assignment (expression has type "float", target has type "int | None")  [assignment]
+search/search_engine.py:277: error: Name "KOptMGMComputator" is not defined  [name-defined]
+search/search_engine.py:290: error: Name "KOptMGMComputator" is not defined  [name-defined]
+search/search_engine.py:310: error: Need type annotation for "constraints" (hint: "constraints: dict[<type>, <type>] = ...")  [var-annotated]
+search/search_engine.py:329: error: No overload variant of "__setitem__" of "list" matches argument types "Any", "int"  [call-overload]
+search/search_engine.py:329: note: Possible overload variants:
+search/search_engine.py:329: note:     def __setitem__(self, SupportsIndex, None, /) -> None
+search/search_engine.py:329: note:     def __setitem__(self, slice[Any, Any, Any], Iterable[None], /) -> None
+search/search_engine.py:330: error: No overload variant of "__setitem__" of "list" matches argument types "Any", "int"  [call-overload]
+search/search_engine.py:330: note: Possible overload variants:
+search/search_engine.py:330: note:     def __setitem__(self, SupportsIndex, None, /) -> None
+search/search_engine.py:330: note:     def __setitem__(self, slice[Any, Any, Any], Iterable[None], /) -> None
+Found 98 errors in 23 files (checked 41 source files)

@@ -397,104 +397,74 @@ class EnhancedBPVisualizer:
 
             factor_name = self._get_node_display_name(factor)
             self.highlighted_cells_info[factor_name] = {}
+            cost_table = factor.cost_table
 
-            for msg in factor.mailer.outbox: # These are R-messages: factor -> variable
-                recipient_var = msg.recipient
+            # Get all variables connected to this factor
+            connected_vars = list(self.graph.G.neighbors(factor))
+
+            for r_msg in factor.mailer.outbox: # These are R-messages: factor -> variable
+                recipient_var = r_msg.recipient
                 recipient_var_name = self._get_node_display_name(recipient_var)
+                self.highlighted_cells_info[factor_name][recipient_var_name] = []
+
+                if recipient_var not in connected_vars:
+                    continue # Should not happen
+
+                # Identify the axis/dimension in the cost_table that corresponds to the recipient_var
+                # This relies on factor.connection_number mapping var_name to axis_index
+                recipient_axis = None
+                if hasattr(factor, 'connection_number'):
+                    # The connection_number might store agent objects or names as keys
+                    # We need to handle both cases or ensure consistency
+                    recipient_var_actual_name = self._get_node_display_name(recipient_var) 
+                    for var_node_or_name, axis_idx in factor.connection_number.items():
+                        if self._get_node_display_name(var_node_or_name) == recipient_var_actual_name:
+                            recipient_axis = axis_idx
+                            break
                 
-                # This is where the complex logic to find *which* original cost table cells
-                # contributed to this message would go. It requires knowledge of the
-                # BP computator's internal workings (e.g., min_sum).
-
-                # Simplified placeholder: if a message is sent, we'd need to determine
-                # the specific cells. For now, this is not fully implemented due to complexity
-                # of introspecting the computator.
-                # Example: if R_message[k] was min_j (Cost[k,j] + Q[j]), highlight (k,j_min).
-                
-                # This requires:
-                # 1. Factor's cost table.
-                # 2. Incoming Q messages to the factor (from factor.mailer.inbox, excluding Q from recipient_var).
-                # 3. The recipient_var to know which dimension of cost_table corresponds to it.
-                # 4. The computator logic (e.g., min_sum).
-
-                # For a factor f connected to v_target and v_other (2D cost table C[x_target, x_other])
-                # R_{f->v_target}(x_target) = min_{x_other} ( C(x_target, x_other) + Q_{v_other->f}(x_other) )
-                # We need to find, for each x_target_i, which x_other_j minimized the sum.
-                
-                # This is a complex calculation that ideally should be provided by the engine or computator
-                # or re-calculated here if necessary.
-                # For now, let's assume no specific highlighting is computed yet.
-                self.highlighted_cells_info[factor_name][recipient_var_name] = [] # Empty list of (r,c) tuples
+                if recipient_axis is None and len(connected_vars) == cost_table.ndim:
+                    # Fallback: try to find by object instance if names/keys are tricky
+                    try:
+                        recipient_axis = connected_vars.index(recipient_var)
+                        # This assumes connected_vars order matches cost_table dimensions if connection_number is missing/problematic
+                    except ValueError:
+                        continue # Cannot determine recipient axis
+                elif recipient_axis is None:
+                    continue # Cannot determine recipient axis
 
 
-    def on_step(self, b):
-        self.engine.step(self.step_count) # engine.step should update messages in mailers
-        self.step_count += 1
-        self.info_label.value = f"Step: {self.step_count} | Simple Graph: {self.is_simple_graph}"
-        self._update_highlight_info() # Update highlights based on new messages
-        self.visualize_state()
+                # Gather incoming Q-messages relevant for this R-message computation
+                # Q-messages are from other variables (not recipient_var) to this factor
+                sum_q_messages = np.zeros(cost_table.shape)
 
-    def on_reset(self, b):
-        self.step_count = 0
-        self.info_label.value = f"Step: 0 | Simple Graph: {self.is_simple_graph}"
-        
-        # Reset engine state (clear messages, reinitialize if method exists)
-        if hasattr(self.engine, 'reset'):
-            self.engine.reset() 
-        else: # Manual reset based on SimpleBPVisualizer
-            for node in self.graph.G.nodes():
-                if hasattr(node, 'empty_mailbox'): node.empty_mailbox()
-                if hasattr(node, 'empty_outgoing'): node.empty_outgoing()
-                if hasattr(node, 'mailer'):
-                    if hasattr(node.mailer, '_incoming'): node.mailer._incoming.clear()
-                    if hasattr(node.mailer, '_outgoing'): node.mailer._outgoing.clear()
-                    if hasattr(node.mailer, 'outbox'): node.mailer.outbox.clear() # Clear outbox too
-                    if hasattr(node.mailer, 'inbox'): node.mailer.inbox.clear()   # Clear inbox
+                # Create a map from variable agent object to its name for easier lookup
+                var_name_to_agent = {self._get_node_display_name(v): v for v in connected_vars}
 
-            # Reinitialize first messages for variables if applicable
-            for var in self.graph.variables:
-                if hasattr(var, 'mailer') and hasattr(var.mailer, 'set_first_message'):
-                    for neighbor in self.graph.G.neighbors(var):
-                         if hasattr(neighbor, 'is_factor_agent') and neighbor.is_factor_agent: # Check if neighbor is factor
-                            var.mailer.set_first_message(var, neighbor) # Assuming this method exists
+                for q_msg in factor.mailer.inbox:
+                    sender_var = q_msg.sender
+                    if sender_var == recipient_var: # Skip Q-message from the R-message's recipient
+                        continue
 
-        self.highlighted_cells_info.clear()
-        self.visualize_state()
-
-    def run(self):
-        display(self.controls)
-        display(self.output)
-        self.visualize_state() # Initial visualization
-
-# Example usage (for testing, normally called from notebook)
-def demo_enhanced_visualization():
-    import sys # Add sys import
-    import os # Add os import
-    # Add workspace root to path for imports
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-    from bp_base.factor_graph import FactorGraph
-    from bp_base.bp_computators import MinSumComputator
-    from bp_base.bp_engine_base import BPEngine
-    from base_all.agents import VariableAgent, FactorAgent # Ensure these are correctly importable
-
-    # Create a simple graph
-    v0 = VariableAgent("v0", domain=2)
-    v1 = VariableAgent("v1", domain=2)
-    f0 = FactorAgent("f0", domain=2, ct_creation_func=lambda n,d: np.array([[0.1,1.0],[1.0,0.2]]), param={}) # Modified costs for clarity
-    
-    variables = [v0, v1]
-    factors = [f0]
-    edges = {f0: [v0,v1]}
-
-    fg = FactorGraph(variables, factors, edges)
-    engine = BPEngine(fg, computator=MinSumComputator())
-
-    viz = EnhancedBPVisualizer(engine)
-    viz.run()
-
-if __name__ == "__main__":
-    # This demo might fail if imports are not set up for direct script execution
-    print("Running demo visualization... (ensure imports are correct)")
-    demo_enhanced_visualization()
-    # pass
+                    sender_axis = None
+                    if hasattr(factor, 'connection_number'):
+                        sender_var_actual_name = self._get_node_display_name(sender_var)
+                        for var_node_or_name, axis_idx in factor.connection_number.items():
+                            if self._get_node_display_name(var_node_or_name) == sender_var_actual_name:
+                                sender_axis = axis_idx
+                                break
+                    
+                    if sender_axis is None and len(connected_vars) == cost_table.ndim:
+                         try:
+                            sender_axis = connected_vars.index(sender_var)
+                         except ValueError:
+                            continue
+                    elif sender_axis is None:
+                        continue
+                   
+                    # Expand Q-message to the shape of the cost_table for broadcasting
+                    q_data = np.array(q_msg.data)
+                    if q_data.ndim == 1:
+                        shape = [1] * cost_table.ndim
+                        shape[sender_axis] = len(q_data)
+                        sum_q_messages += q_data.reshape(shape)
+                \n                # Effective cost table for this R-message (cost_table + sum of relevant Q-messages)\n                effective_costs = cost_table + sum_q_messages\n\n                # Now, find the minimizing indices for each state of the recipient_var\n                # This assumes MinSum computator. For SumProduct, it would be a sum.\n                # The R-message r_msg.data should be the result of this minimization.\n\n                if cost_table.ndim == 1: # Factor connected to only one variable (recipient_var)\n                    # R-message is just the cost table (or cost_table + 0 if no other vars)\n                    # Highlight all cells as they all contribute directly.\n                    for i in range(cost_table.shape[0]):\n                        self.highlighted_cells_info[factor_name][recipient_var_name].append((i, 0)) # (row, col=0 for 1D)\n                \n                elif cost_table.ndim == 2: # Factor connected to two variables\n                    # One is recipient_var, the other is sender_var (implicitly)\n                    # R_{f->v_target}(x_target) = min_{x_other} ( EffectiveCosts[x_target, x_other] ) \n                    # or min_{x_other} ( EffectiveCosts[x_other, x_target] ) depending on recipient_axis\n\n                    # Iterate over each state of the recipient variable\n                    for i in range(cost_table.shape[recipient_axis]):\n                        # Create a slice to select the i-th state of the recipient variable\n                        slicer = [slice(None)] * cost_table.ndim\n                        slicer[recipient_axis] = i\n                        \n                        # Get the costs for this specific state of the recipient variable\n                        costs_for_recipient_state_i = effective_costs[tuple(slicer)]\n                        \n                        # Find the index that minimizes these costs\n                        # This will be an index along the *other* variable's dimension\n                        min_idx_other_dim = np.argmin(costs_for_recipient_state_i)\n                        \n                        # Construct the coordinate in the original cost_table\n                        # If recipient_axis is 0, highlight (i, min_idx_other_dim)\n                        # If recipient_axis is 1, highlight (min_idx_other_dim, i)\n                        coord = [0,0] # for 2D case\n                        coord[recipient_axis] = i\n                        other_axis = 1 - recipient_axis # In 2D, if one is 0, other is 1\n                        coord[other_axis] = min_idx_other_dim\n                        self.highlighted_cells_info[factor_name][recipient_var_name].append(tuple(coord))\n                # else: ndim > 2, too complex to highlight simply for now\n\n    def on_step(self, b):\n        self.engine.step(self.step_count) # engine.step should update messages in mailers\n        self.step_count += 1\n        self.info_label.value = f"Step: {self.step_count} | Simple Graph: {self.is_simple_graph}"\n        self._update_highlight_info() # Update highlights based on new messages\n        self.visualize_state()\n\n    def on_reset(self, b):\n        self.step_count = 0\n        self.info_label.value = f"Step: 0 | Simple Graph: {self.is_simple_graph}"\n        \n        # Reset engine state (clear messages, reinitialize if method exists)\n        if hasattr(self.engine, 'reset'):\n            self.engine.reset() \n        else: # Manual reset based on SimpleBPVisualizer\n            for node in self.graph.G.nodes():\n                if hasattr(node, 'empty_mailbox'): node.empty_mailbox()\n                if hasattr(node, 'empty_outgoing'): node.empty_outgoing()\n                if hasattr(node, 'mailer'):\n                    if hasattr(node.mailer, '_incoming'): node.mailer._incoming.clear()\n                    if hasattr(node.mailer, '_outgoing'): node.mailer._outgoing.clear()\n                    if hasattr(node.mailer, 'outbox'): node.mailer.outbox.clear() # Clear outbox too\n                    if hasattr(node.mailer, 'inbox'): node.mailer.inbox.clear()   # Clear inbox\n\n            # Reinitialize first messages for variables if applicable\n            for var in self.graph.variables:\n                if hasattr(var, 'mailer') and hasattr(var.mailer, 'set_first_message'):\n                    for neighbor in self.graph.G.neighbors(var):\n                         if hasattr(neighbor, 'is_factor_agent') and neighbor.is_factor_agent: # Check if neighbor is factor\n                            var.mailer.set_first_message(var, neighbor) # Assuming this method exists\n\n        self.highlighted_cells_info.clear()\n        self.visualize_state()\n\n    def run(self):\n        display(self.controls)\n        display(self.output)\n        self.visualize_state() # Initial visualization\n\n# Example usage (for testing, normally called from notebook)\ndef demo_enhanced_visualization():\n    import sys # Add sys import\n    import os # Add os import\n    # Add workspace root to path for imports\n    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))\n\n    from bp_base.factor_graph import FactorGraph\n    from bp_base.bp_computators import MinSumComputator\n    from bp_base.bp_engine_base import BPEngine\n    from base_all.agents import VariableAgent, FactorAgent # Ensure these are correctly importable\n\n    # Create a simple graph\n    v0 = VariableAgent("v0", domain=2)\n    v1 = VariableAgent("v1", domain=2)\n    f0 = FactorAgent("f0", domain=2, ct_creation_func=lambda n,d: np.array([[0.1,1.0],[1.0,0.2]]), param={}) # Modified costs for clarity\n    \n    variables = [v0, v1]\n    factors = [f0]\n    edges = {f0: [v0,v1]}\n\n    fg = FactorGraph(variables, factors, edges)\n    engine = BPEngine(fg, computator=MinSumComputator())\n\n    viz = EnhancedBPVisualizer(engine)\n    viz.run()\n\nif __name__ == "__main__":\n    # This demo might fail if imports are not set up for direct script execution\n    print("Running demo visualization... (ensure imports are correct)")\n    demo_enhanced_visualization()\n    # pass
