@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "belief-propagation-simulator"
+version = "0.1.0"
+authors = [
+  { name="Your Name", email="you@example.com" },
+]
+description = "A simulator for Belief Propagation algorithms."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License", # Choose an appropriate license
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "networkx~=3.4.2",
+    "numpy~=2.2.1",
+    "matplotlib~=3.10.0",
+    "scipy~=1.15.2",
+    "dash~=2.18.2",
+    "dash_cytoscape~=1.0.2",
+    "colorlog~=6.9.0",
+    "pandas~=2.2.3",
+    "seaborn~=0.13.2",
+    "numba>=0.60.0",
+    "psutil~=7.0.0",
+    "ipywidgets", # For notebook examples
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest~=8.3.4",
+    "pytest-cov~=4.1.0",
+    "black~=23.3.0",
+    "ipython~=9.3.0", # For development and running notebooks
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/Belief-Propagation-Simulator" # Replace with your repo URL
+"Bug Tracker" = "https://github.com/yourusername/Belief-Propagation-Simulator/issues" # Replace
+
+[tool.setuptools.packages.find]
+where = ["src"]

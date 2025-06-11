@@ -1,3 +1,35 @@
+Metadata-Version: 2.4
+Name: belief-propagation-simulator
+Version: 0.1.0
+Summary: A simulator for Belief Propagation algorithms.
+Author-email: Your Name <you@example.com>
+Project-URL: Homepage, https://github.com/yourusername/Belief-Propagation-Simulator
+Project-URL: Bug Tracker, https://github.com/yourusername/Belief-Propagation-Simulator/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: networkx~=3.4.2
+Requires-Dist: numpy~=2.2.1
+Requires-Dist: matplotlib~=3.10.0
+Requires-Dist: scipy~=1.15.2
+Requires-Dist: dash~=2.18.2
+Requires-Dist: dash_cytoscape~=1.0.2
+Requires-Dist: colorlog~=6.9.0
+Requires-Dist: pandas~=2.2.3
+Requires-Dist: seaborn~=0.13.2
+Requires-Dist: numba>=0.60.0
+Requires-Dist: psutil~=7.0.0
+Requires-Dist: ipywidgets
+Provides-Extra: dev
+Requires-Dist: pytest~=8.3.4; extra == "dev"
+Requires-Dist: pytest-cov~=4.1.0; extra == "dev"
+Requires-Dist: black~=23.3.0; extra == "dev"
+Requires-Dist: ipython~=9.3.0; extra == "dev"
+
 # Belief-Propagation-Simulator
 
 ## Overview
