@@ -22,6 +22,7 @@ PolicyType = Literal["message", "cost_table", "stopping_criteria", "assignment"]
 
 # --- Protocols for typing purposes ---
 
+
 @runtime_checkable
 class FGAgent(Protocol):
     name: str
@@ -29,6 +30,7 @@ class FGAgent(Protocol):
     mailbox: dict
     mailer: "MailHandler"
     computator: Optional["Computator"]
+
     def receive_message(self, message: "Message") -> None: ...
     def send_message(self, message: "Message") -> None: ...
     def empty_mailbox(self) -> None: ...
@@ -50,11 +52,13 @@ class FGAgent(Protocol):
 
 CostTable: TypeAlias = np.ndarray
 
+
 @runtime_checkable
 class Message(Protocol):
     data: np.ndarray
     sender: Any
     recipient: Any
+
     def copy(self) -> "Message": ...
 
 
@@ -62,6 +66,7 @@ class Message(Protocol):
 class MailHandler(Protocol):
     inbox: List["Message"]
     outbox: List["Message"]
+
     def receive_messages(self, message: "Message") -> None: ...
     def send(self) -> None: ...
     def clear_inbox(self) -> None: ...
@@ -74,12 +79,15 @@ class MailHandler(Protocol):
 @runtime_checkable
 class Computator(Protocol):
     def compute_Q(self, messages: List["Message"]) -> List["Message"]: ...
-    def compute_R(self, cost_table: CostTable, incoming_messages: List["Message"]) -> List["Message"]: ...
+    def compute_R(
+        self, cost_table: CostTable, incoming_messages: List["Message"]
+    ) -> List["Message"]: ...
 
 
 @runtime_checkable
 class Policy(Protocol):
     type: PolicyType
+
     def __call__(self, *args, **kwargs): ...
 
 
@@ -87,6 +95,7 @@ class Policy(Protocol):
 class StepProtocol(Protocol):
     num: int
     messages: Dict[str, List["Message"]]
+
     def add(self, agent: Any, message: "Message"): ...
 
 
@@ -94,6 +103,7 @@ class StepProtocol(Protocol):
 class CycleProtocol(Protocol):
     number: int
     steps: List["StepProtocol"]
+
     def add(self, step: "StepProtocol"): ...
     def __eq__(self, other: Any): ...
 
@@ -106,6 +116,7 @@ class HistoryProtocol(Protocol):
     assignments: Dict[int, Dict[str, Union[int, float]]]
     costs: List[Union[int, float]]
     engine_type: str
+
     def __setitem__(self, key: int, value: "CycleProtocol"): ...
     def __getitem__(self, key: int): ...
     def initialize_cost(self, x: Union[int, float]) -> None: ...

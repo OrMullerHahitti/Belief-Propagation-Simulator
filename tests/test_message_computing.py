@@ -238,6 +238,7 @@ def test_compute_r_with_incoming_values(
     # Result: [9, 10, 11]
     np.testing.assert_array_equal(result[1].data, np.array([9, 10, 11]))
 
+
 #
 # # Test JIT acceleration if available
 # def test_jit_acceleration_flag():

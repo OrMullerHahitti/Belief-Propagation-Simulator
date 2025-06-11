@@ -7,30 +7,32 @@ from policies.splitting import split_all_factors
 
 def create_simple_factor_graph():
     """Create a simple factor graph for testing."""
-    fg = FactorGraph()
-
     # Create variable agents
     var1 = VariableAgent(name="var1", domain=2)
     var2 = VariableAgent(name="var2", domain=2)
 
     # Create factor agent with a simple cost table
-    cost_table = np.array([[1.0, 2.0], [3.0, 4.0]])
-    factor = FactorAgent(name="factor", cost_table=cost_table)
+    def create_test_cost_table(num_vars=None, domain_size=None, **kwargs):
+        return np.array([[1.0, 2.0], [3.0, 4.0]])
 
-    # Add nodes to the graph
-    fg.G.add_node(var1)
-    fg.G.add_node(var2)
-    fg.G.add_node(factor)
-
-    # Add edges
-    fg.G.add_edge(var1, factor)
-    fg.G.add_edge(var2, factor)
+    factor = FactorAgent(
+        name="factor",
+        domain=2,
+        ct_creation_func=create_test_cost_table,
+    )
 
     # Set up connection numbers
     factor.connection_number = {"var1": 0, "var2": 1}
 
-    # Add factor to the factors list
-    fg.factors.append(factor)
+    # Initialize the cost table
+    # factor.initiate_cost_table()
+
+    # Create the factor graph
+    variable_li = [var1, var2]
+    factor_li = [factor]
+    edges = {factor: [var1, var2]}
+
+    fg = FactorGraph(variable_li=variable_li, factor_li=factor_li, edges=edges)
 
     return fg
 

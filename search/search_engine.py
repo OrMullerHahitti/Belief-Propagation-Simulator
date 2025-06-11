@@ -27,7 +27,7 @@ class SearchEngine(BPEngine):
         name: str = "SearchEngine",
         normalize: bool = False,
         max_iterations: int = 100,
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the search engine.
@@ -45,20 +45,20 @@ class SearchEngine(BPEngine):
             computator=computator,
             name=name,
             normalize=normalize,
-            **kwargs
+            **kwargs,
         )
         self.max_iterations = max_iterations
 
         # Track best assignment found so far
         self.best_assignment = None
-        self.best_cost = float('inf')
+        self.best_cost = float("inf")
 
         # Engine statistics
         self.stats = {
             "iterations": 0,
             "improvements": 0,
             "changes": 0,
-            "final_cost": None
+            "final_cost": None,
         }
 
     def step(self, i: int = 0) -> Step:
@@ -158,7 +158,7 @@ class SearchEngine(BPEngine):
             "iterations": 0,
             "improvements": 0,
             "changes": 0,
-            "final_cost": None
+            "final_cost": None,
         }
 
         for i in range(iterations):
@@ -184,7 +184,7 @@ class SearchEngine(BPEngine):
             "best_cost": self.best_cost,
             "iterations": self.stats["iterations"],
             "improvements": self.stats["improvements"],
-            "changes": self.stats["changes"]
+            "changes": self.stats["changes"],
         }
 
     def post_cycle(self):
@@ -208,7 +208,7 @@ class DSAEngine(SearchEngine):
         factor_graph: FactorGraph,
         computator: SearchComputator,
         name: str = "DSAEngine",
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the DSA engine.
@@ -220,10 +220,7 @@ class DSAEngine(SearchEngine):
             **kwargs: Additional keyword arguments
         """
         super().__init__(
-            factor_graph=factor_graph,
-            computator=computator,
-            name=name,
-            **kwargs
+            factor_graph=factor_graph, computator=computator, name=name, **kwargs
         )
 
 
@@ -238,7 +235,7 @@ class MGMEngine(SearchEngine):
         factor_graph: FactorGraph,
         computator: SearchComputator,
         name: str = "MGMEngine",
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the MGM engine.
@@ -250,10 +247,7 @@ class MGMEngine(SearchEngine):
             **kwargs: Additional keyword arguments
         """
         super().__init__(
-            factor_graph=factor_graph,
-            computator=computator,
-            name=name,
-            **kwargs
+            factor_graph=factor_graph, computator=computator, name=name, **kwargs
         )
 
 
@@ -276,7 +270,7 @@ class KOptMGMEngine(SearchEngine):
         factor_graph: FactorGraph,
         computator: KOptMGMComputator,
         name: str = "KOptMGMEngine",
-        **kwargs
+        **kwargs,
     ):
         """
         Initialize the K-Opt MGM engine.
@@ -291,16 +285,15 @@ class KOptMGMEngine(SearchEngine):
             raise TypeError("KOptMGMEngine requires a KOptMGMComputator")
 
         super().__init__(
-            factor_graph=factor_graph,
-            computator=computator,
-            name=name,
-            **kwargs
+            factor_graph=factor_graph, computator=computator, name=name, **kwargs
         )
 
         # Extract constraints from factor graph for coalition formation
         self.constraints = self._extract_constraints()
 
-    def _extract_constraints(self) -> Dict[Tuple[str, str], Dict[Tuple[Any, Any], float]]:
+    def _extract_constraints(
+        self,
+    ) -> Dict[Tuple[str, str], Dict[Tuple[Any, Any], float]]:
         """
         Extract binary constraints from the factor graph.
 
@@ -331,7 +324,9 @@ class KOptMGMEngine(SearchEngine):
 
                         # Store the cost
                         val_pair = (i, j)
-                        constraints[var_pair][val_pair] = factor.cost_table[tuple(indices)]
+                        constraints[var_pair][val_pair] = factor.cost_table[
+                            tuple(indices)
+                        ]
 
         return constraints
 
@@ -364,13 +359,15 @@ class KOptMGMEngine(SearchEngine):
         elif k_opt_computator.phase == "coordination":
             # Coordination phase: Form coalitions of agents
             k_opt_computator.coalitions = k_opt_computator.form_coalitions(
-                list(self.var_nodes),
-                self.constraints
+                list(self.var_nodes), self.constraints
             )
 
             # Check if coordination is complete
             k_opt_computator.coalition_attempts += 1
-            if k_opt_computator.coalition_attempts >= k_opt_computator.coalition_timeout:
+            if (
+                k_opt_computator.coalition_attempts
+                >= k_opt_computator.coalition_timeout
+            ):
                 k_opt_computator.phase = "execution"
                 k_opt_computator.coalition_attempts = 0
 

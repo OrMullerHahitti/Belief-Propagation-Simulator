@@ -10,10 +10,9 @@ from policies.damping import TD, damp
 
 
 class SplitEngine(BPEngine):
-    def __init__(self, *args, split_factor: float = 0.5, **kwargs):
+    def __init__(self, *args, split_factor: float = 0.6, **kwargs):
         self.p = split_factor
         super().__init__(*args, **kwargs)
-
 
     def post_init(self) -> None:
         split_all_factors(self.graph, self.p)
@@ -29,11 +28,11 @@ class TDEngine(BPEngine):
 
 
 class CostReductionOnceEngine(BPEngine):
-    def __init__(self, *args, reduction_factor: float = 0.6, **kwargs):
+    def __init__(self, *args, reduction_factor: float = 0.5, **kwargs):
         self.cr = reduction_factor
         super().__init__(*args, **kwargs)
 
-    def post_two_cycles(self):
+    def post_init(self):
         cost_reduction_all_factors_once(self.factor_nodes, self.cr)
 
 
