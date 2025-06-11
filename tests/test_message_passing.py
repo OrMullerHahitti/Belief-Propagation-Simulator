@@ -95,7 +95,9 @@ def test_mail_handler_basics():
 
     # Create sender and recipient
     sender = VariableAgent(name="sender", domain=2)
-    recipient = FactorAgent(name="recipient", domain=2, ct_creation_func=create_test_cost_table)
+    recipient = FactorAgent(
+        name="recipient", domain=2, ct_creation_func=create_test_cost_table
+    )
 
     # Create a message
     message_data = np.array([0.5, 0.5])
@@ -126,9 +128,7 @@ def test_message_passing_between_agents(var_agent_sender, factor_agent_recipient
 
     # Create message
     message = Message(
-        data=message_data,
-        sender=var_agent_sender,
-        recipient=factor_agent_recipient
+        data=message_data, sender=var_agent_sender, recipient=factor_agent_recipient
     )
 
     # Stage message for sending
@@ -146,7 +146,9 @@ def test_message_passing_between_agents(var_agent_sender, factor_agent_recipient
 
 
 # Test compute_messages for variable agent
-def test_variable_agent_compute_messages(var_agent_sender, factor_agent_recipient, max_sum_computator):
+def test_variable_agent_compute_messages(
+    var_agent_sender, factor_agent_recipient, max_sum_computator
+):
     """Test that a variable agent computes messages correctly"""
     # Set computator for the variable agent
     var_agent_sender.computator = max_sum_computator
@@ -154,9 +156,7 @@ def test_variable_agent_compute_messages(var_agent_sender, factor_agent_recipien
     # Create message from factor to variable
     message_data = np.array([1.0, 2.0])
     message = Message(
-        data=message_data,
-        sender=factor_agent_recipient,
-        recipient=var_agent_sender
+        data=message_data, sender=factor_agent_recipient, recipient=var_agent_sender
     )
 
     # Add message to variable's inbox
@@ -175,7 +175,9 @@ def test_variable_agent_compute_messages(var_agent_sender, factor_agent_recipien
 
 
 # Test compute_messages for factor agent
-def test_factor_agent_compute_messages(var_agent_sender, factor_agent_recipient, max_sum_computator):
+def test_factor_agent_compute_messages(
+    var_agent_sender, factor_agent_recipient, max_sum_computator
+):
     """Test that a factor agent computes messages correctly"""
     # Set computator for the factor agent
     factor_agent_recipient.computator = max_sum_computator
@@ -189,9 +191,7 @@ def test_factor_agent_compute_messages(var_agent_sender, factor_agent_recipient,
     # Create message from variable to factor
     message_data = np.array([0.0, 0.0])  # Neutral for addition
     message = Message(
-        data=message_data,
-        sender=var_agent_sender,
-        recipient=factor_agent_recipient
+        data=message_data, sender=var_agent_sender, recipient=factor_agent_recipient
     )
 
     # Add message to factor's inbox
@@ -301,7 +301,9 @@ def test_message_deduplication():
 
     # Create sender and recipient
     sender = VariableAgent(name="sender", domain=2)
-    recipient = FactorAgent(name="recipient", domain=2, ct_creation_func=create_test_cost_table)
+    recipient = FactorAgent(
+        name="recipient", domain=2, ct_creation_func=create_test_cost_table
+    )
 
     # Create two identical messages
     message1 = Message(data=np.array([0.5, 0.5]), sender=sender, recipient=recipient)
@@ -325,7 +327,9 @@ def test_receive_message_list():
     # Create senders and recipient
     sender1 = VariableAgent(name="sender1", domain=2)
     sender2 = VariableAgent(name="sender2", domain=2)
-    recipient = FactorAgent(name="recipient", domain=2, ct_creation_func=create_test_cost_table)
+    recipient = FactorAgent(
+        name="recipient", domain=2, ct_creation_func=create_test_cost_table
+    )
 
     # Create messages
     message1 = Message(data=np.array([0.5, 0.5]), sender=sender1, recipient=recipient)

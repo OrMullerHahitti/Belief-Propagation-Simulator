@@ -6,4 +6,4 @@ This module extends the belief propagation framework to support search algorithm
 from search.search_computator import SearchComputator
 from search.search_engine import SearchEngine
 
-__all__ = ['SearchComputator', 'SearchEngine']
+__all__ = ["SearchComputator", "SearchEngine"]

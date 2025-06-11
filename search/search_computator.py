@@ -38,7 +38,9 @@ class SearchComputator(Computator, ABC):
         pass
 
     @abstractmethod
-    def evaluate_cost(self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]) -> float:
+    def evaluate_cost(
+        self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]
+    ) -> float:
         """
         Evaluate the cost of a potential value assignment.
 
@@ -77,7 +79,7 @@ class SearchComputator(Computator, ABC):
                 Message(
                     data=np.array([getattr(variable, "curr_assignment", 0)]),
                     sender=variable,
-                    recipient=factor
+                    recipient=factor,
                 )
             )
 
@@ -109,7 +111,7 @@ class SearchComputator(Computator, ABC):
                 Message(
                     data=np.array([0.0]),  # Placeholder for cost
                     sender=factor,
-                    recipient=variable
+                    recipient=variable,
                 )
             )
 
@@ -229,7 +231,9 @@ class KOptMGMComputator(SearchComputator):
             # If not in a coalition, keep current value
             return getattr(agent, "curr_assignment", 0)
 
-    def evaluate_cost(self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]) -> float:
+    def evaluate_cost(
+        self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]
+    ) -> float:
         """
         Evaluate the cost of a potential value assignment.
         This is problem-specific and should be overridden in subclasses.
@@ -245,7 +249,11 @@ class KOptMGMComputator(SearchComputator):
         # Default implementation - should be overridden in specific problem instances
         return 0.0
 
-    def form_coalitions(self, agents: List[Agent], constraints: Dict[Tuple[str, str], Dict[Tuple[Any, Any], float]]) -> List[Set[str]]:
+    def form_coalitions(
+        self,
+        agents: List[Agent],
+        constraints: Dict[Tuple[str, str], Dict[Tuple[Any, Any], float]],
+    ) -> List[Set[str]]:
         """
         Form coalitions of up to k agents to maximize overall gain.
 
@@ -263,9 +271,7 @@ class KOptMGMComputator(SearchComputator):
 
         # Start with highest gain agents
         sorted_agents = sorted(
-            agent_names,
-            key=lambda a: self.current_gains.get(a, 0.0),
-            reverse=True
+            agent_names, key=lambda a: self.current_gains.get(a, 0.0), reverse=True
         )
 
         # Greedy coalition formation

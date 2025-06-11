@@ -24,7 +24,7 @@ class BPComputator:
     Same interface as original but optimized for performance.
     """
 
-    def __init__(self, reduce_func, combine_func, parallel=False):
+    def __init__(self, reduce_func, combine_func):
         self.reduce_func = reduce_func
         self.combine_func = combine_func
         # Cache frequently used operations
@@ -56,14 +56,14 @@ class BPComputator:
             return self._connection_cache[cache_key]
 
         # Original logic with caching
-        if hasattr(factor, 'connection_number') and factor.connection_number:
+        if hasattr(factor, "connection_number") and factor.connection_number:
             if node.name in factor.connection_number:
                 dim = factor.connection_number[node.name]
                 self._connection_cache[cache_key] = dim
                 return dim
 
         # Handle legacy case where objects are used as keys
-        for key, dim in getattr(factor, 'connection_number', {}).items():
+        for key, dim in getattr(factor, "connection_number", {}).items():
             if isinstance(key, Agent) and key.name == node.name:
                 self._connection_cache[cache_key] = dim
                 return dim
@@ -72,7 +72,7 @@ class BPComputator:
                 return dim
 
         # Error handling (same as original)
-        available_keys = list(getattr(factor, 'connection_number', {}).keys())
+        available_keys = list(getattr(factor, "connection_number", {}).keys())
         raise KeyError(
             f"Node '{node.name}' not found in factor '{factor.name}' connections. "
             f"Available connections: {available_keys}"
@@ -86,11 +86,11 @@ class BPComputator:
         if not messages:
             return []
 
-        #the recipient is the same for all messages
+        # the recipient is the same for all messages
         variable = messages[0].recipient
         n_messages = len(messages)
 
-        # Fast path for single message
+        # Fast path for a single message
         if n_messages == 1:
             return [
                 Message(
@@ -121,7 +121,7 @@ class BPComputator:
             return outgoing_messages
 
         except (ValueError, TypeError):
-            # Fallback to original algorithm if vectorization fails
+            # Fallback to the original algorithm if vectorization fails
             outgoing_messages = []
             for i, msg_i in enumerate(messages):
                 factor = msg_i.sender
@@ -182,7 +182,9 @@ class BPComputator:
                     sender_dim = self._get_node_dimension(factor, sender)
 
                     # Cached broadcast shape computation
-                    broadcast_shape = self._get_broadcast_shape(ndim, sender_dim, len(msg_j.data))
+                    broadcast_shape = self._get_broadcast_shape(
+                        ndim, sender_dim, len(msg_j.data)
+                    )
                     reshaped_msg = msg_j.data.reshape(broadcast_shape)
                     augmented_costs = self.combine_func(augmented_costs, reshaped_msg)
 
@@ -205,7 +207,7 @@ class BPComputator:
 
 class MinSumComputator(BPComputator):
     """
-     Min-sum algorithm.
+    Min-sum algorithm.
     """
 
     def __init__(self):
