@@ -25,26 +25,24 @@ class BPEngine:
     """
 
     def __init__(
-        self,
-        factor_graph: FactorGraph,
-        computator: Computator = MinSumComputator(),
-        name: str = "BPEngine",
-        normalize: bool = False,
-        convergence_config: ConvergenceConfig | None = None,
-        monitor_performance: bool = False,
-        normalize_messages: bool = True,
+            self,
+            factor_graph: FactorGraph,
+            computator: Computator = MinSumComputator(),
+            name: str = "BPEngine",
+            normalize: bool = False,
+            convergence_config: ConvergenceConfig | None = None,
+            monitor_performance: bool = False,
+            normalize_messages: bool = True,
     ):
         """
         Initialize the belief propagation engine.
         """
         self.normalize_messages = normalize_messages
-        self.name = name
         self.graph = factor_graph
         self.post_init()
         self._initialize_messages()
         self.graph.set_computator(computator)
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
-
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -55,13 +53,10 @@ class BPEngine:
         )
 
         self.graph_diameter = nx.diameter(self.graph.G)
-
-        # Normalization
-        if normalize:
-            init_normalization(list(self.factor_nodes))
-
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
         self.performance_monitor = PerformanceMonitor() if monitor_performance else None
+        self._name = name
+        
 
     def step(self, i: int = 0) -> Step:
         """Run one step with message pruning support."""
@@ -101,120 +96,80 @@ class BPEngine:
             factor.mailer.prepare()
 
         # Notify pruning policy of step completion
-        if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
-            self.message_pruning_policy.step_completed()
-
+        # if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
+        #     self.message_pruning_policy.step_completed()
+        #
         # Calculate costs and track metrics
-        global_cost = self.calculate_global_cost()
-        self.history.costs.append(global_cost)
+        self.history.costs.append(self.global_cost)
+        # if self.performance_monitor:
+        #     all_agents = list(self.graph.G.nodes())
+        #     pruning_stats = {}
+        #     if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
+        #         pruning_stats = self.message_pruning_policy.get_stats()
+        #
+        #     msg_metrics = self.performance_monitor.track_message_metrics(
+        #         i, all_agents, pruning_stats
+        #     )
+        #     self.performance_monitor.end_step(
+        #         start_time,
+        #         i,
+        #         [msg for agent in all_agents for msg in agent.mailer.outbox],
+        #     )
 
-        # Track message metrics if monitoring
-        if self.performance_monitor:
-            all_agents = list(self.graph.G.nodes())
-            pruning_stats = {}
-            if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
-                pruning_stats = self.message_pruning_policy.get_stats()
-
-            msg_metrics = self.performance_monitor.track_message_metrics(
-                i, all_agents, pruning_stats
-            )
-            self.performance_monitor.end_step(
-                start_time,
-                i,
-                [msg for agent in all_agents for msg in agent.mailer.outbox],
-            )
+        # Post-cycle operations
 
         return step
 
-    def cycle(self, j) -> Cycle:
-        """Run one complete cycle of belief propagation."""
-        cy = Cycle(j)
-
-        # Run diameter + 1 steps
-        for i in range(self.graph_diameter):
-            step_result = self.step(i)
-            cy.add(step_result)
-        # Post-cycle operations
-        if j == 2:
-            self.post_two_cycles()
-        self.post_var_cycle()
-        self.post_factor_cycle()
-        if self.normalize_messages:
-            normalize_after_cycle(self.var_nodes)
-        # Update beliefs and assignments
-        self.history.beliefs[j] = self.get_beliefs()
-        self.history.assignments[j] = self.assignments
-
-        return cy
-
     def run(
         self,
-        max_iter: int = 1000,
-        save_json: bool = False,
-        save_csv: bool = True,
-        filename: str = None,
-        config_name: str = None,
+        max_iter: int = 1000
     ) -> Optional[str]:
         """
         Run the factor graph algorithm for a maximum number of iterations.
         """
-        if config_name is None:
-            config_name = self._generate_config_name()
-
-        # Reset convergence monitor
         self.convergence_monitor.reset()
-
         for i in range(max_iter):
-            self.history[i] = self.cycle(i)
-
-            if self._is_converged():
-                logger.info(f"Converged after {i + 1} cycles")
-                break
-
-        # Save results
-        if save_json:
-            self.history.save_results(filename or "results.json")
-        if save_csv:
-            self.history.save_csv(config_name)
-
+            self.step(i)
+            if i == 2 * self.graph_diameter:
+                self.post_two_cycles()
+            if i % self.graph_diameter == 0:
+                self.post_var_cycle()
+                self.post_factor_cycle()
+                if self.normalize_messages:
+                    normalize_after_cycle(self.var_nodes)
+                # Update beliefs and assignments
+                self.history.beliefs[i] = self.beliefs
+                self.history.assignments[i] = self.assignments
+                if self._is_converged():
+                    logger.debug(f"Converged after {i + 1} steps")
+                    break
         # Log performance summary if monitoring
         if self.performance_monitor:
             summary = self.performance_monitor.get_summary()
-            logger.info(f"Performance summary: {summary}")
+            logger.debug(f"Performance summary: {summary}")
 
         return None
 
-    def _generate_config_name(self) -> str:
+    def _set_name(self,kwargs = Optional[Dict[str,str]]) -> None:
         """Generate a configuration name based on the engine parameters."""
-        config_name = self.name
+        config_name = self._name
+        for k,v in kwargs.items():
+            config_name += f"_{str(k)}-{str(v)}"
 
-        if hasattr(self, "p"):
-            config_name += f"_p{self.p}"
-        if hasattr(self, "cr"):
-            config_name += f"_cr{self.cr}"
-        if hasattr(self, "damping_factor"):
-            config_name += f"_df{self.damping_factor}"
+        self._name = config_name
+    @property
+    def name(self) -> str:
+        """Get the name of the engine."""
+        return self._name
 
-        return config_name
-
-    def get_beliefs(self) -> Dict[str, np.ndarray]:
+    @property
+    def beliefs(self) -> Dict[str, np.ndarray]:
         """Return the beliefs of the factor graph."""
         beliefs = {}
         for node in self.var_nodes:
             if isinstance(node, VariableAgent):
                 beliefs[node.name] = getattr(node, "belief", None)
         return beliefs
-
-    def _is_converged(self) -> bool:
-        """Check convergence using the monitor."""
-        if not self.history.beliefs or not self.history.assignments:
-            return False
-
-        latest_cycle = max(self.history.beliefs.keys())
-        beliefs = self.history.beliefs[latest_cycle]
-        assignments = self.history.assignments[latest_cycle]
-
-        return self.convergence_monitor.check_convergence(beliefs, assignments)
 
     @property
     def assignments(self) -> Dict[str, int | float]:
@@ -225,24 +180,25 @@ class BPEngine:
             if isinstance(node, VariableAgent)
         }
 
-    def calculate_global_cost(self) -> float:
+    @property
+    def global_cost(self) -> float:
         """Calculate the global cost based on current assignments."""
         var_assignments = {node.name: node.curr_assignment for node in self.var_nodes}
 
         total_cost = 0.0
-        for factor in self.graph._original_factors:
+        for factor in self.graph.original_factors:
             if factor.cost_table is not None:
                 indices = []
                 for var_name, dim in factor.connection_number.items():
                     if var_name in var_assignments:
-                        # Ensure indices list is the right size
+                        # Ensure an indices list is the right size
                         while len(indices) <= dim:
                             indices.append(None)
                         indices[dim] = var_assignments[var_name]
 
                 # Check if we have all indices
                 if None not in indices and len(indices) == len(
-                    factor.connection_number
+                        factor.connection_number
                 ):
                     if factor.original_cost_table is not None:
                         total_cost += factor.original_cost_table[tuple(indices)]
@@ -250,6 +206,16 @@ class BPEngine:
                         total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
+    def _is_converged(self) -> bool:
+        """Check convergence using the monitor."""
+        if not self.history.beliefs or not self.history.assignments:
+            return False
+
+        latest_cycle = max(self.history.beliefs.keys())
+        beliefs = self.history.beliefs[latest_cycle]
+        assignments = self.history.assignments[latest_cycle]
+
+        return self.convergence_monitor.check_convergence(beliefs, assignments)
 
     def _initialize_messages(self) -> None:
         """
@@ -271,19 +237,37 @@ class BPEngine:
         return f"{self.name}"
 
     def post_init(self) -> None:
+        # TODO document why this method is empty
         pass
 
     def post_var_cycle(self) -> None:
+        # TODO document why this method is empty
         pass
 
     def post_factor_step(self) -> None:
+        # TODO document why this method is empty
         pass
 
     def post_factor_cycle(self):
+        # TODO document why this method is empty
         pass
 
     def post_two_cycles(self):
+        # TODO document why this method is empty
         pass
 
     def post_var_compute(self, var: VariableAgent):
+        # TODO document why this method is empty
         pass
+
+    def _handle_cycle_events(self, i: int):
+        if i == 2 * self.graph_diameter:
+            self.post_two_cycles()
+        if i % self.graph_diameter == 0:
+            self.post_var_cycle()
+            self.post_factor_cycle()
+            if self.normalize_messages:
+                normalize_after_cycle(self.var_nodes)
+            self.history.beliefs[i] = self.beliefs()
+            self.history.assignments[i] = self.assignments
+            

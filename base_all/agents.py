@@ -18,6 +18,7 @@ class FGAgent(Agent, ABC):
 
     def __init__(self, name: str, node_type: str, domain: int):
         super().__init__(name, node_type)
+
         self.domain = domain
         self._history = []
         self._max_history = 10  # Limit history size to prevent memory issues

@@ -88,8 +88,8 @@ class MailHandler:
         """Handle a single Message with optional pruning."""
         # Check for pruning policy
         if hasattr(self, "pruning_policy") and self.pruning_policy is not None:
-            # Get the owner agent (recipient)
             owner = message.recipient
+
             if not self.pruning_policy.should_accept_message(owner, message):
                 return  # Message pruned
 
