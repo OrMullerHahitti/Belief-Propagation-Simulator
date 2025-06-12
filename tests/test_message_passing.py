@@ -245,7 +245,7 @@ def test_belief_computation(simple_factor_graph, max_sum_computator):
     cycle = engine.cycle(0)
 
     # Get beliefs for this cycle
-    beliefs = engine.get_beliefs()
+    beliefs = engine.beliefs()
 
     # Check that each variable has a belief
     for var in simple_factor_graph.variables:
@@ -270,7 +270,7 @@ def test_convergence_with_multiple_cycles(simple_factor_graph, max_sum_computato
 
     # Initial beliefs
     engine.cycle(0)
-    initial_beliefs = engine.get_beliefs()
+    initial_beliefs = engine.beliefs()
     initial_assignments = engine.assignments
 
     # Run multiple cycles
@@ -278,7 +278,7 @@ def test_convergence_with_multiple_cycles(simple_factor_graph, max_sum_computato
         engine.cycle(i)
 
     # Final beliefs and assignments
-    final_beliefs = engine.get_beliefs()
+    final_beliefs = engine.beliefs()
     final_assignments = engine.assignments
 
     # Check that beliefs have changed during iterations

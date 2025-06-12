@@ -173,7 +173,7 @@ class BPComputator:
                 raise
 
             # Optimized cost augmentation
-            augmented_costs = cost_table.copy()
+            augmented_costs = cost_table +0
 
             # Vectorized addition of messages from other variables
             for j, msg_j in enumerate(incoming_messages):

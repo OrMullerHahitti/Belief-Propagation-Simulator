@@ -13,6 +13,8 @@ class SplitEngine(BPEngine):
     def __init__(self, *args, split_factor: float = 0.6, **kwargs):
         self.p = split_factor
         super().__init__(*args, **kwargs)
+        self._name = 'SPFGEngine'
+        self._set_name({"split-": f"{str(self.p)}-{str(self.p)}"})
 
     def post_init(self) -> None:
         split_all_factors(self.graph, self.p)
@@ -48,6 +50,8 @@ class DampingEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
         self.damping_factor = damping_factor
         super().__init__(*args, **kwargs)
+        self._name = "DampingEngine"
+        self._set_name({"damping": str(self.damping_factor)})
 
     def post_var_compute(self, var: VariableAgent):
         damp(var, self.damping_factor)
@@ -61,6 +65,8 @@ class DampingSCFGEngine(DampingEngine, SplitEngine):
         kwargs.setdefault("split_factor", 0.6)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
+        self._name = "DampingSCFG"
+        self._set_name({"split": "0.4-0.6", "damping": "0.9"})
 
 
 class DampingCROnceEngine(DampingEngine, CostReductionOnceEngine):
