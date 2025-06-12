@@ -90,7 +90,7 @@ class SearchEngine(BPEngine):
             var.mailer.prepare()
 
         # Update best assignment if current is better
-        current_cost = self.calculate_global_cost()
+        current_cost = self.global_cost
         if current_cost < self.best_cost:
             self.best_cost = current_cost
             self.best_assignment = self.assignments.copy()
@@ -122,7 +122,7 @@ class SearchEngine(BPEngine):
         self.post_cycle()
 
         # Update beliefs and assignments
-        self.history.beliefs[j] = self.get_beliefs()
+        self.history.beliefs[j] = self.beliefs()
         self.history.assignments[j] = self.assignments
 
         return cy
@@ -387,7 +387,7 @@ class KOptMGMEngine(SearchEngine):
             k_opt_computator.best_values.clear()
 
         # Calculate costs and track metrics
-        global_cost = self.calculate_global_cost()
+        global_cost = self.global_cost
         self.history.costs.append(global_cost)
 
         return step

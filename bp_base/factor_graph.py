@@ -258,3 +258,7 @@ class FactorGraph:
                             if var_name in var_name_to_obj:
                                 var = var_name_to_obj[var_name]
                                 self.G.add_edge(factor, var, dim=dim)
+
+    @property
+    def original_factors(self):
+        return self._original_factors
