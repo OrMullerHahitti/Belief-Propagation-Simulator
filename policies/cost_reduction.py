@@ -1,11 +1,12 @@
 from base_all.agents import FactorAgent
-from typing import Iterable
+from typing import Iterable, List
 
 from bp_base.factor_graph import FactorGraph
 
 
-def cost_reduction_all_factors_once(fac_a: Iterable[FactorAgent], x: float):
-    for factor in fac_a:
+def cost_reduction_all_factors_once(fg: FactorGraph, x: float):
+
+    for factor in fg.factors:
         if factor.cost_table is not None:
             factor.save_original()
             factor.cost_table = factor.cost_table * x
