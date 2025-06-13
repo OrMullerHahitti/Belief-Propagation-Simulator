@@ -3,7 +3,7 @@ from typing import Dict, Optional
 import numpy as np
 import networkx as nx
 from policies.normalize_cost import init_normalization, normalize_after_cycle
-from base_all.agents import VariableAgent
+from base_all.agents import VariableAgent, FactorAgent
 from bp_base.bp_computators import MinSumComputator
 from bp_base.engine_components import History, Cycle, Step
 from bp_base.factor_graph import FactorGraph
@@ -82,8 +82,7 @@ class BPEngine:
         # Phase 4: All factors compute messages
         for factor in self.factor_nodes:
             factor.compute_messages()
-            self.post_factor_step()
-
+            self.post_factor_compute(factor)
         # Phase 5: All factors send messages
         for factor in self.factor_nodes:
             factor.mailer.send()
@@ -244,7 +243,7 @@ class BPEngine:
         # TODO document why this method is empty
         pass
 
-    def post_factor_step(self) -> None:
+    def post_factor_compute(self,fac:FactorAgent) -> None:
         # TODO document why this method is empty
         pass
 

@@ -1,4 +1,6 @@
-from base_all.agents import VariableAgent
+from statsmodels.multivariate.factor import Factor
+
+from base_all.agents import VariableAgent, FactorAgent
 from bp_base.bp_engine_base import BPEngine
 from policies.cost_reduction import (
     cost_reduction_all_factors_once,
@@ -7,17 +9,18 @@ from policies.cost_reduction import (
 
 from policies.splitting import split_all_factors
 from policies.damping import TD, damp
+from utils.inbox_utils import double_messages
 
 
 class SplitEngine(BPEngine):
     def __init__(self, *args, split_factor: float = 0.6, **kwargs):
-        self.p = split_factor
+        self.split_factor = split_factor
         super().__init__(*args, **kwargs)
         self._name = 'SPFGEngine'
-        self._set_name({"split-": f"{str(self.p)}-{str(self.p)}"})
+        self._set_name({"split-": f"{str(self.split_factor)}-{str(self.split_factor)}"})
 
     def post_init(self) -> None:
-        split_all_factors(self.graph, self.p)
+        split_all_factors(self.graph, self.split_factor)
 
 
 class TDEngine(BPEngine):
@@ -31,11 +34,13 @@ class TDEngine(BPEngine):
 
 class CostReductionOnceEngine(BPEngine):
     def __init__(self, *args, reduction_factor: float = 0.5, **kwargs):
-        self.cr = reduction_factor
+        self.reduction_factor = reduction_factor
         super().__init__(*args, **kwargs)
 
     def post_init(self):
-        cost_reduction_all_factors_once(self.factor_nodes, self.cr)
+        cost_reduction_all_factors_once(self.graph, self.reduction_factor)
+    def post_factor_compute(self,factor:FactorAgent):
+        double_messages(factor.outbox)
 
 
 class DiscountEngine(BPEngine):
@@ -65,17 +70,21 @@ class DampingSCFGEngine(DampingEngine, SplitEngine):
         kwargs.setdefault("split_factor", 0.6)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
+        self.split_factor = kwargs.get("split_factor", 0.6)  # Ensure attribute exists
         self._name = "DampingSCFG"
-        self._set_name({"split": "0.4-0.6", "damping": "0.9"})
+        self._set_name({"split": f"{str(self.split_factor)}-{str(1-self.split_factor)}", "damping": "0.9"})
 
 
 class DampingCROnceEngine(DampingEngine, CostReductionOnceEngine):
     """BP Engine with damping and discounting."""
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault("reduction_factor", 0.4)
+        kwargs.setdefault("reduction_factor", 0.5)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
+        self.reduction_factor = kwargs.get("reduction_factor", 0.5)  # Ensure attribute exists
+        self._name = "DampingCROnceEngine"
+        self._set_name({"split": f"{str(self.reduction_factor)}-{str(1-self.reduction_factor)}", "damping": "0.9"})
 
 
 class MessagePruningEngine(BPEngine):
