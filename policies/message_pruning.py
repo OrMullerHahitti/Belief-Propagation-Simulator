@@ -1,6 +1,6 @@
 from typing import Dict
 import numpy as np
-from base_all.agents import BPAgent
+from base_all.agents import FGAgent
 from base_all.components import Message
 from base_all.protocols import PolicyType
 from policies.bp_policies import Policy
@@ -26,7 +26,7 @@ class MessagePruningPolicy(Policy):
         self.pruned_count = 0
         self.total_count = 0
 
-    def should_accept_message(self, agent: BPAgent, new_message: Message) -> bool:
+    def should_accept_message(self, agent: FGAgent, new_message: Message) -> bool:
         """Decide whether to accept or prune an incoming message."""
         self.total_count += 1
 
