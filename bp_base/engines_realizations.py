@@ -39,17 +39,8 @@ class CostReductionOnceEngine(BPEngine):
 
     def post_init(self):
         cost_reduction_all_factors_once(self.graph, self.reduction_factor)
-    def post_factor_compute(self,factor:FactorAgent):
+    def post_factor_step(self,factor:FactorAgent):
         double_messages(factor.outbox)
-
-
-class DiscountEngine(BPEngine):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def post_factor_cycle(self):
-        discount_attentive(self.graph)
-
 
 class DampingEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
@@ -107,7 +98,7 @@ class MessagePruningEngine(BPEngine):
         """Initialize message pruning policy."""
         from policies.message_pruning import MessagePruningPolicy
 
-        pruning_policy = MessagePruningPolicy(
+        self.pruning_policy = MessagePruningPolicy(
             prune_threshold=self.prune_threshold,
             min_iterations=self.min_iterations,
             adaptive_threshold=self.adaptive_threshold,
@@ -121,3 +112,10 @@ class TDAndPruningEngine(TDEngine, MessagePruningEngine):
         kwargs.setdefault("prune_threshold", 1e-4)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
+
+class DiscountEngine(BPEngine):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def post_factor_cycle(self):
+        discount_attentive(self.graph)

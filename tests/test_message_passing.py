@@ -242,10 +242,11 @@ def test_belief_computation(simple_factor_graph, max_sum_computator):
     engine = BPEngine(factor_graph=simple_factor_graph, computator=max_sum_computator)
 
     # Run a cycle (multiple steps)
-    cycle = engine.cycle(0)
+    for i in range(3):
+        engine.step(i)
 
     # Get beliefs for this cycle
-    beliefs = engine.beliefs()
+    beliefs = engine.get_beliefs()
 
     # Check that each variable has a belief
     for var in simple_factor_graph.variables:
@@ -260,25 +261,24 @@ def test_belief_computation(simple_factor_graph, max_sum_computator):
 
 
 # Test convergence with multiple cycles
-def test_convergence_with_multiple_cycles(simple_factor_graph, max_sum_computator):
+def test_convergence_with_multiple_cycles(simple_factor_graph, min_sum_computator, min_sum_computatorn=MinSumComputator()):
     """Test convergence with multiple cycles"""
     # Set computator for all nodes
-    simple_factor_graph.set_computator(max_sum_computator)
 
     # Create BP engine
-    engine = BPEngine(factor_graph=simple_factor_graph, computator=max_sum_computator)
+    engine = BPEngine(factor_graph=simple_factor_graph)
 
     # Initial beliefs
-    engine.cycle(0)
-    initial_beliefs = engine.beliefs()
+    engine.step(0)
+    initial_beliefs = engine.get_beliefs()
     initial_assignments = engine.assignments
 
     # Run multiple cycles
     for i in range(1, 5):
-        engine.cycle(i)
+        engine.step(i)
 
     # Final beliefs and assignments
-    final_beliefs = engine.beliefs()
+    final_beliefs = engine.get_beliefs()
     final_assignments = engine.assignments
 
     # Check that beliefs have changed during iterations

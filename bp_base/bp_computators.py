@@ -3,6 +3,8 @@ from typing import List
 import logging
 from functools import lru_cache
 
+from base_all.protocols import Computator
+
 try:
     import numba
 
@@ -18,7 +20,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.CRITICAL)
 
 
-class BPComputator:
+class BPComputator(Computator):
     """
     Vectorized, cache-friendly version of the original BPComputator.
     Same interface as original but optimized for performance.
@@ -36,47 +38,6 @@ class BPComputator:
         self._parallel = False
         self._operation_type = 0  # Default to addition
         self._current_factor = None
-
-    @lru_cache(maxsize=1024)
-    def _get_broadcast_shape(self, ndim: int, sender_dim: int, msg_len: int) -> tuple:
-        """Cached broadcast shape computation."""
-        shape = [1] * ndim
-        shape[sender_dim] = msg_len
-        return tuple(shape)
-
-    def _get_node_dimension(self, factor, node) -> int:
-        """
-        Optimized dimension lookup with caching.
-        Same interface as original but with performance improvements.
-        """
-        # Use cached connection lookup if available
-        cache_key = (id(factor), node.name)
-
-        if cache_key in self._connection_cache:
-            return self._connection_cache[cache_key]
-
-        # Original logic with caching
-        if hasattr(factor, "connection_number") and factor.connection_number:
-            if node.name in factor.connection_number:
-                dim = factor.connection_number[node.name]
-                self._connection_cache[cache_key] = dim
-                return dim
-
-        # Handle legacy case where objects are used as keys
-        for key, dim in getattr(factor, "connection_number", {}).items():
-            if isinstance(key, Agent) and key.name == node.name:
-                self._connection_cache[cache_key] = dim
-                return dim
-            elif isinstance(key, str) and key == node.name:
-                self._connection_cache[cache_key] = dim
-                return dim
-
-        # Error handling (same as original)
-        available_keys = list(getattr(factor, "connection_number", {}).keys())
-        raise KeyError(
-            f"Node '{node.name}' not found in factor '{factor.name}' connections. "
-            f"Available connections: {available_keys}"
-        )
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
@@ -101,46 +62,46 @@ class BPComputator:
             ]
 
         # Vectorized computation when possible
-        try:
-            # Stack all message data for vectorized operations
-            msg_data = np.stack([msg.data for msg in messages])
-            total_sum = np.sum(msg_data, axis=0)
-            outgoing_messages = []
+        # try:
+        # Stack all message data for vectorized operations
+        msg_data = np.stack([msg.data for msg in messages])
+        total_sum = np.sum(msg_data, axis=0)
+        outgoing_messages = []
 
-            # Vectorized computation: subtract own message from total
-            for i in range(n_messages):
-                combined_data = total_sum - msg_data[i]
-                outgoing_messages.append(
-                    Message(
-                        data=combined_data,
-                        sender=variable,
-                        recipient=messages[i].sender,
-                    )
+        # Vectorized computation: subtract own message from total
+        for i in range(n_messages):
+            combined_data = total_sum - msg_data[i]
+            outgoing_messages.append(
+                Message(
+                    data=combined_data,
+                    sender=variable,
+                    recipient=messages[i].sender,
                 )
+            )
 
-            return outgoing_messages
+        return outgoing_messages
 
-        except (ValueError, TypeError):
-            # Fallback to the original algorithm if vectorization fails
-            outgoing_messages = []
-            for i, msg_i in enumerate(messages):
-                factor = msg_i.sender
-                other_messages = [
-                    msg_j.data for j, msg_j in enumerate(messages) if j != i
-                ]
-
-                if other_messages:
-                    combined_data = other_messages[0].copy()
-                    for msg_data in other_messages[1:]:
-                        combined_data = self.combine_func(combined_data, msg_data)
-                else:
-                    combined_data = np.zeros_like(msg_i.data)
-
-                outgoing_messages.append(
-                    Message(data=combined_data, sender=variable, recipient=factor)
-                )
-
-            return outgoing_messages
+        # except (ValueError, TypeError):
+        #     # Fallback to the original algorithm if vectorization fails
+        #     outgoing_messages = []
+        #     for i, msg_i in enumerate(messages):
+        #         factor = msg_i.sender
+        #         other_messages = [
+        #             msg_j.data for j, msg_j in enumerate(messages) if j != i
+        #         ]
+        #
+        #         if other_messages:
+        #             combined_data = other_messages[0].copy()
+        #             for msg_data in other_messages[1:]:
+        #                 combined_data = self.combine_func(combined_data, msg_data)
+        #         else:
+        #             combined_data = np.zeros_like(msg_i.data)
+        #
+        #         outgoing_messages.append(
+        #             Message(data=combined_data, sender=variable, recipient=factor)
+        #         )
+        #
+        #     return outgoing_messages
 
     def compute_R(self, cost_table, incoming_messages: List[Message]) -> List[Message]:
         """
@@ -152,7 +113,7 @@ class BPComputator:
 
         factor = incoming_messages[0].recipient
 
-        # Initialize connection cache if needed (same logic as original)
+        # Initialize connection cache if needed
         if not hasattr(factor, "connection_number") or not factor.connection_number:
             factor.connection_number = {}
             for i, msg in enumerate(incoming_messages):
@@ -204,6 +165,46 @@ class BPComputator:
 
         return outgoing_messages
 
+    def _get_node_dimension(self, factor, node) -> int:
+        """
+        Optimized dimension lookup with caching.
+        Same interface as original but with performance improvements.
+        """
+        # Use cached connection lookup if available
+        cache_key = (id(factor), node.name)
+
+        if cache_key in self._connection_cache:
+            return self._connection_cache[cache_key]
+
+        # Original logic with caching
+        if hasattr(factor, "connection_number") and factor.connection_number:
+            if node.name in factor.connection_number:
+                dim = factor.connection_number[node.name]
+                self._connection_cache[cache_key] = dim
+                return dim
+
+        # Handle case where objects are used as keys #TODO; never use objects as keys
+        for key, dim in getattr(factor, "connection_number", {}).items():
+            if isinstance(key, Agent) and key.name == node.name:
+                self._connection_cache[cache_key] = dim
+                return dim
+            elif isinstance(key, str) and key == node.name:
+                self._connection_cache[cache_key] = dim
+                return dim
+
+        # Error handling
+        available_keys = list(getattr(factor, "connection_number", {}).keys())
+        raise KeyError(
+            f"Node '{node.name}' not found in factor '{factor.name}' connections. "
+            f"Available connections: {available_keys}"
+        )
+
+    @lru_cache(maxsize=1024)
+    def _get_broadcast_shape(self, ndim: int, sender_dim: int, msg_len: int) -> tuple:
+        """Cached broadcast shape computation."""
+        shape = [1] * ndim
+        shape[sender_dim] = msg_len
+        return tuple(shape)
 
 class MinSumComputator(BPComputator):
     """
