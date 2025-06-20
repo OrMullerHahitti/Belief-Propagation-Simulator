@@ -17,6 +17,8 @@ class Step:
 
     num: int = 0
     messages: Dict[str, List[Message]] = field(default_factory=dict)
+    q_messages: Dict[str, list] = field(default_factory=dict)  # variable-to-factor
+    r_messages: Dict[str, list] = field(default_factory=dict)  # factor-to-variable
 
     def add(self, agent: Agent, message: Message):
         """
@@ -29,6 +31,12 @@ class Step:
             self.messages[agent.name] = []
         # Ensure messages is a list, even if None
         self.messages[agent.name].append(message)
+
+    def add_q(self, var_name: str, messages: list):
+        self.q_messages[var_name] = messages
+
+    def add_r(self, factor_name: str, messages: list):
+        self.r_messages[factor_name] = messages
 
 
 @dataclass

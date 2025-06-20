@@ -29,7 +29,6 @@ class BPEngine:
             factor_graph: FactorGraph,
             computator: Computator = MinSumComputator(),
             name: str = "BPEngine",
-            normalize: bool = False,
             convergence_config: ConvergenceConfig | None = None,
             monitor_performance: bool = False,
             normalize_messages: bool = True,
@@ -82,7 +81,8 @@ class BPEngine:
         # Phase 4: All factors compute messages
         for factor in self.factor_nodes:
             factor.compute_messages()
-            self.post_factor_compute(factor)
+            self.post_factor_step(factor)
+
         # Phase 5: All factors send messages
         for factor in self.factor_nodes:
             factor.mailer.send()
@@ -98,8 +98,9 @@ class BPEngine:
         # if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
         #     self.message_pruning_policy.step_completed()
         #
-        # Calculate costs and track metrics
-        self.history.costs.append(self.global_cost)
+        # # Calculate costs and track metrics
+        global_cost = self.calculate_global_cost()
+        self.history.costs.append(global_cost)
         # if self.performance_monitor:
         #     all_agents = list(self.graph.G.nodes())
         #     pruning_stats = {}
@@ -121,7 +122,11 @@ class BPEngine:
 
     def run(
         self,
-        max_iter: int = 1000
+        max_iter: int = 1000,
+        save_json: bool = False,
+        save_csv: bool = True,
+        filename: str = None,
+        config_name: str = None,
     ) -> Optional[str]:
         """
         Run the factor graph algorithm for a maximum number of iterations.
@@ -129,23 +134,21 @@ class BPEngine:
         self.convergence_monitor.reset()
         for i in range(max_iter):
             self.step(i)
-            if i == 2 * self.graph_diameter:
-                self.post_two_cycles()
-            if i % self.graph_diameter == 0:
-                self.post_var_cycle()
-                self.post_factor_cycle()
-                if self.normalize_messages:
-                    normalize_after_cycle(self.var_nodes)
-                # Update beliefs and assignments
-                self.history.beliefs[i] = self.beliefs
-                self.history.assignments[i] = self.assignments
-                if self._is_converged():
-                    logger.debug(f"Converged after {i + 1} steps")
-                    break
+            try:
+                self._handle_cycle_events(i)
+            except StopIteration:
+                break
+
+        # Save results
+        if save_json:
+            self.history.save_results(filename or "results.json")
+        if save_csv:
+            self.history.save_csv(config_name)
+
         # Log performance summary if monitoring
         if self.performance_monitor:
             summary = self.performance_monitor.get_summary()
-            logger.debug(f"Performance summary: {summary}")
+            logger.info(f"Performance summary: {summary}")
 
         return None
 
@@ -161,14 +164,24 @@ class BPEngine:
         """Get the name of the engine."""
         return self._name
 
-    @property
-    def beliefs(self) -> Dict[str, np.ndarray]:
+    def get_beliefs(self) -> Dict[str, np.ndarray]:
         """Return the beliefs of the factor graph."""
         beliefs = {}
         for node in self.var_nodes:
             if isinstance(node, VariableAgent):
                 beliefs[node.name] = getattr(node, "belief", None)
         return beliefs
+
+    def _is_converged(self) -> bool:
+        """Check convergence using the monitor."""
+        if not self.history.beliefs or not self.history.assignments:
+            return False
+
+        latest_cycle = max(self.history.beliefs.keys())
+        beliefs = self.history.beliefs[latest_cycle]
+        assignments = self.history.assignments[latest_cycle]
+
+        return self.convergence_monitor.check_convergence(beliefs, assignments)
 
     @property
     def assignments(self) -> Dict[str, int | float]:
@@ -179,18 +192,17 @@ class BPEngine:
             if isinstance(node, VariableAgent)
         }
 
-    @property
-    def global_cost(self) -> float:
+    def calculate_global_cost(self) -> float:
         """Calculate the global cost based on current assignments."""
         var_assignments = {node.name: node.curr_assignment for node in self.var_nodes}
 
         total_cost = 0.0
-        for factor in self.graph.original_factors:
+        for factor in self.graph._original_factors:
             if factor.cost_table is not None:
                 indices = []
                 for var_name, dim in factor.connection_number.items():
                     if var_name in var_assignments:
-                        # Ensure an indices list is the right size
+                        # Ensure indices list is the right size
                         while len(indices) <= dim:
                             indices.append(None)
                         indices[dim] = var_assignments[var_name]
@@ -205,16 +217,6 @@ class BPEngine:
                         total_cost += factor.cost_table[tuple(indices)]
 
         return total_cost
-    def _is_converged(self) -> bool:
-        """Check convergence using the monitor."""
-        if not self.history.beliefs or not self.history.assignments:
-            return False
-
-        latest_cycle = max(self.history.beliefs.keys())
-        beliefs = self.history.beliefs[latest_cycle]
-        assignments = self.history.assignments[latest_cycle]
-
-        return self.convergence_monitor.check_convergence(beliefs, assignments)
 
     def _initialize_messages(self) -> None:
         """
@@ -236,37 +238,48 @@ class BPEngine:
         return f"{self.name}"
 
     def post_init(self) -> None:
-        # TODO document why this method is empty
         pass
+
 
     def post_var_cycle(self) -> None:
-        # TODO document why this method is empty
         pass
 
-    def post_factor_compute(self,fac:FactorAgent) -> None:
-        # TODO document why this method is empty
+    def post_factor_step(self,factor: FactorAgent) -> None:
         pass
 
     def post_factor_cycle(self):
-        # TODO document why this method is empty
         pass
 
     def post_two_cycles(self):
-        # TODO document why this method is empty
         pass
 
     def post_var_compute(self, var: VariableAgent):
-        # TODO document why this method is empty
+        pass
+    def init_normalize(self) -> None:
+        pass
+    def normalize_messages(self)-> None:
+        """
+        Normalize messages in the factor graph.
+        This is a placeholder for normalization logic.
+        """
         pass
 
     def _handle_cycle_events(self, i: int):
         if i == 2 * self.graph_diameter:
-            self.post_two_cycles()
+            self._handle_two_cycle_event()
         if i % self.graph_diameter == 0:
-            self.post_var_cycle()
-            self.post_factor_cycle()
-            if self.normalize_messages:
-                normalize_after_cycle(self.var_nodes)
-            self.history.beliefs[i] = self.beliefs()
-            self.history.assignments[i] = self.assignments
-            
+            self._handle_regular_cycle_event(i)
+
+    def _handle_two_cycle_event(self):
+        self.post_two_cycles()
+
+    def _handle_regular_cycle_event(self, i: int):
+        self.post_var_cycle()
+        self.post_factor_cycle()
+        if self.normalize_messages:
+            normalize_after_cycle(self.var_nodes)
+        self.history.beliefs[i] = self.get_beliefs()
+        self.history.assignments[i] = self.assignments
+        if self._is_converged():
+            logger.debug(f"Converged after {i + 1} steps")
+            raise StopIteration

@@ -5,9 +5,9 @@ from typing import Dict, Callable
 
 dirs = {"test": "test_logs"}
 
-from utils.path_utils import find_project_root
+VERBOSE_LOGGING = False  # Set to False to disable verbose logging
 
-PROJECT_ROOT = find_project_root()
+from utils.path_utils import find_project_root
 
 
 # all dotted paths are relative to the project root and will be resolved using importlib
