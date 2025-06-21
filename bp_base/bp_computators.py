@@ -3,6 +3,7 @@ from typing import List
 import logging
 from functools import lru_cache
 
+from base_all.agents import FactorAgent
 from base_all.protocols import Computator
 
 try:
@@ -39,27 +40,43 @@ class BPComputator(Computator):
         self._operation_type = 0  # Default to addition
         self._current_factor = None
 
+    def _validate(self, messages=None, cost_table=None, incoming_messages=None):
+        """
+        Validate and handle early return cases for compute_Q and compute_R.
+        """
+        if messages is not None:
+            if not messages:
+                return []
+            if len(messages) == 1:
+                variable = messages[0].recipient
+                return [
+                    Message(
+                        data=np.full_like(messages[0].data,messages[0].data),
+                        sender=variable,
+                        recipient=messages[0].sender,
+                    )
+                ]
+        if incoming_messages is not None:
+            if not incoming_messages:
+                return []
+            factor = incoming_messages[0].recipient
+            if not hasattr(factor, "connection_number") or not factor.connection_number:
+                factor.connection_number = {}
+                for i, msg in enumerate(incoming_messages):
+                    factor.connection_number[msg.sender.name] = i
+        return None
+
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
         Optimized Q message computation - same interface as original.
         Uses vectorized operations for better performance.
         """
-        if not messages:
-            return []
-
+        early = self._validate(messages=messages)
+        if early is not None:
+            return early
         # the recipient is the same for all messages
         variable = messages[0].recipient
         n_messages = len(messages)
-
-        # Fast path for a single message
-        if n_messages == 1:
-            return [
-                Message(
-                    data=np.zeros_like(messages[0].data),
-                    sender=variable,
-                    recipient=messages[0].sender,
-                )
-            ]
 
         # Vectorized computation when possible
         # try:
@@ -108,16 +125,10 @@ class BPComputator(Computator):
         Optimized R message computation - same interface as original.
         Uses caching and vectorized operations for better performance.
         """
-        if not incoming_messages:
-            return []
-
-        factor = incoming_messages[0].recipient
-
-        # Initialize connection cache if needed
-        if not hasattr(factor, "connection_number") or not factor.connection_number:
-            factor.connection_number = {}
-            for i, msg in enumerate(incoming_messages):
-                factor.connection_number[msg.sender.name] = i
+        early = self._validate(cost_table=cost_table, incoming_messages=incoming_messages)
+        if early is not None:
+            return early
+        factor:FactorAgent = incoming_messages[0].recipient
 
         outgoing_messages = []
         cost_table_shape = cost_table.shape
@@ -126,12 +137,7 @@ class BPComputator(Computator):
         # Optimized computation for each message
         for i, msg_i in enumerate(incoming_messages):
             variable_node = msg_i.sender
-
-            try:
-                dim = self._get_node_dimension(factor, variable_node)
-            except KeyError as e:
-                # Same error handling as original
-                raise
+            dim = self._get_node_dimension(factor, variable_node)
 
             # Optimized cost augmentation
             augmented_costs = cost_table +0
@@ -156,8 +162,8 @@ class BPComputator(Computator):
             else:
                 reduced_msg = augmented_costs
 
-            if reduced_msg.ndim > 1:
-                reduced_msg = reduced_msg.ravel()
+            # if reduced_msg.ndim > 1:
+            #     reduced_msg = reduced_msg.ravel()
 
             outgoing_messages.append(
                 Message(data=reduced_msg, sender=factor, recipient=variable_node)
