@@ -15,5 +15,5 @@ def multiply_messages(messages: List[Message], factor: int):
     for message in messages:
         message.data *= factor
 
-double_messages= partial(multiply_messages, factor=2)
 
+double_messages = partial(multiply_messages, factor=2)
