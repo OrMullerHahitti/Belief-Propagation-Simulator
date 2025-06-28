@@ -16,7 +16,7 @@ class SplitEngine(BPEngine):
     def __init__(self, *args, split_factor: float = 0.6, **kwargs):
         self.split_factor = split_factor
         super().__init__(*args, **kwargs)
-        self._name = 'SPFGEngine'
+        self._name = "SPFGEngine"
         self._set_name({"split-": f"{str(self.split_factor)}-{str(self.split_factor)}"})
 
     def post_init(self) -> None:
@@ -39,8 +39,10 @@ class CostReductionOnceEngine(BPEngine):
 
     def post_init(self):
         cost_reduction_all_factors_once(self.graph, self.reduction_factor)
-    def post_factor_step(self,factor:FactorAgent):
-        double_messages(factor.outbox)
+
+    def pre_factor_compute(self, factor: FactorAgent):
+        double_messages(factor.inbox)
+
 
 class DampingEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
@@ -63,7 +65,12 @@ class DampingSCFGEngine(DampingEngine, SplitEngine):
         super().__init__(*args, **kwargs)
         self.split_factor = kwargs.get("split_factor", 0.6)  # Ensure attribute exists
         self._name = "DampingSCFG"
-        self._set_name({"split": f"{str(self.split_factor)}-{str(1-self.split_factor)}", "damping": "0.9"})
+        self._set_name(
+            {
+                "split": f"{str(self.split_factor)}-{str(1-self.split_factor)}",
+                "damping": "0.9",
+            }
+        )
 
 
 class DampingCROnceEngine(DampingEngine, CostReductionOnceEngine):
@@ -73,9 +80,16 @@ class DampingCROnceEngine(DampingEngine, CostReductionOnceEngine):
         kwargs.setdefault("reduction_factor", 0.5)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
-        self.reduction_factor = kwargs.get("reduction_factor", 0.5)  # Ensure attribute exists
+        self.reduction_factor = kwargs.get(
+            "reduction_factor", 0.5
+        )  # Ensure attribute exists
         self._name = "DampingCROnceEngine"
-        self._set_name({"split": f"{str(self.reduction_factor)}-{str(1-self.reduction_factor)}", "damping": "0.9"})
+        self._set_name(
+            {
+                "split": f"{str(self.reduction_factor)}-{str(1-self.reduction_factor)}",
+                "damping": "0.9",
+            }
+        )
 
 
 class MessagePruningEngine(BPEngine):
@@ -87,7 +101,7 @@ class MessagePruningEngine(BPEngine):
         prune_threshold: float = 1e-4,
         min_iterations: int = 5,
         adaptive_threshold: bool = True,
-        **kwargs
+        **kwargs,
     ):
         self.prune_threshold = prune_threshold
         self.min_iterations = min_iterations
@@ -112,6 +126,7 @@ class TDAndPruningEngine(TDEngine, MessagePruningEngine):
         kwargs.setdefault("prune_threshold", 1e-4)
         kwargs.setdefault("damping_factor", 0.9)
         super().__init__(*args, **kwargs)
+
 
 class DiscountEngine(BPEngine):
     def __init__(self, *args, **kwargs):

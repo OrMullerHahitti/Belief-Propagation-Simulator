@@ -261,7 +261,9 @@ def test_belief_computation(simple_factor_graph, max_sum_computator):
 
 
 # Test convergence with multiple cycles
-def test_convergence_with_multiple_cycles(simple_factor_graph, min_sum_computator, min_sum_computatorn=MinSumComputator()):
+def test_convergence_with_multiple_cycles(
+    simple_factor_graph, min_sum_computator, min_sum_computatorn=MinSumComputator()
+):
     """Test convergence with multiple cycles"""
     # Set computator for all nodes
 

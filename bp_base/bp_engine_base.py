@@ -25,17 +25,20 @@ class BPEngine:
     """
 
     def __init__(
-            self,
-            factor_graph: FactorGraph,
-            computator: Computator = MinSumComputator(),
-            name: str = "BPEngine",
-            convergence_config: ConvergenceConfig | None = None,
-            monitor_performance: bool = False,
-            normalize_messages: bool = True,
+        self,
+        factor_graph: FactorGraph,
+        computator: Computator = MinSumComputator(),
+        name: str = "BPEngine",
+        convergence_config: ConvergenceConfig | None = None,
+        monitor_performance: bool = False,
+        normalize_messages: bool = True,
+        anytime: bool = True,
+
     ):
         """
         Initialize the belief propagation engine.
         """
+        self.anytime = anytime
         self.normalize_messages = normalize_messages
         self.graph = factor_graph
         self.post_init()
@@ -55,7 +58,6 @@ class BPEngine:
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
         self.performance_monitor = PerformanceMonitor() if monitor_performance else None
         self._name = name
-        
 
     def step(self, i: int = 0) -> Step:
         """Run one step with message pruning support."""
@@ -80,8 +82,8 @@ class BPEngine:
 
         # Phase 4: All factors compute messages
         for factor in self.factor_nodes:
+            self.pre_factor_compute(factor)
             factor.compute_messages()
-            self.post_factor_step(factor)
 
         # Phase 5: All factors send messages
         for factor in self.factor_nodes:
@@ -94,13 +96,14 @@ class BPEngine:
             factor.empty_mailbox()
             factor.mailer.prepare()
 
+        self.update_global_cost()
+
         # Notify pruning policy of step completion
         # if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
         #     self.message_pruning_policy.step_completed()
         #
         # # Calculate costs and track metrics
-        global_cost = self.calculate_global_cost()
-        self.history.costs.append(global_cost)
+
         # if self.performance_monitor:
         #     all_agents = list(self.graph.G.nodes())
         #     pruning_stats = {}
@@ -152,13 +155,14 @@ class BPEngine:
 
         return None
 
-    def _set_name(self,kwargs = Optional[Dict[str,str]]) -> None:
+    def _set_name(self, kwargs=Optional[Dict[str, str]]) -> None:
         """Generate a configuration name based on the engine parameters."""
         config_name = self._name
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             config_name += f"_{str(k)}-{str(v)}"
 
         self._name = config_name
+
     @property
     def name(self) -> str:
         """Get the name of the engine."""
@@ -209,7 +213,7 @@ class BPEngine:
 
                 # Check if we have all indices
                 if None not in indices and len(indices) == len(
-                        factor.connection_number
+                    factor.connection_number
                 ):
                     if factor.original_cost_table is not None:
                         total_cost += factor.original_cost_table[tuple(indices)]
@@ -240,11 +244,10 @@ class BPEngine:
     def post_init(self) -> None:
         pass
 
-
     def post_var_cycle(self) -> None:
         pass
 
-    def post_factor_step(self,factor: FactorAgent) -> None:
+    def post_factor_step(self, factor: FactorAgent) -> None:
         pass
 
     def post_factor_cycle(self):
@@ -252,12 +255,30 @@ class BPEngine:
 
     def post_two_cycles(self):
         pass
-
+    def pre_var_compute(self, var: VariableAgent):
+        pass
+    def pre_factor_compute(self, factor: FactorAgent):
+        pass
     def post_var_compute(self, var: VariableAgent):
         pass
+
     def init_normalize(self) -> None:
         pass
-    def normalize_messages(self)-> None:
+    def update_global_cost(self) -> None:
+        """
+
+        Placeholder for any time-specific logic.
+        This method can be overridden in subclasses if needed.
+        """
+        cost = self.calculate_global_cost()
+        # Only compare with last cost if it exists
+        if self.anytime and self.history.costs and self.history.costs[-1] > cost:
+            self.history.costs.append(self.history.costs[-1])
+        self.history.costs.append(cost)
+
+
+
+    def normalize_messages(self) -> None:
         """
         Normalize messages in the factor graph.
         This is a placeholder for normalization logic.
