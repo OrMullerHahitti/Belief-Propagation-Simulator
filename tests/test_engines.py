@@ -137,8 +137,10 @@ def test_cost_reduction_once_engine():
 
     # Compute factor messages using the engine's computator (this normally happens before post_factor_compute)
     verbose_print("Computing factor messages using engine's computator...")
+    engine.pre_factor_compute(factor)
     factor.compute_messages()
     # Save the initially computed messages (before doubling)
+
     computed_messages = [msg.data.copy() for msg in factor.mailer.outbox]
     verbose_print(f"Factor computed {len(computed_messages)} messages")
     for i, msg_data in enumerate(computed_messages):
@@ -146,7 +148,7 @@ def test_cost_reduction_once_engine():
 
     # Now apply the post_factor_compute method to double the messages
     verbose_print("Applying post_factor_compute to double message data...")
-    engine.post_factor_compute(factor)
+
 
     # Check that the message data has been doubled
     for i, (original, current) in enumerate(

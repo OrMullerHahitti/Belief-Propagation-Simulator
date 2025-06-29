@@ -13,7 +13,7 @@ def init_normalization(li: List[FactorAgent]):
             factor.cost_table = factor.cost_table / x
 
 
-def normalize_after_cycle(variables: List[VariableAgent]):
+def normalize_inbox(variables: List[VariableAgent]):
     """
     Normalize the message data of all variables in the factor graph after each cycle.
     """
