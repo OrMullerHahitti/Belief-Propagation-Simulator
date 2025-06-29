@@ -2,7 +2,7 @@ import typing
 from typing import Dict, Optional
 import numpy as np
 import networkx as nx
-from policies.normalize_cost import init_normalization, normalize_after_cycle
+from policies.normalize_cost import init_normalization, normalize_inbox
 from base_all.agents import VariableAgent, FactorAgent
 from bp_base.bp_computators import MinSumComputator
 from bp_base.engine_components import History, Cycle, Step
@@ -32,19 +32,21 @@ class BPEngine:
         convergence_config: ConvergenceConfig | None = None,
         monitor_performance: bool = False,
         normalize_messages: bool = True,
-        anytime: bool = True,
+        anytime: bool = False,
 
     ):
         """
         Initialize the belief propagation engine.
         """
+        self.computator = computator
         self.anytime = anytime
         self.normalize_messages = normalize_messages
         self.graph = factor_graph
         self.post_init()
         self._initialize_messages()
-        self.graph.set_computator(computator)
+        self.graph.set_computator(self.computator)
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -274,6 +276,7 @@ class BPEngine:
         # Only compare with last cost if it exists
         if self.anytime and self.history.costs and self.history.costs[-1] > cost:
             self.history.costs.append(self.history.costs[-1])
+            return
         self.history.costs.append(cost)
 
 
@@ -298,7 +301,7 @@ class BPEngine:
         self.post_var_cycle()
         self.post_factor_cycle()
         if self.normalize_messages:
-            normalize_after_cycle(self.var_nodes)
+            normalize_inbox(self.var_nodes)
         self.history.beliefs[i] = self.get_beliefs()
         self.history.assignments[i] = self.assignments
         if self._is_converged():

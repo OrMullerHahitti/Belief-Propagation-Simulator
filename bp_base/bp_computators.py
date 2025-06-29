@@ -27,7 +27,7 @@ class BPComputator(Computator):
     Same interface as original but optimized for performance.
     """
 
-    def __init__(self, reduce_func, combine_func):
+    def __init__(self, reduce_func=np.min, combine_func=np.add):
         self.reduce_func = reduce_func
         self.combine_func = combine_func
         # Cache frequently used operations
@@ -54,8 +54,8 @@ class BPComputator(Computator):
         variable = messages[0].recipient
         n_messages = len(messages)
 
-        # Vectorized computation when possible
-        # try:
+    # Vectorized computation when possible
+
         # Stack all message data for vectorized operations
         msg_data = np.stack([msg.data for msg in messages])
         total_sum = np.sum(msg_data, axis=0)
@@ -77,10 +77,10 @@ class BPComputator(Computator):
         # except (ValueError, TypeError):
         #     # Fallback to the original algorithm if vectorization fails
         #     outgoing_messages = []
-        #     for i, message_i in enumerate(messages):
-        #         factor = message_i.sender
+        #     for i, msg_i in enumerate(messages):
+        #         factor = msg_i.sender
         #         other_messages = [
-        #             message_j.data for j, message_j in enumerate(messages) if j != i
+        #             msg_j.data for j, msg_j in enumerate(messages) if j != i
         #         ]
         #
         #         if other_messages:
@@ -88,7 +88,7 @@ class BPComputator(Computator):
         #             for msg_data in other_messages[1:]:
         #                 combined_data = self.combine_func(combined_data, msg_data)
         #         else:
-        #             combined_data = np.zeros_like(message_i.data)
+        #             combined_data = np.zeros_like(msg_i.data)
         #
         #         outgoing_messages.append(
         #             Message(data=combined_data, sender=variable, recipient=factor)
@@ -101,40 +101,38 @@ class BPComputator(Computator):
         Optimized R message computation - same interface as original.
         Uses caching and vectorized operations for better performance.
         """
-        early = self._validate(
-            cost_table=cost_table, incoming_messages=incoming_messages
-        )
+        early = self._validate(cost_table=cost_table, incoming_messages=incoming_messages)
         if early is not None:
             return early
-        factor: FactorAgent = incoming_messages[0].recipient
+        factor:FactorAgent = incoming_messages[0].recipient
 
         outgoing_messages = []
         cost_table_shape = cost_table.shape
-        ct_dim = len(cost_table_shape)
+        ndim = len(cost_table_shape)
 
         # Optimized computation for each message
-        for i, message_i in enumerate(incoming_messages):
-            variable_node = message_i.sender
+        for i, msg_i in enumerate(incoming_messages):
+            variable_node = msg_i.sender
             dim = self._get_node_dimension(factor, variable_node)
 
             # Optimized cost augmentation
-            augmented_costs = cost_table + 0
+            augmented_costs = cost_table +0
 
             # Vectorized addition of messages from other variables
-            for j, message_j in enumerate(incoming_messages):
+            for j, msg_j in enumerate(incoming_messages):
                 if j != i:
-                    sender = message_j.sender
+                    sender = msg_j.sender
                     sender_dim = self._get_node_dimension(factor, sender)
 
                     # Cached broadcast shape computation
                     broadcast_shape = self._get_broadcast_shape(
-                        ct_dim, sender_dim, len(message_j.data)
+                        ndim, sender_dim, len(msg_j.data)
                     )
-                    shaped_message = message_j.data.reshape(broadcast_shape)
-                    augmented_costs = self.combine_func(augmented_costs, shaped_message)
+                    reshaped_msg = msg_j.data.reshape(broadcast_shape)
+                    augmented_costs = self.combine_func(augmented_costs, reshaped_msg)
 
             # Marginalize over all dimensions except the recipient's
-            axes_to_reduce = tuple(j for j in range(ct_dim) if j != dim)
+            axes_to_reduce = tuple(j for j in range(ndim) if j != dim)
             if axes_to_reduce:
                 reduced_msg = self.reduce_func(augmented_costs, axis=axes_to_reduce)
             else:
@@ -220,7 +218,7 @@ class BPComputator(Computator):
 
 class MinSumComputator(BPComputator):
     """
-    Min-sum algorithm.
+     Min-sum algorithm.
     """
 
     def __init__(self):
