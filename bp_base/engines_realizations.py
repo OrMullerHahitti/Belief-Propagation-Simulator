@@ -23,15 +23,6 @@ class SplitEngine(BPEngine):
         split_all_factors(self.graph, self.split_factor)
 
 
-class TDEngine(BPEngine):
-    def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
-        self.damping_factor = damping_factor
-        super().__init__(*args, **kwargs)
-
-    def post_var_cycle(self):
-        TD(self.var_nodes, self.damping_factor)
-
-
 class CostReductionOnceEngine(BPEngine):
     def __init__(self, *args, reduction_factor: float = 0.5, **kwargs):
         self.reduction_factor = reduction_factor
@@ -42,6 +33,8 @@ class CostReductionOnceEngine(BPEngine):
 
     def pre_factor_compute(self, factor: FactorAgent):
         double_messages(factor.inbox)
+
+
 
 
 class DampingEngine(BPEngine):
@@ -118,14 +111,6 @@ class MessagePruningEngine(BPEngine):
             adaptive_threshold=self.adaptive_threshold,
         )
 
-
-class TDAndPruningEngine(TDEngine, MessagePruningEngine):
-    """Combined TD damping and message pruning engine."""
-
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("prune_threshold", 1e-4)
-        kwargs.setdefault("damping_factor", 0.9)
-        super().__init__(*args, **kwargs)
 
 
 class DiscountEngine(BPEngine):
