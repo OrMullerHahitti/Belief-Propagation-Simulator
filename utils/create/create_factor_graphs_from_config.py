@@ -17,10 +17,10 @@ from configs.global_config_mapping import (
     CT_FACTORIES,  # str  -> cost‑table factory fn
     # helper that can load configs
 )
-from utils.create_factor_graph_config import ConfigCreator, GraphConfig
+from utils.create.create_factor_graph_config import ConfigCreator, GraphConfig
 
 # Optional: make sure agents & FactorGraph are importable
-from base_all.agents import VariableAgent, FactorAgent
+from base_models.agents import VariableAgent, FactorAgent
 from bp_base.factor_graph import FactorGraph
 from utils.path_utils import find_project_root
 
@@ -211,14 +211,10 @@ def build_cycle_graph(
     domain_size: int,
     ct_factory: Callable,
     ct_params: Dict[str, Any],
-    density: float,
+    density: float = 1.0,  # density is not used in cycle graph, but kept for consistency
 ):
-    variables: List[VariableAgent] = [
-        _make_variable(i + 1, domain_size) for i in range(num_vars)
-    ]
-    edges = []
     """
-    Simple N‑variable cycle: x1–f12–x2–f23–…–xn–fn1–x1
+    Simple N-variable cycle: x1–f12–x2–f23–…–xn–fn1–x1
     Returns (variables, factors, edges).
     """
     variables: List[VariableAgent] = [

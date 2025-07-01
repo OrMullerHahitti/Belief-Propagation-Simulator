@@ -1,4 +1,4 @@
-from base_all.agents import VariableAgent
+from base_models.agents import VariableAgent
 from typing import List
 
 

@@ -1,6 +1,6 @@
 import numpy as np
 from bp_base.engines_realizations import DampingSCFGEngine, DampingCROnceEngine
-from base_all.agents import VariableAgent, FactorAgent
+from base_models.agents import VariableAgent, FactorAgent
 from bp_base.factor_graph import FactorGraph
 
 

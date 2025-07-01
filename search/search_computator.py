@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple, Set
 import numpy as np
 
-from base_all.DCOP_base import Computator, Agent
-from base_all.components import Message
+from base_models.dcop_base import Computator, Agent
+from base_models.components import Message
 
 
 class SearchComputator(Computator, ABC):

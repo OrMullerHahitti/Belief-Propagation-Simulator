@@ -2,13 +2,36 @@
 # ----  Internal registries, global configs  ----------------------------------------
 ########################################################################
 from typing import Dict, Callable
+from enum import Enum
 
-dirs = {"test": "test_logs"}
-
-VERBOSE_LOGGING = False  # Set to False to disable verbose logging
-
+from bp_base.computators import MaxSumComputator, MinSumComputator
 from utils.path_utils import find_project_root
 
+# message parameters
+MESSAGE_DOMAIN_SIZE = 3
+# Cost Table Creation Function and parameters
+
+
+# computator
+COMPUTATOR = MinSumComputator()
+
+
+PROJECT_ROOT: str = find_project_root()
+
+#add here global directories, could be also used as ENUM
+class Dirs(Enum):
+    LOGS = "logs"
+    TEST_LOGS = "test_logs"
+    TEST_DATA = "test_data"
+    TEST_RESULTS = "test_results"
+    TEST_CONFIGS = "test_configs"
+    TEST_PLOTS = "test_plots"
+    TEST_PLOTS_DATA = "test_plots_data"
+    TEST_PLOTS_FIGURES = "test_plots_figures"
+    TEST_PLOTS_FIGURES_DATA = "test_plots_figures_data"
+
+
+VERBOSE_LOGGING = False  # Set to False to disable verbose logging
 
 # all dotted paths are relative to the project root and will be resolved using importlib
 GRAPH_TYPES: Dict[str, str] = {  # str  -> dotted‑path or import key
@@ -18,7 +41,6 @@ GRAPH_TYPES: Dict[str, str] = {  # str  -> dotted‑path or import key
     "octet-factor": "my_bp.graph_builders.build_octet_factor",  # TODO : implemnt octec-variable and octec-factor, not for MST
     "random": "utils.create_factor_graphs_from_config.build_random_graph",
 }
-PROJECT_ROOT: str = find_project_root()
 
 COMPUTATORS: Dict[str, str] = {  # str -> dotted‑path to BPComputator subclass
     "max-sum": "bp_base.computators.MaxSumComputator",
