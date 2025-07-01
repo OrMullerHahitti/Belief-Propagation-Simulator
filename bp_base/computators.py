@@ -3,8 +3,7 @@ from typing import List
 import logging
 from functools import lru_cache
 
-from base_all.agents import FactorAgent
-from base_all.protocols import Computator
+from base_models.protocols import Computator
 
 try:
     import numba
@@ -13,8 +12,8 @@ try:
 except ImportError:
     HAS_NUMBA = False
 
-from base_all.DCOP_base import Agent
-from base_all.components import Message
+from base_models.dcop_base import Agent
+from base_models.components import Message
 
 # Minimal logging for computators
 logger = logging.getLogger(__name__)
@@ -53,9 +52,6 @@ class BPComputator(Computator):
         # the recipient is the same for all messages
         variable = messages[0].recipient
         n_messages = len(messages)
-
-    # Vectorized computation when possible
-
         # Stack all message data for vectorized operations
         msg_data = np.stack([msg.data for msg in messages])
         total_sum = np.sum(msg_data, axis=0)
@@ -96,58 +92,35 @@ class BPComputator(Computator):
         #
         #     return outgoing_messages
 
-    def compute_R(self, cost_table, incoming_messages: List[Message]) -> List[Message]:
-        """
-        Optimized R message computation - same interface as original.
-        Uses caching and vectorized operations for better performance.
-        """
-        early = self._validate(cost_table=cost_table, incoming_messages=incoming_messages)
-        if early is not None:
-            return early
-        factor:FactorAgent = incoming_messages[0].recipient
+    def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]):
+        k = cost_table.ndim
+        shape = cost_table.shape
+        dtype = cost_table.dtype
+        add = np.add
+        amin = np.ndarray.min if self.reduce_func is np.min else np.ndarray.max
 
-        outgoing_messages = []
-        cost_table_shape = cost_table.shape
-        ndim = len(cost_table_shape)
+        # 1) broadcast each Q once
+        b_msgs = []
+        axes_cache = []
+        for ax, msg in enumerate(incoming_messages):
+            q = np.asarray(msg.data, dtype=dtype)
+            br = q.reshape([shape[ax] if i == ax else 1 for i in range(k)])
+            b_msgs.append(br)
+            axes_cache.append(tuple(j for j in range(k) if j != ax))
 
-        # Optimized computation for each message
-        for i, msg_i in enumerate(incoming_messages):
-            variable_node = msg_i.sender
-            dim = self._get_node_dimension(factor, variable_node)
+        # 2) aggregate once  (F + sum of Q)
+        agg = cost_table.astype(dtype, copy=True)
+        for q in b_msgs:
+            add(agg, q, out=agg)  # => no new array, no wrappers
 
-            # Optimized cost augmentation
-            augmented_costs = cost_table +0
-
-            # Vectorized addition of messages from other variables
-            for j, msg_j in enumerate(incoming_messages):
-                if j != i:
-                    sender = msg_j.sender
-                    sender_dim = self._get_node_dimension(factor, sender)
-
-                    # Cached broadcast shape computation
-                    broadcast_shape = self._get_broadcast_shape(
-                        ndim, sender_dim, len(msg_j.data)
-                    )
-                    reshaped_msg = msg_j.data.reshape(broadcast_shape)
-                    augmented_costs = self.combine_func(augmented_costs, reshaped_msg)
-
-            # Marginalize over all dimensions except the recipient's
-            axes_to_reduce = tuple(j for j in range(ndim) if j != dim)
-            if axes_to_reduce:
-                reduced_msg = self.reduce_func(augmented_costs, axis=axes_to_reduce)
-            else:
-                reduced_msg = augmented_costs
-
-            # if reduced_msg.ndim > 1:
-            #     reduced_msg = reduced_msg.ravel()
-
-            outgoing_messages.append(
-                Message(data=reduced_msg, sender=factor, recipient=variable_node)
-            )
-
-        return outgoing_messages
-
-
+        # 3) build each R_i
+        out = []
+        for ax, br_q in enumerate(b_msgs):
+            r_vec = amin(agg - br_q, axis=axes_cache[ax])  # ndarray.min/max
+            out.append(Message(data=r_vec,
+                               sender=incoming_messages[ax].recipient,
+                               recipient=incoming_messages[ax].sender))
+        return out
     def _validate(self, messages=None, cost_table=None, incoming_messages=None):
         """
         Validate and handle early return cases for compute_Q and compute_R.
@@ -189,15 +162,6 @@ class BPComputator(Computator):
         if hasattr(factor, "connection_number") and factor.connection_number:
             if node.name in factor.connection_number:
                 dim = factor.connection_number[node.name]
-                self._connection_cache[cache_key] = dim
-                return dim
-
-        # Handle case where objects are used as keys #TODO; never use objects as keys
-        for key, dim in getattr(factor, "connection_number", {}).items():
-            if isinstance(key, Agent) and key.name == node.name:
-                self._connection_cache[cache_key] = dim
-                return dim
-            elif isinstance(key, str) and key == node.name:
                 self._connection_cache[cache_key] = dim
                 return dim
 
