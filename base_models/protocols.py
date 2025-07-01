@@ -83,7 +83,6 @@ class Computator(Protocol):
         self, cost_table: CostTable, incoming_messages: List["Message"]
     ) -> List["Message"]: ...
 
-
 @runtime_checkable
 class Policy(Protocol):
     type: PolicyType
@@ -92,7 +91,7 @@ class Policy(Protocol):
 
 
 @runtime_checkable
-class StepProtocol(Protocol):
+class Step(Protocol):
     num: int
     messages: Dict[str, List["Message"]]
 
@@ -100,24 +99,24 @@ class StepProtocol(Protocol):
 
 
 @runtime_checkable
-class CycleProtocol(Protocol):
+class Cycle(Protocol):
     number: int
-    steps: List["StepProtocol"]
+    steps: List[Step]
 
-    def add(self, step: "StepProtocol"): ...
+    def add(self, step: Step): ...
     def __eq__(self, other: Any): ...
 
 
 @runtime_checkable
 class HistoryProtocol(Protocol):
     config: dict
-    cycles: Dict[int, "CycleProtocol"]
+    cycles: Dict[int, Cycle]
     beliefs: Dict[int, Dict[str, np.ndarray]]
     assignments: Dict[int, Dict[str, Union[int, float]]]
     costs: List[Union[int, float]]
     engine_type: str
 
-    def __setitem__(self, key: int, value: "CycleProtocol"): ...
+    def __setitem__(self, key: int, value: Cycle): ...
     def __getitem__(self, key: int): ...
     def initialize_cost(self, x: Union[int, float]) -> None: ...
     def compare_last_two_cycles(self): ...

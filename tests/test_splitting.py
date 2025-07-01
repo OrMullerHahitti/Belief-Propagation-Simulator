@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from bp_base.factor_graph import FactorGraph
-from base_all.agents import VariableAgent, FactorAgent
+from base_models.agents import VariableAgent, FactorAgent
 from policies.splitting import split_all_factors
 
 

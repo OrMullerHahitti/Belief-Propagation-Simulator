@@ -5,8 +5,8 @@ import numpy as np
 from typing import List, Dict
 import logging
 
-from base_all.DCOP_base import Computator
-from base_all.agents import VariableAgent, FactorAgent
+from base_models.dcop_base import Computator
+from base_models.agents import VariableAgent, FactorAgent
 
 logger = logging.getLogger(__name__)
 

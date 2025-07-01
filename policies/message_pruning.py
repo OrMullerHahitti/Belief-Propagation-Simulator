@@ -1,8 +1,8 @@
 from typing import Dict
 import numpy as np
-from base_all.agents import FGAgent
-from base_all.components import Message
-from base_all.protocols import PolicyType
+from base_models.agents import FGAgent
+from base_models.components import Message
+from base_models.protocols import PolicyType
 from policies.bp_policies import Policy
 import logging
 

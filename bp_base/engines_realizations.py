@@ -1,7 +1,7 @@
 from statsmodels.multivariate.factor import Factor
 
-from base_all.agents import VariableAgent, FactorAgent
-from bp_base.bp_engine_base import BPEngine
+from base_models.agents import VariableAgent, FactorAgent
+from bp_base.engine_base import BPEngine
 from policies.cost_reduction import (
     cost_reduction_all_factors_once,
     discount_attentive,

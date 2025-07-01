@@ -3,7 +3,7 @@ from bp_base.factor_graph import FactorGraph
 import os
 
 from configs.global_config_mapping import CT_FACTORIES
-from utils.create_factor_graphs_from_config import (
+from utils.create.create_factor_graphs_from_config import (
     FactorGraphBuilder,
     build_cycle_graph,
     build_random_graph,
