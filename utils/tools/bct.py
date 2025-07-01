@@ -17,11 +17,12 @@ from collections import defaultdict, deque
 @dataclass
 class BCTNode:
     """Node in a Backtrack Cost Tree"""
+
     name: str
     iteration: int
     cost: float
     node_type: str  # 'variable', 'factor', 'cost'
-    children: List['BCTNode'] = None
+    children: List["BCTNode"] = None
     coefficient: float = 1.0
 
     def __post_init__(self):
@@ -51,7 +52,9 @@ class BCTCreator:
         print(f"  - BCT mode: {history.use_bct_history}")
         print(f"  - Variables tracked: {len(self.bct_data.get('beliefs', {}))}")
         print(f"  - Message flows: {len(self.bct_data.get('messages', {}))}")
-        print(f"  - Total steps: {self.bct_data.get('metadata', {}).get('total_steps', 0)}")
+        print(
+            f"  - Total steps: {self.bct_data.get('metadata', {}).get('total_steps', 0)}"
+        )
 
     def create_bct(self, variable_name: str, final_iteration: int = -1) -> BCTNode:
         """
@@ -64,10 +67,10 @@ class BCTCreator:
         Returns:
             BCTNode: Root of the BCT
         """
-        if variable_name not in self.bct_data.get('beliefs', {}):
+        if variable_name not in self.bct_data.get("beliefs", {}):
             raise ValueError(f"Variable {variable_name} not found in history data")
 
-        beliefs = self.bct_data['beliefs'][variable_name]
+        beliefs = self.bct_data["beliefs"][variable_name]
         if not beliefs:
             raise ValueError(f"No belief data found for {variable_name}")
 
@@ -82,8 +85,8 @@ class BCTCreator:
             name=f"{variable_name}_belief",
             iteration=final_iteration,
             cost=final_belief,
-            node_type='variable',
-            coefficient=self._get_damping_coefficient(final_iteration)
+            node_type="variable",
+            coefficient=self._get_damping_coefficient(final_iteration),
         )
 
         # Build tree recursively
@@ -101,11 +104,11 @@ class BCTCreator:
             return
 
         # Find incoming messages to this variable at this iteration
-        messages = self.bct_data.get('messages', {})
+        messages = self.bct_data.get("messages", {})
 
         for flow_key, msg_values in messages.items():
-            if '->' in flow_key:
-                sender, recipient = flow_key.split('->')
+            if "->" in flow_key:
+                sender, recipient = flow_key.split("->")
 
                 # Check if this message is TO our variable
                 if recipient == variable_name and iteration <= len(msg_values):
@@ -117,7 +120,7 @@ class BCTCreator:
                         continue
 
                     # Determine node type (factor or variable based on sender name)
-                    sender_type = 'factor' if 'f' in sender.lower() else 'variable'
+                    sender_type = "factor" if "f" in sender.lower() else "variable"
 
                     # Create child node
                     child = BCTNode(
@@ -125,7 +128,7 @@ class BCTCreator:
                         iteration=iteration - 1,
                         cost=msg_cost,
                         node_type=sender_type,
-                        coefficient=self._get_damping_coefficient(iteration - 1)
+                        coefficient=self._get_damping_coefficient(iteration - 1),
                     )
 
                     # Apply damping to cost
@@ -140,7 +143,9 @@ class BCTCreator:
         """Calculate damping coefficient for given iteration"""
         if self.damping_factor == 0.0:
             return 1.0
-        return (1 - self.damping_factor) * (self.damping_factor ** max(0, iteration - 1))
+        return (1 - self.damping_factor) * (
+            self.damping_factor ** max(0, iteration - 1)
+        )
 
     def analyze_convergence(self, variable_name: str) -> Dict:
         """
@@ -152,14 +157,14 @@ class BCTCreator:
         Returns:
             Convergence analysis dictionary
         """
-        if variable_name not in self.bct_data.get('beliefs', {}):
-            return {'error': f'Variable {variable_name} not found'}
+        if variable_name not in self.bct_data.get("beliefs", {}):
+            return {"error": f"Variable {variable_name} not found"}
 
-        beliefs = self.bct_data['beliefs'][variable_name]
-        assignments = self.bct_data.get('assignments', {}).get(variable_name, [])
+        beliefs = self.bct_data["beliefs"][variable_name]
+        assignments = self.bct_data.get("assignments", {}).get(variable_name, [])
 
         if not beliefs:
-            return {'error': 'No belief data available'}
+            return {"error": "No belief data available"}
 
         # Calculate belief changes
         changes = []
@@ -185,22 +190,24 @@ class BCTCreator:
             assignment_stable = len(set(recent_assignments)) == 1
 
         return {
-            'variable': variable_name,
-            'total_iterations': len(beliefs),
-            'initial_belief': beliefs[0],
-            'final_belief': beliefs[-1],
-            'total_change': abs(beliefs[-1] - beliefs[0]) if len(beliefs) >= 2 else 0.0,
-            'max_change': max(changes) if changes else 0.0,
-            'average_change': sum(changes) / len(changes) if changes else 0.0,
-            'converged': converged,
-            'convergence_iteration': convergence_iter,
-            'assignment_stable': assignment_stable,
-            'belief_evolution': beliefs,
-            'assignment_evolution': assignments,
-            'changes': changes
+            "variable": variable_name,
+            "total_iterations": len(beliefs),
+            "initial_belief": beliefs[0],
+            "final_belief": beliefs[-1],
+            "total_change": abs(beliefs[-1] - beliefs[0]) if len(beliefs) >= 2 else 0.0,
+            "max_change": max(changes) if changes else 0.0,
+            "average_change": sum(changes) / len(changes) if changes else 0.0,
+            "converged": converged,
+            "convergence_iteration": convergence_iter,
+            "assignment_stable": assignment_stable,
+            "belief_evolution": beliefs,
+            "assignment_evolution": assignments,
+            "changes": changes,
         }
 
-    def visualize_bct(self, variable_name: str, iteration: int = -1, save_path: str = None) -> plt.Figure:
+    def visualize_bct(
+        self, variable_name: str, iteration: int = -1, save_path: str = None
+    ) -> plt.Figure:
         """
         Visualize BCT for a variable
 
@@ -239,12 +246,12 @@ class BCTCreator:
             labels[node_id] = label
 
             # Color by type
-            if node.node_type == 'variable':
-                colors.append('lightblue')
-            elif node.node_type == 'factor':
-                colors.append('lightcoral')
+            if node.node_type == "variable":
+                colors.append("lightblue")
+            elif node.node_type == "factor":
+                colors.append("lightcoral")
             else:
-                colors.append('lightgreen')
+                colors.append("lightgreen")
 
             # Add children
             for i, child in enumerate(node.children):
@@ -256,15 +263,22 @@ class BCTCreator:
 
         # Create plot
         plt.figure(figsize=(14, 10))
-        nx.draw(G, pos, with_labels=False, node_color=colors,
-                node_size=2500, arrows=True, arrowsize=20)
+        nx.draw(
+            G,
+            pos,
+            with_labels=False,
+            node_color=colors,
+            node_size=2500,
+            arrows=True,
+            arrowsize=20,
+        )
         nx.draw_networkx_labels(G, pos, labels, font_size=7)
 
         plt.title(f"BCT for {variable_name} at iteration {iteration}")
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
             print(f"BCT visualization saved to: {save_path}")
 
         return plt.gcf()
@@ -279,26 +293,24 @@ class BCTCreator:
         Returns:
             Comparison analysis
         """
-        comparison = {
-            'variables': variable_names,
-            'analyses': {},
-            'summary': {}
-        }
+        comparison = {"variables": variable_names, "analyses": {}, "summary": {}}
 
         for var_name in variable_names:
-            if var_name in self.bct_data.get('beliefs', {}):
+            if var_name in self.bct_data.get("beliefs", {}):
                 analysis = self.analyze_convergence(var_name)
-                comparison['analyses'][var_name] = analysis
+                comparison["analyses"][var_name] = analysis
 
         # Create summary
-        if comparison['analyses']:
-            all_analyses = list(comparison['analyses'].values())
+        if comparison["analyses"]:
+            all_analyses = list(comparison["analyses"].values())
 
-            comparison['summary'] = {
-                'all_converged': all(a.get('converged', False) for a in all_analyses),
-                'convergence_rates': [a.get('convergence_iteration', -1) for a in all_analyses],
-                'final_beliefs': [a.get('final_belief', 0.0) for a in all_analyses],
-                'total_changes': [a.get('total_change', 0.0) for a in all_analyses]
+            comparison["summary"] = {
+                "all_converged": all(a.get("converged", False) for a in all_analyses),
+                "convergence_rates": [
+                    a.get("convergence_iteration", -1) for a in all_analyses
+                ],
+                "final_beliefs": [a.get("final_belief", 0.0) for a in all_analyses],
+                "total_changes": [a.get("total_change", 0.0) for a in all_analyses],
             }
 
         return comparison
@@ -311,25 +323,27 @@ class BCTCreator:
             output_file: Path to save JSON file
         """
         analysis_data = {
-            'metadata': {
-                'damping_factor': self.damping_factor,
-                'bct_mode': self.history.use_bct_history,
-                'total_variables': len(self.bct_data.get('beliefs', {})),
-                'total_steps': self.bct_data.get('metadata', {}).get('total_steps', 0)
+            "metadata": {
+                "damping_factor": self.damping_factor,
+                "bct_mode": self.history.use_bct_history,
+                "total_variables": len(self.bct_data.get("beliefs", {})),
+                "total_steps": self.bct_data.get("metadata", {}).get("total_steps", 0),
             },
-            'variable_analyses': {},
-            'global_data': {
-                'costs': self.bct_data.get('costs', []),
-                'message_flows': list(self.bct_data.get('messages', {}).keys())
-            }
+            "variable_analyses": {},
+            "global_data": {
+                "costs": self.bct_data.get("costs", []),
+                "message_flows": list(self.bct_data.get("messages", {}).keys()),
+            },
         }
 
         # Analyze each variable
-        for var_name in self.bct_data.get('beliefs', {}):
-            analysis_data['variable_analyses'][var_name] = self.analyze_convergence(var_name)
+        for var_name in self.bct_data.get("beliefs", {}):
+            analysis_data["variable_analyses"][var_name] = self.analyze_convergence(
+                var_name
+            )
 
         # Save to file
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(analysis_data, f, indent=2, default=str)
 
         print(f"Complete analysis exported to: {output_file}")
@@ -337,10 +351,12 @@ class BCTCreator:
     def print_summary(self):
         """Print a summary of the BCT analysis"""
         print("\n=== BCT Analysis Summary ===")
-        print(f"History mode: {'BCT (step-by-step)' if self.history.use_bct_history else 'Legacy (cycle-based)'}")
+        print(
+            f"History mode: {'BCT (step-by-step)' if self.history.use_bct_history else 'Legacy (cycle-based)'}"
+        )
         print(f"Damping factor: {self.damping_factor}")
 
-        beliefs = self.bct_data.get('beliefs', {})
+        beliefs = self.bct_data.get("beliefs", {})
         print(f"Variables: {len(beliefs)}")
         print(f"Message flows: {len(self.bct_data.get('messages', {}))}")
 
@@ -354,7 +370,7 @@ class BCTCreator:
                 print(f"    Total change: {analysis.get('total_change', 0):.4f}")
                 print(f"    Converged: {analysis.get('converged', False)}")
 
-        costs = self.bct_data.get('costs', [])
+        costs = self.bct_data.get("costs", [])
         if costs:
             print(f"\nGlobal costs:")
             print(f"  Initial: {costs[0]:.2f}")
@@ -363,7 +379,9 @@ class BCTCreator:
 
 
 # Quick usage functions
-def quick_bct_analysis(factor_graph, history, variable_name: str, damping_factor: float = 0.0) -> Dict:
+def quick_bct_analysis(
+    factor_graph, history, variable_name: str, damping_factor: float = 0.0
+) -> Dict:
     """
     Quick BCT analysis - one function call
 
@@ -380,8 +398,13 @@ def quick_bct_analysis(factor_graph, history, variable_name: str, damping_factor
     return creator.analyze_convergence(variable_name)
 
 
-def quick_bct_visualization(factor_graph, history, variable_name: str,
-                            save_path: str = None, damping_factor: float = 0.0) -> plt.Figure:
+def quick_bct_visualization(
+    factor_graph,
+    history,
+    variable_name: str,
+    save_path: str = None,
+    damping_factor: float = 0.0,
+) -> plt.Figure:
     """
     Quick BCT visualization - one function call
 

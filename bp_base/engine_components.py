@@ -68,6 +68,7 @@ class Cycle:
 @dataclass
 class MessageData:
     """Simple structure to store message data for BCT"""
+
     sender: str
     recipient: str
     data: List[float]  # Message values
@@ -77,10 +78,12 @@ class MessageData:
 class History:
     """Enhanced History class with optional BCT data collection"""
 
-    def __init__(self, engine_type: str = "Engine", use_bct_history: bool = False, **kwargs):
+    def __init__(
+        self, engine_type: str = "Engine", use_bct_history: bool = False, **kwargs
+    ):
         # Original History attributes
         self.config = dict(kwargs)
-        self.cycles: Dict[int, 'Cycle'] = {}
+        self.cycles: Dict[int, "Cycle"] = {}
         self.beliefs: Dict[int, Dict[str, np.ndarray]] = {}
         self.assignments: Dict[int, Dict[str, Union[int, float]]] = {}
         self.costs: List[Union[int, float]] = []
@@ -91,9 +94,15 @@ class History:
 
         if self.use_bct_history:
             # Step-by-step tracking for BCT
-            self.step_beliefs: Dict[int, Dict[str, float]] = {}  # step -> var -> belief_value
-            self.step_assignments: Dict[int, Dict[str, int]] = {}  # step -> var -> assignment
-            self.step_messages: Dict[int, List[MessageData]] = {}  # step -> list of messages
+            self.step_beliefs: Dict[int, Dict[str, float]] = (
+                {}
+            )  # step -> var -> belief_value
+            self.step_assignments: Dict[int, Dict[str, int]] = (
+                {}
+            )  # step -> var -> assignment
+            self.step_messages: Dict[int, List[MessageData]] = (
+                {}
+            )  # step -> list of messages
             self.step_costs: List[float] = []  # cost per step
             self.current_step = 0
 
@@ -132,7 +141,7 @@ class History:
         self.current_step = step_num
 
         # Track beliefs at this step
-        if hasattr(engine, 'get_beliefs'):
+        if hasattr(engine, "get_beliefs"):
             current_beliefs = engine.get_beliefs()
             step_beliefs = {}
             for var_name, belief_array in current_beliefs.items():
@@ -148,7 +157,7 @@ class History:
             self.step_beliefs[step_num] = step_beliefs
 
         # Track assignments at this step
-        if hasattr(engine, 'assignments'):
+        if hasattr(engine, "assignments"):
             current_assignments = engine.assignments
             step_assignments = {}
             for var_name, assignment in current_assignments.items():
@@ -157,16 +166,20 @@ class History:
             self.step_assignments[step_num] = step_assignments
 
         # Track messages from this step
-        if hasattr(step_result, 'messages'):
+        if hasattr(step_result, "messages"):
             step_messages = []
             for agent_name, agent_messages in step_result.messages.items():
                 for message in agent_messages:
-                    if hasattr(message, 'sender') and hasattr(message, 'recipient'):
-                        sender_name = getattr(message.sender, 'name', str(message.sender))
-                        recipient_name = getattr(message.recipient, 'name', str(message.recipient))
+                    if hasattr(message, "sender") and hasattr(message, "recipient"):
+                        sender_name = getattr(
+                            message.sender, "name", str(message.sender)
+                        )
+                        recipient_name = getattr(
+                            message.recipient, "name", str(message.recipient)
+                        )
 
                         # Extract message data
-                        if hasattr(message, 'data'):
+                        if hasattr(message, "data"):
                             if isinstance(message.data, np.ndarray):
                                 data_list = message.data.tolist()
                             else:
@@ -178,14 +191,14 @@ class History:
                             sender=sender_name,
                             recipient=recipient_name,
                             data=data_list,
-                            step=step_num
+                            step=step_num,
                         )
                         step_messages.append(msg_data)
 
             self.step_messages[step_num] = step_messages
 
         # Track cost at this step
-        if hasattr(engine, 'calculate_global_cost'):
+        if hasattr(engine, "calculate_global_cost"):
             try:
                 current_cost = engine.calculate_global_cost()
                 self.step_costs.append(float(current_cost))
@@ -204,16 +217,16 @@ class History:
 
         # Return step-by-step BCT data
         return {
-            'beliefs': self._format_step_beliefs(),
-            'messages': self._format_step_messages(),
-            'assignments': self._format_step_assignments(),
-            'costs': self.step_costs.copy(),
-            'metadata': {
-                'engine_type': self.engine_type,
-                'use_bct_history': self.use_bct_history,
-                'total_steps': len(self.step_beliefs),
-                'has_step_data': True
-            }
+            "beliefs": self._format_step_beliefs(),
+            "messages": self._format_step_messages(),
+            "assignments": self._format_step_assignments(),
+            "costs": self.step_costs.copy(),
+            "metadata": {
+                "engine_type": self.engine_type,
+                "use_bct_history": self.use_bct_history,
+                "total_steps": len(self.step_beliefs),
+                "has_step_data": True,
+            },
         }
 
     def _format_step_beliefs(self) -> Dict[str, List[float]]:
@@ -271,7 +284,9 @@ class History:
                 if isinstance(belief_array, np.ndarray):
                     belief_value = float(np.min(belief_array))
                 else:
-                    belief_value = float(belief_array) if belief_array is not None else 0.0
+                    belief_value = (
+                        float(belief_array) if belief_array is not None else 0.0
+                    )
                 beliefs_by_var[var_name].append(belief_value)
 
         # Convert assignments
@@ -283,16 +298,16 @@ class History:
                 assignments_by_var[var_name].append(int(assignment))
 
         return {
-            'beliefs': beliefs_by_var,
-            'messages': {},  # No step-by-step messages in legacy mode
-            'assignments': assignments_by_var,
-            'costs': [float(cost) for cost in self.costs],
-            'metadata': {
-                'engine_type': self.engine_type,
-                'use_bct_history': self.use_bct_history,
-                'total_steps': len(self.beliefs),
-                'has_step_data': False
-            }
+            "beliefs": beliefs_by_var,
+            "messages": {},  # No step-by-step messages in legacy mode
+            "assignments": assignments_by_var,
+            "costs": [float(cost) for cost in self.costs],
+            "metadata": {
+                "engine_type": self.engine_type,
+                "use_bct_history": self.use_bct_history,
+                "total_steps": len(self.beliefs),
+                "has_step_data": False,
+            },
         }
 
     def to_json(self, filepath: str) -> str:
@@ -322,7 +337,7 @@ class History:
 
         clean_data = convert_numpy(data)
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(clean_data, f, indent=2)
 
         print(f"History saved to: {filepath}")
@@ -331,12 +346,12 @@ class History:
     def _get_legacy_json_data(self) -> Dict:
         """Get legacy JSON data format (original save_results format)"""
         return {
-            'config': self.config,
-            'engine_type': self.engine_type,
-            'cycles': self._serialize_cycles(),
-            'beliefs': self._serialize_beliefs(),
-            'assignments': self._serialize_assignments(),
-            'costs': [float(cost) for cost in self.costs]
+            "config": self.config,
+            "engine_type": self.engine_type,
+            "cycles": self._serialize_cycles(),
+            "beliefs": self._serialize_beliefs(),
+            "assignments": self._serialize_assignments(),
+            "costs": [float(cost) for cost in self.costs],
         }
 
     def _serialize_cycles(self) -> Dict:
@@ -344,8 +359,10 @@ class History:
         serialized = {}
         for cycle_num, cycle in self.cycles.items():
             serialized[str(cycle_num)] = {
-                'number': cycle.number if hasattr(cycle, 'number') else cycle_num,
-                'steps': self._serialize_steps(cycle.steps if hasattr(cycle, 'steps') else [])
+                "number": cycle.number if hasattr(cycle, "number") else cycle_num,
+                "steps": self._serialize_steps(
+                    cycle.steps if hasattr(cycle, "steps") else []
+                ),
             }
         return serialized
 
@@ -354,8 +371,10 @@ class History:
         serialized_steps = []
         for step in steps:
             step_data = {
-                'num': getattr(step, 'num', 0),
-                'messages': self._serialize_step_messages(getattr(step, 'messages', {}))
+                "num": getattr(step, "num", 0),
+                "messages": self._serialize_step_messages(
+                    getattr(step, "messages", {})
+                ),
             }
             serialized_steps.append(step_data)
         return serialized_steps
@@ -367,11 +386,21 @@ class History:
             serialized[str(agent_name)] = []
             for msg in agent_messages:
                 msg_data = {
-                    'sender': getattr(msg.sender, 'name', str(msg.sender)) if hasattr(msg, 'sender') else 'unknown',
-                    'recipient': getattr(msg.recipient, 'name', str(msg.recipient)) if hasattr(msg,
-                                                                                               'recipient') else 'unknown',
-                    'data': msg.data.tolist() if isinstance(msg.data, np.ndarray) else [float(msg.data)] if hasattr(msg,
-                                                                                                                    'data') else []
+                    "sender": (
+                        getattr(msg.sender, "name", str(msg.sender))
+                        if hasattr(msg, "sender")
+                        else "unknown"
+                    ),
+                    "recipient": (
+                        getattr(msg.recipient, "name", str(msg.recipient))
+                        if hasattr(msg, "recipient")
+                        else "unknown"
+                    ),
+                    "data": (
+                        msg.data.tolist()
+                        if isinstance(msg.data, np.ndarray)
+                        else [float(msg.data)] if hasattr(msg, "data") else []
+                    ),
                 }
                 serialized[str(agent_name)].append(msg_data)
         return serialized
@@ -404,7 +433,7 @@ class History:
             filename = f"{self.name}_results.json"
         return self.to_json(filename)
 
-    #TODO: Implement save_csv if needed
+    # TODO: Implement save_csv if needed
     def save_csv(self, config_name: Optional[str] = None) -> str:
         """Save CSV format (placeholder - implement if needed)"""
         # This would implement the original CSV saving logic

@@ -10,7 +10,7 @@ from bp_base.engines_realizations import SplitEngine, CostReductionOnceEngine
 from policies.convergance import ConvergenceConfig
 
 # Add project root to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 def test_split_vs_cost_reduction_once_equivalence():
@@ -55,4 +55,6 @@ def test_split_vs_cost_reduction_once_equivalence():
     costs2 = np.array(engine2.history.costs)
     costs6 = np.array(engine6.history.costs)
     assert costs2.shape == costs6.shape, "Cost histories length differ"
-    assert np.allclose(costs2, costs6), "Cost histories differ between SplitEngine and CostReductionOnceEngine"
+    assert np.allclose(
+        costs2, costs6
+    ), "Cost histories differ between SplitEngine and CostReductionOnceEngine"

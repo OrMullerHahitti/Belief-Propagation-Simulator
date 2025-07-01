@@ -84,7 +84,6 @@ class MailHandler:
         )
 
     def receive_messages(self, messages: Message | list[Message]):
-
         """Handle a single Message or a list of Messages."""
         if isinstance(messages, list):
             for message in messages:
@@ -103,6 +102,7 @@ class MailHandler:
         # Accept message
         key = self._make_key(message.sender)
         self._incoming[key] = message
+
     def send(self):
         """Send all outgoing messages to their recipients."""
         for message in self._outgoing:
