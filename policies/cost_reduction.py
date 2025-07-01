@@ -1,4 +1,4 @@
-from base_all.agents import FactorAgent
+from base_models.agents import FactorAgent
 from typing import Iterable, List
 
 from bp_base.factor_graph import FactorGraph
