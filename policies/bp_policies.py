@@ -3,8 +3,8 @@ from abc import abstractmethod
 from enum import Enum
 from typing import List, Dict
 
-from base_all.agents import VariableAgent, FactorAgent
-from base_all.components import Message
+from base_models.agents import VariableAgent, FactorAgent
+from base_models.components import Message
 from bp_base.factor_graph import FactorGraph
 
 

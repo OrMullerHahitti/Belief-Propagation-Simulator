@@ -5,8 +5,8 @@ from typing import List, Callable, Any, Dict
 
 import numpy as np
 
-from base_all.components import Message, CostTable, MailHandler
-from base_all.DCOP_base import Agent
+from base_models.components import Message, CostTable, MailHandler
+from base_models.dcop_base import Agent
 
 
 class FGAgent(Agent, ABC):
@@ -100,9 +100,9 @@ class VariableAgent(FGAgent):
             belief += message.data
 
         # Normalize to avoid numerical issues
-        belief_min = np.min(belief)
-        if belief_min < 0:
-            belief -= belief_min
+        # belief_min = np.min(belief)
+        # if belief_min < 0:
+        #     belief -= belief_min
 
         return belief
 
