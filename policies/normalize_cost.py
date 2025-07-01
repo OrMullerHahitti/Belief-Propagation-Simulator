@@ -12,6 +12,7 @@ def init_normalization(li: List[FactorAgent]):
         if factor.cost_table is not None:
             factor.cost_table = factor.cost_table / x
 
+
 def normalize_soft_max(cost_table: np.ndarray) -> CostTable:
     """
     Normalize the cost table using softmax to ensure all values are positive and sum to 1.
@@ -24,6 +25,8 @@ def normalize_soft_max(cost_table: np.ndarray) -> CostTable:
     """
     exp_cost_table = np.exp(cost_table - np.max(cost_table))  # Stability improvement
     return exp_cost_table / np.sum(exp_cost_table)
+
+
 def normalize_cost_table_sum(cost_table: np.ndarray) -> CostTable:
     """
     Normalize the cost table so that the sum of all dimensions is equal.
@@ -40,6 +43,7 @@ def normalize_cost_table_sum(cost_table: np.ndarray) -> CostTable:
         curr_sum = np.sum(cost_table, axis=dim)
         cost_table = cost_table / (curr_sum * total_sum)
     return cost_table
+
 
 def normalize_inbox(variables: List[VariableAgent]):
     """
@@ -138,7 +142,6 @@ class MessagePruningPolicy(Policy):
         self.total_count = 0
 
 
-
 # Integration with MailHandler
 class PruningMailHandler:
     """Extended MailHandler with message pruning capability."""
@@ -167,4 +170,3 @@ class PruningMailHandler:
     def _make_key(self, agent) -> str:
         """Create unique key for agent to handle identity issues."""
         return f"{agent.name}_{agent.type}"
-

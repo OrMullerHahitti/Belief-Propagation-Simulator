@@ -1,3 +1,4 @@
+from functools import lru_cache
 def dummy_func(*args, **kwargs):
     """
     A dummy function that does nothing.
@@ -5,13 +6,16 @@ def dummy_func(*args, **kwargs):
     """
     pass
 
+
 def profiling(func):
     """
     Decorator to profile a function using cProfile.
     """
+
     def wrapper(*args, **kwargs):
         import cProfile
         import pstats
+
         profiler = cProfile.Profile()
         profiler.enable()
         result = func(*args, **kwargs)
@@ -19,4 +23,5 @@ def profiling(func):
         stats = pstats.Stats(profiler)
         stats.sort_stats("time").print_stats(10)
         return result
+
     return wrapper

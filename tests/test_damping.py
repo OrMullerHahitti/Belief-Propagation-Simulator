@@ -8,11 +8,14 @@ from utils.create.create_factor_graphs_from_config import build_cycle_graph
 from configs.global_config_mapping import create_random_int_table
 from policies.convergance import ConvergenceConfig
 
+
 # Test basic damping function directly
 def test_damp_function():
     # Create a variable agent with messages
     v = VariableAgent("test_var", 2)
-    f = FactorAgent("test_factor", 2, lambda num_vars, domain, **kwargs: np.zeros((2, 2)))
+    f = FactorAgent(
+        "test_factor", 2, lambda num_vars, domain, **kwargs: np.zeros((2, 2))
+    )
 
     # Add messages to outbox
     msg1 = Message(np.array([1.0, 2.0]), v, f)
@@ -28,6 +31,7 @@ def test_damp_function():
     # Check damping was applied correctly: new = 0.5*last + 0.5*current
     expected = 0.5 * np.array([4.0, 6.0]) + 0.5 * np.array([1.0, 2.0])
     np.testing.assert_array_almost_equal(v.mailer.outbox[0].data, expected)
+
 
 def test_damping_engine_with_direct_initialization():
     # Use a realistic small cycle graph with random integer cost tables
@@ -45,7 +49,7 @@ def test_damping_engine_with_direct_initialization():
         fg,
         damping_factor=0.5,
         convergence_config=ConvergenceConfig(),
-        normalize_messages=True
+        normalize_messages=True,
     )
 
     # Initialize messages manually to ensure there's something to damp
@@ -107,8 +111,11 @@ def test_damping_engine_with_direct_initialization():
     if message_values[0][1] and message_values[-1][1]:
         print(f"First iteration: {message_values[0][1]}")
         print(f"Last iteration: {message_values[-1][1]}")
-        assert any(not np.allclose(message_values[0][1][i], message_values[-1][1][i])
-                for i in range(min(len(message_values[0][1]), len(message_values[-1][1]))))
+        assert any(
+            not np.allclose(message_values[0][1][i], message_values[-1][1][i])
+            for i in range(min(len(message_values[0][1]), len(message_values[-1][1])))
+        )
+
 
 def test_damping_engine_with_multiple_iterations():
     # Use a realistic small cycle graph with random integer cost tables
@@ -126,7 +133,7 @@ def test_damping_engine_with_multiple_iterations():
         fg,
         damping_factor=0.5,
         convergence_config=ConvergenceConfig(),
-        normalize_messages=True
+        normalize_messages=True,
     )
 
     # Create direct test of damping
@@ -186,11 +193,11 @@ def test_damping_engine_with_multiple_iterations():
             v.mailer.clear_outgoing()
             f = list(fg.G.neighbors(v))[0]
             # Use varying values to ensure changes between iterations
-            msg = Message(np.array([float(i+1), float(i+2)]), v, f)
+            msg = Message(np.array([float(i + 1), float(i + 2)]), v, f)
             v.mailer.stage_sending([msg])
             # Ensure there's a last_iteration for damping to use
             if i > 0:  # After first iteration
-                v._history = [[Message(np.array([float(i), float(i+1)]), v, f)]]
+                v._history = [[Message(np.array([float(i), float(i + 1)]), v, f)]]
 
         # Run a step of the engine
         engine.step(i)

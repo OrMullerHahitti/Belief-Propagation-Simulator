@@ -36,7 +36,6 @@ class BPEngine:
         normalize_messages: bool = True,
         anytime: bool = False,
         use_bct_history: bool = False,
-
     ):
         """
         Initialize the belief propagation engine.
@@ -49,7 +48,6 @@ class BPEngine:
         self._initialize_messages()
         self.graph.set_computator(self.computator)
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
-
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -107,7 +105,7 @@ class BPEngine:
         self.history.track_step_data(i, step, self)
 
         if self.performance_monitor:
-            step_matric = self.performance_monitor.end_step(start_time,i)
+            step_matric = self.performance_monitor.end_step(start_time, i)
 
         # Notify pruning policy of step completion
         # if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
@@ -266,15 +264,19 @@ class BPEngine:
 
     def post_two_cycles(self):
         pass
+
     def pre_var_compute(self, var: VariableAgent):
         pass
+
     def pre_factor_compute(self, factor: FactorAgent):
         pass
+
     def post_var_compute(self, var: VariableAgent):
         pass
 
     def init_normalize(self) -> None:
         pass
+
     def update_global_cost(self) -> None:
         """
 
@@ -287,8 +289,6 @@ class BPEngine:
             self.history.costs.append(self.history.costs[-1])
             return
         self.history.costs.append(cost)
-
-
 
     def normalize_messages(self) -> None:
         """

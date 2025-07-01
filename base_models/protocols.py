@@ -83,6 +83,7 @@ class Computator(Protocol):
         self, cost_table: CostTable, incoming_messages: List["Message"]
     ) -> List["Message"]: ...
 
+
 @runtime_checkable
 class Policy(Protocol):
     type: PolicyType
