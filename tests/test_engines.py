@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys
 from bp_base.factor_graph import FactorGraph
-from base_all.agents import VariableAgent, FactorAgent
+from base_models.agents import VariableAgent, FactorAgent
 from bp_base.engines_realizations import (
     SplitEngine,
     DampingEngine,
@@ -14,7 +14,7 @@ from bp_base.engines_realizations import (
     TDEngine,
     TDAndPruningEngine,
 )
-from base_all.components import Message
+from base_models.components import Message
 
 # Flag to enable verbose output during tests
 VERBOSE = True

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Callable, Set, TypeAlias
 import numpy as np
 
-from base_all.protocols import Message
+from base_models.protocols import Message
 
 
 class Computator(ABC):
@@ -31,12 +31,12 @@ class Computator(ABC):
 
     @abstractmethod
     def compute_R(
-        self, cost_table: np.ndarray, message: List[Message]
+        self, cost_table: np.ndarray, incoming_messages: List[Message]
     ) -> List[Message]:
         """
-        Compute R messages based on the cost table and incoming message.
+        Compute R incoming_messagess based on the cost table and incoming message.
         :param cost_table: The cost table to be used for computation.
-        :param message: The incoming message.
+        :param incoming_messages: The incoming message.
         :return: The computed R message.
         """
         pass
