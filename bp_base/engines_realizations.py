@@ -35,8 +35,6 @@ class CostReductionOnceEngine(BPEngine):
         double_messages(factor.inbox)
 
 
-
-
 class DampingEngine(BPEngine):
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
         self.damping_factor = damping_factor
@@ -110,7 +108,6 @@ class MessagePruningEngine(BPEngine):
             min_iterations=self.min_iterations,
             adaptive_threshold=self.adaptive_threshold,
         )
-
 
 
 class DiscountEngine(BPEngine):

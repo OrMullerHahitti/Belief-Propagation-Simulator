@@ -1,17 +1,139 @@
 import pickle
 import sys
 import os
+from typing import Callable, Dict, Any, List, Tuple
+from functools import lru_cache
+
 import networkx as nx
 import numpy as np
 
+from base_models.protocols import Message
 from utils.path_utils import find_project_root  # Added import
 from bp_base.factor_graph import FactorGraph
+from base_models.agents import VariableAgent, FactorAgent
 
 # Make sure your project root is in the Python path
 project_root = find_project_root()
 sys.path.append(str(project_root))
 
-def calc_ct_shape(connections:int=2, domain_size:int=3) -> tuple[int, ...]:
+
+def _make_variable(idx: int, domain: int) -> VariableAgent:
+    name = f"x{idx}"
+    return VariableAgent(name=name, domain=domain)
+
+
+def _make_factor(
+    name: str, domain: int, ct_factory: Callable, ct_params: dict
+) -> FactorAgent:
+    # we postpone cost‑table creation until FactorGraph initialises
+    return FactorAgent(
+        name=name,
+        domain=domain,
+        ct_creation_func=ct_factory,
+        param=ct_params,
+    )
+
+
+def _build_factor_edge_list(
+    edges: List[Tuple[VariableAgent, VariableAgent]], domain_size, ct_factory, ct_params
+) -> Dict[FactorAgent, List[VariableAgent]]:
+    """
+    Build a dictionary of edges from a list of edges.
+    :param edges: List of edges
+    :return: Dictionary of edges
+    """
+    edge_dict = {}
+    for edge in edges:
+        a, b = edge
+        fname = f"f{a.name[1:]}{b.name[1:]}"
+        fnode = _make_factor(fname, domain_size, ct_factory, ct_params)
+        edge_dict[fnode] = [a, b]
+    return edge_dict
+
+
+def _make_connections_density(
+    variable_list: List[VariableAgent], density: float
+) -> List[Tuple[VariableAgent, VariableAgent]]:
+    """ """
+    r_graph = nx.erdos_renyi_graph(len(variable_list), density)
+    variable_map = dict(enumerate(variable_list))
+    full_graph = nx.relabel_nodes(r_graph, variable_map)
+    return list(full_graph.edges())
+
+
+##-------------------------- fg builder --------------------------##
+class FGBuilder:
+
+    @staticmethod
+    def build_random_graph(
+        num_vars: int,
+        domain_size: int,
+        ct_factory: Callable,
+        ct_params: Dict[str, Any],
+        density: float,
+    ):
+        """
+        Build a random binary constraints graph.
+        :param num_vars: Number of variables
+        :param domain_size: Size of the domain
+        :param ct_factory: Cost table factory
+        :param ct_params: Cost table parameters
+        :param density: Density of the graph
+        :return: List of variables, list of factors, dictionary of edges
+        """
+        variables: List[VariableAgent] = [
+            _make_variable(i + 1, domain_size) for i in range(num_vars)
+        ]
+        connections = _make_connections_density(variables, density)
+        edges: Dict[FactorAgent, List[VariableAgent]] = _build_factor_edge_list(
+            connections, domain_size, ct_factory, ct_params
+        )
+        factors = list(edges.keys())
+
+        return variables, factors, edges
+
+    ### ------------ IMPORTANT:  DO NOT CHANGE ------------------ ###
+    @staticmethod
+    def build_cycle_graph(
+        *,
+        num_vars: int,
+        domain_size: int,
+        ct_factory: Callable,
+        ct_params: Dict[str, Any],
+        density: float = 1.0,  # density is not used in cycle graph, but kept for consistency
+    ):
+        """
+        Simple N-variable cycle: x1–f12–x2–f23–…–xn–fn1–x1
+        Returns (variables, factors, edges).
+
+        Parameters
+        ----------
+        num_vars
+        domain_size
+        ct_factory
+        ct_params
+        density
+        """
+        variables: List[VariableAgent] = [
+            _make_variable(i + 1, domain_size) for i in range(num_vars)
+        ]
+
+        factors: List[FactorAgent] = []
+        edges: Dict[FactorAgent, List[VariableAgent]] = {}
+
+        for j in range(num_vars):
+            a, b = variables[j], variables[(j + 1) % num_vars]
+            f_name = f"f{a.name[1:]}{b.name[1:]}"
+            f_node = _make_factor(f_name, domain_size, ct_factory, ct_params)
+            factors.append(f_node)
+            edges[f_node] = [a, b]
+
+        return variables, factors, edges
+
+    ##### ------------ Private Methods ------------------ #####
+
+
+def get_message_shape(domain_size: int,connections: int = 2, ) -> tuple[int, ...]:
     """
     Calculate the shape of the cost table based on the number of connections and domain size.
 
@@ -23,6 +145,16 @@ def calc_ct_shape(connections:int=2, domain_size:int=3) -> tuple[int, ...]:
         tuple[int, ...]: Shape of the cost table.
     """
     return (domain_size,) * connections
+
+@lru_cache(maxsize=128)
+def get_broadcast_shape(ct_dims,domain_size: int, ax:int) -> tuple[int, ...]:
+    #create ones np array with the shape of the cost table
+    br_message = np.ones(ct_dims)
+    br_message[ax] = domain_size
+    return tuple(br_message)
+
+print(get_broadcast_shape(5,3,2))
+
 def generate_random_cost(fg: FactorGraph) -> int | float:
     cost = 0
     for fact in fg.factors:

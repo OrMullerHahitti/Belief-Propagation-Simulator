@@ -149,7 +149,6 @@ def test_cost_reduction_once_engine():
     # Now apply the post_factor_compute method to double the messages
     verbose_print("Applying post_factor_compute to double message data...")
 
-
     # Check that the message data has been doubled
     for i, (original, current) in enumerate(
         zip(computed_messages, [msg.data for msg in factor.mailer.outbox])

@@ -39,8 +39,6 @@ class BPComputator(Computator):
         self._operation_type = 0  # Default to addition
         self._current_factor = None
 
-
-
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
         Optimized Q message computation - same interface as original.
@@ -117,10 +115,15 @@ class BPComputator(Computator):
         out = []
         for ax, br_q in enumerate(b_msgs):
             r_vec = amin(agg - br_q, axis=axes_cache[ax])  # ndarray.min/max
-            out.append(Message(data=r_vec,
-                               sender=incoming_messages[ax].recipient,
-                               recipient=incoming_messages[ax].sender))
+            out.append(
+                Message(
+                    data=r_vec,
+                    sender=incoming_messages[ax].recipient,
+                    recipient=incoming_messages[ax].sender,
+                )
+            )
         return out
+
     def _validate(self, messages=None, cost_table=None, incoming_messages=None):
         """
         Validate and handle early return cases for compute_Q and compute_R.
@@ -182,7 +185,7 @@ class BPComputator(Computator):
 
 class MinSumComputator(BPComputator):
     """
-     Min-sum algorithm.
+    Min-sum algorithm.
     """
 
     def __init__(self):

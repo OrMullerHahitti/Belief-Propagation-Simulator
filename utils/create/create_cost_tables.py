@@ -5,7 +5,7 @@ from scipy.special import logsumexp
 
 
 def _create_cost_table(
-        connections: int, domain: int, policy: Callable = np.random.randint, **policy_params
+    connections: int, domain: int, policy: Callable = np.random.randint, **policy_params
 ) -> CostTable:
     """
     Main funtion that will be used in variations below
@@ -104,9 +104,6 @@ def create_symmetric_cost_table(n: int, m: int) -> CostTable:
 
 
 # example for noramlizing cost table for 3*3 ndarray
-
-
-
 
 
 def normalize_cost_table(cost_table: np.ndarray, axis: int = None) -> np.ndarray:

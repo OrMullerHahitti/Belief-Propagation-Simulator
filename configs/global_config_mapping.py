@@ -18,7 +18,8 @@ COMPUTATOR = MinSumComputator()
 
 PROJECT_ROOT: str = find_project_root()
 
-#add here global directories, could be also used as ENUM
+
+# add here global directories, could be also used as ENUM
 class Dirs(Enum):
     LOGS = "logs"
     TEST_LOGS = "test_logs"
