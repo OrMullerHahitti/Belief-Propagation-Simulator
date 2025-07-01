@@ -1,8 +1,8 @@
 from typing import Dict, List
 import numpy as np
-from base_all.agents import VariableAgent, FactorAgent
-from base_all.components import Message
-from base_all.protocols import PolicyType
+from base_models.agents import VariableAgent, FactorAgent
+from base_models.components import Message
+from base_models.protocols import PolicyType, CostTable
 from policies.bp_policies import Policy
 
 
@@ -12,6 +12,34 @@ def init_normalization(li: List[FactorAgent]):
         if factor.cost_table is not None:
             factor.cost_table = factor.cost_table / x
 
+def normalize_soft_max(cost_table: np.ndarray) -> CostTable:
+    """
+    Normalize the cost table using softmax to ensure all values are positive and sum to 1.
+
+    Args:
+        cost_table: n-dimensional cost table as numpy array
+
+    Returns:
+        Normalized cost table
+    """
+    exp_cost_table = np.exp(cost_table - np.max(cost_table))  # Stability improvement
+    return exp_cost_table / np.sum(exp_cost_table)
+def normalize_cost_table_sum(cost_table: np.ndarray) -> CostTable:
+    """
+    Normalize the cost table so that the sum of all dimensions is equal.
+
+    Args:
+        cost_table: n-dimensional cost table as numpy array
+
+    Returns:
+        Normalized cost table
+    """
+    total_sum = np.sum(cost_table)
+    shape = cost_table.shape
+    for dim in range(len(shape)):
+        curr_sum = np.sum(cost_table, axis=dim)
+        cost_table = cost_table / (curr_sum * total_sum)
+    return cost_table
 
 def normalize_inbox(variables: List[VariableAgent]):
     """
@@ -110,6 +138,7 @@ class MessagePruningPolicy(Policy):
         self.total_count = 0
 
 
+
 # Integration with MailHandler
 class PruningMailHandler:
     """Extended MailHandler with message pruning capability."""
@@ -138,3 +167,4 @@ class PruningMailHandler:
     def _make_key(self, agent) -> str:
         """Create unique key for agent to handle identity issues."""
         return f"{agent.name}_{agent.type}"
+

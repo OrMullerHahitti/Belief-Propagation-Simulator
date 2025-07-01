@@ -11,7 +11,18 @@ from bp_base.factor_graph import FactorGraph
 project_root = find_project_root()
 sys.path.append(str(project_root))
 
+def calc_ct_shape(connections:int=2, domain_size:int=3) -> tuple[int, ...]:
+    """
+    Calculate the shape of the cost table based on the number of connections and domain size.
 
+    Args:
+        connections (int): Number of connections for the factor.
+        domain_size (int): Size of the domain for each variable.
+
+    Returns:
+        tuple[int, ...]: Shape of the cost table.
+    """
+    return (domain_size,) * connections
 def generate_random_cost(fg: FactorGraph) -> int | float:
     cost = 0
     for fact in fg.factors:
@@ -31,15 +42,15 @@ class SafeUnpickler(pickle.Unpickler):
 
             return FactorGraph
         elif module == "bp_base.agents" and name == "VariableAgent":
-            from base_all.agents import VariableAgent
+            from base_models.agents import VariableAgent
 
             return VariableAgent
         elif module == "bp_base.agents" and name == "FactorAgent":
-            from base_all.agents import FactorAgent
+            from base_models.agents import FactorAgent
 
             return FactorAgent
         elif module == "bp_base.components" and name == "Message":
-            from base_all.components import Message
+            from base_models.components import Message
 
             return Message
         # Add more mappings as needed
@@ -106,8 +117,8 @@ def repair_factor_graph(fg):
 try:
     # Import all the required classes
     from bp_base.factor_graph import FactorGraph
-    from base_all.agents import VariableAgent, FactorAgent
-    from base_all.components import Message
+    from base_models.agents import VariableAgent, FactorAgent
+    from base_models.components import Message
 
     print(f"NetworkX version: {nx.__version__}")
 
