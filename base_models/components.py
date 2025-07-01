@@ -4,10 +4,10 @@ import numpy as np
 from functools import singledispatchmethod
 from typing import List, TypeAlias, TYPE_CHECKING
 
-from base_all.DCOP_base import Agent
+from base_models.dcop_base import Agent
 
 if TYPE_CHECKING:
-    from base_all.agents import FGAgent
+    from base_models.agents import FGAgent
 
 CostTable: TypeAlias = np.ndarray
 
@@ -83,9 +83,16 @@ class MailHandler:
             owner,
         )
 
-    @singledispatchmethod
-    def receive_messages(self, message: Message):
-        """Handle a single Message with optional pruning."""
+    def receive_messages(self, messages: Message | list[Message]):
+
+        """Handle a single Message or a list of Messages."""
+        if isinstance(messages, list):
+            for message in messages:
+                self.receive_messages(message)
+            return
+
+        message = messages
+
         # Check for pruning policy
         if hasattr(self, "pruning_policy") and self.pruning_policy is not None:
             owner = message.recipient
@@ -96,13 +103,6 @@ class MailHandler:
         # Accept message
         key = self._make_key(message.sender)
         self._incoming[key] = message
-
-    @receive_messages.register(list)
-    def _(self, messages: list[Message]):
-        """Handle a list of Messages."""
-        for message in messages:
-            self.receive_messages(message)
-
     def send(self):
         """Send all outgoing messages to their recipients."""
         for message in self._outgoing:
@@ -127,7 +127,7 @@ class MailHandler:
     @property
     def inbox(self) -> List[Message]:
         """Return messages as list, sorted by sender name for consistency."""
-        return sorted(self._incoming.values(), key=lambda m: m.sender.name)
+        return list(self._incoming.values())
 
     @inbox.setter
     def inbox(self, li: List[Message]):

@@ -1,8 +1,8 @@
 from functools import partial
 
-from base_all.components import Message
+from base_models.components import Message
 from typing import List
-from base_all.agents import FGAgent
+from base_models.agents import FGAgent
 
 
 def multiply_messages(messages: List[Message], factor: int):
