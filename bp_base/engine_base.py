@@ -1,17 +1,18 @@
 import typing
-from typing import Dict, Optional
+from typing import Dict, Optional, Callable
 import numpy as np
 import networkx as nx
-from policies.normalize_cost import init_normalization, normalize_inbox
-from base_all.agents import VariableAgent, FactorAgent
-from bp_base.bp_computators import MinSumComputator
-from bp_base.engine_components import History, Cycle, Step
+from policies.normalize_cost import normalize_inbox
+from base_models.agents import VariableAgent, FactorAgent
+from bp_base.computators import MinSumComputator
+from bp_base.engine_components import History, Step
 from bp_base.factor_graph import FactorGraph
-from base_all.DCOP_base import Computator
+from base_models.dcop_base import Computator
 from policies.convergance import ConvergenceMonitor, ConvergenceConfig
-from utils.performance import PerformanceMonitor
+from utils.tools.performance import PerformanceMonitor
 
 from configs.loggers import Logger
+from utils.general_utils import dummy_func
 
 T = typing.TypeVar("T")
 
@@ -28,11 +29,13 @@ class BPEngine:
         self,
         factor_graph: FactorGraph,
         computator: Computator = MinSumComputator(),
+        init_normalization: Callable = dummy_func,
         name: str = "BPEngine",
         convergence_config: ConvergenceConfig | None = None,
         monitor_performance: bool = False,
         normalize_messages: bool = True,
         anytime: bool = False,
+        use_bct_history: bool = False,
 
     ):
         """
@@ -54,12 +57,14 @@ class BPEngine:
             engine_type=engine_type,
             computator=computator,
             factor_graph=factor_graph,
+            use_bct_history=use_bct_history,
         )
 
         self.graph_diameter = nx.diameter(self.graph.G)
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
         self.performance_monitor = PerformanceMonitor() if monitor_performance else None
         self._name = name
+        init_normalization(self.factor_nodes)
 
     def step(self, i: int = 0) -> Step:
         """Run one step with message pruning support."""
@@ -99,6 +104,10 @@ class BPEngine:
             factor.mailer.prepare()
 
         self.update_global_cost()
+        self.history.track_step_data(i, step, self)
+
+        if self.performance_monitor:
+            step_matric = self.performance_monitor.end_step(start_time,i)
 
         # Notify pruning policy of step completion
         # if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
