@@ -358,7 +358,7 @@ if __name__ == '__main__':
                 num_vars=50,
                 domain_size=10,
                 ct_factory=ct_factory_fn,
-                ct_params={"low": 100, "high": 10000},
+                ct_params={"low": 100, "high": 200},
                 density=0.25,
             )
         )
@@ -446,7 +446,7 @@ if __name__ == '__main__':
             continue
 
         # Find the maximum length across all runs for this engine
-        max_len = max(len(c) for c in costs_list)
+        max_len = max(max(max_iter,len(c)) for c in costs_list)
 
         # Pad shorter cost lists to the max length for correct averaging
         padded_costs = [c + [c[-1]] * (max_len - len(c)) for c in costs_list]
