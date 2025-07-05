@@ -1,3 +1,4 @@
+import asyncio
 import typing
 from typing import Dict, Optional, Callable
 import numpy as np
@@ -66,14 +67,20 @@ class BPEngine:
 
     def step(self, i: int = 0) -> Step:
         """Run one step with message pruning support."""
+        return asyncio.run(self._step_async(i))
+
+    async def _step_async(self, i: int = 0) -> Step:
+        """Async implementation of step method."""
         if self.performance_monitor:
             start_time = self.performance_monitor.start_step()
 
         step = Step(i)
 
-        # Phase 1: All variables compute messages
+        # Phase 1: All variables compute messages (ASYNC)
+        var_tasks = [var.compute_messages() for var in self.var_nodes]
+        await asyncio.gather(*var_tasks)
+
         for var in self.var_nodes:
-            var.compute_messages()
             self.post_var_compute(var)
 
         # Phase 2: All variables send messages
@@ -85,10 +92,12 @@ class BPEngine:
             var.empty_mailbox()
             var.mailer.prepare()
 
-        # Phase 4: All factors compute messages
+        # Phase 4: All factors compute messages (ASYNC)
         for factor in self.factor_nodes:
             self.pre_factor_compute(factor)
-            factor.compute_messages()
+
+        factor_tasks = [factor.compute_messages() for factor in self.factor_nodes]
+        await asyncio.gather(*factor_tasks)
 
         # Phase 5: All factors send messages
         for factor in self.factor_nodes:
@@ -106,29 +115,6 @@ class BPEngine:
 
         if self.performance_monitor:
             step_matric = self.performance_monitor.end_step(start_time, i)
-
-        # Notify pruning policy of step completion
-        # if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
-        #     self.message_pruning_policy.step_completed()
-        #
-        # # Calculate costs and track metrics
-
-        # if self.performance_monitor:
-        #     all_agents = list(self.graph.G.nodes())
-        #     pruning_stats = {}
-        #     if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
-        #         pruning_stats = self.message_pruning_policy.get_stats()
-        #
-        #     msg_metrics = self.performance_monitor.track_message_metrics(
-        #         i, all_agents, pruning_stats
-        #     )
-        #     self.performance_monitor.end_step(
-        #         start_time,
-        #         i,
-        #         [msg for agent in all_agents for msg in agent.mailer.outbox],
-        #     )
-
-        # Post-cycle operations
 
         return step
 
