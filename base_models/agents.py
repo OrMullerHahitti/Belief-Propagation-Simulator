@@ -82,10 +82,10 @@ class VariableAgent(FGAgent):
         node_type = "variable"
         super().__init__(name, node_type, domain)
 
-    def compute_messages(self) -> None:
+    async def compute_messages(self) -> None:
         """Called by the FGAgent framework to compute outgoing messages."""
         if self.computator and self.mailer.inbox:
-            messages = self.computator.compute_Q(self.mailer.inbox)
+            messages =await self.computator.compute_Q(self.mailer.inbox)
             self.mailer.stage_sending(messages)
 
     @property
@@ -152,10 +152,10 @@ class FactorAgent(FGAgent):
             cost_table=cost_table,
         )
 
-    def compute_messages(self) -> None:
+    async def compute_messages(self) -> None:
         """Compute messages to be sent to variable nodes."""
         if self.computator and self.cost_table is not None and self.inbox:
-            messages = self.computator.compute_R(
+            messages = await self.computator.compute_R(
                 cost_table=self.cost_table, incoming_messages=self.inbox
             )
             self.mailer.stage_sending(messages)

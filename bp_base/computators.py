@@ -39,7 +39,7 @@ class BPComputator(Computator):
         self._operation_type = 0  # Default to addition
         self._current_factor = None
 
-    def compute_Q(self, messages: List[Message]) -> List[Message]:
+    async def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
         Optimized Q message computation - same interface as original.
         Uses vectorized operations for better performance.
@@ -90,7 +90,7 @@ class BPComputator(Computator):
         #
         #     return outgoing_messages
 
-    def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]):
+    async def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]):
         k = cost_table.ndim
         shape = cost_table.shape
         dtype = cost_table.dtype
