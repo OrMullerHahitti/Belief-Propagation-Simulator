@@ -37,6 +37,7 @@ class BPEngine:
         normalize_messages: bool = True,
         anytime: bool = False,
         use_bct_history: bool = False,
+
     ):
         """
         Initialize the belief propagation engine.
@@ -49,6 +50,7 @@ class BPEngine:
         self._initialize_messages()
         self.graph.set_computator(self.computator)
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -67,20 +69,14 @@ class BPEngine:
 
     def step(self, i: int = 0) -> Step:
         """Run one step with message pruning support."""
-        return asyncio.run(self._step_async(i))
-
-    async def _step_async(self, i: int = 0) -> Step:
-        """Async implementation of step method."""
         if self.performance_monitor:
             start_time = self.performance_monitor.start_step()
 
         step = Step(i)
 
-        # Phase 1: All variables compute messages (ASYNC)
-        var_tasks = [var.compute_messages() for var in self.var_nodes]
-        await asyncio.gather(*var_tasks)
-
+        # Phase 1: All variables compute messages
         for var in self.var_nodes:
+            var.compute_messages()
             self.post_var_compute(var)
 
         # Phase 2: All variables send messages
@@ -92,12 +88,10 @@ class BPEngine:
             var.empty_mailbox()
             var.mailer.prepare()
 
-        # Phase 4: All factors compute messages (ASYNC)
+        # Phase 4: All factors compute messages
         for factor in self.factor_nodes:
             self.pre_factor_compute(factor)
-
-        factor_tasks = [factor.compute_messages() for factor in self.factor_nodes]
-        await asyncio.gather(*factor_tasks)
+            factor.compute_messages()
 
         # Phase 5: All factors send messages
         for factor in self.factor_nodes:
@@ -115,7 +109,6 @@ class BPEngine:
 
         if self.performance_monitor:
             step_matric = self.performance_monitor.end_step(start_time, i)
-
         return step
 
     def run(
@@ -250,19 +243,15 @@ class BPEngine:
 
     def post_two_cycles(self):
         pass
-
     def pre_var_compute(self, var: VariableAgent):
         pass
-
     def pre_factor_compute(self, factor: FactorAgent):
         pass
-
     def post_var_compute(self, var: VariableAgent):
         pass
 
     def init_normalize(self) -> None:
         pass
-
     def update_global_cost(self) -> None:
         """
 
@@ -275,6 +264,8 @@ class BPEngine:
             self.history.costs.append(self.history.costs[-1])
             return
         self.history.costs.append(cost)
+
+
 
     def normalize_messages(self) -> None:
         """
