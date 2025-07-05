@@ -90,7 +90,9 @@ class FGBuilder:
         )
         factors = list(edges.keys())
 
-        return variables, factors, edges
+        return FactorGraph(variables, factors, edges)
+
+
 
     ### ------------ IMPORTANT:  DO NOT CHANGE ------------------ ###
     @staticmethod
@@ -128,7 +130,8 @@ class FGBuilder:
             factors.append(f_node)
             edges[f_node] = [a, b]
 
-        return variables, factors, edges
+        return FactorGraph(variables, factors, edges)
+
 
     ##### ------------ Private Methods ------------------ #####
 
@@ -245,97 +248,97 @@ def repair_factor_graph(fg):
 
     return fg
 
-
-try:
-    # Import all the required classes
-    from bp_base.factor_graph import FactorGraph
-    from base_models.agents import VariableAgent, FactorAgent
-    from base_models.components import Message
-
-    print(f"NetworkX version: {nx.__version__}")
-
-    # Try to load the pickle
-    pickle_path = os.path.join(
-        project_root,
-        "configs",
-        "factor_graphs",
-        "factor-graph-cycle-3-random_intlow1,high100-number5.pkl",
-    )
-    print(f"Attempting to load: {pickle_path}")
-
-    # Check if file exists
-    if not os.path.exists(pickle_path):
-        print(f"File does not exist: {pickle_path}")
-        # List available factor graph files
-        factor_graphs_dir = os.path.join(project_root, "configs", "factor_graphs")
-        if os.path.exists(factor_graphs_dir):
-            print(f"Available factor graph files in {factor_graphs_dir}:")
-            for file in os.listdir(factor_graphs_dir):
-                if file.startswith("factor-graph"):
-                    print(f"  - {file}")
-                    # Update pickle_path to use an existing file
-                    pickle_path = os.path.join(factor_graphs_dir, file)
-                    print(f"Using first available file: {pickle_path}")
-                    break
-
-    if os.path.exists(pickle_path):
-        # Load the factor graph
-        fg = load_pickle_safely(pickle_path)
-
-        if fg is not None:
-            print(f"Graph loaded. Type: {type(fg)}")
-
-            # Repair any issues with the loaded graph
-            fg = repair_factor_graph(fg)
-
-            # Check if the graph is usable
-            print("\nFactor graph details:")
-            try:
-                print(f"Variables: {len(fg.variables)}")
-                print(f"Factors: {len(fg.factors)}")
-                print(f"Graph nodes: {len(fg.G.nodes())}")
-                print(f"Graph edges: {len(fg.G.edges())}")
-
-                # Print first few nodes
-                print("\nFirst few nodes:")
-                for i, node in enumerate(fg.G.nodes()):
-                    if i >= 5:  # Limit to 5 nodes
-                        break
-                    print(f"  - {node}")
-
-                # Try to access a variable node's attributes
-                if fg.variables:
-                    var = fg.variables[0]
-                    print(f"\nFirst variable: {var.name}, Domain: {var.domain}")
-
-                # Try to access a factor node's attributes
-                if fg.factors:
-                    factor = fg.factors[0]
-                    print(f"\nFirst factor: {factor.name}")
-                    if hasattr(factor, "cost_table") and factor.cost_table is not None:
-                        print(f"Cost table shape: {factor.cost_table.shape}")
-            except Exception as e:
-                print(f"Error inspecting graph: {e}")
-
-            # Try to save the repaired graph
-            try:
-                output_path = os.path.join(
-                    os.path.dirname(pickle_path),
-                    "repaired_" + os.path.basename(pickle_path),
-                )
-                with open(output_path, "wb") as f:
-                    pickle.dump(fg, f, protocol=pickle.HIGHEST_PROTOCOL)
-                print(f"\nRepaired graph saved to: {output_path}")
-            except Exception as e:
-                print(f"Error saving repaired graph: {e}")
-    else:
-        print("No factor graph files found.")
-
-except ImportError as e:
-    print(f"Import error: {e}")
-    print("Make sure all required modules are installed and in your Python path.")
-except Exception as e:
-    print(f"Unexpected error: {e}")
+#
+# try:
+#     # Import all the required classes
+#     from bp_base.factor_graph import FactorGraph
+#     from base_models.agents import VariableAgent, FactorAgent
+#     from base_models.components import Message
+#
+#     print(f"NetworkX version: {nx.__version__}")
+#
+#     # Try to load the pickle
+#     pickle_path = os.path.join(
+#         project_root,
+#         "configs",
+#         "factor_graphs",
+#         "factor-graph-cycle-3-random_intlow1,high100-number5.pkl",
+#     )
+#     print(f"Attempting to load: {pickle_path}")
+#
+#     # Check if file exists
+#     if not os.path.exists(pickle_path):
+#         print(f"File does not exist: {pickle_path}")
+#         # List available factor graph files
+#         factor_graphs_dir = os.path.join(project_root, "configs", "factor_graphs")
+#         if os.path.exists(factor_graphs_dir):
+#             print(f"Available factor graph files in {factor_graphs_dir}:")
+#             for file in os.listdir(factor_graphs_dir):
+#                 if file.startswith("factor-graph"):
+#                     print(f"  - {file}")
+#                     # Update pickle_path to use an existing file
+#                     pickle_path = os.path.join(factor_graphs_dir, file)
+#                     print(f"Using first available file: {pickle_path}")
+#                     break
+#
+#     if os.path.exists(pickle_path):
+#         # Load the factor graph
+#         fg = load_pickle_safely(pickle_path)
+#
+#         if fg is not None:
+#             print(f"Graph loaded. Type: {type(fg)}")
+#
+#             # Repair any issues with the loaded graph
+#             fg = repair_factor_graph(fg)
+#
+#             # Check if the graph is usable
+#             print("\nFactor graph details:")
+#             try:
+#                 print(f"Variables: {len(fg.variables)}")
+#                 print(f"Factors: {len(fg.factors)}")
+#                 print(f"Graph nodes: {len(fg.G.nodes())}")
+#                 print(f"Graph edges: {len(fg.G.edges())}")
+#
+#                 # Print first few nodes
+#                 print("\nFirst few nodes:")
+#                 for i, node in enumerate(fg.G.nodes()):
+#                     if i >= 5:  # Limit to 5 nodes
+#                         break
+#                     print(f"  - {node}")
+#
+#                 # Try to access a variable node's attributes
+#                 if fg.variables:
+#                     var = fg.variables[0]
+#                     print(f"\nFirst variable: {var.name}, Domain: {var.domain}")
+#
+#                 # Try to access a factor node's attributes
+#                 if fg.factors:
+#                     factor = fg.factors[0]
+#                     print(f"\nFirst factor: {factor.name}")
+#                     if hasattr(factor, "cost_table") and factor.cost_table is not None:
+#                         print(f"Cost table shape: {factor.cost_table.shape}")
+#             except Exception as e:
+#                 print(f"Error inspecting graph: {e}")
+#
+#             # Try to save the repaired graph
+#             try:
+#                 output_path = os.path.join(
+#                     os.path.dirname(pickle_path),
+#                     "repaired_" + os.path.basename(pickle_path),
+#                 )
+#                 with open(output_path, "wb") as f:
+#                     pickle.dump(fg, f, protocol=pickle.HIGHEST_PROTOCOL)
+#                 print(f"\nRepaired graph saved to: {output_path}")
+#             except Exception as e:
+#                 print(f"Error saving repaired graph: {e}")
+#     else:
+#         print("No factor graph files found.")
+#
+# except ImportError as e:
+#     print(f"Import error: {e}")
+#     print("Make sure all required modules are installed and in your Python path.")
+# except Exception as e:
+#     print(f"Unexpected error: {e}")
 
 
 def get_bound(factor_graph: FactorGraph, reduce_func=np.min) -> float:

@@ -1,3 +1,4 @@
+import asyncio
 import typing
 from typing import Dict, Optional, Callable
 import numpy as np
@@ -36,6 +37,7 @@ class BPEngine:
         normalize_messages: bool = True,
         anytime: bool = False,
         use_bct_history: bool = False,
+
     ):
         """
         Initialize the belief propagation engine.
@@ -48,6 +50,7 @@ class BPEngine:
         self._initialize_messages()
         self.graph.set_computator(self.computator)
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -106,30 +109,6 @@ class BPEngine:
 
         if self.performance_monitor:
             step_matric = self.performance_monitor.end_step(start_time, i)
-
-        # Notify pruning policy of step completion
-        # if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
-        #     self.message_pruning_policy.step_completed()
-        #
-        # # Calculate costs and track metrics
-
-        # if self.performance_monitor:
-        #     all_agents = list(self.graph.G.nodes())
-        #     pruning_stats = {}
-        #     if hasattr(self, "message_pruning_policy") and self.message_pruning_policy:
-        #         pruning_stats = self.message_pruning_policy.get_stats()
-        #
-        #     msg_metrics = self.performance_monitor.track_message_metrics(
-        #         i, all_agents, pruning_stats
-        #     )
-        #     self.performance_monitor.end_step(
-        #         start_time,
-        #         i,
-        #         [msg for agent in all_agents for msg in agent.mailer.outbox],
-        #     )
-
-        # Post-cycle operations
-
         return step
 
     def run(
@@ -264,19 +243,15 @@ class BPEngine:
 
     def post_two_cycles(self):
         pass
-
     def pre_var_compute(self, var: VariableAgent):
         pass
-
     def pre_factor_compute(self, factor: FactorAgent):
         pass
-
     def post_var_compute(self, var: VariableAgent):
         pass
 
     def init_normalize(self) -> None:
         pass
-
     def update_global_cost(self) -> None:
         """
 
@@ -289,6 +264,8 @@ class BPEngine:
             self.history.costs.append(self.history.costs[-1])
             return
         self.history.costs.append(cost)
+
+
 
     def normalize_messages(self) -> None:
         """
