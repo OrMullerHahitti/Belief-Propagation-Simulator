@@ -185,28 +185,30 @@ class BPEngine:
         }
 
     def calculate_global_cost(self) -> float:
-        """Calculate the global cost based on current assignments."""
+        """Optimized global cost calculation with caching."""
+        # Cache assignments to avoid repeated property access
         var_assignments = {node.name: node.curr_assignment for node in self.var_nodes}
 
         total_cost = 0.0
         for factor in self.graph._original_factors:
             if factor.cost_table is not None:
-                indices = []
+                # Pre-allocate indices array for better performance
+                num_connections = len(factor.connection_number)
+                indices = [None] * num_connections
+                
+                # Fill indices array
+                all_indices_available = True
                 for var_name, dim in factor.connection_number.items():
                     if var_name in var_assignments:
-                        # Ensure indices list is the right size
-                        while len(indices) <= dim:
-                            indices.append(None)
                         indices[dim] = var_assignments[var_name]
-
-                # Check if we have all indices
-                if None not in indices and len(indices) == len(
-                    factor.connection_number
-                ):
-                    if factor.original_cost_table is not None:
-                        total_cost += factor.original_cost_table[tuple(indices)]
                     else:
-                        total_cost += factor.cost_table[tuple(indices)]
+                        all_indices_available = False
+                        break
+
+                # Add cost if all indices are available
+                if all_indices_available and None not in indices:
+                    cost_table = factor.original_cost_table if factor.original_cost_table is not None else factor.cost_table
+                    total_cost += cost_table[tuple(indices)]
 
         return total_cost
 

@@ -29,9 +29,10 @@ class BPComputator(Computator):
     def __init__(self, reduce_func=np.min, combine_func=np.add):
         self.reduce_func = reduce_func
         self.combine_func = combine_func
-        # Cache frequently used operations
+        # Enhanced caching for better performance
         self._broadcast_cache = {}
         self._connection_cache = {}
+        self._shape_cache = {}
         # Initialize attributes used by optimized version
         # but make them backward compatible
         self._use_jit = False
@@ -41,32 +42,33 @@ class BPComputator(Computator):
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
-        Optimized Q message computation - same interface as original.
-        Uses vectorized operations for better performance.
+        Highly optimized Q message computation with vectorization.
+        Uses pre-allocated arrays and eliminates unnecessary operations.
         """
         early = self._validate(messages=messages)
         if early is not None:
             return early
-        # the recipient is the same for all messages
+            
+        # Use pre-allocated arrays for vectorized operations
         variable = messages[0].recipient
         n_messages = len(messages)
-        # Stack all message data for vectorized operations
+        
+        # Stack all message data once
         msg_data = np.stack([msg.data for msg in messages])
         total_sum = np.sum(msg_data, axis=0)
-        outgoing_messages = []
-
-        # Vectorized computation: subtract own message from total
-        for i in range(n_messages):
-            combined_data = total_sum - msg_data[i]
-            outgoing_messages.append(
-                Message(
-                    data=combined_data,
-                    sender=variable,
-                    recipient=messages[i].sender,
-                )
+        
+        # Vectorized computation: subtract each message from total
+        outgoing_data = total_sum[np.newaxis, :] - msg_data
+        
+        # Create messages with pre-computed data
+        return [
+            Message(
+                data=outgoing_data[i],
+                sender=variable,
+                recipient=messages[i].sender,
             )
-
-        return outgoing_messages
+            for i in range(n_messages)
+        ]
 
         # except (ValueError, TypeError):
         #     # Fallback to the original algorithm if vectorization fails
@@ -90,36 +92,53 @@ class BPComputator(Computator):
         #
         #     return outgoing_messages
 
+    @lru_cache(maxsize=512)
+    def _get_broadcast_shapes(self, cost_shape: tuple, n_dims: int) -> tuple:
+        """Cache broadcast shapes for reuse."""
+        shapes = []
+        for axis in range(n_dims):
+            shape = [1] * n_dims
+            shape[axis] = cost_shape[axis]
+            shapes.append(tuple(shape))
+        return tuple(shapes)
+
     def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]):
+        """Optimized R message computation with pre-allocated arrays and caching."""
+        if not incoming_messages:
+            return []
+            
         k = cost_table.ndim
         shape = cost_table.shape
         dtype = cost_table.dtype
-        add = np.add
         reduce_msg = np.ndarray.min if self.reduce_func is np.min else np.ndarray.max
 
-        # 1) broadcast each Q once
+        # Cache broadcast shapes
+        broadcast_shapes = self._get_broadcast_shapes(shape, k)
+        
+        # Pre-compute all broadcasted messages and reduce axes
         b_msgs = []
         axes_cache = []
+        
         for axis, msg in enumerate(incoming_messages):
             q = np.asarray(msg.data, dtype=dtype)
-            br = q.reshape([shape[axis] if i == axis else 1 for i in range(k)])
+            br = q.reshape(broadcast_shapes[axis])
             b_msgs.append(br)
             axes_cache.append(tuple(j for j in range(k) if j != axis))
 
-        # 2) aggregate once  (F + sum of Q)
-        agg = cost_table.astype(dtype, copy=True)
+        # Single aggregation step - avoid copy when possible
+        agg = cost_table.astype(dtype, copy=False) if cost_table.dtype == dtype else cost_table.astype(dtype)
         for q in b_msgs:
-            add(agg, q, out=agg)  # => no new array, no wrappers
+            agg = agg + q  # Use broadcasting efficiently
 
-        # 3) build each R_i
+        # Compute all R messages with optimized memory access
         out = []
-        for axis, broadcasted_q in enumerate(b_msgs):
-            r_vec = reduce_msg(agg - broadcasted_q, axis=axes_cache[axis])  # ndarray.min/max
+        for axis, (broadcasted_q, msg) in enumerate(zip(b_msgs, incoming_messages)):
+            r_vec = reduce_msg(agg - broadcasted_q, axis=axes_cache[axis])
             out.append(
                 Message(
                     data=r_vec,
-                    sender=incoming_messages[axis].recipient,
-                    recipient=incoming_messages[axis].sender,
+                    sender=msg.recipient,
+                    recipient=msg.sender,
                 )
             )
         return out
@@ -175,12 +194,22 @@ class BPComputator(Computator):
             f"Available connections: {available_keys}"
         )
 
-    @lru_cache(maxsize=1024)
+    @lru_cache(maxsize=2048)
     def _get_broadcast_shape(self, ct_dim: int, sender_dim: int, msg_len: int) -> tuple:
-        """Cached broadcast shape computation."""
+        """Cached broadcast shape computation with enhanced cache size."""
         shape = [1] * ct_dim
         shape[sender_dim] = msg_len
         return tuple(shape)
+    
+    def _create_message_key(self, messages):
+        """Create a cache key for message computations."""
+        # Use a lightweight signature based on message shapes and senders
+        key_parts = []
+        for msg in messages:
+            sender_id = id(msg.sender) if hasattr(msg, 'sender') else 0
+            data_shape = msg.data.shape if hasattr(msg.data, 'shape') else len(msg.data)
+            key_parts.append((sender_id, data_shape))
+        return tuple(key_parts)
 
 
 class MinSumComputator(BPComputator):

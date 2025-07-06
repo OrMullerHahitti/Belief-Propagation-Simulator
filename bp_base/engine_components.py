@@ -77,34 +77,40 @@ class MessageData:
 
 
 class History:
-    """Enhanced History class with optional BCT data collection"""
+    """Enhanced History class with memory-efficient data collection"""
 
     def __init__(
-        self, engine_type: str = "Engine", use_bct_history: bool = False, **kwargs
+        self, engine_type: str = "Engine", use_bct_history: bool = False, 
+        max_cycles: int = 50, **kwargs
     ):
-        # Original History attributes
+        # Original History attributes with size limits
         self.config = dict(kwargs)
+        self.max_cycles = max_cycles
+        
+        # Use collections.deque for automatic size limiting
+        from collections import deque
         self.cycles: Dict[int, "Cycle"] = {}
-        self.beliefs: Dict[int, Dict[str, np.ndarray]] = {}
-        self.assignments: Dict[int, Dict[str, Union[int, float]]] = {}
-        self.costs: List[Union[int, float]] = []
+        self.beliefs: deque = deque(maxlen=max_cycles)
+        self.assignments: deque = deque(maxlen=max_cycles)
+        self.costs: deque = deque(maxlen=10000)  # Keep more cost history
         self.engine_type = engine_type
 
         # BCT-specific attributes
         self.use_bct_history = use_bct_history
 
         if self.use_bct_history:
-            # Step-by-step tracking for BCT
-            self.step_beliefs: Dict[int, Dict[str, float]] = (
-                {}
-            )  # step -> var -> belief_value
-            self.step_assignments: Dict[int, Dict[str, int]] = (
-                {}
-            )  # step -> var -> assignment
-            self.step_messages: Dict[int, List[MessageData]] = (
-                {}
-            )  # step -> list of messages
-            self.step_costs: List[float] = []  # cost per step
+            # Step-by-step tracking for BCT with bounded collections
+            self.step_beliefs: deque = deque(maxlen=max_cycles * 10)
+            self.step_assignments: deque = deque(maxlen=max_cycles * 10)
+            self.step_messages: deque = deque(maxlen=max_cycles * 10)
+            self.step_costs: deque = deque(maxlen=10000)
+            self.current_step = 0
+        else:
+            # Legacy dict-based storage for backward compatibility
+            self.step_beliefs: Dict[int, Dict[str, float]] = {}
+            self.step_assignments: Dict[int, Dict[str, int]] = {}
+            self.step_messages: Dict[int, List[MessageData]] = {}
+            self.step_costs: List[float] = []
             self.current_step = 0
 
     def __setitem__(self, key: int, value):
@@ -114,11 +120,12 @@ class History:
         return self.cycles[key]
 
     def initialize_cost(self, x: Union[int, float]) -> None:
-        """Initialize cost baseline"""
+        """Initialize cost baseline with memory efficiency"""
+        cost_val = float(x)  # Convert once
         for _ in range(5):
-            self.costs.append(x)
-            if self.use_bct_history:
-                self.step_costs.append(float(x))
+            self.costs.append(cost_val)
+            if self.use_bct_history and hasattr(self.step_costs, 'append'):
+                self.step_costs.append(cost_val)
 
     def compare_last_two_cycles(self):
         """Compare last two cycles for convergence"""

@@ -14,20 +14,22 @@ CostTable: TypeAlias = np.ndarray
 
 class Message:
     """
-    Represents a message in the BP algorithm.
+    Memory-optimized message representation in the BP algorithm.
     """
+    __slots__ = ['data', 'sender', 'recipient']  # Reduce memory overhead
 
     def __init__(self, data: np.ndarray, sender: Agent, recipient: Agent):
-        self.data = data
+        # Ensure consistent data type for better performance
+        self.data = np.asarray(data, dtype=np.float32) if not isinstance(data, np.ndarray) else data
         self.sender = sender
         self.recipient = recipient
 
     def copy(self) -> Message:
         """
-        Create a copy of this message with a new data array.
+        Create an optimized copy of this message.
         """
         return Message(
-            data=np.copy(self.data), sender=self.sender, recipient=self.recipient
+            data=self.data.copy(), sender=self.sender, recipient=self.recipient
         )
 
     def __hash__(self):
@@ -109,8 +111,8 @@ class MailHandler:
             message.recipient.mailer.receive_messages(message)
 
     def stage_sending(self, messages: List[Message]):
-        """Stage messages for sending."""
-        self._outgoing = messages.copy()
+        """Stage messages for sending with reduced copying."""
+        self._outgoing = messages  # Share reference instead of copying
 
     def prepare(self):
         """Clear outgoing messages after sending."""

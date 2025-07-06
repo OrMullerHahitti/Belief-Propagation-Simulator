@@ -83,9 +83,12 @@ class Simulator:
     def run_simulations(self, graphs, max_iter=5000):
         self.logger.warning(f"Preparing {len(graphs) * len(self.engine_configs)} total simulations.")
 
+        # Pre-serialize graphs once with highest protocol for efficiency
+        serialized_graphs = [pickle.dumps(graph, protocol=pickle.HIGHEST_PROTOCOL) 
+                           for graph in graphs]
+        
         simulation_args = []
-        for i, graph in enumerate(graphs):
-            graph_data = pickle.dumps(graph)
+        for i, graph_data in enumerate(serialized_graphs):
             for engine_name, config in self.engine_configs.items():
                 args = (i, engine_name, config, graph_data, max_iter, self.logger.level)
                 simulation_args.append(args)
@@ -118,19 +121,26 @@ class Simulator:
         if max_workers is None:
             max_workers = cpu_count()
 
-        self.logger.warning(f"Attempting full multiprocessing with {max_workers} processes...")
+        self.logger.warning(f"Attempting optimized multiprocessing with {max_workers} processes...")
 
         try:
+            # Calculate optimal chunk size for better load balancing
+            chunk_size = max(1, len(simulation_args) // (max_workers * 4))
+            
             with Pool(processes=max_workers) as pool:
-                result = pool.map_async(self._run_single_simulation, simulation_args)
+                result = pool.map_async(
+                    self._run_single_simulation, 
+                    simulation_args,
+                    chunksize=chunk_size
+                )
 
                 # Wait with timeout
                 all_results = result.get(timeout=600)
 
-            self.logger.warning(f"SUCCESS - Full multiprocessing completed.")
+            self.logger.warning(f"SUCCESS - Optimized multiprocessing completed.")
             return all_results
         except Exception as e:
-            self.logger.error(f"Full multiprocessing failed: {e}")
+            self.logger.error(f"Optimized multiprocessing failed: {e}")
             self.logger.warning("Trying batch processing...")
             return self._run_in_batches(simulation_args, max_workers=max(1, max_workers // 2))
 

@@ -67,8 +67,11 @@ class FGAgent(Agent, ABC):
         return self._history[-diameter]
 
     def append_last_iteration(self):
-        """Append current messages to history with size limit."""
-        self._history.append([msg.copy() for msg in self.mailer.outbox])
+        """Efficient history tracking with reduced copying."""
+        # Only copy message data, not entire message objects
+        iteration_data = [(msg.sender.name, msg.recipient.name, msg.data.copy()) 
+                         for msg in self.mailer.outbox]
+        self._history.append(iteration_data)
         if len(self._history) > self._max_history:
             self._history.pop(0)  # Remove oldest to maintain size limit
 
@@ -90,19 +93,16 @@ class VariableAgent(FGAgent):
 
     @property
     def belief(self) -> np.ndarray:
-        """Compute the current belief based on incoming messages."""
+        """Optimized belief computation with pre-allocation."""
         if not self.inbox:
-            return np.ones(self.domain) / self.domain  # Uniform belief
+            return np.ones(self.domain, dtype=np.float32) / self.domain
 
-        # Sum all incoming messages
-        belief = np.zeros(self.domain)
+        # Pre-allocate result array with appropriate dtype
+        belief = np.zeros(self.domain, dtype=np.float32)
+        
+        # Vectorized sum without intermediate arrays
         for message in self.inbox:
             belief += message.data
-
-        # Normalize to avoid numerical issues
-        # belief_min = np.min(belief)
-        # if belief_min < 0:
-        #     belief -= belief_min
 
         return belief
 
@@ -135,7 +135,14 @@ class FactorAgent(FGAgent):
         node_type = "factor"
         super().__init__(name, node_type, domain)
 
-        self.cost_table = None if cost_table is None else cost_table.copy()
+        # Only copy if necessary - share reference when safe
+        if cost_table is None:
+            self.cost_table = None
+        elif hasattr(cost_table, 'flags') and not cost_table.flags.writeable:
+            # Safe to share read-only arrays
+            self.cost_table = cost_table
+        else:
+            self.cost_table = cost_table.copy()
         self.connection_number: Dict[str, int] = {}  # var_name -> dimension
         self.ct_creation_func = ct_creation_func
         self.ct_creation_params = param if param is not None else {}
