@@ -1,7 +1,7 @@
 import numpy as np
-from bp_base.engines_realizations import DampingSCFGEngine, DampingCROnceEngine
-from base_models.agents import VariableAgent, FactorAgent
-from bp_base.factor_graph import FactorGraph
+from belief_propagation_simulator.bp_base.engines_realizations import DampingSCFGEngine, DampingCROnceEngine
+from belief_propagation_simulator.base_models.agents import VariableAgent, FactorAgent
+from belief_propagation_simulator.bp_base.factor_graph import FactorGraph
 
 
 def create_simple_factor_graph():

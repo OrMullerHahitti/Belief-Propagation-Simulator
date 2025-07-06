@@ -1,9 +1,9 @@
 import numpy as np
 import os
 import sys
-from bp_base.factor_graph import FactorGraph
-from base_models.agents import VariableAgent, FactorAgent
-from bp_base.engines_realizations import (
+from belief_propagation_simulator.bp_base.factor_graph import FactorGraph
+from belief_propagation_simulator.base_models.agents import VariableAgent, FactorAgent
+from belief_propagation_simulator.bp_base.engines_realizations import (
     SplitEngine,
     DampingEngine,
     CostReductionOnceEngine,
@@ -14,7 +14,7 @@ from bp_base.engines_realizations import (
     TDEngine,
     TDAndPruningEngine,
 )
-from base_models.components import Message
+from belief_propagation_simulator.base_models.components import Message
 
 # Flag to enable verbose output during tests
 VERBOSE = True

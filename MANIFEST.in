@@ -4,7 +4,7 @@ include CHANGELOG.md
 include CONTRIBUTING.md
 include requirements.txt
 recursive-include examples *.py *.ipynb
-recursive-include configs *.py *.md
-prune configs/logs
+recursive-include src/belief_propagation_simulator/configs *.py *.md
+prune src/belief_propagation_simulator/configs/logs
 exclude *.pyc
 exclude __pycache__

@@ -4,9 +4,9 @@ import time
 import multiprocessing as mp
 
 from simulator import Simulator
-from utils.fg_utils import FGBuilder
-from configs.global_config_mapping import CT_FACTORIES
-from bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine
+from belief_propagation_simulator.utils.fg_utils import FGBuilder
+from belief_propagation_simulator.configs.global_config_mapping import CT_FACTORIES
+from belief_propagation_simulator.bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine
 
 SEED = 42
 

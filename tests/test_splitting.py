@@ -1,8 +1,8 @@
 import pytest
 import numpy as np
-from bp_base.factor_graph import FactorGraph
-from base_models.agents import VariableAgent, FactorAgent
-from policies.splitting import split_all_factors
+from belief_propagation_simulator.bp_base.factor_graph import FactorGraph
+from belief_propagation_simulator.base_models.agents import VariableAgent, FactorAgent
+from belief_propagation_simulator.policies.splitting import split_all_factors
 
 
 def create_simple_factor_graph():
