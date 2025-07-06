@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "belief-propagation-simulator"
+version = "0.1.0"
+description = "Highly configurable belief propagation simulator for factor graphs"
+readme = "README.md"
+authors = [{name = "Or Muller"}]
+license = {text = "MIT"}
+requires-python = ">=3.10"
+keywords = [
+    "belief-propagation",
+    "factor-graphs",
+    "graphical-models",
+    "inference",
+    "optimization",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+# Runtime dependencies
+dependencies = [
+    "networkx~=3.4.2",
+    "numpy~=2.2.1",
+    "matplotlib~=3.10.0",
+    "scipy~=1.15.2",
+    "dash~=2.18.2",
+    "dash_cytoscape~=1.0.2",
+    "colorlog~=6.9.0",
+    "pandas~=2.2.3",
+    "seaborn~=0.13.2",
+    "numba~=0.57.0",
+    "psutil~=7.0.0",
+]
+
+[project.optional-dependencies]
+# Development extras
+dev = [
+    "pytest",
+    "pytest-cov",
+    "mypy",
+    "black",
+    "pylint",
+    "jupyter",
+    "build",
+    "twine",
+]
+
+[project.scripts]
+bp-sim = "belief_propagation_simulator.cli:main"

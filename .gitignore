@@ -6,3 +6,7 @@ __pycache__/
 .venv
 /older_stuff/
 
+# Packaging artifacts
+/dist/
+/build/
+/*.egg-info/
