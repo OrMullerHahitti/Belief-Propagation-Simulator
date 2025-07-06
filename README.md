@@ -1,23 +1,55 @@
 # Belief-Propagation-Simulator
 
 ## Overview
-The **Belief-Propagation-Simulator** is a Python-based tool designed to simulate and analyze various belief propagation subproblems on factor graphs. It serves as a flexible framework for solving inference problems and can be extended to support a wide range of algorithms that operate on factor graphs.
+The **Belief-Propagation-Simulator** is a Python toolkit for building and experimenting with belief propagation algorithms on factor graphs. It was designed for research and education purposes and provides a flexible framework for implementing and testing new policies and engine variants.
 
 ## Key Features
-- **Belief Propagation Subproblems**: Simulates a variety of subproblems within belief propagation.
-- **Factor Graph Support**: Operates on factor graphs, with built-in tools for graph construction and configuration.
-- **Extensible Framework**: Designed to support future extensions for algorithms that can run on factor graphs (e.g., DSA, other inference algorithms).
+- **Belief Propagation Subproblems**: Simulates a variety of belief propagation variants.
+- **Factor Graph Support**: Operates on arbitrary factor graphs with built-in tools for graph construction and configuration.
+- **Extensible Framework**: Modular policy system designed to support additional inference algorithms.
 - **Graph State Persistence**: Save and load graph states efficiently using pickle files.
 - **Debugging and Logging**: Integrated logging for debugging and monitoring.
-### preliminary resaults:
-![image](comparison_plot.png)
 
->This project is a work in progress and is not yet fully functional. The current implementation focuses on the basic structure and functionality of the simulator, with plans for future enhancements and optimizations.
->
-> it will be up and running very soon.
 ## Installation
-To set up the project, clone the repository and install the required dependencies:
+Install the package from PyPI:
+
+```bash
+pip install belief-propagation-simulator
+```
+
+To work with the latest development version:
+
 ```bash
 git clone https://github.com/OrMullerHahitti/Belief-Propagation-Simulator.git
 cd Belief-Propagation-Simulator
-pip install -r requirements.txt
+pip install -e .
+```
+
+## Quick Start
+The following example creates a tiny factor graph and runs a damping engine.
+
+```python
+from belief_propagation_simulator import (
+    FactorGraph,
+    VariableAgent,
+    FactorAgent,
+    DampingEngine,
+)
+
+# create two variables
+v1 = VariableAgent("v1", domain=2)
+v2 = VariableAgent("v2", domain=2)
+
+# simple factor cost table
+def table(num_vars=None, domain_size=None, **kwargs):
+    return np.array([[0, 1], [1, 0]])
+
+f = FactorAgent("f", domain=2, ct_creation_func=table)
+
+fg = FactorGraph(variable_li=[v1, v2], factor_li=[f], edges={f: [v1, v2]})
+engine = DampingEngine(factor_graph=fg)
+engine.run(max_iter=5)
+```
+
+## Documentation
+See the project repository for detailed API documentation and additional examples.

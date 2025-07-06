@@ -1,0 +1,9 @@
+include README.md
+include CHANGELOG.md
+include CONTRIBUTING.md
+include requirements.txt
+recursive-include examples *.py *.ipynb
+recursive-include configs *.py *.md
+prune configs/logs
+exclude *.pyc
+exclude __pycache__
