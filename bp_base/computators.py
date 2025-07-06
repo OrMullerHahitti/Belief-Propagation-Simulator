@@ -95,16 +95,16 @@ class BPComputator(Computator):
         shape = cost_table.shape
         dtype = cost_table.dtype
         add = np.add
-        amin = np.ndarray.min if self.reduce_func is np.min else np.ndarray.max
+        reduce_msg = np.ndarray.min if self.reduce_func is np.min else np.ndarray.max
 
         # 1) broadcast each Q once
         b_msgs = []
         axes_cache = []
-        for ax, msg in enumerate(incoming_messages):
+        for axis, msg in enumerate(incoming_messages):
             q = np.asarray(msg.data, dtype=dtype)
-            br = q.reshape([shape[ax] if i == ax else 1 for i in range(k)])
+            br = q.reshape([shape[axis] if i == axis else 1 for i in range(k)])
             b_msgs.append(br)
-            axes_cache.append(tuple(j for j in range(k) if j != ax))
+            axes_cache.append(tuple(j for j in range(k) if j != axis))
 
         # 2) aggregate once  (F + sum of Q)
         agg = cost_table.astype(dtype, copy=True)
@@ -113,13 +113,13 @@ class BPComputator(Computator):
 
         # 3) build each R_i
         out = []
-        for ax, br_q in enumerate(b_msgs):
-            r_vec = amin(agg - br_q, axis=axes_cache[ax])  # ndarray.min/max
+        for axis, broadcasted_q in enumerate(b_msgs):
+            r_vec = reduce_msg(agg - broadcasted_q, axis=axes_cache[axis])  # ndarray.min/max
             out.append(
                 Message(
                     data=r_vec,
-                    sender=incoming_messages[ax].recipient,
-                    recipient=incoming_messages[ax].sender,
+                    sender=incoming_messages[axis].recipient,
+                    recipient=incoming_messages[axis].sender,
                 )
             )
         return out
