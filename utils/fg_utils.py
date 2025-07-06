@@ -156,7 +156,6 @@ def get_broadcast_shape(ct_dims,domain_size: int, ax:int) -> tuple[int, ...]:
     br_message[ax] = domain_size
     return tuple(br_message)
 
-print(get_broadcast_shape(5,3,2))
 
 def generate_random_cost(fg: FactorGraph) -> int | float:
     cost = 0
