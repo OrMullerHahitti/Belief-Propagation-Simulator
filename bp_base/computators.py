@@ -91,30 +91,55 @@ class BPComputator(Computator):
         #     return outgoing_messages
 
     def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]):
+        """Compute R-messages using vectorized operations."""
+        early = self._validate(incoming_messages=incoming_messages)
+        if early is not None:
+            return early
+
+        computation_data = self._prepare_r_computation(cost_table, incoming_messages)
+        aggregated_costs = self._aggregate_costs_and_messages(cost_table, computation_data['b_msgs'])
+        return self._build_r_messages(aggregated_costs, computation_data, incoming_messages)
+
+    def _prepare_r_computation(self, cost_table, incoming_messages):
+        """Prepare data structures for R-message computation."""
         k = cost_table.ndim
         shape = cost_table.shape
         dtype = cost_table.dtype
-        add = np.add
-        reduce_msg = np.ndarray.min if self.reduce_func is np.min else np.ndarray.max
 
-        # 1) broadcast each Q once
         b_msgs = []
         axes_cache = []
+        
         for axis, msg in enumerate(incoming_messages):
             q = np.asarray(msg.data, dtype=dtype)
             br = q.reshape([shape[axis] if i == axis else 1 for i in range(k)])
             b_msgs.append(br)
             axes_cache.append(tuple(j for j in range(k) if j != axis))
 
-        # 2) aggregate once  (F + sum of Q)
-        agg = cost_table.astype(dtype, copy=True)
-        for q in b_msgs:
-            add(agg, q, out=agg)  # => no new array, no wrappers
+        return {
+            'b_msgs': b_msgs,
+            'axes_cache': axes_cache,
+            'dtype': dtype
+        }
 
-        # 3) build each R_i
+    def _aggregate_costs_and_messages(self, cost_table, b_msgs):
+        """Aggregate cost table with all Q-messages."""
+        agg = cost_table.astype(cost_table.dtype, copy=True)
+        add = np.add
+        
+        for q in b_msgs:
+            add(agg, q, out=agg)  # In-place addition for efficiency
+            
+        return agg
+
+    def _build_r_messages(self, aggregated_costs, computation_data, incoming_messages):
+        """Build R-messages from aggregated costs."""
+        reduce_msg = np.ndarray.min if self.reduce_func is np.min else np.ndarray.max
         out = []
-        for axis, broadcasted_q in enumerate(b_msgs):
-            r_vec = reduce_msg(agg - broadcasted_q, axis=axes_cache[axis])  # ndarray.min/max
+        
+        for axis, broadcasted_q in enumerate(computation_data['b_msgs']):
+            r_vec = reduce_msg(aggregated_costs - broadcasted_q, 
+                             axis=computation_data['axes_cache'][axis])
+            
             out.append(
                 Message(
                     data=r_vec,
