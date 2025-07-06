@@ -74,35 +74,55 @@ class FactorGraph:
         Calculate the global cost of the factor graph at the current state.
         Based on current variable assignments and factor cost tables.
         """
-        # Create a mapping from variable names to their assignments
-        var_name_assignments = {var.name: var.curr_assignment for var in self.variables}
+        var_name_assignments = self._get_variable_assignments()
+        return self._compute_total_factor_cost(var_name_assignments)
 
+    def _get_variable_assignments(self) -> Dict[str, int]:
+        """Create a mapping from variable names to their current assignments."""
+        return {var.name: var.curr_assignment for var in self.variables}
+
+    def _compute_total_factor_cost(self, var_name_assignments: Dict[str, int]) -> float:
+        """Compute total cost across all factors."""
         total_cost = 0.0
-        # For each factor, calculate the cost based on the assignments of connected variables
+        
         for factor in self.factors:
-            if factor.cost_table is not None:  # additional check better coverage
-                indices = []
-                valid_lookup = True  # converage
-
-                # Build the indices list in the right order according to connection_number in the factor
-                for var_name, dim in factor.connection_number.items():
-                    if var_name in var_name_assignments:
-                        # build empty indices in compliance with the cost table
-                        while len(indices) <= dim:
-                            indices.append(None)
-                        indices[dim] = var_name_assignments[var_name]
-                    else:
-                        valid_lookup = False  # coverage
-                        break
-
-                # If we have assignments for all connected variables, add the cost
-                if valid_lookup and None not in indices:
-                    if factor.original_cost_table is not None:
-                        total_cost += factor.original_cost_table[tuple(indices)]
-                    else:
-                        total_cost += factor.cost_table[tuple(indices)]
-
+            factor_cost = self._compute_single_factor_cost(factor, var_name_assignments)
+            if factor_cost is not None:
+                total_cost += factor_cost
+                
         return total_cost
+
+    def _compute_single_factor_cost(self, factor, var_name_assignments: Dict[str, int]) -> float | None:
+        """Compute cost for a single factor based on variable assignments."""
+        if factor.cost_table is None:
+            return None
+            
+        indices = self._build_factor_indices(factor, var_name_assignments)
+        
+        if indices is None or None in indices:
+            return None
+            
+        cost_table = (factor.original_cost_table 
+                     if factor.original_cost_table is not None 
+                     else factor.cost_table)
+        
+        return cost_table[tuple(indices)]
+
+    def _build_factor_indices(self, factor, var_name_assignments: Dict[str, int]) -> List[int] | None:
+        """Build indices list for factor cost table lookup."""
+        indices = []
+        
+        for var_name, dim in factor.connection_number.items():
+            if var_name not in var_name_assignments:
+                return None  # Invalid lookup - missing variable assignment
+                
+            # Ensure indices list is large enough
+            while len(indices) <= dim:
+                indices.append(None)
+                
+            indices[dim] = var_name_assignments[var_name]
+            
+        return indices
 
     @property
     def curr_assignment(self) -> Dict[VariableAgent, int]:
@@ -238,26 +258,39 @@ class FactorGraph:
 
         # Make sure G is reconstructed if it's missing
         if not hasattr(self, "G") or self.G is None:
-            import networkx as nx
+            self._reconstruct_graph()
 
-            self.G = nx.Graph()
+    def _reconstruct_graph(self):
+        """Reconstruct the NetworkX graph from variables and factors."""
+        import networkx as nx
+        
+        self.G = nx.Graph()
+        
+        if hasattr(self, "variables") and hasattr(self, "factors"):
+            self._add_graph_nodes()
+            self._rebuild_graph_edges()
 
-            # Rebuild graph from variables and factors
-            if hasattr(self, "variables") and hasattr(self, "factors"):
-                # Add nodes
-                self.G.add_nodes_from(self.variables, bipartite=0)
-                self.G.add_nodes_from(self.factors, bipartite=1)
+    def _add_graph_nodes(self):
+        """Add variable and factor nodes to the graph."""
+        self.G.add_nodes_from(self.variables, bipartite=0)
+        self.G.add_nodes_from(self.factors, bipartite=1)
 
-                # Create a mapping from variable names to variable objects
-                var_name_to_obj = {var.name: var for var in self.variables}
+    def _rebuild_graph_edges(self):
+        """Rebuild edges from connection_number information."""
+        var_name_to_obj = {var.name: var for var in self.variables}
+        
+        for factor in self.factors:
+            self._add_factor_edges(factor, var_name_to_obj)
 
-                # Rebuild edges from connection_number info
-                for factor in self.factors:
-                    if hasattr(factor, "connection_number"):
-                        for var_name, dim in factor.connection_number.items():
-                            if var_name in var_name_to_obj:
-                                var = var_name_to_obj[var_name]
-                                self.G.add_edge(factor, var, dim=dim)
+    def _add_factor_edges(self, factor, var_name_to_obj):
+        """Add edges for a single factor to connected variables."""
+        if not hasattr(factor, "connection_number"):
+            return
+            
+        for var_name, dim in factor.connection_number.items():
+            if var_name in var_name_to_obj:
+                var = var_name_to_obj[var_name]
+                self.G.add_edge(factor, var, dim=dim)
 
     @property
     def original_factors(self):

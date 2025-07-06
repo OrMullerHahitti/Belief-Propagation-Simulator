@@ -47,32 +47,41 @@ def create_factor_graph(
     Returns:
         FactorGraph: The created factor graph
     """
-    if ct_params is None:
-        ct_params = {"low": 1, "high": 100}
-
-    # Get the cost table factory function
+    ct_params = _get_default_ct_params(ct_params)
     ct_factory_fn = CT_FACTORIES[ct_factory]
-    if graph_type == "cycle":
-        variables, factors, edges = build_cycle_graph(
-            num_vars=num_vars,
-            domain_size=domain_size,
-            ct_factory=ct_factory_fn,
-            ct_params=ct_params,
-            density=density,
-        )
+    
+    variables, factors, edges = _build_graph_by_type(
+        graph_type, num_vars, domain_size, ct_factory_fn, ct_params, density
+    )
+    
+    return FactorGraph(variable_li=variables, factor_li=factors, edges=edges)
 
-    if graph_type == "random":
-        variables, factors, edges = build_random_graph(
+
+def _get_default_ct_params(ct_params):
+    """Get default cost table parameters if none provided."""
+    return ct_params if ct_params is not None else {"low": 1, "high": 100}
+
+
+def _build_graph_by_type(graph_type, num_vars, domain_size, ct_factory_fn, ct_params, density):
+    """Build graph components based on specified type."""
+    graph_builders = {
+        "cycle": lambda: build_cycle_graph(
+            num_vars=num_vars,
+            domain_size=domain_size,
+            ct_factory=ct_factory_fn,
+            ct_params=ct_params,
+            density=density,
+        ),
+        "random": lambda: build_random_graph(
             num_vars=num_vars,
             domain_size=domain_size,
             ct_factory=ct_factory_fn,
             ct_params=ct_params,
             density=density,
         )
-    else:
+    }
+    
+    if graph_type not in graph_builders:
         raise ValueError(f"Unknown graph type: {graph_type}")
-
-    # Create the factor graph
-    fg = FactorGraph(variable_li=variables, factor_li=factors, edges=edges)
-
-    return fg
+        
+    return graph_builders[graph_type]()

@@ -86,22 +86,31 @@ class MailHandler:
     def receive_messages(self, messages: Message | list[Message]):
         """Handle a single Message or a list of Messages."""
         if isinstance(messages, list):
-            for message in messages:
-                self.receive_messages(message)
+            self._receive_multiple_messages(messages)
             return
 
-        message = messages
+        self._receive_single_message(messages)
 
-        # Check for pruning policy
-        if hasattr(self, "pruning_policy") and self.pruning_policy is not None:
-            owner = message.recipient
+    def _receive_multiple_messages(self, messages: List[Message]):
+        """Process multiple messages."""
+        for message in messages:
+            self._receive_single_message(message)
 
-            if not self.pruning_policy.should_accept_message(owner, message):
-                return  # Message pruned
+    def _receive_single_message(self, message: Message):
+        """Process a single message with pruning policy."""
+        if self._should_prune_message(message):
+            return
 
-        # Accept message
         key = self._make_key(message.sender)
         self._incoming[key] = message
+
+    def _should_prune_message(self, message: Message) -> bool:
+        """Check if message should be pruned based on policy."""
+        if not hasattr(self, "pruning_policy") or self.pruning_policy is None:
+            return False
+
+        owner = message.recipient
+        return not self.pruning_policy.should_accept_message(owner, message)
 
     def send(self):
         """Send all outgoing messages to their recipients."""
@@ -133,7 +142,11 @@ class MailHandler:
     def inbox(self, li: List[Message]):
         """Set inbox from list of messages."""
         self._incoming.clear()
-        for msg in li:
+        self._populate_inbox_from_messages(li)
+
+    def _populate_inbox_from_messages(self, messages: List[Message]):
+        """Populate inbox dictionary from message list."""
+        for msg in messages:
             key = self._make_key(msg.sender)
             self._incoming[key] = msg
 
@@ -147,6 +160,10 @@ class MailHandler:
 
     def __getitem__(self, sender_name: str) -> Optional[Message]:
         """Get message by sender name."""
+        return self._find_message_by_sender_name(sender_name)
+
+    def _find_message_by_sender_name(self, sender_name: str) -> Optional[Message]:
+        """Find message with matching sender name."""
         for key, msg in self._incoming.items():
             if msg.sender.name == sender_name:
                 return msg

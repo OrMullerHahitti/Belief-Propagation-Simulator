@@ -81,15 +81,27 @@ class Simulator:
             self.logger.error(f"Invalid log level: {level}")
 
     def run_simulations(self, graphs, max_iter=5000):
+        """Run simulations for all graphs and engine configurations."""
         self.logger.warning(f"Preparing {len(graphs) * len(self.engine_configs)} total simulations.")
 
+        simulation_args = self._prepare_simulation_arguments(graphs, max_iter)
+        all_results = self._execute_simulations(simulation_args)
+        self._process_simulation_results(all_results, simulation_args)
+
+        return self.results
+
+    def _prepare_simulation_arguments(self, graphs, max_iter):
+        """Prepare arguments for all simulation combinations."""
         simulation_args = []
         for i, graph in enumerate(graphs):
             graph_data = pickle.dumps(graph)
             for engine_name, config in self.engine_configs.items():
                 args = (i, engine_name, config, graph_data, max_iter, self.logger.level)
                 simulation_args.append(args)
+        return simulation_args
 
+    def _execute_simulations(self, simulation_args):
+        """Execute all simulations with fallback strategies."""
         start_time = time.time()
 
         try:
@@ -102,7 +114,10 @@ class Simulator:
 
         total_time = time.time() - start_time
         self.logger.warning(f"All simulations completed in {total_time:.2f} seconds.")
+        return all_results
 
+    def _process_simulation_results(self, all_results, simulation_args):
+        """Process and organize simulation results."""
         if len(all_results) != len(simulation_args):
             self.logger.error(f"Expected {len(simulation_args)} results, but got {len(all_results)}")
 
@@ -111,8 +126,6 @@ class Simulator:
 
         for engine_name, costs_list in self.results.items():
             self.logger.warning(f"{engine_name}: {len(costs_list)} runs completed.")
-
-        return self.results
 
     def _run_batch_safe(self, simulation_args, max_workers=None):
         if max_workers is None:
@@ -135,34 +148,56 @@ class Simulator:
             return self._run_in_batches(simulation_args, max_workers=max(1, max_workers // 2))
 
     def _run_in_batches(self, simulation_args, batch_size=None, max_workers=None):
+        """Run simulations in batches with fallback strategies."""
+        batch_config = self._configure_batch_processing(batch_size, max_workers)
+        self.logger.warning(f"Starting batch processing with batch_size={batch_config['batch_size']} and max_workers={batch_config['max_workers']}")
+
+        all_results = []
+        batches = self._create_batches(simulation_args, batch_config['batch_size'])
+        
+        for batch_num, batch in enumerate(batches, 1):
+            batch_results = self._process_single_batch(batch, batch_num, len(batches), batch_config['max_workers'])
+            all_results.extend(batch_results)
+
+        return all_results
+
+    def _configure_batch_processing(self, batch_size, max_workers):
+        """Configure batch processing parameters."""
         if max_workers is None:
             max_workers = min(6, cpu_count())
         if batch_size is None:
             batch_size = max(8, max_workers * 2)
+        return {'batch_size': batch_size, 'max_workers': max_workers}
 
-        self.logger.warning(f"Starting batch processing with batch_size={batch_size} and max_workers={max_workers}")
+    def _create_batches(self, simulation_args, batch_size):
+        """Create batches from simulation arguments."""
+        return [simulation_args[i:i + batch_size] 
+                for i in range(0, len(simulation_args), batch_size)]
 
-        all_results = []
-        num_batches = (len(simulation_args) + batch_size - 1) // batch_size
+    def _process_single_batch(self, batch, batch_num, total_batches, max_workers):
+        """Process a single batch with multiprocessing and fallback."""
+        self.logger.warning(f"Running batch {batch_num}/{total_batches}...")
+        
+        try:
+            return self._run_batch_multiprocessing(batch, max_workers)
+        except Exception as e:
+            self.logger.error(f"Batch {batch_num} failed: {e}. Running sequentially as fallback.")
+            return self._run_batch_sequential_fallback(batch, batch_num)
 
-        for i in range(0, len(simulation_args), batch_size):
-            batch = simulation_args[i:i + batch_size]
-            batch_num = i // batch_size + 1
-            self.logger.warning(f"Running batch {batch_num}/{num_batches}...")
+    def _run_batch_multiprocessing(self, batch, max_workers):
+        """Run batch using multiprocessing."""
+        with Pool(processes=min(max_workers, len(batch))) as pool:
+            return pool.map(self._run_single_simulation, batch)
 
+    def _run_batch_sequential_fallback(self, batch, batch_num):
+        """Run batch sequentially as fallback."""
+        results = []
+        for args in batch:
             try:
-                with Pool(processes=min(max_workers, len(batch))) as pool:
-                    batch_results = pool.map(self._run_single_simulation, batch)
-                all_results.extend(batch_results)
-            except Exception as e:
-                self.logger.error(f"Batch {batch_num} failed: {e}. Running sequentially as fallback.")
-                for args in batch:
-                    try:
-                        all_results.append(self._run_single_simulation(args))
-                    except Exception as seq_e:
-                        self.logger.error(f"Sequential item failed in batch {batch_num}: {seq_e}")
-
-        return all_results
+                results.append(self._run_single_simulation(args))
+            except Exception as seq_e:
+                self.logger.error(f"Sequential item failed in batch {batch_num}: {seq_e}")
+        return results
 
     def _sequential_fallback(self, simulation_args):
         self.logger.warning("Running all simulations sequentially as a last resort.")
@@ -206,47 +241,70 @@ class Simulator:
             return (graph_index, engine_name, []) # Return empty costs on failure
 
     def plot_results(self, max_iter=5000, verbose=False):
+        """Plot simulation results with optional verbose mode."""
         self.logger.warning(f"Starting plotting... (Verbose: {verbose})")
         plt.figure(figsize=(12, 8))
         colors = ['blue', 'red', 'green', 'orange', 'purple']
 
         for idx, (engine_name, costs_list) in enumerate(self.results.items()):
-            if not costs_list:
-                self.logger.error(f"No results for {engine_name}")
+            processed_costs = self._validate_and_process_costs(engine_name, costs_list, max_iter)
+            if processed_costs is None:
                 continue
-
-            valid_costs_list = [c for c in costs_list if c]
-            if not valid_costs_list:
-                self.logger.error(f"No valid cost data for {engine_name}")
-                continue
-
-            max_len = max(max(max_iter, len(c)) for c in valid_costs_list)
-            padded_costs = [c + [c[-1]] * (max_len - len(c)) for c in valid_costs_list]
-
-            if not padded_costs:
-                self.logger.error(f"No valid costs to plot for {engine_name}")
-                continue
-
-            all_costs_np = np.array(padded_costs)
-            avg_costs = np.average(all_costs_np, axis=0)
-
+                
             color = colors[idx % len(colors)]
+            self._plot_engine_results(engine_name, processed_costs, color, verbose)
 
-            if verbose:
-                # Plot individual runs with transparency
-                for i in range(all_costs_np.shape[0]):
-                    plt.plot(all_costs_np[i, :], color=color, alpha=0.2, linewidth=0.5)
+        self._finalize_plot(verbose)
 
-            # Plot average line
-            plt.plot(avg_costs, label=f'{engine_name} (Avg)', color=color, linewidth=2)
+    def _validate_and_process_costs(self, engine_name, costs_list, max_iter):
+        """Validate and process cost data for plotting."""
+        if not costs_list:
+            self.logger.error(f"No results for {engine_name}")
+            return None
 
-            if verbose:
-                # Add standard deviation bands
-                std_costs = np.std(all_costs_np, axis=0)
-                plt.fill_between(range(max_len), avg_costs - std_costs, avg_costs + std_costs, color=color, alpha=0.1)
+        valid_costs_list = [c for c in costs_list if c]
+        if not valid_costs_list:
+            self.logger.error(f"No valid cost data for {engine_name}")
+            return None
 
-            self.logger.warning(f"Plotted {engine_name}: avg final cost = {avg_costs[-1]:.2f}")
+        max_len = max(max(max_iter, len(c)) for c in valid_costs_list)
+        padded_costs = [c + [c[-1]] * (max_len - len(c)) for c in valid_costs_list]
 
+        if not padded_costs:
+            self.logger.error(f"No valid costs to plot for {engine_name}")
+            return None
+
+        return np.array(padded_costs)
+
+    def _plot_engine_results(self, engine_name, all_costs_np, color, verbose):
+        """Plot results for a single engine."""
+        avg_costs = np.average(all_costs_np, axis=0)
+        max_len = all_costs_np.shape[1]
+
+        if verbose:
+            self._plot_individual_runs(all_costs_np, color)
+
+        # Plot average line
+        plt.plot(avg_costs, label=f'{engine_name} (Avg)', color=color, linewidth=2)
+
+        if verbose:
+            self._plot_uncertainty_bands(avg_costs, all_costs_np, max_len, color)
+
+        self.logger.warning(f"Plotted {engine_name}: avg final cost = {avg_costs[-1]:.2f}")
+
+    def _plot_individual_runs(self, all_costs_np, color):
+        """Plot individual simulation runs with transparency."""
+        for i in range(all_costs_np.shape[0]):
+            plt.plot(all_costs_np[i, :], color=color, alpha=0.2, linewidth=0.5)
+
+    def _plot_uncertainty_bands(self, avg_costs, all_costs_np, max_len, color):
+        """Plot standard deviation bands around average."""
+        std_costs = np.std(all_costs_np, axis=0)
+        plt.fill_between(range(max_len), avg_costs - std_costs, 
+                        avg_costs + std_costs, color=color, alpha=0.1)
+
+    def _finalize_plot(self, verbose):
+        """Add final plot elements and display."""
         title = "Average Costs over Runs on Random Factor Graphs"
         if verbose:
             title = "Verbose " + title
