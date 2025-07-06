@@ -77,14 +77,14 @@ class PerformanceMonitor:
             if self.track_memory:
                 try:
                     memory_mb = self.process.memory_info().rss / 1024 / 1024
-                except:
-                    pass
+                except (psutil.Error, OSError) as e:
+                    logger.warning(f"Failed to get memory info: {e}")
 
             if self.track_cpu:
                 try:
                     cpu_percent = self.process.cpu_percent(interval=0.1)
-                except:
-                    pass
+                except (psutil.Error, OSError) as e:
+                    logger.warning(f"Failed to get CPU info: {e}")
 
         # Create metrics
         metrics = StepMetrics(

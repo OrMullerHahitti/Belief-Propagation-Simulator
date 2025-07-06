@@ -220,7 +220,12 @@ class Simulator:
                 self.logger.error(f"No valid cost data for {engine_name}")
                 continue
 
-            max_len = max(max(max_iter, len(c)) for c in valid_costs_list)
+            # Prevent division by zero and ensure we have valid cost data
+            cost_lengths = [len(c) for c in valid_costs_list if len(c) > 0]
+            if not cost_lengths:
+                self.logger.error(f"All cost arrays are empty for {engine_name}")
+                continue
+            max_len = max(max_iter, max(cost_lengths))
             padded_costs = [c + [c[-1]] * (max_len - len(c)) for c in valid_costs_list]
 
             if not padded_costs:

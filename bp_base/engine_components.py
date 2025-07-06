@@ -203,8 +203,11 @@ class History:
             try:
                 current_cost = engine.calculate_global_cost()
                 self.step_costs.append(float(current_cost))
-            except:
-                # Fallback if cost calculation fails
+            except (AttributeError, IndexError, KeyError, ValueError) as e:
+                # Fallback if cost calculation fails due to expected errors
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Cost calculation failed at step {step_num}: {e}")
                 if self.step_costs:
                     self.step_costs.append(self.step_costs[-1])
                 else:
