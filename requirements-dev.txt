@@ -1,0 +1,9 @@
+pytest
+pytest-cov
+mypy
+black
+pylint
+jupyter
+matplotlib
+build
+twine
