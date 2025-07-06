@@ -6,8 +6,8 @@ import sys, os
 import pytest
 
 from debugging import create_factor_graph
-from bp_base.engines_realizations import SplitEngine, CostReductionOnceEngine
-from policies.convergance import ConvergenceConfig
+from belief_propagation_simulator.bp_base.engines_realizations import SplitEngine, CostReductionOnceEngine
+from belief_propagation_simulator.policies.convergance import ConvergenceConfig
 
 # Add project root to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

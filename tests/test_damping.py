@@ -1,12 +1,12 @@
 import numpy as np
-from policies.damping import damp
-from bp_base.factor_graph import FactorGraph
-from bp_base.engines_realizations import DampingEngine
-from base_models.agents import VariableAgent, FactorAgent
-from base_models.components import Message
-from utils.create.create_factor_graphs_from_config import build_cycle_graph
-from configs.global_config_mapping import create_random_int_table
-from policies.convergance import ConvergenceConfig
+from belief_propagation_simulator.policies.damping import damp
+from belief_propagation_simulator.bp_base.factor_graph import FactorGraph
+from belief_propagation_simulator.bp_base.engines_realizations import DampingEngine
+from belief_propagation_simulator.base_models.agents import VariableAgent, FactorAgent
+from belief_propagation_simulator.base_models.components import Message
+from belief_propagation_simulator.utils.create.create_factor_graphs_from_config import build_cycle_graph
+from belief_propagation_simulator.configs.global_config_mapping import create_random_int_table
+from belief_propagation_simulator.policies.convergance import ConvergenceConfig
 
 
 # Test basic damping function directly

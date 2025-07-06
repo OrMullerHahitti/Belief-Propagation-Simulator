@@ -1,10 +1,10 @@
 # Tests for message computing
 import pytest
 import numpy as np
-from bp_base.computators import MaxSumComputator, MinSumComputator, BPComputator
-from base_models.dcop_base import Agent  # For basic sender/recipient typing if needed
-from base_models.components import Message
-from base_models.agents import VariableAgent, FactorAgent
+from belief_propagation_simulator.bp_base.computators import MaxSumComputator, MinSumComputator, BPComputator
+from belief_propagation_simulator.base_models.dcop_base import Agent  # For basic sender/recipient typing if needed
+from belief_propagation_simulator.base_models.components import Message
+from belief_propagation_simulator.base_models.agents import VariableAgent, FactorAgent
 
 
 # Fixture for a MaxSumComputator

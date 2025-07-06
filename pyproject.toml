@@ -57,5 +57,11 @@ dev = [
     "twine",
 ]
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [project.scripts]
 bp-sim = "belief_propagation_simulator.cli:main"

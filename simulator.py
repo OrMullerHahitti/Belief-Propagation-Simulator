@@ -13,19 +13,19 @@ import pickle
 import psutil
 import traceback
 
-from bp_base.factor_graph import FactorGraph
-from bp_base.engine_base import BPEngine
-from bp_base.engines_realizations import (
+from belief_propagation_simulator.bp_base.factor_graph import FactorGraph
+from belief_propagation_simulator.bp_base.engine_base import BPEngine
+from belief_propagation_simulator.bp_base.engines_realizations import (
     DampingEngine,
     DampingSCFGEngine,
     SplitEngine,
     DampingCROnceEngine,
     CostReductionOnceEngine,
 )
-from utils.fg_utils import FGBuilder
-from configs.global_config_mapping import CT_FACTORIES
-from utils.path_utils import find_project_root
-from policies.convergance import ConvergenceConfig
+from belief_propagation_simulator.utils.fg_utils import FGBuilder
+from belief_propagation_simulator.configs.global_config_mapping import CT_FACTORIES
+from belief_propagation_simulator.utils.path_utils import find_project_root
+from belief_propagation_simulator.policies.convergance import ConvergenceConfig
 
 # --- Logging Setup ---
 LOG_LEVELS = {
