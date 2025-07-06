@@ -6,6 +6,7 @@ import logging
 import pickle
 import sys
 import os
+from enum import Enum
 from pathlib import Path
 
 import colorlog  # pip install colorlog
@@ -30,6 +31,15 @@ file_handler.setFormatter(
     logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 )
 root_logger.addHandler(file_handler)
+
+class Verbose(Enum):
+    """
+    Enum representing different verbosity levels for logging.
+    """
+    VERBOSE = 40
+    MILD = 30
+    INFORMATIVE = 20
+    HIGH = 10
 
 
 class Logger(logging.Logger):
@@ -62,7 +72,7 @@ class Logger(logging.Logger):
             )
             self.file_handler.setFormatter(
                 logging.Formatter(
-                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                    "%(asctime)s - %(name)s  - %(message)s"
                 )
             )
             self.addHandler(self.file_handler)
@@ -71,7 +81,7 @@ class Logger(logging.Logger):
         self.console = colorlog.StreamHandler(sys.stdout)
         self.console.setFormatter(
             colorlog.ColoredFormatter(
-                "%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                "%(log_color)s%(asctime)s - %(name)s - %(message)s",
                 log_colors={
                     "DEBUG": "cyan",
                     "INFO": "green",
