@@ -173,7 +173,20 @@ class MailHandler:
 
 ## Computators
 
-Computators implement the core message computation algorithms. They are strategy objects that can be swapped to change the BP variant.
+Computators implement the core message computation algorithms. They are strategy objects that can be swapped to change the BP variant. The system now provides a unified interface for easy computator switching while preserving vectorized operations for optimal performance.
+
+### Unified Interface
+
+All computators implement a consistent, synchronous interface:
+
+```python
+class Computator(Protocol):
+    def compute_Q(self, messages: List[Message]) -> List[Message]:
+        """Compute variable-to-factor messages"""
+        
+    def compute_R(self, cost_table, incoming_messages: List[Message]) -> List[Message]:
+        """Compute factor-to-variable messages"""
+```
 
 ### Base Computator
 
@@ -195,6 +208,46 @@ class BPComputator:
 - **MinSumComputator**: For minimization problems (DCOP)
 - **MaxSumComputator**: For maximization problems
 - **Custom**: Implement your own reduce/combine functions
+
+### Easy Computator Switching
+
+The new `ComputatorRegistry` provides easy access to different computator types:
+
+```python
+from bp_base.computators import ComputatorRegistry
+
+# Get computators by name
+min_sum = ComputatorRegistry.get("min_sum")
+max_sum = ComputatorRegistry.get("max_sum")
+
+# Create custom computators
+custom = ComputatorRegistry.create_custom(
+    reduce_func=np.mean,
+    combine_func=np.multiply
+)
+
+# Register your own computator classes
+ComputatorRegistry.register("my_algo", MyComputatorClass)
+```
+
+### Performance Considerations
+
+- **Vectorized Operations Preserved**: Direct access to numpy operations for optimal performance
+- **No Encapsulation Overhead**: Computators expose their reduce/combine functions directly
+- **Minimal Interface Abstraction**: The registry and adapter patterns add negligible overhead
+
+### Example Usage
+
+```python
+# Easy switching between algorithms
+for algo in ["min_sum", "max_sum"]:
+    computator = ComputatorRegistry.get(algo)
+    result = computator.compute_Q(messages)
+    
+# Direct access to vectorized operations
+comp = ComputatorRegistry.get("min_sum")
+fast_result = comp.reduce_func(large_array, axis=1)  # Direct numpy call
+```
 
 ## Agent Lifecycle
 

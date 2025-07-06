@@ -331,3 +331,18 @@ class KOptMGMComputator(SearchComputator):
             self.current_gains.clear()
             self.coalitions.clear()
             self.best_values.clear()
+
+
+# Optional: Register search computators with the unified registry
+# This allows them to work with the ComputatorRegistry system
+try:
+    from bp_base.computators import ComputatorRegistry
+    
+    # Register search computators for easy access
+    ComputatorRegistry.register("dsa", DSAComputator)
+    ComputatorRegistry.register("mgm", MGMComputator) 
+    ComputatorRegistry.register("k_opt_mgm", KOptMGMComputator)
+    
+except ImportError:
+    # Registry not available, skip registration
+    pass

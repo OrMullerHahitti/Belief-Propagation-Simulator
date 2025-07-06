@@ -21,7 +21,7 @@ class Computator(ABC):
         super().__init_subclass__(**kwargs)
 
     @abstractmethod
-    async def compute_Q(self, messages: List[Message]) -> List[Message]:
+    def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
         Compute Q messages based on the incoming messages.
         :param messages: List of incoming messages.
@@ -30,14 +30,14 @@ class Computator(ABC):
         pass
 
     @abstractmethod
-    async def compute_R(
+    def compute_R(
         self, cost_table: np.ndarray, incoming_messages: List[Message]
     ) -> List[Message]:
         """
-        Compute R incoming_messagess based on the cost table and incoming message.
+        Compute R messages based on the cost table and incoming messages.
         :param cost_table: The cost table to be used for computation.
-        :param incoming_messages: The incoming message.
-        :return: The computed R message.
+        :param incoming_messages: The incoming messages.
+        :return: The computed R messages.
         """
         pass
 

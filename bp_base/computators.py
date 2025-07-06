@@ -199,3 +199,70 @@ class MaxSumComputator(BPComputator):
 
     def __init__(self):
         super().__init__(reduce_func=np.max, combine_func=np.add)
+
+
+# Computator Registry for easy swapping between algorithms
+class ComputatorRegistry:
+    """
+    Registry for managing different computator types.
+    Allows easy registration and retrieval of computators without
+    encapsulating their vectorized operations.
+    """
+    
+    _computators = {}
+    
+    @classmethod
+    def register(cls, name: str, computator_class):
+        """Register a computator class with a friendly name."""
+        cls._computators[name] = computator_class
+    
+    @classmethod
+    def get(cls, name: str, **kwargs):
+        """Get a computator instance by name."""
+        if name not in cls._computators:
+            available = list(cls._computators.keys())
+            raise ValueError(f"Unknown computator '{name}'. Available: {available}")
+        return cls._computators[name](**kwargs)
+    
+    @classmethod
+    def list_available(cls):
+        """List all available computator names."""
+        return list(cls._computators.keys())
+    
+    @classmethod
+    def create_custom(cls, reduce_func=np.min, combine_func=np.add, **kwargs):
+        """Create a custom BP computator with specified functions."""
+        return BPComputator(reduce_func=reduce_func, combine_func=combine_func, **kwargs)
+
+
+# Register default computators
+ComputatorRegistry.register("min_sum", MinSumComputator)
+ComputatorRegistry.register("max_sum", MaxSumComputator)
+ComputatorRegistry.register("bp", BPComputator)
+
+
+class ComputatorAdapter:
+    """
+    Adapter to allow seamless switching between BP and Search computators.
+    Preserves vectorized operations while providing a unified interface.
+    """
+    
+    def __init__(self, computator):
+        self.computator = computator
+        self._is_search_computator = hasattr(computator, 'compute_decision')
+    
+    def compute_Q(self, messages):
+        """Unified Q computation that works with both BP and Search computators."""
+        return self.computator.compute_Q(messages)
+    
+    def compute_R(self, cost_table, incoming_messages):
+        """Unified R computation that works with both BP and Search computators."""
+        return self.computator.compute_R(cost_table, incoming_messages)
+    
+    def is_search_computator(self):
+        """Check if the wrapped computator is a search-based one."""
+        return self._is_search_computator
+    
+    def __getattr__(self, name):
+        """Delegate unknown attributes to the wrapped computator."""
+        return getattr(self.computator, name)
