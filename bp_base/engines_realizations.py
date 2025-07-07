@@ -9,8 +9,9 @@ from policies.cost_reduction import (
 
 from policies.splitting import split_all_factors
 from policies.damping import TD, damp
-from utils.inbox_utils import double_messages
+from utils.inbox_utils import  multiply_messages_attentive
 
+class Engine(BPEngine):...
 
 class SplitEngine(BPEngine):
     def __init__(self, *args, split_factor: float = 0.6, **kwargs):
@@ -31,8 +32,8 @@ class CostReductionOnceEngine(BPEngine):
     def post_init(self):
         cost_reduction_all_factors_once(self.graph, self.reduction_factor)
 
-    def pre_factor_compute(self, factor: FactorAgent):
-        double_messages(factor.inbox)
+    def post_factor_compute(self, factor: FactorAgent,iteration:int):
+        multiply_messages_attentive(factor.inbox,2,iteration)
 
 
 class DampingEngine(BPEngine):
