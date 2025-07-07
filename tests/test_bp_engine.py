@@ -1,10 +1,10 @@
 import pytest
 import numpy as np
-from bp_base.factor_graph import FactorGraph
-from bp_base.engines_realizations import BPEngine
-from utils.fg_utils import FGBuilder
-from configs.global_config_mapping import create_random_int_table, create_attractive_table, create_random_float_table
-from policies.convergance import ConvergenceConfig
+from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.bp_base.engines_realizations import BPEngine
+from src.propflow.utils import FGBuilder
+from src.propflow.configs import create_random_int_table, create_attractive_table, create_random_float_table
+from src.propflow.policies import ConvergenceConfig
 
 
 # Flag to enable verbose output during tests

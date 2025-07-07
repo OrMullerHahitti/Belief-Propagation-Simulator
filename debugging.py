@@ -8,21 +8,16 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import os
-import sys
 
-from bp_base.factor_graph import FactorGraph
-from bp_base.engine_base import BPEngine
-from bp_base.engines_realizations import (
+from src.propflow.bp_base.engine_base import BPEngine
+from src.propflow.bp_base.engines_realizations import (
     DampingEngine,
     DampingSCFGEngine,
-    SplitEngine,
-    DampingCROnceEngine,
-    CostReductionOnceEngine,
 )
-from utils.fg_utils import FGBuilder
-from configs.global_config_mapping import CT_FACTORIES
-from utils.path_utils import find_project_root
-from policies.convergance import ConvergenceConfig
+from src.propflow.utils import FGBuilder
+from src.propflow.configs import CT_FACTORIES
+from src.propflow.utils import find_project_root
+from src.propflow.policies import ConvergenceConfig
 
 # Module-level constants (safe for child processes)
 PROJECT_ROOT = find_project_root()
