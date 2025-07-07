@@ -6,7 +6,7 @@ import multiprocessing as mp
 from simulator import Simulator
 from utils.fg_utils import FGBuilder
 from configs.global_config_mapping import CT_FACTORIES
-from bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine
+from bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine, DampingCROnceEngine
 
 SEED = 42
 
@@ -15,7 +15,7 @@ if __name__ == '__main__':
     try:
         mp.set_start_method('spawn', force=True)
     except RuntimeError:
-        pass  # Already set
+        pass
 
     # Initialize random seeds
     np.random.seed(SEED)
@@ -23,14 +23,15 @@ if __name__ == '__main__':
 
     # --- Configuration ---
     NUM_GRAPHS = 10
-    MAX_ITER = 2000
-    LOG_LEVEL = 'VERBOSE'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
+    MAX_ITER = 1000
+    LOG_LEVEL = 'MILD'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
 
     # Engine configurations
     engine_configs = {
         "BPEngine": {"class": BPEngine},
         "DampingSCFGEngine_asymmetric": {"class": DampingSCFGEngine, "damping_factor": 0.9, "split_factor": 0.6},
         "DampingEngine": {"class": DampingEngine, "damping_factor": 0.9},
+        "CostRecuctionAndMutliplyEngine": {"class": DampingCROnceEngine, "damping_factor": 0.9, "reduction_factor": 0.5},
     }
 
     # --- Graph Creation ---
@@ -39,7 +40,7 @@ if __name__ == '__main__':
     random_fg = [
         FGBuilder.build_random_graph(
             num_vars=50,
-            domain_size=20,
+            domain_size=5,
             ct_factory=ct_factory_fn,
             ct_params={"low": 100, "high": 200},
             density=0.25,
@@ -53,11 +54,14 @@ if __name__ == '__main__':
     simulator = Simulator(engine_configs, log_level=LOG_LEVEL)
 
     # Run all simulations
+    start_time = time.time()
     results = simulator.run_simulations(random_fg, max_iter=MAX_ITER)
+    end_time = time.time()
+    print(f"The total simulation time was {end_time - start_time:.2f} seconds.")
 
     # --- Plotting ---
     if results:
-        simulator.plot_results(max_iter=MAX_ITER,verbose=True)
+        simulator.plot_results(max_iter=MAX_ITER,verbose=False)
     else:
         print(f"[{time.strftime('%H:%M:%S')}] No results to plot.")
 

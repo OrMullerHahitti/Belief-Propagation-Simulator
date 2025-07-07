@@ -90,7 +90,7 @@ class BPEngine:
 
         # Phase 4: All factors compute messages
         for factor in self.factor_nodes:
-            self.pre_factor_compute(factor)
+            self.pre_factor_compute(factor,i)
             factor.compute_messages()
 
         # Phase 5: All factors send messages
@@ -232,26 +232,26 @@ class BPEngine:
     def post_init(self) -> None:
         pass
 
-    def post_var_cycle(self) -> None:
-        pass
-
-    def post_factor_step(self, factor: FactorAgent) -> None:
-        pass
-
     def post_factor_cycle(self):
         pass
 
     def post_two_cycles(self):
         pass
-    def pre_var_compute(self, var: VariableAgent):
+
+
+    def pre_factor_compute(self, factor: FactorAgent,iteration:int=0):
         pass
-    def pre_factor_compute(self, factor: FactorAgent):
+    def post_factor_compute(self, factor: FactorAgent,iteration:int):
+        pass
+
+    def pre_var_compute(self, var: VariableAgent):
         pass
     def post_var_compute(self, var: VariableAgent):
         pass
 
     def init_normalize(self) -> None:
         pass
+
     def update_global_cost(self) -> None:
         """
 
@@ -284,8 +284,6 @@ class BPEngine:
         self.post_two_cycles()
 
     def _handle_regular_cycle_event(self, i: int):
-        self.post_var_cycle()
-        self.post_factor_cycle()
         if self.normalize_messages:
             normalize_inbox(self.var_nodes)
         self.history.beliefs[i] = self.get_beliefs()
