@@ -9,7 +9,7 @@ import logging
 from bp_base.engine_base import BPEngine
 from bp_base.factor_graph import FactorGraph
 from bp_base.engine_components import Step, Cycle
-from search.search_computator import SearchComputator
+from search.search_computator import SearchComputator, KOptMGMComputator
 
 logger = logging.getLogger(__name__)
 
