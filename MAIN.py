@@ -7,7 +7,6 @@ from simulator import Simulator
 from utils.fg_utils import FGBuilder
 from configs.global_config_mapping import CT_FACTORIES
 from bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine, DampingCROnceEngine
-
 SEED = 42
 
 if __name__ == '__main__':
@@ -40,7 +39,7 @@ if __name__ == '__main__':
     random_fg = [
         FGBuilder.build_random_graph(
             num_vars=50,
-            domain_size=5,
+            domain_size=10,
             ct_factory=ct_factory_fn,
             ct_params={"low": 100, "high": 200},
             density=0.25,
