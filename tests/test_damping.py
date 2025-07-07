@@ -1,12 +1,12 @@
 import numpy as np
-from policies.damping import damp
-from bp_base.factor_graph import FactorGraph
-from bp_base.engines_realizations import DampingEngine
-from base_models.agents import VariableAgent, FactorAgent
-from base_models.components import Message
-from utils.create.create_factor_graphs_from_config import build_cycle_graph
-from configs.global_config_mapping import create_random_int_table
-from policies.convergance import ConvergenceConfig
+from src.propflow.policies import damp
+from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.bp_base.engines_realizations import DampingEngine
+from src.propflow.base_models import VariableAgent, FactorAgent
+from src.propflow.base_models import Message
+from src.propflow.utils import build_cycle_graph
+from src.propflow.configs import create_random_int_table
+from src.propflow.policies import ConvergenceConfig
 
 
 # Test basic damping function directly

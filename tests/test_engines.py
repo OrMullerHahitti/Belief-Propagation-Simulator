@@ -1,9 +1,8 @@
 import numpy as np
-import os
 import sys
-from bp_base.factor_graph import FactorGraph
-from base_models.agents import VariableAgent, FactorAgent
-from bp_base.engines_realizations import (
+from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.base_models import VariableAgent, FactorAgent
+from src.propflow.bp_base.engines_realizations import (
     SplitEngine,
     DampingEngine,
     CostReductionOnceEngine,
@@ -14,7 +13,7 @@ from bp_base.engines_realizations import (
     TDEngine,
     TDAndPruningEngine,
 )
-from base_models.components import Message
+from src.propflow.base_models import Message
 
 # Flag to enable verbose output during tests
 VERBOSE = True

@@ -29,7 +29,7 @@ pip install -e .
 The following example creates a tiny factor graph and runs a damping engine.
 
 ```python
-from belief_propagation_simulator import (
+from src.propflow import (
     FactorGraph,
     VariableAgent,
     FactorAgent,
@@ -40,9 +40,11 @@ from belief_propagation_simulator import (
 v1 = VariableAgent("v1", domain=2)
 v2 = VariableAgent("v2", domain=2)
 
+
 # simple factor cost table
 def table(num_vars=None, domain_size=None, **kwargs):
     return np.array([[0, 1], [1, 0]])
+
 
 f = FactorAgent("f", domain=2, ct_creation_func=table)
 

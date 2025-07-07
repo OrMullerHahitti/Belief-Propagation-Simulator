@@ -1,7 +1,7 @@
 """Quick start example for Belief Propagation Simulator."""
 
 import numpy as np
-from belief_propagation_simulator import (
+from src.propflow import (
     FactorGraph,
     VariableAgent,
     FactorAgent,

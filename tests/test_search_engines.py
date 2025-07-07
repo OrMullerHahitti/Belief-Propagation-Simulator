@@ -3,12 +3,11 @@ Tests for search-based engines (DSA and MGM).
 """
 
 import numpy as np
-import pytest
 import sys
 
-from bp_base.factor_graph import FactorGraph
-from base_models.agents import VariableAgent, FactorAgent
-from search import DSAEngine, MGMEngine, DSAComputator, MGMComputator
+from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.base_models import VariableAgent, FactorAgent
+from src.propflow.search import DSAEngine, MGMEngine, DSAComputator, MGMComputator
 
 # Flag to enable verbose output during tests
 VERBOSE = True

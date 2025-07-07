@@ -3,10 +3,10 @@ import random
 import time
 import multiprocessing as mp
 
-from simulator import Simulator
-from utils.fg_utils import FGBuilder
-from configs.global_config_mapping import CT_FACTORIES
-from bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine, DampingCROnceEngine
+from src.propflow.simulator import Simulator
+from src.propflow.utils.fg_utils import FGBuilder
+from src.propflow.configs.global_config_mapping import CT_FACTORIES
+from src.propflow.bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine, DampingCROnceEngine
 SEED = 42
 
 if __name__ == '__main__':

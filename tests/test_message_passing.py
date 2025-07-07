@@ -5,12 +5,12 @@ import numpy as np
 import sys
 from pathlib import Path
 
-from base_models.agents import VariableAgent, FactorAgent, FGAgent
-from base_models.components import Message, MailHandler
-from bp_base.computators import MaxSumComputator, MinSumComputator
-from bp_base.factor_graph import FactorGraph
-from bp_base.engine_base import BPEngine
-from configs.loggers import Logger
+from src.propflow.base_models import VariableAgent, FactorAgent
+from src.propflow.base_models import Message, MailHandler
+from src.propflow.bp_base.computators import MaxSumComputator, MinSumComputator
+from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.bp_base.engine_base import BPEngine
+from src.propflow.configs import Logger
 
 # Add project root to Python path
 current_dir = Path(__file__).parent

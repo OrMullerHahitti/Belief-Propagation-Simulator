@@ -10,8 +10,8 @@ import os
 # Add the project root to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from search.search_computator import DSAComputator, MGMComputator
-from search.search_agents import SearchVariableAgent
+from src.propflow.search import DSAComputator, MGMComputator
+from src.propflow.search import SearchVariableAgent
 
 
 def test_search_agent_integration():

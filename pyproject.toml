@@ -2,8 +2,11 @@
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [project]
-name = "belief-propagation-simulator"
+name = "propflow"
 version = "0.1.0"
 description = "Highly configurable belief propagation simulator for factor graphs"
 readme = "README.md"
@@ -40,7 +43,6 @@ dependencies = [
     "colorlog~=6.9.0",
     "pandas~=2.2.3",
     "seaborn~=0.13.2",
-    "numba~=0.57.0",
     "psutil~=7.0.0",
 ]
 
@@ -58,4 +60,4 @@ dev = [
 ]
 
 [project.scripts]
-bp-sim = "belief_propagation_simulator.cli:main"
+bp-sim = "propflow.cli:main"

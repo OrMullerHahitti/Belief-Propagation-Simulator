@@ -9,7 +9,7 @@ import os
 # Add the project root to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from search.search_computator import DSAComputator, MGMComputator
+from src.propflow.search import DSAComputator, MGMComputator
 
 # Flag to enable verbose output during tests
 VERBOSE = True
