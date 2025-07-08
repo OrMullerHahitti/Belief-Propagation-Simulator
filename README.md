@@ -25,33 +25,6 @@ cd Belief-Propagation-Simulator
 pip install -e .
 ```
 
-## Quick Start
-The following example creates a tiny factor graph and runs a damping engine.
-
-```python
-from src.propflow import (
-    FactorGraph,
-    VariableAgent,
-    FactorAgent,
-    DampingEngine,
-)
-
-# create two variables
-v1 = VariableAgent("v1", domain=2)
-v2 = VariableAgent("v2", domain=2)
 
 
-# simple factor cost table
-def table(num_vars=None, domain_size=None, **kwargs):
-    return np.array([[0, 1], [1, 0]])
 
-
-f = FactorAgent("f", domain=2, ct_creation_func=table)
-
-fg = FactorGraph(variable_li=[v1, v2], factor_li=[f], edges={f: [v1, v2]})
-engine = DampingEngine(factor_graph=fg)
-engine.run(max_iter=5)
-```
-
-## Documentation
-See the project repository for detailed API documentation and additional examples.
