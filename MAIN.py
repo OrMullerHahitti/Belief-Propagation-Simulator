@@ -20,10 +20,11 @@ if __name__ == '__main__':
     np.random.seed(SEED)
     random.seed(SEED)
 
+
     # --- Configuration ---
     NUM_GRAPHS = 10
     MAX_ITER = 1000
-    LOG_LEVEL = 'MILD'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
+    LOG_LEVEL = 'VERBOSE'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
 
     # Engine configurations
     engine_configs = {

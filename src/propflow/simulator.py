@@ -15,10 +15,11 @@ from src.propflow.policies import ConvergenceConfig
 
 # --- Logging Setup ---
 LOG_LEVELS = {
-    "VERBOSE": logging.DEBUG,
-    "MILD": logging.INFO,
-    "INFORMATIVE": logging.WARNING,
-    "HIGH": logging.ERROR,
+    "HIGH": logging.DEBUG,
+    "INFORMATIVE": logging.INFO,
+    "VERBOSE": logging.WARNING,
+    "MILD": logging.ERROR,
+    "MINIMAL": logging.CRITICAL,
 }
 
 
@@ -169,7 +170,7 @@ class Simulator:
             logger.addHandler(handler)
 
         try:
-            logger.info(f"Starting simulation for graph {graph_index}, engine {engine_name}")
+            logger.debug(f"Starting simulation for graph {graph_index}, engine {engine_name}")
 
             fg_copy = pickle.loads(graph_data)
 

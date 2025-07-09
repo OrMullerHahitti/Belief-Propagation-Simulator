@@ -29,14 +29,7 @@ class BPComputator(Computator):
         self.reduce_func = reduce_func
         self.combine_func = combine_func
         # Cache frequently used operations
-        self._broadcast_cache = {}
         self._connection_cache = {}
-        # Initialize attributes used by optimized version
-        # but make them backward compatible
-        self._use_jit = False
-        self._parallel = False
-        self._operation_type = 0  # Default to addition
-        self._current_factor = None
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
@@ -46,9 +39,11 @@ class BPComputator(Computator):
         early = self._validate(messages=messages)
         if early is not None:
             return early
+
         # the recipient is the same for all messages
         variable = messages[0].recipient
         n_messages = len(messages)
+
         # Stack all message data for vectorized operations
         msg_data = np.stack([msg.data for msg in messages])
         total_sum = np.sum(msg_data, axis=0)
@@ -66,28 +61,6 @@ class BPComputator(Computator):
             )
 
         return outgoing_messages
-
-        # except (ValueError, TypeError):
-        #     # Fallback to the original algorithm if vectorization fails
-        #     outgoing_messages = []
-        #     for i, msg_i in enumerate(messages):
-        #         factor = msg_i.sender
-        #         other_messages = [
-        #             msg_j.data for j, msg_j in enumerate(messages) if j != i
-        #         ]
-        #
-        #         if other_messages:
-        #             combined_data = other_messages[0].copy()
-        #             for msg_data in other_messages[1:]:
-        #                 combined_data = self.combine_func(combined_data, msg_data)
-        #         else:
-        #             combined_data = np.zeros_like(msg_i.data)
-        #
-        #         outgoing_messages.append(
-        #             Message(data=combined_data, sender=variable, recipient=factor)
-        #         )
-        #
-        #     return outgoing_messages
 
     def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]):
         k = cost_table.ndim

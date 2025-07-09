@@ -21,7 +21,6 @@ class SplitEngine(BPEngine):
     def post_init(self) -> None:
         split_all_factors(self.graph, self.split_factor)
 
-
 class CostReductionOnceEngine(BPEngine):
     def __init__(self, *args, reduction_factor: float = 0.5, **kwargs):
         self.reduction_factor = reduction_factor
