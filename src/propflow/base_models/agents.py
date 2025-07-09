@@ -90,27 +90,29 @@ class VariableAgent(FGAgent):
 
     @property
     def belief(self) -> np.ndarray:
-        """Compute the current belief based on incoming messages."""
-        if not self.inbox:
-            return np.ones(self.domain) / self.domain  # Uniform belief
+        """Compute the current belief based on incoming messages using computator's combine function."""
+        if self.computator:
+            return self.computator.compute_belief(self.inbox, self.domain)
+        else:
+            # Fallback to sum-product behavior if no computator
+            if not self.inbox:
+                return np.ones(self.domain) / self.domain  # Uniform belief
 
-        # Sum all incoming messages
-        belief = np.zeros(self.domain)
-        for message in self.inbox:
-            belief += message.data
+            # Sum all incoming messages
+            belief = np.zeros(self.domain)
+            for message in self.inbox:
+                belief += message.data
 
-        # Normalize to avoid numerical issues
-        # belief_min = np.min(belief)
-        # if belief_min < 0:
-        #     belief -= belief_min
+            return belief
 
-        return belief
-
-    # TODO: make it argmin or argmax based on the problem type
     @property
     def curr_assignment(self) -> int | float:
-        """Compute the current assignment based on beliefs."""
-        return int(np.argmin(self.belief))
+        """Compute the current assignment based on beliefs using computator's reduce function."""
+        if self.computator:
+            return self.computator.get_assignment(self.belief)
+        else:
+            # Fallback to default MinSum behavior if no computator
+            return int(np.argmin(self.belief))
 
     def __str__(self):
         return self.name.upper()

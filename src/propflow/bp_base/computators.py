@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List
 import logging
+import functools
 from functools import lru_cache
 
 from src.propflow.base_models.protocols import Computator
@@ -30,6 +31,38 @@ class BPComputator(Computator):
         self.combine_func = combine_func
         # Cache frequently used operations
         self._connection_cache = {}
+        
+        # Pre-compile optimized functions for zero overhead
+        if reduce_func is np.min:
+            self._reduce_msg = np.ndarray.min
+            self._argreduce_func = np.ndarray.argmin
+        elif reduce_func is np.max:
+            self._reduce_msg = np.ndarray.max
+            self._argreduce_func = np.ndarray.argmax
+        elif reduce_func is np.sum:
+            self._reduce_msg = np.ndarray.sum
+            self._argreduce_func = np.ndarray.argmax  # Sum-product typically uses argmax for assignment
+        else:
+            # Generic fallback for custom reduce functions
+            self._reduce_msg = lambda x, axis: reduce_func(x, axis=axis)
+            self._argreduce_func = np.ndarray.argmax  # Default to argmax
+        
+        # Pre-compile combine functions for compute_Q and beliefs
+        if combine_func is np.add:
+            self._combine_axis = np.sum
+            self._combine_inverse = np.subtract
+            self._belief_identity = np.zeros
+        elif combine_func is np.multiply:
+            self._combine_axis = np.prod
+            self._combine_inverse = np.divide
+            self._belief_identity = np.ones
+        else:
+            # Generic fallback (will have function call overhead)
+            self._combine_axis = lambda x, axis: np.apply_along_axis(
+                lambda arr: np.functools.reduce(combine_func, arr), axis, x
+            )
+            self._combine_inverse = None  # Will need special handling
+            self._belief_identity = np.ones  # Safe default
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
@@ -46,12 +79,19 @@ class BPComputator(Computator):
 
         # Stack all message data for vectorized operations
         msg_data = np.stack([msg.data for msg in messages])
-        total_sum = np.sum(msg_data, axis=0)
+        total_combined = self._combine_axis(msg_data, axis=0)
         outgoing_messages = []
 
-        # Vectorized computation: subtract own message from total
+        # Vectorized computation: combine all except own message
         for i in range(n_messages):
-            combined_data = total_sum - msg_data[i]
+            if self._combine_inverse is not None:
+                # Fast path for add/multiply operations
+                combined_data = self._combine_inverse(total_combined, msg_data[i])
+            else:
+                # Generic fallback: recompute without message i
+                other_msgs = np.concatenate([msg_data[:i], msg_data[i+1:]], axis=0)
+                combined_data = self._combine_axis(other_msgs, axis=0) if len(other_msgs) > 0 else self._belief_identity(msg_data[i].shape)
+            
             outgoing_messages.append(
                 Message(
                     data=combined_data,
@@ -66,8 +106,8 @@ class BPComputator(Computator):
         k = cost_table.ndim
         shape = cost_table.shape
         dtype = cost_table.dtype
-        add = np.add
-        reduce_msg = np.ndarray.min if self.reduce_func is np.min else np.ndarray.max
+        combine_func = self.combine_func
+        reduce_msg = self._reduce_msg
 
         # 1) broadcast each Q once
         b_msgs = []
@@ -78,15 +118,26 @@ class BPComputator(Computator):
             b_msgs.append(br)
             axes_cache.append(tuple(j for j in range(k) if j != axis))
 
-        # 2) aggregate once  (F + sum of Q)
+        # 2) aggregate once  (F combined with all Q messages)
         agg = cost_table.astype(dtype, copy=True)
         for q in b_msgs:
-            add(agg, q, out=agg)  # => no new array, no wrappers
+            combine_func(agg, q, out=agg)  # Use modular combine function
 
         # 3) build each R_i
         out = []
         for axis, broadcasted_q in enumerate(b_msgs):
-            r_vec = reduce_msg(agg - broadcasted_q, axis=axes_cache[axis])  # ndarray.min/max
+            # Use inverse operation to "remove" the message from aggregate
+            if self._combine_inverse is not None:
+                # Fast path for add/multiply operations
+                temp = self._combine_inverse(agg, broadcasted_q) #remove the message that is being sent to (the one sent before)
+                r_vec = reduce_msg(temp, axis=axes_cache[axis])
+            else:
+                # Generic fallback: recompute aggregate without this message
+                temp_agg = cost_table.astype(dtype, copy=True)
+                for i, q in enumerate(b_msgs):
+                    if i != axis:
+                        combine_func(temp_agg, q, out=temp_agg)
+                r_vec = reduce_msg(temp_agg, axis=axes_cache[axis])
             out.append(
                 Message(
                     data=r_vec,
@@ -154,6 +205,24 @@ class BPComputator(Computator):
         shape[sender_dim] = msg_len
         return tuple(shape)
 
+    def get_assignment(self, belief: np.ndarray) -> int:
+        """Get optimal assignment from belief vector with zero overhead."""
+        return int(self._argreduce_func(belief))
+
+    def compute_belief(self, messages: List[Message], domain: int) -> np.ndarray:
+        """Compute belief from incoming messages using modular combine function."""
+        if not messages:
+            return np.ones(domain) / domain  # Uniform belief
+        
+        # Initialize belief with identity element
+        belief = self._belief_identity(domain)
+        
+        # Combine all incoming messages
+        for message in messages:
+            belief = self.combine_func(belief, message.data)
+        
+        return belief
+
 
 class MinSumComputator(BPComputator):
     """
@@ -171,3 +240,21 @@ class MaxSumComputator(BPComputator):
 
     def __init__(self):
         super().__init__(reduce_func=np.max, combine_func=np.add)
+
+
+class MaxProductComputator(BPComputator):
+    """
+    Max-product algorithm using multiplication for combining messages.
+    """
+
+    def __init__(self):
+        super().__init__(reduce_func=np.max, combine_func=np.multiply)
+
+
+class SumProductComputator(BPComputator):
+    """
+    Sum-product algorithm using multiplication for combining messages and sum for reduction.
+    """
+
+    def __init__(self):
+        super().__init__(reduce_func=np.sum, combine_func=np.multiply)
