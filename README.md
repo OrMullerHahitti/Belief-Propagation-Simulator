@@ -1,4 +1,4 @@
-# Belief-Propagation-Simulator
+# Belief Propagation Simulator - **PropFlow**
 
 ## Overview
 The **Belief-Propagation-Simulator** is a Python toolkit for building and experimenting with belief propagation algorithms on factor graphs. It was designed for research and education purposes and provides a flexible framework for implementing and testing new policies and engine variants.
@@ -10,11 +10,15 @@ The **Belief-Propagation-Simulator** is a Python toolkit for building and experi
 - **Graph State Persistence**: Save and load graph states efficiently using pickle files.
 - **Debugging and Logging**: Integrated logging for debugging and monitoring.
 
-## Installation
+## perlimenery preliminary:
+![image](https://github.com/user-attachments/assets/9e237a79-bfa7-4904-ad00-f7436915dcbe)
+
+
+## Installation **not yet published but as you can see package ready!**
 Install the package from PyPI:
 
 ```bash
-pip install belief-propagation-simulator
+pip install propflow
 ```
 
 To work with the latest development version:
