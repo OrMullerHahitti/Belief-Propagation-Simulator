@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import networkx as nx
 from src.propflow.utils import FGBuilder
-from src.propflow.configs import create_random_int_table, create_attractive_table
+from src.propflow.configs import create_random_int_table, create_uniform_float_table
 from src.propflow.bp_base.factor_graph import FactorGraph
 from src.propflow.base_models.agents import VariableAgent, FactorAgent
 from src.propflow.base_models.components import Message
@@ -252,16 +252,17 @@ class TestFactorGraph:
         fg = FGBuilder.build_cycle_graph(
             num_vars=3,
             domain_size=2,
-            ct_factory=create_attractive_table,
-            ct_params={"strength": 2.0}
+            ct_factory=create_uniform_float_table,
+            ct_params={"low": 0.0, "high": 1.0}
         )
         
-        # Check that cost tables have attractive structure
+        # Check that cost tables have uniform float structure
         for factor in fg.factors:
             ct = factor.cost_table
-            # Diagonal should be lower cost than off-diagonal
-            assert ct[0, 0] < ct[0, 1]
-            assert ct[1, 1] < ct[1, 0]
+            # Should be floats between 0 and 1
+            assert ct.dtype in [np.float32, np.float64]
+            assert np.all(ct >= 0.0)
+            assert np.all(ct <= 1.0)
 
     def test_factor_graph_large_scale(self):
         """Test factor graph with larger scale."""

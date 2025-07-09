@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from src.propflow.utils import FGBuilder
-from src.propflow.configs import create_random_int_table, create_attractive_table, create_random_float_table
+from src.propflow.configs import create_random_int_table, create_uniform_float_table, create_poisson_table
 from src.propflow.bp_base.factor_graph import FactorGraph
 from src.propflow.base_models.agents import VariableAgent, FactorAgent
 
@@ -26,8 +26,7 @@ class TestFGBuilder:
 
     @pytest.fixture(params=[
         (create_random_int_table, {"low": 1, "high": 10}),
-        (create_attractive_table, {"strength": 2.0}),
-        (create_random_float_table, {"low": 0.1, "high": 5.0})
+        (create_poisson_table, {"strength": 2.0}),
     ])
     def cost_table_config(self, request):
         """Parameterize tests with different cost table configurations."""

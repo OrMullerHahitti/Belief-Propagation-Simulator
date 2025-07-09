@@ -24,14 +24,13 @@ if __name__ == '__main__':
     # --- Configuration ---
     NUM_GRAPHS = 10
     MAX_ITER = 1000
-    LOG_LEVEL = 'VERBOSE'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
+    LOG_LEVEL = 'HIGH'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
 
     # Engine configurations
     engine_configs = {
         "BPEngine": {"class": BPEngine},
         "DampingSCFGEngine_asymmetric": {"class": DampingSCFGEngine, "damping_factor": 0.9, "split_factor": 0.6},
-        "DampingEngine": {"class": DampingEngine, "damping_factor": 0.9},
-        "CostRecuctionAndMutliplyEngine": {"class": DampingCROnceEngine, "damping_factor": 0.9, "reduction_factor": 0.5},
+        "DampingEngine": {"class": DampingEngine, "damping_factor": 0.9}
     }
 
     # --- Graph Creation ---
