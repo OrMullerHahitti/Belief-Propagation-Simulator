@@ -22,8 +22,8 @@ if __name__ == '__main__':
 
 
     # --- Configuration ---
-    NUM_GRAPHS = 10
-    MAX_ITER = 1000
+    NUM_GRAPHS = 30
+    MAX_ITER = 5000
     LOG_LEVEL = 'HIGH'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
 
     # Engine configurations

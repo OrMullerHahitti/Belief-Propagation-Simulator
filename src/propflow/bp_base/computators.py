@@ -26,43 +26,85 @@ class BPComputator(Computator):
     Same interface as original but optimized for performance.
     """
 
+    # Function dispatch tables for zero-overhead lookups
+    _REDUCE_DISPATCH = {
+        np.min: (np.ndarray.min, np.ndarray.argmin),
+        np.max: (np.ndarray.max, np.ndarray.argmax),
+        np.sum: (np.ndarray.sum, np.ndarray.argmax),
+    }
+    
+    _COMBINE_DISPATCH = {
+        np.add: (np.sum, np.subtract, np.zeros),
+        np.multiply: (np.prod, np.divide, np.ones),
+    }
+
     def __init__(self, reduce_func=np.min, combine_func=np.add):
         self.reduce_func = reduce_func
         self.combine_func = combine_func
         # Cache frequently used operations
         self._connection_cache = {}
         
-        # Pre-compile optimized functions for zero overhead
-        if reduce_func is np.min:
-            self._reduce_msg = np.ndarray.min
-            self._argreduce_func = np.ndarray.argmin
-        elif reduce_func is np.max:
-            self._reduce_msg = np.ndarray.max
-            self._argreduce_func = np.ndarray.argmax
-        elif reduce_func is np.sum:
-            self._reduce_msg = np.ndarray.sum
-            self._argreduce_func = np.ndarray.argmax  # Sum-product typically uses argmax for assignment
+        # Pre-compile optimized functions using dispatch tables
+        self._reduce_msg, self._argreduce_func = self._setup_reduce_functions(reduce_func)
+        self._combine_axis, self._combine_inverse, self._belief_identity = self._setup_combine_functions(combine_func)
+
+    def _setup_reduce_functions(self, reduce_func):
+        """Setup reduce function dispatch with zero overhead."""
+        if reduce_func in self._REDUCE_DISPATCH:
+            return self._REDUCE_DISPATCH[reduce_func]
         else:
             # Generic fallback for custom reduce functions
-            self._reduce_msg = lambda x, axis: reduce_func(x, axis=axis)
-            self._argreduce_func = np.ndarray.argmax  # Default to argmax
-        
-        # Pre-compile combine functions for compute_Q and beliefs
-        if combine_func is np.add:
-            self._combine_axis = np.sum
-            self._combine_inverse = np.subtract
-            self._belief_identity = np.zeros
-        elif combine_func is np.multiply:
-            self._combine_axis = np.prod
-            self._combine_inverse = np.divide
-            self._belief_identity = np.ones
+            return (
+                lambda x, axis: reduce_func(x, axis=axis),
+                np.ndarray.argmax  # Default to argmax
+            )
+
+    def _setup_combine_functions(self, combine_func):
+        """Setup combine function dispatch with zero overhead."""
+        if combine_func in self._COMBINE_DISPATCH:
+            return self._COMBINE_DISPATCH[combine_func]
         else:
             # Generic fallback (will have function call overhead)
-            self._combine_axis = lambda x, axis: np.apply_along_axis(
-                lambda arr: np.functools.reduce(combine_func, arr), axis, x
+            return (
+                lambda x, axis: np.apply_along_axis(
+                    lambda arr: functools.reduce(combine_func, arr), axis, x
+                ),
+                None,  # Will need special handling
+                np.ones  # Safe default
             )
-            self._combine_inverse = None  # Will need special handling
-            self._belief_identity = np.ones  # Safe default
+
+    def _remove_message_from_aggregate(self, agg, message_to_remove, all_messages, axis, cost_table=None):
+        """
+        Efficiently remove a message from the aggregate using inverse operation or fallback.
+        
+        Args:
+            agg: Current aggregate array
+            message_to_remove: The message to remove
+            all_messages: List of all messages for fallback
+            axis: The axis/index of the message to remove
+            cost_table: Optional cost table for fallback reconstruction
+        
+        Returns:
+            Array with the message removed
+        """
+        if self._combine_inverse is not None:
+            # Fast path for add/multiply operations
+            return self._combine_inverse(agg, message_to_remove)
+        else:
+            # Generic fallback: recompute aggregate without this message
+            if cost_table is not None:
+                # For compute_R: start with cost table
+                temp_agg = cost_table.astype(agg.dtype, copy=True)
+                for i, msg in enumerate(all_messages):
+                    if i != axis:
+                        self.combine_func(temp_agg, msg, out=temp_agg)
+            else:
+                # For compute_Q: start with identity
+                temp_agg = self._belief_identity(agg.shape).astype(agg.dtype)
+                for i, msg in enumerate(all_messages):
+                    if i != axis:
+                        temp_agg = self.combine_func(temp_agg, msg)
+            return temp_agg
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """
@@ -84,13 +126,9 @@ class BPComputator(Computator):
 
         # Vectorized computation: combine all except own message
         for i in range(n_messages):
-            if self._combine_inverse is not None:
-                # Fast path for add/multiply operations
-                combined_data = self._combine_inverse(total_combined, msg_data[i])
-            else:
-                # Generic fallback: recompute without message i
-                other_msgs = np.concatenate([msg_data[:i], msg_data[i+1:]], axis=0)
-                combined_data = self._combine_axis(other_msgs, axis=0) if len(other_msgs) > 0 else self._belief_identity(msg_data[i].shape)
+            combined_data = self._remove_message_from_aggregate(
+                total_combined, msg_data[i], msg_data, i
+            )
             
             outgoing_messages.append(
                 Message(
@@ -127,17 +165,10 @@ class BPComputator(Computator):
         out = []
         for axis, broadcasted_q in enumerate(b_msgs):
             # Use inverse operation to "remove" the message from aggregate
-            if self._combine_inverse is not None:
-                # Fast path for add/multiply operations
-                temp = self._combine_inverse(agg, broadcasted_q) #remove the message that is being sent to (the one sent before)
-                r_vec = reduce_msg(temp, axis=axes_cache[axis])
-            else:
-                # Generic fallback: recompute aggregate without this message
-                temp_agg = cost_table.astype(dtype, copy=True)
-                for i, q in enumerate(b_msgs):
-                    if i != axis:
-                        combine_func(temp_agg, q, out=temp_agg)
-                r_vec = reduce_msg(temp_agg, axis=axes_cache[axis])
+            temp = self._remove_message_from_aggregate(
+                agg, broadcasted_q, b_msgs, axis, cost_table
+            )
+            r_vec = reduce_msg(temp, axis=axes_cache[axis])
             out.append(
                 Message(
                     data=r_vec,
