@@ -11,7 +11,11 @@ The **Belief-Propagation-Simulator** is a Python toolkit for building and experi
 - **Debugging and Logging**: Integrated logging for debugging and monitoring.
 
 ## perlimenery preliminary:
-![image](https://github.com/user-attachments/assets/9e237a79-bfa7-4904-ad00-f7436915dcbe)
+> Results for 3 different variants of Min-Sum - regular, dampened , and using damping + splitting for 30 problems each, 90 simulations overall, with each one running 5000 steps (iterations).
+>  using the following parameters : only binary constraints, domain size -10 , density - 0.25 , 50 Variable Nodes (approxematily 306 Factor Nodes), and cost table generated from uniform integer 
+> function with [100,200] 
+
+![image](https://github.com/user-attachments/assets/f9b3c0a6-0059-43a2-9eed-c23b6e06c369)
 
 
 ## Installation **not yet published but as you can see package ready!**
