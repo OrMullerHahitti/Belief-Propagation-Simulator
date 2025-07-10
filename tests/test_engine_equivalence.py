@@ -3,7 +3,7 @@ import random
 import pickle
 import sys, os
 
-from debugging import create_factor_graph
+from examples.debugging import create_factor_graph
 from src.propflow.bp_base.engines_realizations import SplitEngine, CostReductionOnceEngine
 from src.propflow.policies import ConvergenceConfig
 
