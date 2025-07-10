@@ -26,13 +26,13 @@ class BPComputator(Computator):
     Same interface as original but optimized for performance.
     """
 
-    # Function dispatch tables for zero-overhead lookups
+    # Function dispatch tables for zero-overhead lookups (THE BEST PRACTICE FOR PERFORMANCE TRUST ME)
     _REDUCE_DISPATCH = {
         np.min: (np.ndarray.min, np.ndarray.argmin),
         np.max: (np.ndarray.max, np.ndarray.argmax),
         np.sum: (np.ndarray.sum, np.ndarray.argmax),
     }
-    
+
     _COMBINE_DISPATCH = {
         np.add: (np.sum, np.subtract, np.zeros),
         np.multiply: (np.prod, np.divide, np.ones),
@@ -43,10 +43,16 @@ class BPComputator(Computator):
         self.combine_func = combine_func
         # Cache frequently used operations
         self._connection_cache = {}
-        
+
         # Pre-compile optimized functions using dispatch tables
-        self._reduce_msg, self._argreduce_func = self._setup_reduce_functions(reduce_func)
-        self._combine_axis, self._combine_inverse, self._belief_identity = self._setup_combine_functions(combine_func)
+        self._reduce_msg, self._argreduce_func = self._setup_reduce_functions(
+            reduce_func
+        )
+        (
+            self._combine_axis,
+            self._combine_inverse,
+            self._belief_identity,
+        ) = self._setup_combine_functions(combine_func)
 
     def _setup_reduce_functions(self, reduce_func):
         """Setup reduce function dispatch with zero overhead."""
@@ -56,7 +62,7 @@ class BPComputator(Computator):
             # Generic fallback for custom reduce functions
             return (
                 lambda x, axis: reduce_func(x, axis=axis),
-                np.ndarray.argmax  # Default to argmax
+                np.ndarray.argmax,  # Default to argmax
             )
 
     def _setup_combine_functions(self, combine_func):
@@ -70,20 +76,22 @@ class BPComputator(Computator):
                     lambda arr: functools.reduce(combine_func, arr), axis, x
                 ),
                 None,  # Will need special handling
-                np.ones  # Safe default
+                np.ones,  # Safe default
             )
 
-    def _remove_message_from_aggregate(self, agg, message_to_remove, all_messages, axis, cost_table=None):
+    def _remove_message_from_aggregate(
+        self, agg, message_to_remove, all_messages, axis, cost_table=None
+    ):
         """
         Efficiently remove a message from the aggregate using inverse operation or fallback.
-        
+
         Args:
             agg: Current aggregate array
             message_to_remove: The message to remove
             all_messages: List of all messages for fallback
             axis: The axis/index of the message to remove
             cost_table: Optional cost table for fallback reconstruction
-        
+
         Returns:
             Array with the message removed
         """
@@ -129,7 +137,7 @@ class BPComputator(Computator):
             combined_data = self._remove_message_from_aggregate(
                 total_combined, msg_data[i], msg_data, i
             )
-            
+
             outgoing_messages.append(
                 Message(
                     data=combined_data,
@@ -244,14 +252,14 @@ class BPComputator(Computator):
         """Compute belief from incoming messages using modular combine function."""
         if not messages:
             return np.ones(domain) / domain  # Uniform belief
-        
+
         # Initialize belief with identity element
         belief = self._belief_identity(domain)
-        
+
         # Combine all incoming messages
         for message in messages:
             belief = self.combine_func(belief, message.data)
-        
+
         return belief
 
 
