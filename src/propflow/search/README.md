@@ -16,7 +16,7 @@ DSA and MGM are local search algorithms for distributed constraint optimization 
 ### Core Components
 
 1. **Computators**: `DSAComputator` and `MGMComputator` implement the algorithm logic
-2. **Engines**: `DSAEngine` and `MGMEngine` orchestrate the search process  
+2. **Engines**: `DSAEngine` and `MGMEngine` orchestrate the search process
 3. **Agents**: `SearchVariableAgent` extends `VariableAgent` with search capabilities
 
 ### Usage Example
@@ -25,7 +25,7 @@ DSA and MGM are local search algorithms for distributed constraint optimization 
 from src.propflow.search import DSAEngine, MGMEngine, DSAComputator, MGMComputator
 from src.propflow.bp_base.factor_graph import FactorGraph
 from src.propflow.base_models import VariableAgent, FactorAgent
-
+import numpy as np
 # Create factor graph (example: two variables with binary constraint)
 var1 = VariableAgent("x1", domain=2)
 var2 = VariableAgent("x2", domain=2)
@@ -50,7 +50,7 @@ results = dsa_engine.run(max_iter=50)
 print(f"Best assignment: {results['best_assignment']}")
 print(f"Best cost: {results['best_cost']}")
 
-# Use MGM  
+# Use MGM
 mgm_computator = MGMComputator()
 mgm_engine = MGMEngine(factor_graph=fg, computator=mgm_computator)
 
@@ -89,7 +89,7 @@ MGM operates in phases per iteration:
 **Characteristics**:
 - Deterministic (given tie-breaking rules)
 - Coordinated decisions prevent conflicts
-- Guaranteed monotonic improvement  
+- Guaranteed monotonic improvement
 - May get stuck in local optima
 
 ## Testing
@@ -119,8 +119,8 @@ class SearchComputator(Computator, ABC):
     @abstractmethod
     def compute_decision(self, agent: Agent, neighbors_values: Dict[str, Any]) -> Any:
         """Compute next value for agent based on neighbors."""
-        
-    @abstractmethod  
+
+    @abstractmethod
     def evaluate_cost(self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]) -> float:
         """Evaluate local cost of assigning value to agent."""
 ```
@@ -133,10 +133,10 @@ Extends `VariableAgent` with search-specific methods:
 class SearchVariableAgent(VariableAgent):
     def compute_search_step(self, neighbors_values: Dict[str, Any]) -> Any:
         """Compute next value using search computator."""
-        
+
     def update_assignment(self):
         """Update assignment based on computed decision."""
-        
+
     def get_neighbor_values(self, graph) -> Dict[str, Any]:
         """Get current values of neighboring variables."""
 ```
@@ -160,7 +160,7 @@ Both engines automatically extend variable agents with search capabilities and h
 The modular design allows for easy extensions:
 
 - **DSA variants**: Different probability strategies, adaptive probability
-- **MGM variants**: k-size coalition, different tie-breaking rules  
+- **MGM variants**: k-size coalition, different tie-breaking rules
 - **Hybrid approaches**: Combining DSA and MGM phases
 - **Advanced termination**: Convergence detection, cost thresholds
 

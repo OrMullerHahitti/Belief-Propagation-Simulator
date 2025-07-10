@@ -5,6 +5,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.flake8]
+max-line-length = 120
+
 [project]
 name = "propflow"
 version = "0.1.0"
@@ -57,6 +60,7 @@ dev = [
     "jupyter",
     "build",
     "twine",
+    "pre-commit"
 ]
 
 [project.scripts]
