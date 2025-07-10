@@ -6,13 +6,19 @@ import multiprocessing as mp
 from src.propflow.simulator import Simulator
 from src.propflow.utils.fg_utils import FGBuilder
 from src.propflow.configs.global_config_mapping import CT_FACTORIES
-from src.propflow.bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine, DampingCROnceEngine
+from src.propflow.bp_base.engines_realizations import (
+    BPEngine,
+    DampingSCFGEngine,
+    DampingEngine,
+    DampingCROnceEngine,
+)
+
 SEED = 42
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Set multiprocessing start method for clean process spawning
     try:
-        mp.set_start_method('spawn', force=True)
+        mp.set_start_method("spawn", force=True)
     except RuntimeError:
         pass
 
@@ -20,17 +26,20 @@ if __name__ == '__main__':
     np.random.seed(SEED)
     random.seed(SEED)
 
-
     # --- Configuration ---
     NUM_GRAPHS = 30
     MAX_ITER = 5000
-    LOG_LEVEL = 'HIGH'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
+    LOG_LEVEL = "HIGH"  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
 
     # Engine configurations
     engine_configs = {
         "BPEngine": {"class": BPEngine},
-        "DampingSCFGEngine_asymmetric": {"class": DampingSCFGEngine, "damping_factor": 0.9, "split_factor": 0.6},
-        "DampingEngine": {"class": DampingEngine, "damping_factor": 0.9}
+        "DampingSCFGEngine_asymmetric": {
+            "class": DampingSCFGEngine,
+            "damping_factor": 0.9,
+            "split_factor": 0.6,
+        },
+        "DampingEngine": {"class": DampingEngine, "damping_factor": 0.9},
     }
 
     # --- Graph Creation ---
@@ -60,7 +69,7 @@ if __name__ == '__main__':
 
     # --- Plotting ---
     if results:
-        simulator.plot_results(max_iter=MAX_ITER,verbose=False)
+        simulator.plot_results(max_iter=MAX_ITER, verbose=False)
     else:
         print(f"[{time.strftime('%H:%M:%S')}] No results to plot.")
 
