@@ -9,6 +9,7 @@ try:
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
     from matplotlib.colors import ListedColormap
+
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
@@ -24,10 +25,10 @@ EPSILON = 1e-9
 class ConvexLine:
     """Represents a line y = slope * k + intercept for convex hull computation."""
 
-    slope: float          # Coefficient of k (from cost table cell)
-    intercept: float      # Constant term q_i
-    cell_i: int          # Row index in cost table
-    cell_j: int          # Column index in cost table
+    slope: float  # Coefficient of k (from cost table cell)
+    intercept: float  # Constant term q_i
+    cell_i: int  # Row index in cost table
+    cell_j: int  # Column index in cost table
 
     def evaluate(self, k: float) -> float:
         """Evaluates the line equation at a given k."""
@@ -43,43 +44,42 @@ class ConvexLine:
 class InterceptPoint:
     """Represents an intercept point between lines or envelopes."""
 
-    k: float                                                    # K value where intersection occurs
-    intersection_value: float                                   # Value at intersection point
+    k: float  # K value where intersection occurs
+    intersection_value: float  # Value at intersection point
     type: Literal["change_assignment", "partial_assignment_change"]  # Type of intercept
-    envelope1_id: int                                          # ID of first envelope/line
-    envelope2_id: int                                          # ID of second envelope/line
-    line1: Optional[ConvexLine] = None                         # First line (if partial change)
-    line2: Optional[ConvexLine] = None                         # Second line (if partial change)
+    envelope1_id: int  # ID of first envelope/line
+    envelope2_id: int  # ID of second envelope/line
+    line1: Optional[ConvexLine] = None  # First line (if partial change)
+    line2: Optional[ConvexLine] = None  # Second line (if partial change)
 
 
 @dataclass
 class ConvexHullResult:
     """Result of convex hull computation."""
 
-    lines: List[ConvexLine]              # All generated lines
-    hull_lines: List[ConvexLine]         # Lines on the convex hull
-    hull_vertices: np.ndarray            # Hull vertices as (slope, intercept) points
-    k_range: Tuple[float, float]         # Range of k values used
-    envelope_id: int = 0                 # Unique ID for this envelope
+    lines: List[ConvexLine]  # All generated lines
+    hull_lines: List[ConvexLine]  # Lines on the convex hull
+    hull_vertices: np.ndarray  # Hull vertices as (slope, intercept) points
+    k_range: Tuple[float, float]  # Range of k values used
+    envelope_id: int = 0  # Unique ID for this envelope
 
 
 @dataclass
 class HierarchicalEnvelopeResult:
     """Result of hierarchical envelope computation."""
 
-    individual_envelopes: List[ConvexHullResult]     # Individual convex hulls
-    meta_envelope: ConvexHullResult                  # Envelope of envelopes
-    all_intercepts: List[InterceptPoint]             # All intercept points
-    change_assignment_points: List[InterceptPoint]   # Intercepts between different envelopes
-    partial_change_points: List[InterceptPoint]      # Intercepts within same envelope
-    envelope_type: str                               # "lower" or "upper"
+    individual_envelopes: List[ConvexHullResult]  # Individual convex hulls
+    meta_envelope: ConvexHullResult  # Envelope of envelopes
+    all_intercepts: List[InterceptPoint]  # All intercept points
+    change_assignment_points: List[
+        InterceptPoint
+    ]  # Intercepts between different envelopes
+    partial_change_points: List[InterceptPoint]  # Intercepts within same envelope
+    envelope_type: str  # "lower" or "upper"
 
 
 def create_lines_from_cost_table(
-    cost_table: CostTable,
-    q_values: np.ndarray,
-    k_min: float = 0.0,
-    k_max: float = 1.0
+    cost_table: CostTable, q_values: np.ndarray, k_min: float = 0.0, k_max: float = 1.0
 ) -> List[ConvexLine]:
     """
     Create lines l_ij = k * c_ij + q_i for each cell in the cost table.
@@ -114,19 +114,15 @@ def create_lines_from_cost_table(
             if not (math.isfinite(slope) and math.isfinite(intercept)):
                 continue
 
-            lines.append(ConvexLine(
-                slope=slope,
-                intercept=intercept,
-                cell_i=i,
-                cell_j=j
-            ))
+            lines.append(
+                ConvexLine(slope=slope, intercept=intercept, cell_i=i, cell_j=j)
+            )
 
     return lines
 
 
 def compute_convex_hull_from_lines(
-    lines: List[ConvexLine],
-    hull_type: str = "lower"
+    lines: List[ConvexLine], hull_type: str = "lower"
 ) -> ConvexHullResult:
     """
     Compute convex hull from a list of lines.
@@ -146,7 +142,7 @@ def compute_convex_hull_from_lines(
             lines=lines,
             hull_lines=lines,
             hull_vertices=np.array([[lines[0].slope, lines[0].intercept]]),
-            k_range=(0.0, 1.0)
+            k_range=(0.0, 1.0),
         )
 
     # Create points for hull computation: (slope, intercept)
@@ -182,17 +178,14 @@ def compute_convex_hull_from_lines(
             lines=lines,
             hull_lines=hull_lines,
             hull_vertices=hull_vertices,
-            k_range=(0.0, 1.0)
+            k_range=(0.0, 1.0),
         )
 
     except QhullError as e:
         # Handle collinear points or other precision issues
         print(f"Warning: ConvexHull failed ({e}). Using all lines.")
         return ConvexHullResult(
-            lines=lines,
-            hull_lines=lines,
-            hull_vertices=points,
-            k_range=(0.0, 1.0)
+            lines=lines, hull_lines=lines, hull_vertices=points, k_range=(0.0, 1.0)
         )
 
 
@@ -200,7 +193,7 @@ def hierarchical_convex_hull_from_agents(
     variable_agents: List[VariableAgent],
     factor_agents: List[FactorAgent],
     k_min: float = 0.0,
-    k_max: float = 1.0
+    k_max: float = 1.0,
 ) -> HierarchicalEnvelopeResult:
     """
     Create hierarchical convex hull from multiple variable and factor agents.
@@ -232,9 +225,10 @@ def hierarchical_convex_hull_from_agents(
     for var_agent in variable_agents:
         for factor_agent in factor_agents:
             # Check if they are connected
-            if (factor_agent.connection_number and
-                var_agent.name in factor_agent.connection_number):
-
+            if (
+                factor_agent.connection_number
+                and var_agent.name in factor_agent.connection_number
+            ):
                 hull = convex_hull_from_agents(
                     var_agent, factor_agent, envelope_type, k_min, k_max
                 )
@@ -259,7 +253,7 @@ def convex_hull_from_agents(
     factor_agent: FactorAgent,
     hull_type: Optional[str] = None,
     k_min: float = 0.0,
-    k_max: float = 1.0
+    k_max: float = 1.0,
 ) -> ConvexHullResult:
     """
     Create convex hull from variable and factor agents.
@@ -288,16 +282,21 @@ def convex_hull_from_agents(
 
     # Check if variable agent is connected to this factor agent
     var_dimension = None
-    if factor_agent.connection_number and variable_agent.name in factor_agent.connection_number:
+    if (
+        factor_agent.connection_number
+        and variable_agent.name in factor_agent.connection_number
+    ):
         var_dimension = factor_agent.connection_number[variable_agent.name]
-        print(f"Variable {variable_agent.name} connected to factor {factor_agent.name} at dimension {var_dimension}")
+        print(
+            f"Variable {variable_agent.name} connected to factor {factor_agent.name} at dimension {var_dimension}"
+        )
 
     # Create q_values based on variable agent domain
     # For now, use uniform q values (can be extended based on beliefs or other criteria)
     q_values = np.zeros(variable_agent.domain)
 
     # If variable agent has beliefs, use them as q values
-    if hasattr(variable_agent, 'belief') and variable_agent.belief is not None:
+    if hasattr(variable_agent, "belief") and variable_agent.belief is not None:
         try:
             belief = variable_agent.belief
             if len(belief) == variable_agent.domain:
@@ -313,14 +312,11 @@ def convex_hull_from_agents(
     # For multi-dimensional cost tables, we might need to marginalize or slice
     # This is a simplified approach - in practice, you might want more sophisticated handling
     if var_dimension is not None and len(cost_table_to_use.shape) > 2:
-        print(f"Warning: Multi-dimensional cost table detected. Using full table for convex hull.")
+        print(
+            f"Warning: Multi-dimensional cost table detected. Using full table for convex hull."
+        )
 
-    lines = create_lines_from_cost_table(
-        cost_table_to_use,
-        q_values,
-        k_min,
-        k_max
-    )
+    lines = create_lines_from_cost_table(cost_table_to_use, q_values, k_min, k_max)
 
     return compute_convex_hull_from_lines(lines, hull_type)
 
@@ -330,7 +326,7 @@ def convex_hull_from_cost_table(
     q_values: Optional[np.ndarray] = None,
     hull_type: str = "lower",
     k_min: float = 0.0,
-    k_max: float = 1.0
+    k_max: float = 1.0,
 ) -> ConvexHullResult:
     """
     Create convex hull directly from cost table and q values.
@@ -352,7 +348,9 @@ def convex_hull_from_cost_table(
     return compute_convex_hull_from_lines(lines, hull_type)
 
 
-def find_line_intersection(line1: ConvexLine, line2: ConvexLine) -> Optional[Tuple[float, float]]:
+def find_line_intersection(
+    line1: ConvexLine, line2: ConvexLine
+) -> Optional[Tuple[float, float]]:
     """
     Find intersection point between two lines.
 
@@ -416,7 +414,7 @@ def find_all_envelope_intercepts(hull_result: ConvexHullResult) -> List[Intercep
                     envelope1_id=hull_result.envelope_id,
                     envelope2_id=hull_result.envelope_id,  # Same envelope
                     line1=line1,
-                    line2=line2
+                    line2=line2,
                 )
                 intercepts.append(intercept)
 
@@ -433,11 +431,11 @@ def determine_envelope_type(agent: Union[VariableAgent, FactorAgent]) -> str:
     Returns:
         "lower" for MinSum computators, "upper" for MaxSum computators
     """
-    if not hasattr(agent, 'computator') or agent.computator is None:
+    if not hasattr(agent, "computator") or agent.computator is None:
         return "lower"  # Default to lower envelope
 
     # Check the reduce function used by the computator
-    if hasattr(agent.computator, 'reduce_func'):
+    if hasattr(agent.computator, "reduce_func"):
         reduce_func = agent.computator.reduce_func
         # Import numpy here to avoid circular imports
         import numpy as np
@@ -457,7 +455,7 @@ def compute_hierarchical_envelopes(
     individual_hulls: List[ConvexHullResult],
     envelope_type: str = "lower",
     k_min: float = 0.0,
-    k_max: float = 1.0
+    k_max: float = 1.0,
 ) -> HierarchicalEnvelopeResult:
     """
     Compute hierarchical envelopes: create envelope of envelopes and classify all intercepts.
@@ -497,7 +495,7 @@ def compute_hierarchical_envelopes(
                 slope=line.slope,
                 intercept=line.intercept,
                 cell_i=hull.envelope_id,  # Use envelope ID as cell_i
-                cell_j=len(meta_lines)    # Unique identifier within this envelope
+                cell_j=len(meta_lines),  # Unique identifier within this envelope
             )
             envelope_line_mapping[len(meta_lines)] = (hull.envelope_id, line)
             meta_lines.append(meta_line)
@@ -528,8 +526,12 @@ def compute_hierarchical_envelopes(
 
                 if k_min <= k_val <= k_max:
                     # Get original lines for reference
-                    orig_line1 = envelope_line_mapping.get(line1.cell_j, (None, None))[1]
-                    orig_line2 = envelope_line_mapping.get(line2.cell_j, (None, None))[1]
+                    orig_line1 = envelope_line_mapping.get(line1.cell_j, (None, None))[
+                        1
+                    ]
+                    orig_line2 = envelope_line_mapping.get(line2.cell_j, (None, None))[
+                        1
+                    ]
 
                     intercept = InterceptPoint(
                         k=k_val,
@@ -538,7 +540,7 @@ def compute_hierarchical_envelopes(
                         envelope1_id=env1_id,
                         envelope2_id=env2_id,
                         line1=orig_line1,
-                        line2=orig_line2
+                        line2=orig_line2,
                     )
                     change_assignment_points.append(intercept)
 
@@ -554,11 +556,13 @@ def compute_hierarchical_envelopes(
         all_intercepts=all_intercepts,
         change_assignment_points=change_assignment_points,
         partial_change_points=partial_change_points,
-        envelope_type=envelope_type
+        envelope_type=envelope_type,
     )
 
 
-def evaluate_hull_at_k(hull_result: ConvexHullResult, k: float) -> Tuple[float, ConvexLine]:
+def evaluate_hull_at_k(
+    hull_result: ConvexHullResult, k: float
+) -> Tuple[float, ConvexLine]:
     """
     DEPRECATED: Use find_all_envelope_intercepts() and hierarchical envelopes instead.
 
@@ -579,7 +583,7 @@ def evaluate_hull_at_k(hull_result: ConvexHullResult, k: float) -> Tuple[float, 
         return line.evaluate(k), line
 
     # Find the line that gives the minimum (or maximum) value at k
-    best_value = float('inf')
+    best_value = float("inf")
     best_line = hull_result.hull_lines[0]
 
     for line in hull_result.hull_lines:
@@ -591,22 +595,382 @@ def evaluate_hull_at_k(hull_result: ConvexHullResult, k: float) -> Tuple[float, 
     return best_value, best_line
 
 
+# Visualization Functions
+def plot_convex_hull(
+    hull_result: ConvexHullResult,
+    k_min: float = 0.0,
+    k_max: float = 1.0,
+    title: str = "Convex Hull",
+    show_all_lines: bool = True,
+    show_intercepts: bool = True,
+    ax: Optional["plt.Axes"] = None,
+) -> "plt.Axes":
+    """
+    Plot a single convex hull with lines and intercepts.
+
+    Args:
+        hull_result: ConvexHullResult to plot
+        k_min: Minimum k value for plotting
+        k_max: Maximum k value for plotting
+        title: Plot title
+        show_all_lines: Whether to show all lines or just hull lines
+        show_intercepts: Whether to show intercept points
+        ax: Existing axes to plot on (if None, creates new figure)
+
+    Returns:
+        Matplotlib axes object
+    """
+    if not HAS_MATPLOTLIB:
+        raise ImportError(
+            "Matplotlib is required for visualization. Install with: pip install matplotlib"
+        )
+
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=(10, 6))
+
+    k_vals = np.linspace(k_min, k_max, 100)
+
+    # Plot all lines if requested
+    if show_all_lines:
+        for i, line in enumerate(hull_result.lines):
+            y_vals = [line.evaluate(k) for k in k_vals]
+            ax.plot(
+                k_vals,
+                y_vals,
+                "--",
+                alpha=0.3,
+                color="gray",
+                label=f"Line {line.cell_i}{line.cell_j}" if i < 5 else "",
+            )
+
+    # Plot hull lines
+    colors = plt.cm.Set1(np.linspace(0, 1, len(hull_result.hull_lines)))
+    for i, line in enumerate(hull_result.hull_lines):
+        y_vals = [line.evaluate(k) for k in k_vals]
+        ax.plot(
+            k_vals,
+            y_vals,
+            "-",
+            linewidth=2,
+            color=colors[i],
+            label=f"Hull Line {line.cell_i}{line.cell_j}",
+        )
+
+    # Plot intercepts if requested
+    if show_intercepts:
+        intercepts = find_all_envelope_intercepts(hull_result)
+        for intercept in intercepts:
+            if k_min <= intercept.k <= k_max:
+                ax.plot(
+                    intercept.k,
+                    intercept.intersection_value,
+                    "ro",
+                    markersize=8,
+                    label="Intercept" if intercept == intercepts[0] else "",
+                )
+                ax.annotate(
+                    f"k={intercept.k:.3f}",
+                    (intercept.k, intercept.intersection_value),
+                    xytext=(5, 5),
+                    textcoords="offset points",
+                    fontsize=8,
+                )
+
+    ax.set_xlabel("k")
+    ax.set_ylabel("Value")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+
+    return ax
+
+
+def plot_hierarchical_envelopes(
+    hierarchical_result: HierarchicalEnvelopeResult,
+    k_min: float = 0.0,
+    k_max: float = 1.0,
+    figsize: Tuple[int, int] = (15, 10),
+) -> "plt.Figure":
+    """
+    Plot complete hierarchical envelope system with individual hulls and meta-envelope.
+
+    Args:
+        hierarchical_result: HierarchicalEnvelopeResult to plot
+        k_min: Minimum k value for plotting
+        k_max: Maximum k value for plotting
+        figsize: Figure size (width, height)
+
+    Returns:
+        Matplotlib figure object
+    """
+    if not HAS_MATPLOTLIB:
+        raise ImportError(
+            "Matplotlib is required for visualization. Install with: pip install matplotlib"
+        )
+
+    n_individual = len(hierarchical_result.individual_envelopes)
+
+    # Create subplots: individual envelopes + meta-envelope + intercepts
+    fig = plt.figure(figsize=figsize)
+
+    # Individual envelopes
+    n_cols = min(3, n_individual)
+    n_rows = (n_individual + n_cols - 1) // n_cols
+
+    for i, hull in enumerate(hierarchical_result.individual_envelopes):
+        ax = fig.add_subplot(n_rows + 2, n_cols, i + 1)
+        plot_convex_hull(
+            hull,
+            k_min,
+            k_max,
+            f"Envelope {hull.envelope_id}",
+            show_all_lines=False,
+            show_intercepts=True,
+            ax=ax,
+        )
+
+    # Meta-envelope
+    ax_meta = fig.add_subplot(n_rows + 2, 1, n_rows + 1)
+    plot_convex_hull(
+        hierarchical_result.meta_envelope,
+        k_min,
+        k_max,
+        "Meta-Envelope (Envelope of Envelopes)",
+        show_all_lines=True,
+        show_intercepts=False,
+        ax=ax_meta,
+    )
+
+    # Intercepts summary
+    ax_intercepts = fig.add_subplot(n_rows + 2, 1, n_rows + 2)
+    plot_intercept_summary(hierarchical_result, k_min, k_max, ax=ax_intercepts)
+
+    plt.tight_layout()
+    return fig
+
+
+def plot_intercept_summary(
+    hierarchical_result: HierarchicalEnvelopeResult,
+    k_min: float = 0.0,
+    k_max: float = 1.0,
+    ax: Optional["plt.Axes"] = None,
+) -> "plt.Axes":
+    """
+    Plot summary of all intercepts with classification.
+
+    Args:
+        hierarchical_result: HierarchicalEnvelopeResult containing intercepts
+        k_min: Minimum k value for plotting
+        k_max: Maximum k value for plotting
+        ax: Existing axes to plot on (if None, creates new figure)
+
+    Returns:
+        Matplotlib axes object
+    """
+    if not HAS_MATPLOTLIB:
+        raise ImportError(
+            "Matplotlib is required for visualization. Install with: pip install matplotlib"
+        )
+
+    if ax is None:
+        fig, ax = plt.subplots(1, 1, figsize=(12, 6))
+
+    k_vals = np.linspace(k_min, k_max, 100)
+
+    # Plot meta-envelope
+    for i, line in enumerate(hierarchical_result.meta_envelope.hull_lines):
+        y_vals = [line.evaluate(k) for k in k_vals]
+        colors = plt.cm.tab10(i)
+        ax.plot(
+            k_vals,
+            y_vals,
+            "-",
+            linewidth=2,
+            color=colors,
+            label=f"Meta-Hull Line (Env {line.cell_i})",
+        )
+
+    # Plot intercepts with different colors for different types
+    change_points = [
+        p
+        for p in hierarchical_result.all_intercepts
+        if p.type == "change_assignment" and k_min <= p.k <= k_max
+    ]
+    partial_points = [
+        p
+        for p in hierarchical_result.all_intercepts
+        if p.type == "partial_assignment_change" and k_min <= p.k <= k_max
+    ]
+
+    # Change assignment points (red circles)
+    if change_points:
+        k_change = [p.k for p in change_points]
+        v_change = [p.intersection_value for p in change_points]
+        ax.scatter(
+            k_change,
+            v_change,
+            c="red",
+            s=100,
+            marker="o",
+            label="Change Assignment",
+            zorder=5,
+            edgecolors="black",
+            linewidth=1,
+        )
+
+        for p in change_points:
+            ax.annotate(
+                f"k={p.k:.3f}\nEnv {p.envelope1_id}→{p.envelope2_id}",
+                (p.k, p.intersection_value),
+                xytext=(5, 10),
+                textcoords="offset points",
+                fontsize=8,
+                ha="left",
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="yellow", alpha=0.7),
+            )
+
+    # Partial assignment change points (blue triangles)
+    if partial_points:
+        k_partial = [p.k for p in partial_points]
+        v_partial = [p.intersection_value for p in partial_points]
+        ax.scatter(
+            k_partial,
+            v_partial,
+            c="blue",
+            s=80,
+            marker="^",
+            label="Partial Assignment Change",
+            zorder=5,
+            edgecolors="black",
+            linewidth=1,
+        )
+
+        for p in partial_points:
+            ax.annotate(
+                f"k={p.k:.3f}\nWithin Env {p.envelope1_id}",
+                (p.k, p.intersection_value),
+                xytext=(5, -15),
+                textcoords="offset points",
+                fontsize=8,
+                ha="left",
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="lightblue", alpha=0.7),
+            )
+
+    ax.set_xlabel("k")
+    ax.set_ylabel("Value")
+    ax.set_title("Intercept Classification Summary")
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+
+    return ax
+
+
+def plot_envelope_comparison(
+    hull_results: List[ConvexHullResult],
+    labels: Optional[List[str]] = None,
+    k_min: float = 0.0,
+    k_max: float = 1.0,
+    title: str = "Envelope Comparison",
+) -> "plt.Figure":
+    """
+    Plot multiple convex hulls for comparison.
+
+    Args:
+        hull_results: List of ConvexHullResult objects to compare
+        labels: Labels for each hull (if None, uses envelope IDs)
+        k_min: Minimum k value for plotting
+        k_max: Maximum k value for plotting
+        title: Plot title
+
+    Returns:
+        Matplotlib figure object
+    """
+    if not HAS_MATPLOTLIB:
+        raise ImportError(
+            "Matplotlib is required for visualization. Install with: pip install matplotlib"
+        )
+
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+
+    k_vals = np.linspace(k_min, k_max, 100)
+    colors = plt.cm.Set1(np.linspace(0, 1, len(hull_results)))
+
+    for i, hull in enumerate(hull_results):
+        label_prefix = labels[i] if labels else f"Envelope {hull.envelope_id}"
+
+        # Plot hull lines for this envelope
+        for j, line in enumerate(hull.hull_lines):
+            y_vals = [line.evaluate(k) for k in k_vals]
+            linestyle = "-" if j == 0 else "--"
+            ax.plot(
+                k_vals,
+                y_vals,
+                linestyle,
+                color=colors[i],
+                linewidth=2,
+                label=f"{label_prefix} Line {j+1}" if j < 2 else "",
+            )
+
+        # Plot intercepts for this envelope
+        intercepts = find_all_envelope_intercepts(hull)
+        for intercept in intercepts:
+            if k_min <= intercept.k <= k_max:
+                ax.plot(
+                    intercept.k,
+                    intercept.intersection_value,
+                    "o",
+                    color=colors[i],
+                    markersize=6,
+                    markeredgecolor="black",
+                )
+
+    ax.set_xlabel("k")
+    ax.set_ylabel("Value")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    ax.legend()
+
+    return fig
+
+
+def save_visualization(
+    hierarchical_result: HierarchicalEnvelopeResult,
+    filename: str,
+    k_min: float = 0.0,
+    k_max: float = 1.0,
+    dpi: int = 300,
+) -> None:
+    """
+    Save hierarchical envelope visualization to file.
+
+    Args:
+        hierarchical_result: HierarchicalEnvelopeResult to visualize
+        filename: Output filename (with extension)
+        k_min: Minimum k value for plotting
+        k_max: Maximum k value for plotting
+        dpi: Image resolution
+    """
+    if not HAS_MATPLOTLIB:
+        raise ImportError(
+            "Matplotlib is required for visualization. Install with: pip install matplotlib"
+        )
+
+    fig = plot_hierarchical_envelopes(hierarchical_result, k_min, k_max)
+    fig.savefig(filename, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Visualization saved to {filename}")
+
+
 # Example usage and testing
 if __name__ == "__main__":
     print("=== Hierarchical Convex Hull Example ===")
 
     # Example 1: Simple 2x2 cost table
-    cost_table1 = np.array([
-        [1.0, 3.0],
-        [2.0, 1.5]
-    ])
+    cost_table1 = np.array([[1.0, 3.0], [2.0, 1.5]])
     q_values1 = np.array([0.5, 1.0])
 
     # Example 2: Another cost table
-    cost_table2 = np.array([
-        [0.5, 2.5],
-        [3.0, 1.0]
-    ])
+    cost_table2 = np.array([[0.5, 2.5], [3.0, 1.0]])
     q_values2 = np.array([1.0, 0.5])
 
     print("Cost table 1:")
@@ -623,32 +987,93 @@ if __name__ == "__main__":
 
     print(f"\nHull 1 - Generated {len(hull1.lines)} lines:")
     for line in hull1.lines:
-        print(f"  l_{line.cell_i}{line.cell_j} = {line.slope:.2f}*k + {line.intercept:.2f}")
+        print(
+            f"  l_{line.cell_i}{line.cell_j} = {line.slope:.2f}*k + {line.intercept:.2f}"
+        )
 
     print(f"\nHull 1 - Convex hull has {len(hull1.hull_lines)} lines:")
     for line in hull1.hull_lines:
-        print(f"  l_{line.cell_i}{line.cell_j} = {line.slope:.2f}*k + {line.intercept:.2f}")
+        print(
+            f"  l_{line.cell_i}{line.cell_j} = {line.slope:.2f}*k + {line.intercept:.2f}"
+        )
 
     # Find intercepts within hull 1
     intercepts1 = find_all_envelope_intercepts(hull1)
     print(f"\nHull 1 - Found {len(intercepts1)} partial assignment change points:")
     for intercept in intercepts1:
-        print(f"  k={intercept.k:.3f}, value={intercept.intersection_value:.3f}, type={intercept.type}")
+        print(
+            f"  k={intercept.k:.3f}, value={intercept.intersection_value:.3f}, type={intercept.type}"
+        )
 
     # Create hierarchical envelope
-    hierarchical_result = compute_hierarchical_envelopes([hull1, hull2], envelope_type="lower")
+    hierarchical_result = compute_hierarchical_envelopes(
+        [hull1, hull2], envelope_type="lower"
+    )
 
     print(f"\n=== Hierarchical Results ===")
     print(f"Total intercepts: {len(hierarchical_result.all_intercepts)}")
-    print(f"Change assignment points: {len(hierarchical_result.change_assignment_points)}")
-    print(f"Partial assignment change points: {len(hierarchical_result.partial_change_points)}")
+    print(
+        f"Change assignment points: {len(hierarchical_result.change_assignment_points)}"
+    )
+    print(
+        f"Partial assignment change points: {len(hierarchical_result.partial_change_points)}"
+    )
 
     print(f"\nAll intercepts (sorted by k):")
     for intercept in hierarchical_result.all_intercepts:
-        print(f"  k={intercept.k:.3f}, value={intercept.intersection_value:.3f}, type={intercept.type}")
+        print(
+            f"  k={intercept.k:.3f}, value={intercept.intersection_value:.3f}, type={intercept.type}"
+        )
         if intercept.type == "change_assignment":
-            print(f"    Between envelopes {intercept.envelope1_id} and {intercept.envelope2_id}")
+            print(
+                f"    Between envelopes {intercept.envelope1_id} and {intercept.envelope2_id}"
+            )
         else:
             print(f"    Within envelope {intercept.envelope1_id}")
 
-    print(f"\nMeta-envelope has {len(hierarchical_result.meta_envelope.hull_lines)} lines on hull")
+    print(
+        f"\nMeta-envelope has {len(hierarchical_result.meta_envelope.hull_lines)} lines on hull"
+    )
+
+    # Visualization
+    print(f"\n=== Visualization ===")
+    try:
+        if HAS_MATPLOTLIB:
+            print("Creating visualizations...")
+
+            # Plot individual hulls comparison
+            fig_comparison = plot_envelope_comparison(
+                [hull1, hull2], labels=["Cost Table 1", "Cost Table 2"]
+            )
+            print("- Individual envelope comparison plot created")
+
+            # Plot hierarchical envelope system
+            fig_hierarchical = plot_hierarchical_envelopes(hierarchical_result)
+            print("- Hierarchical envelope system plot created")
+
+            # Plot just the intercept summary
+            fig_summary, ax_summary = plt.subplots(1, 1, figsize=(12, 6))
+            plot_intercept_summary(hierarchical_result, ax=ax_summary)
+            print("- Intercept classification summary plot created")
+
+            # Save visualizations
+            try:
+                save_visualization(hierarchical_result, "hierarchical_envelopes.png")
+                print("- Visualization saved to 'hierarchical_envelopes.png'")
+            except Exception as e:
+                print(f"- Could not save visualization: {e}")
+
+            # Show plots if in interactive mode
+            try:
+                plt.show()
+                print("- Plots displayed (if in interactive mode)")
+            except Exception as e:
+                print("- Non-interactive mode, plots created but not displayed")
+
+        else:
+            print("Matplotlib not available. To see visualizations, install with:")
+            print("  pip install matplotlib")
+
+    except Exception as e:
+        print(f"Visualization error: {e}")
+        print("Continuing without visualizations...")
