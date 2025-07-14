@@ -1,8 +1,8 @@
 from typing import Dict, List
 import numpy as np
-from src.propflow.base_models.agents import VariableAgent, FactorAgent
-from src.propflow.base_models.components import Message
-from src.propflow.base_models.protocols import PolicyType, CostTable
+from src.propflow.core.agents import VariableAgent, FactorAgent
+from src.propflow.core.components import Message
+from src.propflow.core.protocols import PolicyType, CostTable
 from src.propflow.policies.bp_policies import Policy
 
 

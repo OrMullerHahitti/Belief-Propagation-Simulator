@@ -3,11 +3,11 @@ from typing import Dict, Optional, Callable
 import numpy as np
 import networkx as nx
 from src.propflow.policies.normalize_cost import normalize_inbox
-from src.propflow.base_models.agents import VariableAgent, FactorAgent
-from src.propflow.bp_base.computators import MinSumComputator
-from src.propflow.bp_base.engine_components import History, Step
-from src.propflow.bp_base.factor_graph import FactorGraph
-from src.propflow.base_models.dcop_base import Computator
+from src.propflow.core.agents import VariableAgent, FactorAgent
+from src.propflow.bp.computators import MinSumComputator
+from src.propflow.bp.engine_components import History, Step
+from src.propflow.bp.factor_graph import FactorGraph
+from src.propflow.core.dcop_base import Computator
 from src.propflow.policies.convergance import ConvergenceMonitor, ConvergenceConfig
 from src.propflow.utils.tools.performance import PerformanceMonitor
 
@@ -36,7 +36,6 @@ class BPEngine:
         normalize_messages: bool = True,
         anytime: bool = False,
         use_bct_history: bool = False,
-
     ):
         """
         Initialize the belief propagation engine.
@@ -49,7 +48,6 @@ class BPEngine:
         self._initialize_messages()
         self.graph.set_computator(self.computator)
         self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
-
 
         # Setup history
         engine_type = self.__class__.__name__
@@ -89,7 +87,7 @@ class BPEngine:
 
         # Phase 4: All factors compute messages
         for factor in self.factor_nodes:
-            self.pre_factor_compute(factor,i)
+            self.pre_factor_compute(factor, i)
             factor.compute_messages()
 
         # Phase 5: All factors send messages
@@ -237,14 +235,15 @@ class BPEngine:
     def post_two_cycles(self):
         pass
 
-
-    def pre_factor_compute(self, factor: FactorAgent,iteration:int=0):
+    def pre_factor_compute(self, factor: FactorAgent, iteration: int = 0):
         pass
-    def post_factor_compute(self, factor: FactorAgent,iteration:int):
+
+    def post_factor_compute(self, factor: FactorAgent, iteration: int):
         pass
 
     def pre_var_compute(self, var: VariableAgent):
         pass
+
     def post_var_compute(self, var: VariableAgent):
         pass
 
@@ -263,8 +262,6 @@ class BPEngine:
             self.history.costs.append(self.history.costs[-1])
             return
         self.history.costs.append(cost)
-
-
 
     def normalize_messages(self) -> None:
         """

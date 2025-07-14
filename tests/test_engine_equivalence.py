@@ -4,7 +4,7 @@ import pickle
 import sys, os
 
 from examples.debugging import create_factor_graph
-from src.propflow.bp_base.engines_realizations import SplitEngine, CostReductionOnceEngine
+from src.propflow.bp.engines_realizations import SplitEngine, CostReductionOnceEngine
 from src.propflow.policies import ConvergenceConfig
 
 # Add project root to path for imports
@@ -29,7 +29,7 @@ def test_split_vs_cost_reduction_once_equivalence():
     # Deep copy the graph for the second engine
     fg2 = pickle.loads(pickle.dumps(fg1))
 
-    # Initialize engines with same configuration parameters
+    # Initialize bp with same configuration parameters
     config = ConvergenceConfig()
     engine2 = SplitEngine(
         factor_graph=fg1,
@@ -44,7 +44,7 @@ def test_split_vs_cost_reduction_once_equivalence():
         reduction_factor=0.5,
     )
 
-    # Run both engines for the same number of iterations
+    # Run both bp for the same number of iterations
     max_iter = 50
     engine2.run(max_iter=max_iter)
     engine6.run(max_iter=max_iter)

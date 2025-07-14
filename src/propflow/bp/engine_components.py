@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 from dataclasses import dataclass, field
 import numpy as np
-from src.propflow.base_models.dcop_base import Agent
-from src.propflow.base_models.components import Message
+from src.propflow.core.dcop_base import Agent
+from src.propflow.core.components import Message
 
 
 @dataclass
@@ -93,15 +93,15 @@ class History:
 
         if self.use_bct_history:
             # Step-by-step tracking for BCT
-            self.step_beliefs: Dict[int, Dict[str, float]] = (
-                {}
-            )  # step -> var -> belief_value
-            self.step_assignments: Dict[int, Dict[str, int]] = (
-                {}
-            )  # step -> var -> assignment
-            self.step_messages: Dict[int, List[MessageData]] = (
-                {}
-            )  # step -> list of messages
+            self.step_beliefs: Dict[
+                int, Dict[str, float]
+            ] = {}  # step -> var -> belief_value
+            self.step_assignments: Dict[
+                int, Dict[str, int]
+            ] = {}  # step -> var -> assignment
+            self.step_messages: Dict[
+                int, List[MessageData]
+            ] = {}  # step -> list of messages
             self.step_costs: List[float] = []  # cost per step
             self.current_step = 0
 
@@ -398,7 +398,9 @@ class History:
                     "data": (
                         msg.data.tolist()
                         if isinstance(msg.data, np.ndarray)
-                        else [float(msg.data)] if hasattr(msg, "data") else []
+                        else [float(msg.data)]
+                        if hasattr(msg, "data")
+                        else []
                     ),
                 }
                 serialized[str(agent_name)].append(msg_data)

@@ -14,8 +14,8 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
-from src.propflow.base_models.agents import VariableAgent, FactorAgent
-from src.propflow.base_models.components import CostTable
+from src.propflow.core.agents import VariableAgent, FactorAgent
+from src.propflow.core.components import CostTable
 
 # Global constant for numerical stability
 EPSILON = 1e-9

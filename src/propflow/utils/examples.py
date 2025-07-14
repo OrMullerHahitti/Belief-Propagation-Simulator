@@ -1,5 +1,5 @@
 # create simple factorgraph cycle domain 3 3 variables
-from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.bp.factor_graph import FactorGraph
 import os
 
 from src.propflow.configs.global_config_mapping import CT_FACTORIES

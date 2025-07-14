@@ -1,8 +1,8 @@
 from typing import Dict
 import numpy as np
-from src.propflow.base_models.agents import FGAgent
-from src.propflow.base_models.components import Message
-from src.propflow.base_models.protocols import PolicyType
+from src.propflow.core.agents import FGAgent
+from src.propflow.core.components import Message
+from src.propflow.core.protocols import PolicyType
 from src.propflow.policies.bp_policies import Policy
 import logging
 

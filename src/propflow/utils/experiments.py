@@ -6,10 +6,12 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from src.propflow.bp_base.engines_realizations import BPEngine, MessagePruningEngine
+from src.propflow.bp.engines_realizations import BPEngine, MessagePruningEngine
 from src.propflow.utils.create.create_factor_graph_config import ConfigCreator
-from src.propflow.utils.create.create_factor_graphs_from_config import FactorGraphBuilder
-from src.propflow.bp_base.computators import MinSumComputator
+from src.propflow.utils.create.create_factor_graphs_from_config import (
+    FactorGraphBuilder,
+)
+from src.propflow.bp.computators import MinSumComputator
 import logging
 
 logging.basicConfig(level=logging.INFO)

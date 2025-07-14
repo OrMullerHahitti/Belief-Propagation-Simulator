@@ -3,9 +3,9 @@ from abc import abstractmethod
 from enum import Enum
 from typing import List, Dict
 
-from src.propflow.base_models.agents import VariableAgent, FactorAgent
-from src.propflow.base_models.components import Message
-from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.core.agents import VariableAgent, FactorAgent
+from src.propflow.core.components import Message
+from src.propflow.bp.factor_graph import FactorGraph
 
 
 # This file is part of the BpPolicies package.

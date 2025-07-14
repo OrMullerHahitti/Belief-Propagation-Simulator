@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
-from src.propflow.bp_base.factor_graph import FactorGraph
-from src.propflow.base_models import VariableAgent, FactorAgent
+from src.propflow.bp.factor_graph import FactorGraph
+from src.propflow.core import VariableAgent, FactorAgent
 from src.propflow.policies import split_all_factors
 
 

@@ -23,9 +23,10 @@ DSA and MGM are local search algorithms for distributed constraint optimization 
 
 ```python
 from src.propflow.search import DSAEngine, MGMEngine, DSAComputator, MGMComputator
-from src.propflow.bp_base.factor_graph import FactorGraph
-from src.propflow.base_models import VariableAgent, FactorAgent
+from src.propflow.bp.factor_graph import FactorGraph
+from src.propflow.core import VariableAgent, FactorAgent
 import numpy as np
+
 # Create factor graph (example: two variables with binary constraint)
 var1 = VariableAgent("x1", domain=2)
 var2 = VariableAgent("x2", domain=2)
