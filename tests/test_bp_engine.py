@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
-from src.propflow.bp_base.factor_graph import FactorGraph
-from src.propflow.bp_base.engines_realizations import BPEngine
+from src.propflow.bp.factor_graph import FactorGraph
+from src.propflow.bp.engines_realizations import BPEngine
 from src.propflow.utils import FGBuilder
 from src.propflow.configs import create_random_int_table
 from src.propflow.policies import ConvergenceConfig

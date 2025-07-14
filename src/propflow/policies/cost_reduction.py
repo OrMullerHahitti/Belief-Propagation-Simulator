@@ -1,11 +1,10 @@
-from src.propflow.base_models.agents import FactorAgent
+from src.propflow.core.agents import FactorAgent
 from typing import Iterable
 
-from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.bp.factor_graph import FactorGraph
 
 
 def cost_reduction_all_factors_once(fg: FactorGraph, x: float):
-
     for factor in fg.factors:
         if factor.cost_table is not None:
             factor.save_original()

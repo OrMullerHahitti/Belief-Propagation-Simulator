@@ -5,8 +5,8 @@ import numpy as np
 from typing import List, Dict
 import logging
 
-from src.propflow.base_models.dcop_base import Computator
-from src.propflow.base_models.agents import VariableAgent, FactorAgent
+from src.propflow.core.dcop_base import Computator
+from src.propflow.core.agents import VariableAgent, FactorAgent
 
 logger = logging.getLogger(__name__)
 
@@ -209,7 +209,6 @@ class FactorGraph:
             return 0
         # Check if graph is connected, diameter is infinite for disconnected graphs
         if not nx.is_connected(self.G):
-
             if not list(nx.connected_components(self.G)):  # Handle empty graph case
                 return 0
             largest_cc = max(nx.connected_components(self.G), key=len)

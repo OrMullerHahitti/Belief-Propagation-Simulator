@@ -1,11 +1,11 @@
 from ._version import __version__
 
-from src.propflow.bp_base.engine_base import BPEngine
-from src.propflow.bp_base.factor_graph import FactorGraph
-from src.propflow.base_models import VariableAgent, FactorAgent
+from src.propflow.bp.engine_base import BPEngine
+from src.propflow.bp.factor_graph import FactorGraph
+from src.propflow.core import VariableAgent, FactorAgent
 from src.propflow.utils import FGBuilder
 from .simulator import Simulator
-from src.propflow.bp_base.engines_realizations import (
+from src.propflow.bp.engines_realizations import (
     SplitEngine,
     DampingEngine,
     CostReductionOnceEngine,

@@ -1,4 +1,4 @@
-from src.propflow.base_models.agents import VariableAgent
+from src.propflow.core.agents import VariableAgent
 from typing import List
 
 

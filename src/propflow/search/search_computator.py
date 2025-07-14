@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple, Set
 import numpy as np
 
-from src.propflow.base_models.dcop_base import Computator, Agent
-from src.propflow.base_models.components import Message
+from src.propflow.core.dcop_base import Computator, Agent
+from src.propflow.core.components import Message
 
 
 class SearchComputator(Computator, ABC):
@@ -85,7 +85,9 @@ class SearchComputator(Computator, ABC):
 
         return outgoing_messages
 
-    async def compute_R(self, cost_table, incoming_messages: List[Message]) -> List[Message]:
+    async def compute_R(
+        self, cost_table, incoming_messages: List[Message]
+    ) -> List[Message]:
         """
         Adapt BP's compute_R for search algorithms.
         In search algorithms, R messages may contain cost information.
@@ -128,7 +130,7 @@ class DSAComputator(SearchComputator):
     """
     Distributed Stochastic Algorithm (DSA) computator.
     DSA is a local search algorithm where agents probabilistically decide to change their values.
-    
+
     In DSA, each agent:
     1. Evaluates the cost of changing to each possible value
     2. If an improvement is found, changes with probability p
@@ -157,13 +159,13 @@ class DSAComputator(SearchComputator):
             The new value to assign, or None to keep current value
         """
         import random
-        
+
         curr_value = getattr(agent, "curr_assignment", 0)
         curr_cost = self.evaluate_cost(agent, curr_value, neighbors_values)
-        
+
         best_value = curr_value
         best_cost = curr_cost
-        
+
         # Check all possible values for improvements
         domain_size = getattr(agent, "domain", 2)
         for value in range(domain_size):
@@ -172,19 +174,21 @@ class DSAComputator(SearchComputator):
                 if cost < best_cost:
                     best_cost = cost
                     best_value = value
-        
+
         # If improvement found, change with probability p
         if best_value != curr_value:
             if random.random() < self.probability:
                 return best_value
-        
+
         # No change
         return curr_value
 
-    def evaluate_cost(self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]) -> float:
+    def evaluate_cost(
+        self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]
+    ) -> float:
         """
         Evaluate the local cost of an agent taking a specific value.
-        
+
         This calculates the cost contribution from all factors connected to this agent.
 
         Args:
@@ -196,21 +200,21 @@ class DSAComputator(SearchComputator):
             The local cost (lower is better)
         """
         total_cost = 0.0
-        
+
         # Get all factor neighbors of this variable agent
-        if hasattr(agent, 'factor_neighbors'):
+        if hasattr(agent, "factor_neighbors"):
             factors = agent.factor_neighbors
         else:
             # Fallback: look for factors in a graph context
             # This will need to be set by the engine
-            factors = getattr(agent, '_connected_factors', [])
-        
+            factors = getattr(agent, "_connected_factors", [])
+
         for factor in factors:
             if factor.cost_table is not None:
                 # Build indices for cost table lookup
                 indices = [None] * len(factor.connection_number)
                 valid_lookup = True
-                
+
                 for var_name, dim in factor.connection_number.items():
                     if var_name == agent.name:
                         # Use the proposed value for this agent
@@ -222,14 +226,14 @@ class DSAComputator(SearchComputator):
                         # Missing neighbor value - skip this factor
                         valid_lookup = False
                         break
-                
+
                 if valid_lookup and None not in indices:
                     try:
                         total_cost += factor.cost_table[tuple(indices)]
                     except (IndexError, TypeError):
                         # Handle potential indexing errors gracefully
                         pass
-        
+
         return total_cost
 
 
@@ -237,10 +241,10 @@ class MGMComputator(SearchComputator):
     """
     Maximum Gain Message (MGM) computator.
     MGM is a local search algorithm where agents coordinate to make the move with maximum gain.
-    
+
     In MGM:
     1. Each agent calculates its best possible gain from changing values
-    2. Agents exchange their gain values with neighbors  
+    2. Agents exchange their gain values with neighbors
     3. Only the agent with the maximum gain in its neighborhood changes
     4. In case of ties, deterministic tie-breaking is used (e.g., lexicographic by agent name)
     """
@@ -266,10 +270,10 @@ class MGMComputator(SearchComputator):
             # Calculate and store this agent's best gain
             curr_value = getattr(agent, "curr_assignment", 0)
             curr_cost = self.evaluate_cost(agent, curr_value, neighbors_values)
-            
+
             best_value = curr_value
             best_gain = 0.0
-            
+
             # Find best possible move
             domain_size = getattr(agent, "domain", 2)
             for value in range(domain_size):
@@ -279,33 +283,35 @@ class MGMComputator(SearchComputator):
                     if gain > best_gain:
                         best_gain = gain
                         best_value = value
-            
+
             # Store gain for coordination phase
             self.agent_gains[agent.name] = {
-                'gain': best_gain,
-                'best_value': best_value,
-                'current_value': curr_value
+                "gain": best_gain,
+                "best_value": best_value,
+                "current_value": curr_value,
             }
-            
+
             return None  # No decision yet in gain calculation phase
-            
+
         elif self.phase == "decision":
             # Check if this agent should make the move
             agent_info = self.agent_gains.get(agent.name, {})
-            agent_gain = agent_info.get('gain', 0.0)
-            
+            agent_gain = agent_info.get("gain", 0.0)
+
             if agent_gain <= 0:
-                return agent_info.get('current_value', getattr(agent, "curr_assignment", 0))
-            
+                return agent_info.get(
+                    "current_value", getattr(agent, "curr_assignment", 0)
+                )
+
             # Check if this agent has maximum gain among neighbors
             has_max_gain = True
             neighbor_gains = []
-            
+
             # Get neighbor gains - this would need to be populated by the engine
             # during the coordination phase
-            if hasattr(agent, 'neighbor_gains'):
+            if hasattr(agent, "neighbor_gains"):
                 neighbor_gains = agent.neighbor_gains
-            
+
             for neighbor_name, neighbor_gain in neighbor_gains.items():
                 if neighbor_gain > agent_gain:
                     has_max_gain = False
@@ -315,16 +321,20 @@ class MGMComputator(SearchComputator):
                     if neighbor_name < agent.name:
                         has_max_gain = False
                         break
-            
-            if has_max_gain:
-                return agent_info.get('best_value', agent_info.get('current_value', 0))
-            else:
-                return agent_info.get('current_value', getattr(agent, "curr_assignment", 0))
 
-    def evaluate_cost(self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]) -> float:
+            if has_max_gain:
+                return agent_info.get("best_value", agent_info.get("current_value", 0))
+            else:
+                return agent_info.get(
+                    "current_value", getattr(agent, "curr_assignment", 0)
+                )
+
+    def evaluate_cost(
+        self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]
+    ) -> float:
         """
         Evaluate the local cost of an agent taking a specific value.
-        
+
         This calculates the cost contribution from all factors connected to this agent.
 
         Args:
@@ -336,21 +346,21 @@ class MGMComputator(SearchComputator):
             The local cost (lower is better)
         """
         total_cost = 0.0
-        
+
         # Get all factor neighbors of this variable agent
-        if hasattr(agent, 'factor_neighbors'):
+        if hasattr(agent, "factor_neighbors"):
             factors = agent.factor_neighbors
         else:
             # Fallback: look for factors in a graph context
             # This will need to be set by the engine
-            factors = getattr(agent, '_connected_factors', [])
-        
+            factors = getattr(agent, "_connected_factors", [])
+
         for factor in factors:
             if factor.cost_table is not None:
                 # Build indices for cost table lookup
                 indices = [None] * len(factor.connection_number)
                 valid_lookup = True
-                
+
                 for var_name, dim in factor.connection_number.items():
                     if var_name == agent.name:
                         # Use the proposed value for this agent
@@ -362,14 +372,14 @@ class MGMComputator(SearchComputator):
                         # Missing neighbor value - skip this factor
                         valid_lookup = False
                         break
-                
+
                 if valid_lookup and None not in indices:
                     try:
                         total_cost += factor.cost_table[tuple(indices)]
                     except (IndexError, TypeError):
                         # Handle potential indexing errors gracefully
                         pass
-        
+
         return total_cost
 
     def reset_phase(self):
