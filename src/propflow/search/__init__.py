@@ -4,17 +4,29 @@ This module extends the belief propagation framework to support search algorithm
 """
 
 # Import computators first (they have fewer dependencies)
-from src.propflow.search.search_computator import SearchComputator, DSAComputator, MGMComputator
+from src.propflow.search.search_computator import (
+    SearchComputator,
+    DSAComputator,
+    MGMComputator,
+)
 
-# Conditionally import engines and agents (which need more dependencies)
+# Conditionally import bp and agents (which need more dependencies)
 try:
     from src.propflow.search.search_engine import SearchEngine, DSAEngine, MGMEngine
-    from src.propflow.search.search_agents import SearchVariableAgent, extend_variable_agent_for_search
-    
+    from src.propflow.search.search_agents import (
+        SearchVariableAgent,
+        extend_variable_agent_for_search,
+    )
+
     __all__ = [
-        "SearchComputator", "DSAComputator", "MGMComputator",
-        "SearchEngine", "DSAEngine", "MGMEngine", 
-        "SearchVariableAgent", "extend_variable_agent_for_search"
+        "SearchComputator",
+        "DSAComputator",
+        "MGMComputator",
+        "SearchEngine",
+        "DSAEngine",
+        "MGMEngine",
+        "SearchVariableAgent",
+        "extend_variable_agent_for_search",
     ]
 except ImportError:
     # If dependencies aren't available, just provide computators

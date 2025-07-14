@@ -1,10 +1,10 @@
 # Tests for message computing
 import pytest
 import numpy as np
-from src.propflow.bp_base.computators import MaxSumComputator, MinSumComputator
-from src.propflow.base_models import Agent  # For basic sender/recipient typing if needed
-from src.propflow.base_models import Message
-from src.propflow.base_models import VariableAgent, FactorAgent
+from src.propflow.bp.computators import MaxSumComputator, MinSumComputator
+from src.propflow.core import Agent  # For basic sender/recipient typing if needed
+from src.propflow.core import Message
+from src.propflow.core import VariableAgent, FactorAgent
 
 
 # Fixture for a MaxSumComputator
@@ -243,7 +243,7 @@ def test_compute_r_with_incoming_values(
 # # Test JIT acceleration if available
 # def test_jit_acceleration_flag():
 #     """Test that the JIT acceleration flag is properly set"""
-#     from bp_base.bp_computators import HAS_NUMBA
+#     from bp.bp_computators import HAS_NUMBA
 #
 #     computator = BPComputator(reduce_func=np.max, combine_func=np.add, use_jit=True)
 #     assert computator._use_jit == HAS_NUMBA

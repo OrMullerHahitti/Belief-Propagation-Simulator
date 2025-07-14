@@ -4,7 +4,7 @@
 from typing import Dict, Callable
 from enum import Enum
 
-from src.propflow.bp_base.computators import MinSumComputator
+from src.propflow.bp.computators import MinSumComputator
 from src.propflow.utils import find_project_root
 
 # message parameters
@@ -44,8 +44,8 @@ GRAPH_TYPES: Dict[str, str] = {  # str  -> dotted‑path or import key
 }
 
 COMPUTATORS: Dict[str, str] = {  # str -> dotted‑path to BPComputator subclass
-    "max-sum": "bp_base.computators.MaxSumComputator",
-    "min-sum": "bp_base.computators.MinSumComputator",
+    "max-sum": "bp.computators.MaxSumComputator",
+    "min-sum": "bp.computators.MinSumComputator",
     "sum-product": "my_bp.computators.SumProductComputator",
 }
 

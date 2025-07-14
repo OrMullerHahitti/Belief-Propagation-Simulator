@@ -4,8 +4,8 @@ from typing import List
 import networkx as nx
 from copy import deepcopy
 
-from src.propflow.base_models.agents import FactorAgent
-from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.core.agents import FactorAgent
+from src.propflow.bp.factor_graph import FactorGraph
 
 
 def split_all_factors(
@@ -25,7 +25,6 @@ def split_all_factors(
     original_factors: List[FactorAgent] = list(fg.factors)
 
     for f in original_factors:
-
         #  build new agents
         cost1 = p * f.cost_table
         cost2 = (1.0 - p) * f.cost_table

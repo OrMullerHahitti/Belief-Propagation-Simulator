@@ -6,14 +6,18 @@ import multiprocessing as mp
 from src.propflow.simulator import Simulator
 from src.propflow.utils import FGBuilder
 from src.propflow.configs import CT_FACTORIES
-from src.propflow.bp_base.engines_realizations import BPEngine, DampingSCFGEngine, DampingEngine
+from src.propflow.bp.engines_realizations import (
+    BPEngine,
+    DampingSCFGEngine,
+    DampingEngine,
+)
 
 SEED = 42
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Set multiprocessing start method for clean process spawning
     try:
-        mp.set_start_method('spawn', force=True)
+        mp.set_start_method("spawn", force=True)
     except RuntimeError:
         pass  # Already set
 
@@ -24,12 +28,16 @@ if __name__ == '__main__':
     # --- Configuration ---
     NUM_GRAPHS = 10
     MAX_ITER = 5000
-    LOG_LEVEL = 'INFORMATIVE'  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
+    LOG_LEVEL = "INFORMATIVE"  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
 
     # Engine configurations
     engine_configs = {
         "BPEngine": {"class": BPEngine},
-        "DampingSCFGEngine_asymmetric": {"class": DampingSCFGEngine, "damping_factor": 0.9, "split_factor": 0.6},
+        "DampingSCFGEngine_asymmetric": {
+            "class": DampingSCFGEngine,
+            "damping_factor": 0.9,
+            "split_factor": 0.6,
+        },
         "DampingEngine": {"class": DampingEngine, "damping_factor": 0.9},
     }
 

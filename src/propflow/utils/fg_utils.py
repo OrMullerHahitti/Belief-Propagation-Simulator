@@ -7,8 +7,8 @@ import networkx as nx
 import numpy as np
 
 from src.propflow.utils.path_utils import find_project_root  # Added import
-from src.propflow.bp_base.factor_graph import FactorGraph
-from src.propflow.base_models.agents import VariableAgent, FactorAgent
+from src.propflow.bp.factor_graph import FactorGraph
+from src.propflow.core.agents import VariableAgent, FactorAgent
 
 # Make sure your project root is in the Python path
 project_root = find_project_root()
@@ -61,7 +61,6 @@ def _make_connections_density(
 
 ##-------------------------- fg builder --------------------------##
 class FGBuilder:
-
     @staticmethod
     def build_random_graph(
         num_vars: int,
@@ -89,8 +88,6 @@ class FGBuilder:
         factors = list(edges.keys())
 
         return FactorGraph(variables, factors, edges)
-
-
 
     ### ------------ IMPORTANT:  DO NOT CHANGE ------------------ ###
     @staticmethod
@@ -130,11 +127,13 @@ class FGBuilder:
 
         return FactorGraph(variables, factors, edges)
 
-
     ##### ------------ Private Methods ------------------ #####
 
 
-def get_message_shape(domain_size: int,connections: int = 2, ) -> tuple[int, ...]:
+def get_message_shape(
+    domain_size: int,
+    connections: int = 2,
+) -> tuple[int, ...]:
     """
     Calculate the shape of the cost table based on the number of connections and domain size.
 
@@ -147,9 +146,10 @@ def get_message_shape(domain_size: int,connections: int = 2, ) -> tuple[int, ...
     """
     return (domain_size,) * connections
 
+
 @lru_cache(maxsize=128)
-def get_broadcast_shape(ct_dims,domain_size: int, ax:int) -> tuple[int, ...]:
-    #create ones np array with the shape of the cost table
+def get_broadcast_shape(ct_dims, domain_size: int, ax: int) -> tuple[int, ...]:
+    # create ones np array with the shape of the cost table
     br_message = np.ones(ct_dims)
     br_message[ax] = domain_size
     return tuple(br_message)
@@ -169,20 +169,20 @@ def generate_random_cost(fg: FactorGraph) -> int | float:
 class SafeUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         # Handle potential module renames or reorganizations
-        if module == "bp_base.factor_graph" and name == "FactorGraph":
-            from src.propflow.bp_base.factor_graph import FactorGraph
+        if module == "bp.factor_graph" and name == "FactorGraph":
+            from src.propflow.bp.factor_graph import FactorGraph
 
             return FactorGraph
-        elif module == "bp_base.agents" and name == "VariableAgent":
-            from src.propflow.base_models.agents import VariableAgent
+        elif module == "bp.agents" and name == "VariableAgent":
+            from src.propflow.core.agents import VariableAgent
 
             return VariableAgent
-        elif module == "bp_base.agents" and name == "FactorAgent":
-            from src.propflow.base_models.agents import FactorAgent
+        elif module == "bp.agents" and name == "FactorAgent":
+            from src.propflow.core.agents import FactorAgent
 
             return FactorAgent
-        elif module == "bp_base.components" and name == "Message":
-            from src.propflow.base_models.components import Message
+        elif module == "bp.components" and name == "Message":
+            from src.propflow.core.components import Message
 
             return Message
         # Add more mappings as needed
@@ -245,12 +245,13 @@ def repair_factor_graph(fg):
 
     return fg
 
+
 #
 # try:
 #     # Import all the required classes
-#     from bp_base.factor_graph import FactorGraph
-#     from base_models.agents import VariableAgent, FactorAgent
-#     from base_models.components import Message
+#     from bp.factor_graph import FactorGraph
+#     from core.agents import VariableAgent, FactorAgent
+#     from core.components import Message
 #
 #     print(f"NetworkX version: {nx.__version__}")
 #

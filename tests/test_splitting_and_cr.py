@@ -1,7 +1,7 @@
 import numpy as np
-from src.propflow.bp_base.engines_realizations import DampingSCFGEngine, DampingCROnceEngine
-from src.propflow.base_models import VariableAgent, FactorAgent
-from src.propflow.bp_base.factor_graph import FactorGraph
+from src.propflow.bp.engines_realizations import DampingSCFGEngine, DampingCROnceEngine
+from src.propflow.core import VariableAgent, FactorAgent
+from src.propflow.bp.factor_graph import FactorGraph
 
 
 def create_simple_factor_graph():
@@ -33,7 +33,7 @@ def extract_factor_messages(factor):
 def test_equivalence_split_vs_costreduction():
     fg1 = create_simple_factor_graph()
     fg2 = create_simple_factor_graph()
-    # Initialize engines
+    # Initialize bp
     engine_split = DampingSCFGEngine(
         factor_graph=fg1,
         split_factor=0.5,
@@ -76,5 +76,5 @@ def test_equivalence_split_vs_costreduction():
 if __name__ == "__main__":
     test_equivalence_split_vs_costreduction()
     print(
-        "Test passed: The two engines produce identical messages and beliefs after one iteration."
+        "Test passed: The two bp produce identical messages and beliefs after one iteration."
     )

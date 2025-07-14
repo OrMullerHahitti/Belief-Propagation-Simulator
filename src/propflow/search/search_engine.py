@@ -6,9 +6,9 @@ These extend the base BPEngine interface to fit search problems.
 from typing import Dict, Optional, Any, Tuple
 import logging
 
-from src.propflow.bp_base.engine_base import BPEngine
-from src.propflow.bp_base.factor_graph import FactorGraph
-from src.propflow.bp_base.engine_components import Step, Cycle
+from src.propflow.bp.engine_base import BPEngine
+from src.propflow.bp.factor_graph import FactorGraph
+from src.propflow.bp.engine_components import Step, Cycle
 from src.propflow.search.search_computator import SearchComputator, KOptMGMComputator
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class SearchEngine(BPEngine):
     """
-    Abstract base class for search-based algorithm engines.
+    Abstract base class for search-based algorithm bp.
     This class adapts the BP Engine interface for search algorithms.
     """
 
@@ -201,10 +201,10 @@ class DSAEngine(SearchEngine):
     """
     Engine for the Distributed Stochastic Algorithm (DSA).
     DSA is a local search algorithm where agents probabilistically decide to change their values.
-    
+
     In DSA, all agents act simultaneously and independently:
     1. Each agent evaluates the benefit of changing to each possible value
-    2. If improvement is found, agent changes with probability p  
+    2. If improvement is found, agent changes with probability p
     3. All changes happen simultaneously
     """
 
@@ -227,29 +227,29 @@ class DSAEngine(SearchEngine):
         super().__init__(
             factor_graph=factor_graph, computator=computator, name=name, **kwargs
         )
-        
+
         # Extend variable agents with search capabilities
         self._setup_search_agents()
-    
+
     def _setup_search_agents(self):
         """Setup variable agents with search capabilities."""
         from src.propflow.search.search_agents import extend_variable_agent_for_search
-        
-        # Extend all variable agents  
+
+        # Extend all variable agents
         extended_vars = []
         for var in self.var_nodes:
             search_var = extend_variable_agent_for_search(var)
             search_var.computator = self.computator
-            
+
             # Set up connected factors for cost evaluation
             connected_factors = []
             for factor in self.factor_nodes:
                 if var.name in factor.connection_number:
                     connected_factors.append(factor)
             search_var.set_connected_factors(connected_factors)
-            
+
             extended_vars.append(search_var)
-        
+
         # Replace variable nodes in graph
         # Update graph nodes
         for old_var, new_var in zip(self.var_nodes, extended_vars):
@@ -259,35 +259,35 @@ class DSAEngine(SearchEngine):
                 edge_data = self.graph.G.get_edge_data(old_var, neighbor)
                 self.graph.G.remove_edge(old_var, neighbor)
                 self.graph.G.add_edge(new_var, neighbor, **edge_data)
-            
+
             self.graph.G.remove_node(old_var)
             if old_var not in self.graph.G:
                 self.graph.G.add_node(new_var)
-        
+
         # Update references
         self.graph._variables = extended_vars
-    
+
     def step(self, i: int = 0) -> Step:
         """
         Execute one step of DSA.
-        
+
         Args:
             i: Step number
-            
+
         Returns:
             The completed step
         """
         step = Step(i)
-        
+
         # DSA: All agents decide simultaneously and independently
         decisions = {}
-        
+
         # Phase 1: All agents compute their decisions
         for var in self.var_nodes:
             neighbors_values = var.get_neighbor_values(self.graph)
             decision = var.compute_search_step(neighbors_values)
             decisions[var.name] = decision
-        
+
         # Phase 2: All agents update simultaneously
         changes = 0
         for var in self.var_nodes:
@@ -295,19 +295,19 @@ class DSAEngine(SearchEngine):
             var.update_assignment()
             if var.curr_assignment != old_value:
                 changes += 1
-        
+
         self.stats["changes"] = changes
-        
+
         # Update best assignment if current is better
         current_cost = self.global_cost
         if current_cost < self.best_cost:
             self.best_cost = current_cost
             self.best_assignment = self.assignments.copy()
             self.stats["improvements"] += 1
-        
+
         # Track cost history
         self.history.costs.append(current_cost)
-        
+
         return step
 
 
@@ -315,10 +315,10 @@ class MGMEngine(SearchEngine):
     """
     Engine for the Maximum Gain Message (MGM) algorithm.
     MGM is a local search algorithm where agents coordinate to make the move with maximum gain.
-    
+
     MGM operates in phases:
     1. Gain calculation: Each agent calculates best possible improvement
-    2. Gain exchange: Agents share gains with neighbors  
+    2. Gain exchange: Agents share gains with neighbors
     3. Decision: Only agent with maximum gain in neighborhood moves
     """
 
@@ -341,29 +341,29 @@ class MGMEngine(SearchEngine):
         super().__init__(
             factor_graph=factor_graph, computator=computator, name=name, **kwargs
         )
-        
+
         # Extend variable agents with search capabilities
         self._setup_search_agents()
-    
+
     def _setup_search_agents(self):
         """Setup variable agents with search capabilities."""
         from src.propflow.search.search_agents import extend_variable_agent_for_search
-        
-        # Extend all variable agents  
+
+        # Extend all variable agents
         extended_vars = []
         for var in self.var_nodes:
             search_var = extend_variable_agent_for_search(var)
             search_var.computator = self.computator
-            
+
             # Set up connected factors for cost evaluation
             connected_factors = []
             for factor in self.factor_nodes:
                 if var.name in factor.connection_number:
                     connected_factors.append(factor)
             search_var.set_connected_factors(connected_factors)
-            
+
             extended_vars.append(search_var)
-        
+
         # Replace variable nodes in graph
         # Update graph nodes
         for old_var, new_var in zip(self.var_nodes, extended_vars):
@@ -373,66 +373,66 @@ class MGMEngine(SearchEngine):
                 edge_data = self.graph.G.get_edge_data(old_var, neighbor)
                 self.graph.G.remove_edge(old_var, neighbor)
                 self.graph.G.add_edge(new_var, neighbor, **edge_data)
-            
+
             self.graph.G.remove_node(old_var)
             if old_var not in self.graph.G:
                 self.graph.G.add_node(new_var)
-        
+
         # Update references
         self.graph._variables = extended_vars
-    
+
     def step(self, i: int = 0) -> Step:
         """
         Execute one step of MGM.
-        
+
         Args:
             i: Step number
-            
+
         Returns:
             The completed step
         """
         step = Step(i)
-        
+
         # Reset computator phase
-        if hasattr(self.computator, 'reset_phase'):
+        if hasattr(self.computator, "reset_phase"):
             self.computator.reset_phase()
-        
+
         # Phase 1: Gain calculation - all agents compute their best gains
         for var in self.var_nodes:
             neighbors_values = var.get_neighbor_values(self.graph)
             var.compute_search_step(neighbors_values)
-        
+
         # Phase 2: Gain exchange - share gains between neighbors
         self._exchange_gains()
-        
+
         # Phase 3: Decision phase - agents decide based on maximum gain rule
-        if hasattr(self.computator, 'move_to_decision_phase'):
+        if hasattr(self.computator, "move_to_decision_phase"):
             self.computator.move_to_decision_phase()
-        
+
         changes = 0
         for var in self.var_nodes:
             neighbors_values = var.get_neighbor_values(self.graph)
             old_value = var.curr_assignment
             decision = var.compute_search_step(neighbors_values)
-            
+
             if decision is not None and decision != old_value:
                 var.curr_assignment = decision
                 changes += 1
-        
+
         self.stats["changes"] = changes
-        
+
         # Update best assignment if current is better
         current_cost = self.global_cost
         if current_cost < self.best_cost:
             self.best_cost = current_cost
             self.best_assignment = self.assignments.copy()
             self.stats["improvements"] += 1
-        
+
         # Track cost history
         self.history.costs.append(current_cost)
-        
+
         return step
-    
+
     def _exchange_gains(self):
         """
         Exchange gain information between neighboring agents.
@@ -440,10 +440,10 @@ class MGMEngine(SearchEngine):
         """
         # Create mapping of variable neighbors
         var_neighbors = {}
-        
+
         for var in self.var_nodes:
             var_neighbors[var.name] = []
-            
+
             # Find variable neighbors through factors
             for factor in self.factor_nodes:
                 if var.name in factor.connection_number:
@@ -451,16 +451,18 @@ class MGMEngine(SearchEngine):
                     for other_var_name in factor.connection_number:
                         if other_var_name != var.name:
                             var_neighbors[var.name].append(other_var_name)
-        
+
         # Share gains between neighbors
         for var in self.var_nodes:
             neighbor_gains = {}
-            
-            if hasattr(self.computator, 'agent_gains'):
+
+            if hasattr(self.computator, "agent_gains"):
                 for neighbor_name in var_neighbors.get(var.name, []):
                     if neighbor_name in self.computator.agent_gains:
-                        neighbor_gains[neighbor_name] = self.computator.agent_gains[neighbor_name]['gain']
-            
+                        neighbor_gains[neighbor_name] = self.computator.agent_gains[
+                            neighbor_name
+                        ]["gain"]
+
             var.neighbor_gains = neighbor_gains
 
 

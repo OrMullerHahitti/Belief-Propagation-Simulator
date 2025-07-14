@@ -266,7 +266,7 @@ class EnhancedSaveModule:
         self, simulator, filepath: Optional[str] = None, save_csv: bool = True
     ) -> str:
         """
-        Save comprehensive analysis of simulator data across multiple engines and runs.
+        Save comprehensive analysis of simulator data across multiple bp and runs.
 
         Args:
             simulator: Simulator instance with accumulated results
@@ -448,7 +448,7 @@ class EnhancedSaveModule:
             graph_count=len(next(iter(simulator.results.values()), [])),
             timestamp=self.timestamp,
             config_summary={
-                "engines": list(simulator.engine_configs.keys()),
+                "bp": list(simulator.engine_configs.keys()),
                 "log_level": getattr(simulator, "logger", {}).level
                 if hasattr(simulator, "logger")
                 else "unknown",
@@ -637,7 +637,7 @@ class EnhancedSaveModule:
     def _calculate_performance_rankings(
         self, engine_stats: Dict, convergence_analysis: Dict
     ) -> Dict[str, Dict[str, Any]]:
-        """Calculate relative performance rankings between engines"""
+        """Calculate relative performance rankings between bp"""
         engines = list(engine_stats.keys())
         if not engines:
             return {}

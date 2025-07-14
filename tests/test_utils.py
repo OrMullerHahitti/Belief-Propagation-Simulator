@@ -4,22 +4,27 @@ import tempfile
 import pickle
 from src.propflow.utils import FGBuilder
 from src.propflow.utils.fg_utils import (
-    get_message_shape, 
-    get_broadcast_shape, 
+    get_message_shape,
+    get_broadcast_shape,
     generate_random_cost,
-    get_bound
+    get_bound,
 )
 from src.propflow.utils.general_utils import profiling
-from src.propflow.utils.inbox_utils import multiply_messages, multiply_messages_attentive
+from src.propflow.utils.inbox_utils import (
+    multiply_messages,
+    multiply_messages_attentive,
+)
 from src.propflow.utils.create.create_cost_tables import (
     create_random_int_table,
     create_uniform_table,
     create_normal_table,
     create_exponential_table,
-    create_symmetric_cost_table
+    create_symmetric_cost_table,
 )
-from src.propflow.configs import create_random_int_table as config_create_random_int_table
-from src.propflow.base_models.components import Message
+from src.propflow.configs import (
+    create_random_int_table as config_create_random_int_table,
+)
+from src.propflow.core.components import Message
 
 
 class TestUtilsFunctions:
@@ -32,7 +37,7 @@ class TestUtilsFunctions:
             num_vars=4,
             domain_size=3,
             ct_factory=config_create_random_int_table,
-            ct_params={"low": 1, "high": 10}
+            ct_params={"low": 1, "high": 10},
         )
 
     def test_get_message_shape(self):
@@ -40,11 +45,11 @@ class TestUtilsFunctions:
         # Test default binary connections
         shape = get_message_shape(domain_size=3)
         assert shape == (3, 3)
-        
+
         # Test custom connections
         shape = get_message_shape(domain_size=2, connections=3)
         assert shape == (2, 2, 2)
-        
+
         # Test single connection
         shape = get_message_shape(domain_size=4, connections=1)
         assert shape == (4,)
@@ -53,11 +58,11 @@ class TestUtilsFunctions:
         """Test broadcast shape calculation."""
         ct_dims = (3, 3)
         domain_size = 3
-        
+
         # Test axis 0
         shape = get_broadcast_shape(ct_dims, domain_size, 0)
         assert shape == (3, 1)
-        
+
         # Test axis 1
         shape = get_broadcast_shape(ct_dims, domain_size, 1)
         assert shape == (1, 3)
@@ -65,10 +70,10 @@ class TestUtilsFunctions:
     def test_generate_random_cost(self, sample_factor_graph):
         """Test random cost generation."""
         cost = generate_random_cost(sample_factor_graph)
-        
+
         assert isinstance(cost, (int, float))
         assert cost >= 0  # Cost should be non-negative
-        
+
         # Test multiple generations give different results (probabilistic)
         costs = [generate_random_cost(sample_factor_graph) for _ in range(10)]
         assert len(set(costs)) > 1  # Should have some variation
@@ -79,12 +84,12 @@ class TestUtilsFunctions:
         min_bound = get_bound(sample_factor_graph, reduce_func=np.min)
         assert isinstance(min_bound, float)
         assert min_bound >= 0
-        
+
         # Test maximum bound
         max_bound = get_bound(sample_factor_graph, reduce_func=np.max)
         assert isinstance(max_bound, float)
         assert max_bound >= min_bound
-        
+
         # Test sum bound
         sum_bound = get_bound(sample_factor_graph, reduce_func=np.sum)
         assert isinstance(sum_bound, float)
@@ -92,10 +97,11 @@ class TestUtilsFunctions:
 
     def test_profiling_decorator(self):
         """Test profiling decorator."""
+
         @profiling
         def test_function():
             return sum(range(100))
-        
+
         # Should execute without error
         result = test_function()
         assert result == sum(range(100))
@@ -108,18 +114,24 @@ class TestInboxUtils:
     def sample_messages(self):
         """Create sample messages for testing."""
         return [
-            Message(data=np.array([1.0, 2.0, 3.0]), sender="sender1", recipient="recipient1"),
-            Message(data=np.array([2.0, 3.0, 4.0]), sender="sender2", recipient="recipient2"),
-            Message(data=np.array([3.0, 4.0, 5.0]), sender="sender3", recipient="recipient3")
+            Message(
+                data=np.array([1.0, 2.0, 3.0]), sender="sender1", recipient="recipient1"
+            ),
+            Message(
+                data=np.array([2.0, 3.0, 4.0]), sender="sender2", recipient="recipient2"
+            ),
+            Message(
+                data=np.array([3.0, 4.0, 5.0]), sender="sender3", recipient="recipient3"
+            ),
         ]
 
     def test_multiply_messages(self, sample_messages):
         """Test message multiplication."""
         original_data = [msg.data.copy() for msg in sample_messages]
         factor = 2
-        
+
         multiply_messages(sample_messages, factor)
-        
+
         # Check that all messages are multiplied by factor
         for i, msg in enumerate(sample_messages):
             np.testing.assert_array_equal(msg.data, original_data[i] * factor)
@@ -129,9 +141,9 @@ class TestInboxUtils:
         original_data = [msg.data.copy() for msg in sample_messages]
         factor = 2.0
         iteration = 3
-        
+
         multiply_messages_attentive(sample_messages, factor, iteration)
-        
+
         # Check that all messages are multiplied by factor * (iteration + 1)
         expected_factor = factor * (iteration + 1)
         for i, msg in enumerate(sample_messages):
@@ -140,7 +152,7 @@ class TestInboxUtils:
     def test_multiply_messages_with_zero_factor(self, sample_messages):
         """Test message multiplication with zero factor."""
         multiply_messages(sample_messages, 0)
-        
+
         # All message data should be zero
         for msg in sample_messages:
             np.testing.assert_array_equal(msg.data, np.zeros_like(msg.data))
@@ -149,9 +161,9 @@ class TestInboxUtils:
         """Test message multiplication with negative factor."""
         original_data = [msg.data.copy() for msg in sample_messages]
         factor = -1
-        
+
         multiply_messages(sample_messages, factor)
-        
+
         # Check that all messages are multiplied by negative factor
         for i, msg in enumerate(sample_messages):
             np.testing.assert_array_equal(msg.data, original_data[i] * factor)
@@ -163,7 +175,7 @@ class TestCostTableCreation:
     def test_create_random_int_table(self):
         """Test random integer cost table creation."""
         table = create_random_int_table(n=2, domain=3, low=1, high=10)
-        
+
         assert isinstance(table, np.ndarray)
         assert table.shape == (3, 3)
         assert table.dtype in [np.int32, np.int64]
@@ -173,7 +185,7 @@ class TestCostTableCreation:
     def test_create_uniform_table(self):
         """Test uniform cost table creation."""
         table = create_uniform_table(n=2, domain=2, low=0.0, high=1.0)
-        
+
         assert isinstance(table, np.ndarray)
         assert table.shape == (2, 2)
         assert table.dtype in [np.float32, np.float64]
@@ -183,7 +195,7 @@ class TestCostTableCreation:
     def test_create_normal_table(self):
         """Test normal distribution cost table creation."""
         table = create_normal_table(n=2, domain=3, loc=0.0, scale=1.0)
-        
+
         assert isinstance(table, np.ndarray)
         assert table.shape == (3, 3)
         assert table.dtype in [np.float32, np.float64]
@@ -193,7 +205,7 @@ class TestCostTableCreation:
     def test_create_exponential_table(self):
         """Test exponential distribution cost table creation."""
         table = create_exponential_table(n=2, domain=2, scale=1.0)
-        
+
         assert isinstance(table, np.ndarray)
         assert table.shape == (2, 2)
         assert table.dtype in [np.float32, np.float64]
@@ -203,11 +215,11 @@ class TestCostTableCreation:
     def test_create_symmetric_cost_table(self):
         """Test symmetric cost table creation."""
         table = create_symmetric_cost_table(n=3, m=3)
-        
+
         assert isinstance(table, np.ndarray)
         assert table.shape == (3, 3)
         assert table.dtype in [np.float32, np.float64]
-        
+
         # Test symmetry
         np.testing.assert_array_almost_equal(table, table.T)
 
@@ -216,11 +228,11 @@ class TestCostTableCreation:
         # Test 3D table
         table_3d = create_random_int_table(n=3, domain=2, low=1, high=5)
         assert table_3d.shape == (2, 2, 2)
-        
+
         # Test 1D table
         table_1d = create_random_int_table(n=1, domain=4, low=1, high=5)
         assert table_1d.shape == (4,)
-        
+
         # Test 4D table
         table_4d = create_uniform_table(n=4, domain=2, low=0.0, high=1.0)
         assert table_4d.shape == (2, 2, 2, 2)
@@ -230,11 +242,11 @@ class TestCostTableCreation:
         # Test with zero domain
         with pytest.raises(ValueError):
             create_random_int_table(n=2, domain=0, low=1, high=5)
-        
+
         # Test with negative domain
         with pytest.raises(ValueError):
             create_random_int_table(n=2, domain=-1, low=1, high=5)
-        
+
         # Test with invalid range
         with pytest.raises(ValueError):
             create_random_int_table(n=2, domain=2, low=5, high=1)  # low > high
@@ -247,7 +259,7 @@ class TestConfigCostTables:
         """Test config-based random integer cost table creation."""
         # Note: config version has different signature
         table = config_create_random_int_table(n=2, domain=3, low=1, high=10)
-        
+
         assert isinstance(table, np.ndarray)
         assert table.shape == (3, 3)
         assert table.dtype in [np.int32, np.int64]
@@ -259,11 +271,11 @@ class TestConfigCostTables:
         # Create tables with same parameters
         config_table = config_create_random_int_table(n=2, domain=2, low=1, high=5)
         utils_table = create_random_int_table(n=2, domain=2, low=1, high=5)
-        
+
         # Should have same shape and dtype
         assert config_table.shape == utils_table.shape
         assert config_table.dtype == utils_table.dtype
-        
+
         # Should have same value ranges
         assert np.all(config_table >= 1)
         assert np.all(config_table < 5)

@@ -1,5 +1,5 @@
-from src.propflow.base_models.agents import VariableAgent, FactorAgent
-from src.propflow.bp_base.engine_base import BPEngine
+from src.propflow.core.agents import VariableAgent, FactorAgent
+from src.propflow.bp.engine_base import BPEngine
 from src.propflow.policies.cost_reduction import (
     cost_reduction_all_factors_once,
     discount_attentive,
@@ -7,9 +7,12 @@ from src.propflow.policies.cost_reduction import (
 
 from src.propflow.policies.splitting import split_all_factors
 from src.propflow.policies import damp
-from src.propflow.utils.inbox_utils import  multiply_messages_attentive
+from src.propflow.utils.inbox_utils import multiply_messages_attentive
 
-class Engine(BPEngine):...
+
+class Engine(BPEngine):
+    ...
+
 
 class SplitEngine(BPEngine):
     def __init__(self, *args, split_factor: float = 0.6, **kwargs):
@@ -21,6 +24,7 @@ class SplitEngine(BPEngine):
     def post_init(self) -> None:
         split_all_factors(self.graph, self.split_factor)
 
+
 class CostReductionOnceEngine(BPEngine):
     def __init__(self, *args, reduction_factor: float = 0.5, **kwargs):
         self.reduction_factor = reduction_factor
@@ -29,8 +33,8 @@ class CostReductionOnceEngine(BPEngine):
     def post_init(self):
         cost_reduction_all_factors_once(self.graph, self.reduction_factor)
 
-    def post_factor_compute(self, factor: FactorAgent,iteration:int):
-        multiply_messages_attentive(factor.inbox,2,iteration)
+    def post_factor_compute(self, factor: FactorAgent, iteration: int):
+        multiply_messages_attentive(factor.inbox, 2, iteration)
 
 
 class DampingEngine(BPEngine):
