@@ -1,9 +1,10 @@
 from typing import Dict
 import numpy as np
-from src.propflow.core.agents import FGAgent
-from src.propflow.core.components import Message
-from src.propflow.core.protocols import PolicyType
-from src.propflow.policies.bp_policies import Policy
+from ..core.agents import FGAgent
+from ..core.components import Message
+from ..core.protocols import PolicyType
+from ..configs.global_config_mapping import POLICY_DEFAULTS
+from .bp_policies import Policy
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,12 +15,17 @@ class MessagePruningPolicy(Policy):
 
     def __init__(
         self,
-        prune_threshold: float = 1e-4,
+        prune_threshold: float = None,
         min_iterations: int = 5,
         adaptive_threshold: bool = True,
     ):
         super().__init__(PolicyType.MESSAGE)
-        self.prune_threshold = prune_threshold
+        # Use centralized default if not provided
+        self.prune_threshold = (
+            prune_threshold
+            if prune_threshold is not None
+            else POLICY_DEFAULTS["pruning_threshold"]
+        )
         self.min_iterations = min_iterations
         self.adaptive_threshold = adaptive_threshold
         self.iteration_count = 0
@@ -46,7 +52,9 @@ class MessagePruningPolicy(Policy):
         threshold = self.prune_threshold
         if self.adaptive_threshold:
             msg_magnitude = np.linalg.norm(new_message.data)
-            threshold = self.prune_threshold * max(1.0, msg_magnitude * 0.1)
+            threshold = self.prune_threshold * max(
+                1.0, msg_magnitude * POLICY_DEFAULTS["pruning_magnitude_factor"]
+            )
 
         # Prune if below threshold
         if diff_norm < threshold:

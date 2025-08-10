@@ -4,8 +4,8 @@ import pickle
 import sys, os
 
 from examples.debugging import create_factor_graph
-from src.propflow.bp.engines_realizations import SplitEngine, CostReductionOnceEngine
-from src.propflow.policies import ConvergenceConfig
+from propflow.bp.engines_realizations import SplitEngine, CostReductionOnceEngine
+from propflow.policies import ConvergenceConfig
 
 # Add project root to path for imports
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

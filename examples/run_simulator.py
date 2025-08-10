@@ -3,10 +3,10 @@ import random
 import time
 import multiprocessing as mp
 
-from src.propflow.simulator import Simulator
-from src.propflow.utils import FGBuilder
-from src.propflow.configs import CT_FACTORIES
-from src.propflow.bp.engines_realizations import (
+from propflow.simulator import Simulator
+from propflow.utils import FGBuilder
+from propflow.configs import CT_FACTORIES
+from propflow.bp.engines_realizations import (
     BPEngine,
     DampingSCFGEngine,
     DampingEngine,

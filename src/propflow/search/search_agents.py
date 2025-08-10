@@ -6,8 +6,8 @@ This module extends base agents with search-specific functionality.
 from typing import Dict, Any, List, Optional
 import logging
 
-from src.propflow.core.agents import VariableAgent as BaseVariableAgent
-from src.propflow.search.search_computator import SearchComputator
+from ..core.agents import VariableAgent as BaseVariableAgent
+from .search_computator import SearchComputator
 
 logger = logging.getLogger(__name__)
 

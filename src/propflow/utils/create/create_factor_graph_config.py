@@ -6,8 +6,8 @@ import inspect
 import os
 from typing import Any, Dict, List
 
-from src.propflow.configs.global_config_mapping import GRAPH_TYPES, CT_FACTORIES
-from src.propflow.utils.path_utils import find_project_root
+from ...configs.global_config_mapping import GRAPH_TYPES, CT_FACTORIES
+from ..path_utils import find_project_root
 
 
 ########################################################################
@@ -171,9 +171,9 @@ the parameters are:
         name of the cost table factory to use, e.g., random_int, uniform_float
     ct_params: dict
         parameters for the cost table factory
-    to use the function ConfigCreator(str{path you want}).create_config(the parameters above as key :argument pair  
+    to use the function ConfigCreator(str{path you want}).create_config(the parameters above as key :argument pair
     ) to create a config file
-    
+
     also, in this module, configure the mapping for both : CT_FACTORIES and GRAPH_TYPES , and COMPUTATORS
     for CT_FACTORIES register the functions at the number 2 section, and for GRAPH_TYPES and COMPUTATORS
     give the dotted path to the class you want to use.

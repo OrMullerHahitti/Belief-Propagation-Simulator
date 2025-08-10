@@ -14,14 +14,14 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 try:
     # Try to import full functionality
-    from src.propflow.bp.factor_graph import FactorGraph
-    from src.propflow.core.agents import VariableAgent, FactorAgent
-    from src.propflow.search import DSAEngine, MGMEngine, DSAComputator, MGMComputator
+    from ..bp.factor_graph import FactorGraph
+    from ..core.agents import VariableAgent, FactorAgent
+    from . import DSAEngine, MGMEngine, DSAComputator, MGMComputator
 
     FULL_FUNCTIONALITY = True
 except ImportError:
     # Fallback to just computators for testing
-    from src.propflow.search import DSAComputator, MGMComputator
+    from . import DSAComputator, MGMComputator
 
     FULL_FUNCTIONALITY = False
     print("Note: Full engine functionality not available due to missing dependencies")
