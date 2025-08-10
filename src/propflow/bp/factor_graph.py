@@ -5,8 +5,8 @@ import numpy as np
 from typing import List, Dict
 import logging
 
-from src.propflow.core.dcop_base import Computator
-from src.propflow.core.agents import VariableAgent, FactorAgent
+from ..core.dcop_base import Computator
+from ..core.agents import VariableAgent, FactorAgent
 
 logger = logging.getLogger(__name__)
 

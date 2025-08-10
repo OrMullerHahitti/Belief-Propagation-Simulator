@@ -1,10 +1,10 @@
 import pytest
 import numpy as np
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.bp.engines_realizations import BPEngine
-from src.propflow.utils import FGBuilder
-from src.propflow.configs import create_random_int_table
-from src.propflow.policies import ConvergenceConfig
+from propflow.bp.factor_graph import FactorGraph
+from propflow.bp.engines_realizations import BPEngine
+from propflow.utils import FGBuilder
+from propflow.configs import create_random_int_table
+from propflow.policies import ConvergenceConfig
 
 
 # Flag to enable verbose output during tests

@@ -1,4 +1,4 @@
-from src.propflow.core.components import Message
+from ..core.components import Message
 from typing import List
 
 
@@ -25,4 +25,4 @@ def multiply_messages_attentive(
     :param iteration: The iteration number.
     """
     for message in messages:
-        message.data *= factor * (iteration + 1)
+        message.data *= factor

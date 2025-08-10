@@ -3,8 +3,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 from dataclasses import dataclass, field
 import numpy as np
-from src.propflow.core.dcop_base import Agent
-from src.propflow.core.components import Message
+from ..core.dcop_base import Agent
+from ..core.components import Message
 
 
 @dataclass

@@ -1,14 +1,14 @@
 import pytest
 import numpy as np
-from src.propflow.utils import FGBuilder
-from src.propflow.configs import create_random_int_table
-from src.propflow.policies.bp_policies import (
+from propflow.utils import FGBuilder
+from propflow.configs import create_random_int_table
+from propflow.policies.bp_policies import (
     DampingPolicy,
     CostReductionPolicy,
     SplittingPolicy,
 )
-from src.propflow.policies.convergance import ConvergenceConfig
-from src.propflow.bp.engines_realizations import DampingEngine, SplittingEngine
+from propflow.policies.convergance import ConvergenceConfig
+from propflow.bp.engines_realizations import DampingEngine, SplittingEngine
 
 
 class TestBasicPolicies:

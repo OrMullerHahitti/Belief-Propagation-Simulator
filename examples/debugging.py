@@ -9,15 +9,15 @@ import random
 import matplotlib.pyplot as plt
 import os
 
-from src.propflow.bp.engine_base import BPEngine
-from src.propflow.bp.engines_realizations import (
+from propflow.bp.engine_base import BPEngine
+from propflow.bp.engines_realizations import (
     DampingEngine,
     DampingSCFGEngine,
 )
-from src.propflow.utils import FGBuilder
-from src.propflow.configs import CT_FACTORIES
-from src.propflow.utils import find_project_root
-from src.propflow.policies import ConvergenceConfig
+from propflow.utils import FGBuilder
+from propflow.configs import CT_FACTORIES
+from propflow.utils import find_project_root
+from propflow.policies import ConvergenceConfig
 
 # Module-level constants (safe for child processes)
 PROJECT_ROOT = find_project_root()

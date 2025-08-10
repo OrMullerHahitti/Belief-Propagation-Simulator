@@ -3,6 +3,8 @@ from typing import Dict, Optional
 from dataclasses import dataclass
 import logging
 
+from ..configs.global_config_mapping import CONVERGENCE_DEFAULTS
+
 logger = logging.getLogger(__name__)
 
 
@@ -10,11 +12,11 @@ logger = logging.getLogger(__name__)
 class ConvergenceConfig:
     """Configuration for convergence detection."""
 
-    belief_threshold: float = 1e-6
-    assignment_threshold: int = 0  # For discrete assignments
-    min_iterations: int = 0
-    patience: int = 5  # How many iterations to wait after apparent convergence
-    use_relative_change: bool = True  # Use relative vs absolute change
+    belief_threshold: float = CONVERGENCE_DEFAULTS["belief_threshold"]
+    assignment_threshold: int = CONVERGENCE_DEFAULTS["assignment_threshold"]
+    min_iterations: int = CONVERGENCE_DEFAULTS["min_iterations"]
+    patience: int = CONVERGENCE_DEFAULTS["patience"]
+    use_relative_change: bool = CONVERGENCE_DEFAULTS["use_relative_change"]
 
 
 class ConvergenceMonitor:

@@ -1,7 +1,7 @@
-from src.propflow.core.agents import FactorAgent
+from ..core.agents import FactorAgent
 from typing import Iterable
 
-from src.propflow.bp.factor_graph import FactorGraph
+from ..bp.factor_graph import FactorGraph
 
 
 def cost_reduction_all_factors_once(fg: FactorGraph, x: float):
@@ -28,3 +28,15 @@ def discount_attentive(fg: FactorGraph):
     for node, weight in normalized_weights.items():
         for message in node.inbox:
             message.data = message.data * weight
+
+
+def reduce_R(fac_a: FactorAgent, x: float):
+    """
+    Reduce the cost table of each factor agent by a factor x.
+
+    :param fac_a: Iterable of FactorAgent objects.
+    :param x: The factor by which to reduce the cost table.
+    """
+    for messages in fac_a.outbox.values():
+        for message in messages:
+            message.data *= x

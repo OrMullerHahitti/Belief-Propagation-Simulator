@@ -1,6 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-from src.propflow.utils.create import crea
+from ..create import create_cost_tables
 
 
 def draw_factor_graph(

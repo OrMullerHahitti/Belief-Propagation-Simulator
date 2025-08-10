@@ -6,9 +6,9 @@ from functools import lru_cache
 import networkx as nx
 import numpy as np
 
-from src.propflow.utils.path_utils import find_project_root  # Added import
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.core.agents import VariableAgent, FactorAgent
+from .path_utils import find_project_root  # Added import
+from ..bp.factor_graph import FactorGraph
+from ..core.agents import VariableAgent, FactorAgent
 
 # Make sure your project root is in the Python path
 project_root = find_project_root()
@@ -170,19 +170,19 @@ class SafeUnpickler(pickle.Unpickler):
     def find_class(self, module, name):
         # Handle potential module renames or reorganizations
         if module == "bp.factor_graph" and name == "FactorGraph":
-            from src.propflow.bp.factor_graph import FactorGraph
+            from ..bp.factor_graph import FactorGraph
 
             return FactorGraph
         elif module == "bp.agents" and name == "VariableAgent":
-            from src.propflow.core.agents import VariableAgent
+            from ..core.agents import VariableAgent
 
             return VariableAgent
         elif module == "bp.agents" and name == "FactorAgent":
-            from src.propflow.core.agents import FactorAgent
+            from ..core.agents import FactorAgent
 
             return FactorAgent
         elif module == "bp.components" and name == "Message":
-            from src.propflow.core.components import Message
+            from ..core.components import Message
 
             return Message
         # Add more mappings as needed

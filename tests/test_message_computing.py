@@ -1,10 +1,10 @@
 # Tests for message computing
 import pytest
 import numpy as np
-from src.propflow.bp.computators import MaxSumComputator, MinSumComputator
-from src.propflow.core import Agent  # For basic sender/recipient typing if needed
-from src.propflow.core import Message
-from src.propflow.core import VariableAgent, FactorAgent
+from propflow.bp.computators import MaxSumComputator, MinSumComputator
+from propflow.core import Agent  # For basic sender/recipient typing if needed
+from propflow.core import Message
+from propflow.core import VariableAgent, FactorAgent
 
 
 # Fixture for a MaxSumComputator

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List
 import numpy as np
 
-from src.propflow.core.protocols import Message
+from .protocols import Message
 
 
 class Computator(ABC):

@@ -1,14 +1,14 @@
 # create simple factorgraph cycle domain 3 3 variables
-from src.propflow.bp.factor_graph import FactorGraph
+from ..bp.factor_graph import FactorGraph
 import os
 
-from src.propflow.configs.global_config_mapping import CT_FACTORIES
-from src.propflow.utils.create.create_factor_graphs_from_config import (
+from ..configs.global_config_mapping import CT_FACTORIES
+from .create.create_factor_graphs_from_config import (
     FactorGraphBuilder,
     build_cycle_graph,
     build_random_graph,
 )
-from src.propflow.utils.path_utils import find_project_root
+from .path_utils import find_project_root
 import sys
 
 

@@ -7,8 +7,8 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Any, Tuple, Set
 import numpy as np
 
-from src.propflow.core.dcop_base import Computator, Agent
-from src.propflow.core.components import Message
+from ..core.dcop_base import Computator, Agent
+from ..core.components import Message
 
 
 class SearchComputator(Computator, ABC):

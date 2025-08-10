@@ -5,9 +5,9 @@ Tests for search-based bp (DSA and MGM).
 import numpy as np
 import sys
 
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.core import VariableAgent, FactorAgent
-from src.propflow.search import DSAEngine, MGMEngine, DSAComputator, MGMComputator
+from propflow.bp.factor_graph import FactorGraph
+from propflow.core import VariableAgent, FactorAgent
+from propflow.search import DSAEngine, MGMEngine, DSAComputator, MGMComputator
 
 # Flag to enable verbose output during tests
 VERBOSE = True

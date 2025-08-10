@@ -4,7 +4,7 @@ import logging
 import functools
 from functools import lru_cache
 
-from src.propflow.core.protocols import Computator
+from ..core.protocols import Computator
 
 try:
     import numba
@@ -13,7 +13,7 @@ try:
 except ImportError:
     HAS_NUMBA = False
 
-from src.propflow.core.components import Message
+from ..core.components import Message
 
 # Minimal logging for computators
 logger = logging.getLogger(__name__)

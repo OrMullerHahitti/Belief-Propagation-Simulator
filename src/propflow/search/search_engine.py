@@ -6,10 +6,10 @@ These extend the base BPEngine interface to fit search problems.
 from typing import Dict, Optional, Any, Tuple
 import logging
 
-from src.propflow.bp.engine_base import BPEngine
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.bp.engine_components import Step, Cycle
-from src.propflow.search.search_computator import SearchComputator, KOptMGMComputator
+from ..bp.engine_base import BPEngine
+from ..bp.factor_graph import FactorGraph
+from ..bp.engine_components import Step, Cycle
+from .search_computator import SearchComputator, KOptMGMComputator
 
 logger = logging.getLogger(__name__)
 
@@ -233,7 +233,7 @@ class DSAEngine(SearchEngine):
 
     def _setup_search_agents(self):
         """Setup variable agents with search capabilities."""
-        from src.propflow.search.search_agents import extend_variable_agent_for_search
+        from .search_agents import extend_variable_agent_for_search
 
         # Extend all variable agents
         extended_vars = []
@@ -347,7 +347,7 @@ class MGMEngine(SearchEngine):
 
     def _setup_search_agents(self):
         """Setup variable agents with search capabilities."""
-        from src.propflow.search.search_agents import extend_variable_agent_for_search
+        from .search_agents import extend_variable_agent_for_search
 
         # Extend all variable agents
         extended_vars = []

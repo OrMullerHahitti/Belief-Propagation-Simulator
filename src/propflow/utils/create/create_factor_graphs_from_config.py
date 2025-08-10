@@ -11,19 +11,19 @@ from typing import Callable, Any
 # ──────────────────────────────────────────────────────────────
 # 1.  Registries – reuse the same ones from config_creator.py
 # ──────────────────────────────────────────────────────────────
-from src.propflow.configs.global_config_mapping import (
+from ...configs.global_config_mapping import (
     GRAPH_TYPES,  # str  -> dotted path for a *graph‑topology* builder
     CT_FACTORIES,  # str  -> cost‑table factory fn
     # helper that can load configs
 )
-from src.propflow.utils.create.create_factor_graph_config import (
+from .create_factor_graph_config import (
     ConfigCreator,
     GraphConfig,
 )
 
 # Optional: make sure agents & FactorGraph are importable
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.utils.path_utils import find_project_root
+from ...bp.factor_graph import FactorGraph
+from ..path_utils import find_project_root
 
 
 # ──────────────────────────────────────────────────────────────

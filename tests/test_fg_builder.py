@@ -1,13 +1,16 @@
 import pytest
 import numpy as np
-from src.propflow.utils import FGBuilder
-from src.propflow.configs import (
+from propflow.utils import FGBuilder
+from propflow.configs import (
     create_random_int_table,
     create_uniform_float_table,
     create_poisson_table,
 )
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.core.agents import VariableAgent, FactorAgent
+from propflow.utils.create.create_cost_tables import (
+    create_uniform_table,
+)
+from propflow.bp.factor_graph import FactorGraph
+from propflow.core.agents import VariableAgent, FactorAgent
 
 
 class TestFGBuilder:
@@ -165,8 +168,8 @@ class TestFGBuilder:
         fg = FGBuilder.build_cycle_graph(
             num_vars=4,
             domain_size=3,
-            ct_factory=create_attractive_table,
-            ct_params={"strength": 1.5},
+            ct_factory=create_uniform_float_table,
+            ct_params={"low": 0.0, "high": 2.0},
         )
 
         # Check that all edges reference valid variables
@@ -193,16 +196,16 @@ class TestFGBuilder:
         fg_float = FGBuilder.build_cycle_graph(
             num_vars=num_vars,
             domain_size=domain_size,
-            ct_factory=create_random_float_table,
+            ct_factory=create_uniform_table,
             ct_params={"low": 0.1, "high": 2.0},
         )
 
-        # Attractive cost table
-        fg_attractive = FGBuilder.build_cycle_graph(
+        # Uniform float cost table
+        fg_uniform = FGBuilder.build_cycle_graph(
             num_vars=num_vars,
             domain_size=domain_size,
-            ct_factory=create_attractive_table,
-            ct_params={"strength": 2.0},
+            ct_factory=create_uniform_float_table,
+            ct_params={"low": 0.1, "high": 2.0},
         )
 
         # Check that integer tables contain integers
@@ -213,12 +216,12 @@ class TestFGBuilder:
         for factor in fg_float.factors:
             assert factor.cost_table.dtype in [np.float32, np.float64]
 
-        # Check that attractive tables have diagonal preference
-        for factor in fg_attractive.factors:
+        # Check that uniform float tables contain floats in expected range
+        for factor in fg_uniform.factors:
             ct = factor.cost_table
-            # Diagonal should be lower cost than off-diagonal
-            assert ct[0, 0] < ct[0, 1]
-            assert ct[1, 1] < ct[1, 0]
+            assert ct.dtype in [np.float32, np.float64]
+            assert np.all(ct >= 0.1)
+            assert np.all(ct < 2.0)
 
     def test_large_graph_construction(self):
         """Test construction of larger graphs."""

@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Callable
-from src.propflow.core.protocols import CostTable
+from ...core.protocols import CostTable
 from scipy.special import logsumexp
 
 
