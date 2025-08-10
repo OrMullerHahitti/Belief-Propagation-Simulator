@@ -2,29 +2,29 @@ import pytest
 import numpy as np
 import tempfile
 import pickle
-from src.propflow.utils import FGBuilder
-from src.propflow.utils.fg_utils import (
+from propflow.utils import FGBuilder
+from propflow.utils.fg_utils import (
     get_message_shape,
     get_broadcast_shape,
     generate_random_cost,
     get_bound,
 )
-from src.propflow.utils.general_utils import profiling
-from src.propflow.utils.inbox_utils import (
+from propflow.utils.general_utils import profiling
+from propflow.utils.inbox_utils import (
     multiply_messages,
     multiply_messages_attentive,
 )
-from src.propflow.utils.create.create_cost_tables import (
+from propflow.utils.create.create_cost_tables import (
     create_random_int_table,
     create_uniform_table,
     create_normal_table,
     create_exponential_table,
     create_symmetric_cost_table,
 )
-from src.propflow.configs import (
+from propflow.configs import (
     create_random_int_table as config_create_random_int_table,
 )
-from src.propflow.core.components import Message
+from propflow.core.components import Message
 
 
 class TestUtilsFunctions:

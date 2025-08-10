@@ -5,8 +5,8 @@ from typing import List, Callable, Any, Dict
 
 import numpy as np
 
-from src.propflow.core.components import Message, CostTable, MailHandler
-from src.propflow.core.dcop_base import Agent
+from .components import Message, CostTable, MailHandler
+from .dcop_base import Agent
 
 
 class FGAgent(Agent, ABC):

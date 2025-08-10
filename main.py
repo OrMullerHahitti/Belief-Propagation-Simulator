@@ -5,12 +5,19 @@ import multiprocessing as mp
 
 from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
-from propflow.configs.global_config_mapping import CT_FACTORIES
+from propflow.configs.global_config_mapping import (
+    CT_FACTORIES,
+    SIMULATOR_DEFAULTS,
+    POLICY_DEFAULTS,
+    ENGINE_DEFAULTS,
+)
 from propflow.bp.engines_realizations import (
     BPEngine,
     DampingSCFGEngine,
     DampingEngine,
     DampingCROnceEngine,
+    CostReductionOnceEngine,
+    SplitEngine,
 )
 
 SEED = 42
@@ -26,20 +33,31 @@ if __name__ == "__main__":
     np.random.seed(SEED)
     random.seed(SEED)
 
-    # --- Configuration ---
-    NUM_GRAPHS = 30
-    MAX_ITER = 5000
-    LOG_LEVEL = "HIGH"  # Options: 'VERBOSE', 'MILD', 'INFORMATIVE', 'HIGH'
+    # --- Configuration (uses centralized defaults, override as needed) ---
+    NUM_GRAPHS = 10
+    MAX_ITER = ENGINE_DEFAULTS["max_iterations"]  # Can override: MAX_ITER = 2000
+    LOG_LEVEL = SIMULATOR_DEFAULTS[
+        "default_log_level"
+    ]  # Can override: LOG_LEVEL = "HIGH"
 
-    # Engine configurations
+    # Engine configurations (using centralized defaults with explicit overrides when needed)
     engine_configs = {
         "BPEngine": {"class": BPEngine},
-        "DampingSCFGEngine_asymmetric": {
+        "DampingSCFGEngine_symmetric": {
             "class": DampingSCFGEngine,
-            "damping_factor": 0.9,
-            "split_factor": 0.6,
+            "damping_factor": POLICY_DEFAULTS[
+                "damping_factor"
+            ],  # Can override: "damping_factor": 0.8,
+            "split_factor": POLICY_DEFAULTS[
+                "split_factor"
+            ],  # Can override: "split_factor": 0.3,
         },
-        "DampingEngine": {"class": DampingEngine, "damping_factor": 0.9},
+        "Split_0.5": {
+            "class": SplitEngine,
+            "split_factor": POLICY_DEFAULTS[
+                "split_factor"
+            ],  # Can override: "split_factor": 0.7,
+        },
     }
 
     # --- Graph Creation ---

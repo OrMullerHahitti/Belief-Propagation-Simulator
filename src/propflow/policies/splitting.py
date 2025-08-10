@@ -4,13 +4,14 @@ from typing import List
 import networkx as nx
 from copy import deepcopy
 
-from src.propflow.core.agents import FactorAgent
-from src.propflow.bp.factor_graph import FactorGraph
+from ..core.agents import FactorAgent
+from ..bp.factor_graph import FactorGraph
+from ..configs.global_config_mapping import POLICY_DEFAULTS
 
 
 def split_all_factors(
     fg: FactorGraph,
-    p: float = 0.5,
+    p: float = None,
 ) -> None:
     """
     In-place replacement of every FactorAgent by two clones with
@@ -18,6 +19,10 @@ def split_all_factors(
     NetworkX graph, FactorGraph.factors list, and connection maps
     are all updated.
     """
+    # Use centralized default if not provided
+    if p is None:
+        p = POLICY_DEFAULTS["split_factor"]
+
     assert 0.0 < p < 1.0, "p must be in (0,1)"
     G: nx.Graph = fg.G
 

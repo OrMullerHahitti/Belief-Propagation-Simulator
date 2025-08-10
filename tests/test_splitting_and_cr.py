@@ -1,7 +1,7 @@
 import numpy as np
-from src.propflow.bp.engines_realizations import DampingSCFGEngine, DampingCROnceEngine
-from src.propflow.core import VariableAgent, FactorAgent
-from src.propflow.bp.factor_graph import FactorGraph
+from propflow.bp.engines_realizations import DampingSCFGEngine, DampingCROnceEngine
+from propflow.core import VariableAgent, FactorAgent
+from propflow.bp.factor_graph import FactorGraph
 
 
 def create_simple_factor_graph():

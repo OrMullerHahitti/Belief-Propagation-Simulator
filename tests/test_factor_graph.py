@@ -1,11 +1,11 @@
 import pytest
 import numpy as np
 import networkx as nx
-from src.propflow.utils import FGBuilder
-from src.propflow.configs import create_random_int_table, create_uniform_float_table
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.core.agents import VariableAgent, FactorAgent
-from src.propflow.core.components import Message
+from propflow.utils import FGBuilder
+from propflow.configs import create_random_int_table, create_uniform_float_table
+from propflow.bp.factor_graph import FactorGraph
+from propflow.core.agents import VariableAgent, FactorAgent
+from propflow.core.components import Message
 
 
 class TestFactorGraph:

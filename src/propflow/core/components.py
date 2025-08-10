@@ -3,10 +3,10 @@ from typing import Optional, Dict
 import numpy as np
 from typing import List, TypeAlias, TYPE_CHECKING
 
-from src.propflow.core.dcop_base import Agent
+from .dcop_base import Agent
 
 if TYPE_CHECKING:
-    from src.propflow.core.agents import FGAgent
+    from .agents import FGAgent
 
 CostTable: TypeAlias = np.ndarray
 

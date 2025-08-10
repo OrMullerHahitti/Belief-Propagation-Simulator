@@ -1,9 +1,9 @@
 from typing import Dict, List
 import numpy as np
-from src.propflow.core.agents import VariableAgent, FactorAgent
-from src.propflow.core.components import Message
-from src.propflow.core.protocols import PolicyType, CostTable
-from src.propflow.policies.bp_policies import Policy
+from ..core.agents import VariableAgent, FactorAgent
+from ..core.components import Message
+from ..core.protocols import PolicyType, CostTable
+from .bp_policies import Policy
 
 
 def init_normalization(li: List[FactorAgent]):

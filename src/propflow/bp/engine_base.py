@@ -2,17 +2,18 @@ import typing
 from typing import Dict, Optional, Callable
 import numpy as np
 import networkx as nx
-from src.propflow.policies.normalize_cost import normalize_inbox
-from src.propflow.core.agents import VariableAgent, FactorAgent
-from src.propflow.bp.computators import MinSumComputator
-from src.propflow.bp.engine_components import History, Step
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.core.dcop_base import Computator
-from src.propflow.policies.convergance import ConvergenceMonitor, ConvergenceConfig
-from src.propflow.utils.tools.performance import PerformanceMonitor
+from ..policies.normalize_cost import normalize_inbox
+from ..core.agents import VariableAgent, FactorAgent
+from .computators import MinSumComputator
+from .engine_components import History, Step
+from .factor_graph import FactorGraph
+from ..core.dcop_base import Computator
+from ..policies.convergance import ConvergenceMonitor, ConvergenceConfig
+from ..utils.tools.performance import PerformanceMonitor
 
-from src.propflow.configs.loggers import Logger
-from src.propflow.utils import dummy_func
+from ..configs.loggers import Logger
+from ..configs.global_config_mapping import ENGINE_DEFAULTS
+from ..utils import dummy_func
 
 T = typing.TypeVar("T")
 
@@ -32,17 +33,22 @@ class BPEngine:
         init_normalization: Callable = dummy_func,
         name: str = "BPEngine",
         convergence_config: ConvergenceConfig | None = None,
-        monitor_performance: bool = False,
-        normalize_messages: bool = True,
-        anytime: bool = False,
-        use_bct_history: bool = False,
+        monitor_performance: bool = None,
+        normalize_messages: bool = None,
+        anytime: bool = None,
+        use_bct_history: bool = None,
     ):
         """
         Initialize the belief propagation engine.
         """
+        # Apply defaults from global config with override capability
         self.computator = computator
-        self.anytime = anytime
-        self.normalize_messages = normalize_messages
+        self.anytime = anytime if anytime is not None else ENGINE_DEFAULTS["anytime"]
+        self.normalize_messages = (
+            normalize_messages
+            if normalize_messages is not None
+            else ENGINE_DEFAULTS["normalize_messages"]
+        )
         self.graph = factor_graph
         self.post_init()
         self._initialize_messages()
@@ -51,16 +57,26 @@ class BPEngine:
 
         # Setup history
         engine_type = self.__class__.__name__
+        use_bct = (
+            use_bct_history
+            if use_bct_history is not None
+            else ENGINE_DEFAULTS["use_bct_history"]
+        )
         self.history = History(
             engine_type=engine_type,
             computator=computator,
             factor_graph=factor_graph,
-            use_bct_history=use_bct_history,
+            use_bct_history=use_bct,
         )
 
         self.graph_diameter = nx.diameter(self.graph.G)
         self.convergence_monitor = ConvergenceMonitor(convergence_config)
-        self.performance_monitor = PerformanceMonitor() if monitor_performance else None
+        monitor_perf = (
+            monitor_performance
+            if monitor_performance is not None
+            else ENGINE_DEFAULTS["monitor_performance"]
+        )
+        self.performance_monitor = PerformanceMonitor() if monitor_perf else None
         self._name = name
         init_normalization(self.factor_nodes)
 
@@ -89,6 +105,7 @@ class BPEngine:
         for factor in self.factor_nodes:
             self.pre_factor_compute(factor, i)
             factor.compute_messages()
+            self.post_factor_compute(factor, i)
 
         # Phase 5: All factors send messages
         for factor in self.factor_nodes:
@@ -110,7 +127,7 @@ class BPEngine:
 
     def run(
         self,
-        max_iter: int = 1000,
+        max_iter: int = None,
         save_json: bool = False,
         save_csv: bool = True,
         filename: str = None,
@@ -119,8 +136,11 @@ class BPEngine:
         """
         Run the factor graph algorithm for a maximum number of iterations.
         """
+        max_iterations = (
+            max_iter if max_iter is not None else ENGINE_DEFAULTS["max_iterations"]
+        )
         self.convergence_monitor.reset()
-        for i in range(max_iter):
+        for i in range(max_iterations):
             self.step(i)
             try:
                 self._handle_cycle_events(i)
