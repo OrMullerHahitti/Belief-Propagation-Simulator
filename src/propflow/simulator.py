@@ -64,7 +64,7 @@ class Simulator:
 
         simulation_args = []
         for i, graph in enumerate(graphs):
-            graph_data = pickle.dumps(graph)
+            graph_data = graph.copy()
             for engine_name, config in self.engine_configs.items():
                 args = (i, engine_name, config, graph_data, max_iter, self.logger.level)
                 simulation_args.append(args)
