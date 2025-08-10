@@ -1,25 +1,28 @@
 ########################################################################
 # ----  Internal registries, global configs  ----------------------------------------
 ########################################################################
-from typing import Dict, Callable
+from typing import Dict, Callable, Any, Optional
 from enum import Enum
+import logging
 
-from src.propflow.bp.computators import MinSumComputator
-from src.propflow.utils import find_project_root
+from ..bp.computators import MinSumComputator
+from ..utils import find_project_root
 
-# message parameters
+########################################################################
+# ---- Core Configuration Sections ------------------------------------
+########################################################################
+
+# Message and Domain Configuration
 MESSAGE_DOMAIN_SIZE = 3
-# Cost Table Creation Function and parameters
 
-
-# computator
+# Default computator
 COMPUTATOR = MinSumComputator()
 
-
+# Project root path
 PROJECT_ROOT: str = find_project_root()
 
 
-# add here global directories, could be also used as ENUM
+# Directory structure configuration
 class Dirs(Enum):
     LOGS = "logs"
     TEST_LOGS = "test_logs"
@@ -32,7 +35,223 @@ class Dirs(Enum):
     TEST_PLOTS_FIGURES_DATA = "test_plots_figures_data"
 
 
-VERBOSE_LOGGING = False  # Set to False to disable verbose logging
+########################################################################
+# ---- Engine Configuration -------------------------------------------
+########################################################################
+
+ENGINE_DEFAULTS: Dict[str, Any] = {
+    "max_iterations": 1000,
+    "timeout": 3600,  # 1 hour in seconds
+    "normalize_messages": True,
+    "monitor_performance": False,
+    "anytime": False,
+    "use_bct_history": False,
+}
+
+########################################################################
+# ---- Logging Configuration ------------------------------------------
+########################################################################
+
+LOGGING_CONFIG: Dict[str, Any] = {
+    "default_level": logging.INFO,
+    "verbose_logging": False,
+    "file_logging": True,
+    "log_dir": "configs/logs",
+    "console_colors": {
+        "DEBUG": "cyan",
+        "INFO": "green",
+        "WARNING": "yellow",
+        "ERROR": "red",
+        "CRITICAL": "red,bg_white",
+    },
+    "log_format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "console_format": "%(log_color)s%(asctime)s - %(name)s - %(message)s",
+    "file_format": "%(asctime)s - %(name)s  - %(message)s",
+}
+
+LOG_LEVELS: Dict[str, int] = {
+    "HIGH": logging.DEBUG,
+    "INFORMATIVE": logging.INFO,
+    "VERBOSE": logging.WARNING,
+    "MILD": logging.ERROR,
+    "MINIMAL": logging.CRITICAL,
+}
+
+########################################################################
+# ---- Convergence Configuration --------------------------------------
+########################################################################
+
+CONVERGENCE_DEFAULTS: Dict[str, Any] = {
+    "belief_threshold": 1e-6,
+    "assignment_threshold": 0,
+    "min_iterations": 0,
+    "patience": 5,
+    "use_relative_change": True,
+}
+
+########################################################################
+# ---- Policy Configuration -------------------------------------------
+########################################################################
+
+POLICY_DEFAULTS: Dict[str, Any] = {
+    # Damping policy defaults
+    "damping_factor": 0.9,
+    "damping_diameter": 1,
+    # Splitting policy defaults
+    "split_factor": 0.5,
+    # Message pruning defaults
+    "pruning_threshold": 0.1,
+    "pruning_magnitude_factor": 0.1,
+    # Cost reduction defaults
+    "cost_reduction_enabled": True,
+}
+
+########################################################################
+# ---- Simulator Configuration ----------------------------------------
+########################################################################
+
+SIMULATOR_DEFAULTS: Dict[str, Any] = {
+    "default_max_iter": 5000,
+    "default_log_level": "INFORMATIVE",
+    "timeout": 3600,
+    "cpu_count_multiplier": 1.0,  # Fraction of CPU cores to use
+}
+
+########################################################################
+# ---- Search Engine Configuration ------------------------------------
+########################################################################
+
+SEARCH_DEFAULTS: Dict[str, Any] = {
+    "max_iterations": 100,
+    "search_timeout": 1800,  # 30 minutes
+    "beam_width": 10,
+    "exploration_factor": 0.1,
+}
+
+# Legacy support
+VERBOSE_LOGGING = LOGGING_CONFIG["verbose_logging"]
+
+########################################################################
+# ---- Configuration Validation ---------------------------------------
+########################################################################
+
+
+def validate_engine_config(config: Dict[str, Any]) -> bool:
+    """Validate engine configuration parameters."""
+    required_keys = [
+        "max_iterations",
+        "timeout",
+        "normalize_messages",
+        "monitor_performance",
+        "anytime",
+        "use_bct_history",
+    ]
+
+    for key in required_keys:
+        if key not in config:
+            raise ValueError(f"Missing required engine config key: {key}")
+
+    if not isinstance(config["max_iterations"], int) or config["max_iterations"] <= 0:
+        raise ValueError("max_iterations must be a positive integer")
+
+    if not isinstance(config["timeout"], (int, float)) or config["timeout"] <= 0:
+        raise ValueError("timeout must be a positive number")
+
+    return True
+
+
+def validate_policy_config(config: Dict[str, Any]) -> bool:
+    """Validate policy configuration parameters."""
+    if "damping_factor" in config:
+        if not 0.0 < config["damping_factor"] <= 1.0:
+            raise ValueError("damping_factor must be in range (0, 1]")
+
+    if "split_factor" in config:
+        if not 0.0 < config["split_factor"] < 1.0:
+            raise ValueError("split_factor must be in range (0, 1)")
+
+    if "pruning_threshold" in config:
+        if (
+            not isinstance(config["pruning_threshold"], (int, float))
+            or config["pruning_threshold"] < 0
+        ):
+            raise ValueError("pruning_threshold must be a non-negative number")
+
+    return True
+
+
+def validate_convergence_config(config: Dict[str, Any]) -> bool:
+    """Validate convergence configuration parameters."""
+    if "belief_threshold" in config:
+        if (
+            not isinstance(config["belief_threshold"], (int, float))
+            or config["belief_threshold"] <= 0
+        ):
+            raise ValueError("belief_threshold must be a positive number")
+
+    if "min_iterations" in config:
+        if (
+            not isinstance(config["min_iterations"], int)
+            or config["min_iterations"] < 0
+        ):
+            raise ValueError("min_iterations must be a non-negative integer")
+
+    if "patience" in config:
+        if not isinstance(config["patience"], int) or config["patience"] < 0:
+            raise ValueError("patience must be a non-negative integer")
+
+    return True
+
+
+def get_validated_config(
+    config_type: str, user_config: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """Get a validated configuration by merging user overrides with defaults."""
+
+    # Get base configuration
+    base_configs = {
+        "engine": ENGINE_DEFAULTS,
+        "policy": POLICY_DEFAULTS,
+        "convergence": CONVERGENCE_DEFAULTS,
+        "simulator": SIMULATOR_DEFAULTS,
+        "logging": LOGGING_CONFIG,
+        "search": SEARCH_DEFAULTS,
+    }
+
+    if config_type not in base_configs:
+        raise ValueError(f"Unknown config type: {config_type}")
+
+    # Start with base configuration
+    final_config = base_configs[config_type].copy()
+
+    # Apply user overrides
+    if user_config:
+        final_config.update(user_config)
+
+    # Validate the final configuration
+    validators = {
+        "engine": validate_engine_config,
+        "policy": validate_policy_config,
+        "convergence": validate_convergence_config,
+    }
+
+    if config_type in validators:
+        validators[config_type](final_config)
+
+    return final_config
+
+
+# Validate default configurations on import
+try:
+    validate_engine_config(ENGINE_DEFAULTS)
+    validate_policy_config(POLICY_DEFAULTS)
+    validate_convergence_config(CONVERGENCE_DEFAULTS)
+except ValueError as e:
+    raise RuntimeError(f"Invalid default configuration: {e}")
+
+########################################################################
+# ---- Registry and Factory Mappings ----------------------------------
+########################################################################
 
 # all dotted paths are relative to the project root and will be resolved using importlib
 GRAPH_TYPES: Dict[str, str] = {  # str  -> dotted‑path or import key
