@@ -9,7 +9,7 @@ from enum import Enum
 
 import colorlog  # pip install colorlog
 
-from ..utils import find_project_root
+from ..utils.path_utils import find_project_root
 from .global_config_mapping import LOGGING_CONFIG
 
 # Create logs directory if it doesn't exist
