@@ -6,7 +6,8 @@ import multiprocessing as mp
 from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
 from propflow.configs.global_config_mapping import (
-    CT_FACTORIES,
+    CTFactory,
+    get_ct_factory,
     SIMULATOR_DEFAULTS,
     POLICY_DEFAULTS,
     ENGINE_DEFAULTS,
@@ -62,7 +63,7 @@ if __name__ == "__main__":
 
     # --- Graph Creation ---
     print(f"[{time.strftime('%H:%M:%S')}] Creating {NUM_GRAPHS} factor graphs...")
-    ct_factory_fn = CT_FACTORIES["random_int"]
+    ct_factory_fn = CTFactory.random_int.fn  # or: get_ct_factory(CTFactory.random_int)
     random_fg = [
         FGBuilder.build_random_graph(
             num_vars=50,

@@ -9,6 +9,7 @@ from .engine_components import History, Step
 from .factor_graph import FactorGraph
 from ..core.dcop_base import Computator
 from ..policies.convergance import ConvergenceMonitor, ConvergenceConfig
+from ..snapshots import SnapshotsConfig, SnapshotManager
 from ..utils.tools.performance import PerformanceMonitor
 
 from ..configs.loggers import Logger
@@ -37,6 +38,7 @@ class BPEngine:
         normalize_messages: bool = None,
         anytime: bool = None,
         use_bct_history: bool = None,
+        snapshots_config: SnapshotsConfig | None = None,
     ):
         """
         Initialize the belief propagation engine.
@@ -80,6 +82,11 @@ class BPEngine:
         self._name = name
         init_normalization(self.factor_nodes)
 
+        # Optional snapshots manager (for per-step capture & analysis)
+        self._snapshot_manager: SnapshotManager | None = None
+        if snapshots_config is not None:
+            self._snapshot_manager = SnapshotManager(snapshots_config)
+
     def step(self, i: int = 0) -> Step:
         """Run one step with message pruning support."""
         if self.performance_monitor:
@@ -91,6 +98,9 @@ class BPEngine:
         for var in self.var_nodes:
             var.compute_messages()
             self.post_var_compute(var)
+            # Capture Q messages (variable -> factor) staged for sending
+            if var.mailer.outbox:
+                step.add_q(var.name, list(var.mailer.outbox))
 
         # Phase 2: All variables send messages
         for var in self.var_nodes:
@@ -106,6 +116,9 @@ class BPEngine:
             self.pre_factor_compute(factor, i)
             factor.compute_messages()
             self.post_factor_compute(factor, i)
+            # Capture R messages (factor -> variable) staged for sending
+            if factor.mailer.outbox:
+                step.add_r(factor.name, list(factor.mailer.outbox))
 
         # Phase 5: All factors send messages
         for factor in self.factor_nodes:
@@ -120,6 +133,10 @@ class BPEngine:
 
         self.update_global_cost()
         self.history.track_step_data(i, step, self)
+
+        # Capture snapshot for this step (and auto-save if configured)
+        if self._snapshot_manager is not None:
+            self._snapshot_manager.capture_step(i, step, self)
 
         if self.performance_monitor:
             step_matric = self.performance_monitor.end_step(start_time, i)
@@ -307,3 +324,16 @@ class BPEngine:
         if self._is_converged():
             logger.debug(f"Converged after {i + 1} steps")
             raise StopIteration
+
+    # --- Snapshots convenience API -----------------------------------------
+    def latest_snapshot(self):
+        """Return the latest snapshot record if snapshots are enabled."""
+        if self._snapshot_manager is None:
+            return None
+        return self._snapshot_manager.latest()
+
+    def get_snapshot(self, step_index: int):
+        """Return the snapshot record for a given step index if available."""
+        if self._snapshot_manager is None:
+            return None
+        return self._snapshot_manager.get(step_index)

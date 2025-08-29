@@ -8,6 +8,7 @@ import numpy as np
 
 from .path_utils import find_project_root  # Added import
 from ..bp.factor_graph import FactorGraph
+from ..configs.global_config_mapping import get_ct_factory, CTFactory
 from ..core.agents import VariableAgent, FactorAgent
 
 # Make sure your project root is in the Python path
@@ -21,13 +22,14 @@ def _make_variable(idx: int, domain: int) -> VariableAgent:
 
 
 def _make_factor(
-    name: str, domain: int, ct_factory: Callable, ct_params: dict
+    name: str, domain: int, ct_factory: Callable | CTFactory | str, ct_params: dict
 ) -> FactorAgent:
     # we postpone cost‑table creation until FactorGraph initialises
+    ct_fn = get_ct_factory(ct_factory)
     return FactorAgent(
         name=name,
         domain=domain,
-        ct_creation_func=ct_factory,
+        ct_creation_func=ct_fn,
         param=ct_params,
     )
 
@@ -65,7 +67,7 @@ class FGBuilder:
     def build_random_graph(
         num_vars: int,
         domain_size: int,
-        ct_factory: Callable,
+        ct_factory: Callable | CTFactory | str,
         ct_params: Dict[str, Any],
         density: float,
     ):
@@ -95,7 +97,7 @@ class FGBuilder:
         *,
         num_vars: int,
         domain_size: int,
-        ct_factory: Callable,
+        ct_factory: Callable | CTFactory | str,
         ct_params: Dict[str, Any],
         density: float = 1.0,  # density is not used in cycle graph, but kept for consistency
     ):

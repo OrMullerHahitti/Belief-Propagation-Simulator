@@ -6,7 +6,7 @@ from enum import Enum
 import logging
 
 from ..bp.computators import MinSumComputator
-from ..utils import find_project_root
+from ..utils.path_utils import find_project_root
 
 ########################################################################
 # ---- Core Configuration Sections ------------------------------------
@@ -345,6 +345,50 @@ def create_uniform_float_table(
 
     shape = (domain,) * n
     return np.random.uniform(low=low, high=high, size=shape)
+
+
+########################################################################
+# ---- CT Factory Enum + helpers --------------------------------------
+########################################################################
+
+# Build an Enum from the registered factory names to enable IDE completion
+# (e.g., CTFactory.random_int)
+CTFactory = Enum("CTFactory", {name: name for name in CT_FACTORIES.keys()})
+
+
+def get_ct_factory(factory: "CTFactory | str | Callable") -> Callable:
+    """
+    Resolve a factory identifier (Enum, str, or callable) into a callable.
+
+    - CTFactory.random_int -> corresponding function
+    - "random_int" -> function
+    - callable -> returned as-is
+    """
+    # Already a callable (backward compatible)
+    if callable(factory):
+        return factory  # type: ignore[return-value]
+
+    # Enum member
+    if isinstance(factory, CTFactory):
+        key = factory.value  # type: ignore[attr-defined]
+        return CT_FACTORIES[key]
+
+    # String key
+    if isinstance(factory, str):
+        return CT_FACTORIES[factory]
+
+    raise TypeError(
+        f"Unsupported ct_factory type: {type(factory).__name__}. "
+        f"Use CTFactory enum, a registered name, or a callable."
+    )
+
+
+# Convenience: attach `.fn` attribute to enum members for quick access
+for _m in CTFactory:  # type: ignore[not-an-iterable]
+    try:
+        setattr(_m, "fn", CT_FACTORIES[_m.value])  # e.g., CTFactory.random_int.fn
+    except Exception:
+        pass
 
 
 ########################################################################

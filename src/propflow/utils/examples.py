@@ -1,8 +1,9 @@
 # create simple factorgraph cycle domain 3 3 variables
 from ..bp.factor_graph import FactorGraph
+from typing import Callable
 import os
 
-from ..configs.global_config_mapping import CT_FACTORIES
+from ..configs.global_config_mapping import CT_FACTORIES, CTFactory, get_ct_factory
 from .create.create_factor_graphs_from_config import (
     FactorGraphBuilder,
     build_cycle_graph,
@@ -29,7 +30,7 @@ def create_factor_graph(
     graph_type="cycle",
     num_vars=5,
     domain_size=3,
-    ct_factory="random_int",
+    ct_factory: str | CTFactory | Callable = "random_int",
     ct_params=None,
     density=0.5,
 ):
@@ -50,8 +51,8 @@ def create_factor_graph(
     if ct_params is None:
         ct_params = {"low": 1, "high": 100}
 
-    # Get the cost table factory function
-    ct_factory_fn = CT_FACTORIES[ct_factory]
+    # Get the cost table factory function (supports Enum, str, or callable)
+    ct_factory_fn = get_ct_factory(ct_factory)
     if graph_type == "cycle":
         variables, factors, edges = build_cycle_graph(
             num_vars=num_vars,

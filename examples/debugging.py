@@ -15,14 +15,14 @@ from propflow.bp.engines_realizations import (
     DampingSCFGEngine,
 )
 from propflow.utils import FGBuilder
-from propflow.configs import CT_FACTORIES
+from propflow.configs import CTFactory
 from propflow.utils import find_project_root
 from propflow.policies import ConvergenceConfig
 
 # Module-level constants (safe for child processes)
 PROJECT_ROOT = find_project_root()
 SEED = 42
-ct_factory_fn = CT_FACTORIES["random_int"]
+ct_factory_fn = CTFactory.random_int.fn
 
 
 def profiling(func):
