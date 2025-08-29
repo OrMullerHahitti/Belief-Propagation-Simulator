@@ -2,6 +2,8 @@
 from .loggers import Logger
 from .global_config_mapping import (
     CT_FACTORIES,
+    CTFactory,
+    get_ct_factory,
     create_poisson_table,
     create_random_int_table,
     create_uniform_float_table,
@@ -22,6 +24,8 @@ from .global_config_mapping import (
 __all__ = [
     "Logger",
     "CT_FACTORIES",
+    "CTFactory",
+    "get_ct_factory",
     "create_poisson_table",
     "create_random_int_table",
     "create_uniform_float_table",
