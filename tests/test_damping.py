@@ -1,7 +1,7 @@
 import numpy as np
 from propflow.policies import damp
 from propflow.bp.factor_graph import FactorGraph
-from propflow.bp.engines_realizations import DampingEngine
+from propflow.bp.engines import DampingEngine
 from propflow.core import VariableAgent, FactorAgent
 from propflow.core import Message
 from propflow.utils import build_cycle_graph

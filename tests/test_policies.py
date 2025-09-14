@@ -8,7 +8,7 @@ from propflow.policies.bp_policies import (
     SplittingPolicy,
 )
 from propflow.policies.convergance import ConvergenceConfig
-from propflow.bp.engines_realizations import DampingEngine, SplittingEngine
+from propflow.bp.engines import DampingEngine, SplittingEngine
 
 
 class TestBasicPolicies:

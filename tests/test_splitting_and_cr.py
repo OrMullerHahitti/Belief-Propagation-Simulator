@@ -1,5 +1,5 @@
 import numpy as np
-from propflow.bp.engines_realizations import DampingSCFGEngine, DampingCROnceEngine
+from propflow.bp.engines import DampingSCFGEngine, DampingCROnceEngine
 from propflow.core import VariableAgent, FactorAgent
 from propflow.bp.factor_graph import FactorGraph
 

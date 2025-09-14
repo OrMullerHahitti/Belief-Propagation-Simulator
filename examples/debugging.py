@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import os
 
 from propflow.bp.engine_base import BPEngine
-from propflow.bp.engines_realizations import (
+from propflow.bp.engines import (
     DampingEngine,
     DampingSCFGEngine,
 )
