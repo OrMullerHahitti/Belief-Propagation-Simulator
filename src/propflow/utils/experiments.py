@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from ..bp.engines_realizations import BPEngine, MessagePruningEngine
+from ..bp.engines import BPEngine, MessagePruningEngine
 from .create.create_factor_graph_config import ConfigCreator
 from .create.create_factor_graphs_from_config import (
     FactorGraphBuilder,

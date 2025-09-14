@@ -6,7 +6,7 @@ import multiprocessing as mp
 from propflow.simulator import Simulator
 from propflow.utils import FGBuilder
 from propflow.configs import CTFactory
-from propflow.bp.engines_realizations import (
+from propflow.bp.engines import (
     BPEngine,
     DampingSCFGEngine,
     DampingEngine,
