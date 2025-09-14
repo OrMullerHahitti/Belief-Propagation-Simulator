@@ -11,3 +11,11 @@ __pycache__/
 /build/
 /*.egg-info/
 /.claude/
+/.vscode
+configs/logs/debug_graph.log
+src/propflow.egg-info/dependency_links.txt
+src/propflow.egg-info/entry_points.txt
+src/propflow.egg-info/PKG-INFO
+src/propflow.egg-info/requires.txt
+src/propflow.egg-info/SOURCES.txt
+src/propflow.egg-info/top_level.txt
