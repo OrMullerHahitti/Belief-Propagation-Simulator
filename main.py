@@ -12,7 +12,7 @@ from propflow.configs.global_config_mapping import (
     POLICY_DEFAULTS,
     ENGINE_DEFAULTS,
 )
-from propflow.bp.engines_realizations import (
+from propflow.bp.engines import (
     BPEngine,
     DampingSCFGEngine,
     DampingEngine,

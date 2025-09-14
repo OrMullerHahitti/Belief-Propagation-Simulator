@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from propflow.bp.factor_graph import FactorGraph
 from propflow.core import VariableAgent, FactorAgent
-from propflow.bp.engines_realizations import (
+from propflow.bp.engines import (
     SplitEngine,
     DampingEngine,
     CostReductionOnceEngine,

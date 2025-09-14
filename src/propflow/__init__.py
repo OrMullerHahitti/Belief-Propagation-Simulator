@@ -5,7 +5,7 @@ from .bp.factor_graph import FactorGraph
 from .core import VariableAgent, FactorAgent
 from .utils import FGBuilder
 from .simulator import Simulator
-from .bp.engines_realizations import (
+from .bp.engines import (
     SplitEngine,
     DampingEngine,
     CostReductionOnceEngine,
