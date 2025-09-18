@@ -1,7 +1,15 @@
+from pathlib import Path
+import sys
+
 import numpy as np
 import random
 import time
 import multiprocessing as mp
+
+ROOT_DIR = Path(__file__).resolve().parent
+SRC_DIR = ROOT_DIR / "src"
+if SRC_DIR.is_dir() and str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
@@ -60,7 +68,6 @@ if __name__ == "__main__":
             ],  # Can override: "split_factor": 0.7,
         },
     }
-
     # --- Graph Creation ---
     print(f"[{time.strftime('%H:%M:%S')}] Creating {NUM_GRAPHS} factor graphs...")
     ct_factory_fn = CTFactory.random_int.fn  # or: get_ct_factory(CTFactory.random_int)
