@@ -142,7 +142,6 @@ def validate_engine_config(config: Dict[str, Any]) -> bool:
     """Validate engine configuration parameters."""
     required_keys = [
         "max_iterations",
-        "timeout",
         "normalize_messages",
         "monitor_performance",
         "anytime",
@@ -155,9 +154,6 @@ def validate_engine_config(config: Dict[str, Any]) -> bool:
 
     if not isinstance(config["max_iterations"], int) or config["max_iterations"] <= 0:
         raise ValueError("max_iterations must be a positive integer")
-
-    if not isinstance(config["timeout"], (int, float)) or config["timeout"] <= 0:
-        raise ValueError("timeout must be a positive number")
 
     return True
 
