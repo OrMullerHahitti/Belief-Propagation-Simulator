@@ -20,3 +20,4 @@ src/propflow.egg-info/requires.txt
 src/propflow.egg-info/SOURCES.txt
 src/propflow.egg-info/top_level.txt
 /logs
+/configs
