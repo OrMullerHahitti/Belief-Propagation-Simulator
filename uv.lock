@@ -2446,6 +2446,7 @@ dependencies = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "psutil" },
+    { name = "pytest" },
     { name = "scipy" },
     { name = "seaborn" },
 ]
@@ -2479,6 +2480,7 @@ requires-dist = [
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "psutil", specifier = "~=7.0.0" },
     { name = "pylint", marker = "extra == 'dev'" },
+    { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-cov", marker = "extra == 'dev'" },
     { name = "scipy", specifier = "~=1.15.2" },
