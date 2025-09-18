@@ -24,8 +24,8 @@ class BPComputator(Computator):
     """
     Vectorized, cache-friendly version of the original BPComputator.
     Same interface as original but optimized for performance.
+    Uses function dispatch tables for zero-overhead lookups for common operations.
     """
-
     # Function dispatch tables for zero-overhead lookups (THE BEST PRACTICE FOR PERFORMANCE TRUST ME)
     _REDUCE_DISPATCH = {
         np.min: (np.ndarray.min, np.ndarray.argmin),

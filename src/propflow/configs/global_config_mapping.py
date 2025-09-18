@@ -1,6 +1,7 @@
 ########################################################################
 # ----  Internal registries, global configs  ----------------------------------------
 ########################################################################
+from socket import timeout
 from typing import Dict, Callable, Any, Optional
 from enum import Enum
 import logging
@@ -40,12 +41,12 @@ class Dirs(Enum):
 ########################################################################
 
 ENGINE_DEFAULTS: Dict[str, Any] = {
-    "max_iterations": 1000,
-    "timeout": 3600,  # 1 hour in seconds
+    "max_iterations": 2000,
     "normalize_messages": True,
     "monitor_performance": False,
     "anytime": False,
     "use_bct_history": False,
+    'timeout': 600,  # seconds
 }
 
 ########################################################################
@@ -87,6 +88,7 @@ CONVERGENCE_DEFAULTS: Dict[str, Any] = {
     "min_iterations": 0,
     "patience": 5,
     "use_relative_change": True,
+    "timeout": 600,  # seconds
 }
 
 ########################################################################
