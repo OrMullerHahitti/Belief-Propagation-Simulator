@@ -73,6 +73,8 @@ from .snapshot import (
     validate_snapshot,
 )
 
+from .snapshot_recorder import EngineSnapshotRecorder, MessageSnapshot
+
 from .config import (
     AnalysisConfig,
     get_default_config,
@@ -143,6 +145,8 @@ __all__ = [
     "detect_fixed_region",
     "suggest_enforcement",
     "run_all_invariant_checks",
+    "EngineSnapshotRecorder",
+    "MessageSnapshot",
 ]
 
 
