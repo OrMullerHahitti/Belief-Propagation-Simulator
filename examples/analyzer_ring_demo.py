@@ -16,6 +16,7 @@ from propflow.utils.fg_utils import FGBuilder
 RESULTS_DIR = Path("results")
 SNAPSHOT_PATH = RESULTS_DIR / "ring_snapshots.json"
 PLOT_PATH = RESULTS_DIR / "ring_argmin.png"
+COMBINED_PLOT_PATH = RESULTS_DIR / "ring_argmin_combined.png"
 
 
 def build_ring(num_vars: int = 4, domain_size: int = 3):
@@ -56,8 +57,13 @@ def generate_plot(snapshots: Sequence[dict], *, show: bool = False) -> None:
     for var, values in series.items():
         print(f"  {var}: {values}")
 
-    viz.plot_argmin_per_variable(show=show, savepath=str(PLOT_PATH))
-    print(f"Saved plot to {PLOT_PATH}")
+    viz.plot_argmin_per_variable(
+        show=show,
+        savepath=str(PLOT_PATH),
+        combined_savepath=str(COMBINED_PLOT_PATH),
+    )
+    print(f"Saved per-variable plot to {PLOT_PATH}")
+    print(f"Saved combined plot to {COMBINED_PLOT_PATH}")
 
 
 def main() -> None:

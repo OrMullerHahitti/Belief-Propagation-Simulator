@@ -13,13 +13,14 @@ import numpy as np
 @dataclass(slots=True)
 class MessageSnapshot:
     """Serializable record of a single message exchanged during an iteration."""
+    
 
-    flow: str
-    sender: str
-    recipient: str
-    values: List[float]
-    argmin_index: int | None
-    neutral: bool
+    flow: str # either "variable_to_factor" or "factor_to_variable"
+    sender: str # typically the name of the sending agent
+    recipient: str # typically the name of the receiving agent
+    values: List[float] # the numeric contents of the message
+    argmin_index: int | None # index of the minimum value in `values`, or None if empty
+    neutral: bool # whether the message is neutral (multiple minima)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert the snapshot to a JSON-serialisable dictionary."""

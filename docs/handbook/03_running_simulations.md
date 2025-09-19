@@ -84,7 +84,7 @@ uv run python src/analyzer/snapshot_visualizer.py results/run_001_snapshots.json
 
 ## 5. Examples Directory
 - `examples/minsum_basic.py`: step-by-step min-sum demonstration.
-- `examples/analyzer_ring_demo.py`: runs a 4-variable ring, records snapshots, and generates an argmin plot via the visualiser.
+- `examples/analyzer_ring_demo.py`: runs a 4-variable ring, records snapshots, and generates per-variable and combined argmin plots via the visualiser.
 - Use these scripts to validate installation or to template new experiments.
 
 Run any example with:

@@ -4,54 +4,6 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f34",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
         "sender": "x3",
         "recipient": "f23",
         "values": [
@@ -76,6 +28,30 @@
       },
       {
         "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f41",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
         "sender": "x2",
         "recipient": "f12",
         "values": [
@@ -90,6 +66,30 @@
         "flow": "variable_to_factor",
         "sender": "x2",
         "recipient": "f23",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f34",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
         "values": [
           0.0,
           0.0,
@@ -100,8 +100,8 @@
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f41",
-        "recipient": "x1",
+        "sender": "f34",
+        "recipient": "x3",
         "values": [
           0.0,
           1.0,
@@ -112,7 +112,7 @@
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f41",
+        "sender": "f34",
         "recipient": "x4",
         "values": [
           3.0,
@@ -124,32 +124,32 @@
       },
       {
         "flow": "factor_to_variable",
+        "sender": "f41",
+        "recipient": "x1",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f41",
+        "recipient": "x4",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x3",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f23",
-        "recipient": "x2",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
         "values": [
           1.0,
           0.0,
@@ -160,8 +160,8 @@
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
+        "sender": "f23",
+        "recipient": "x2",
         "values": [
           0.0,
           3.0,
@@ -196,12 +196,12 @@
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
       "x3": 0,
-      "x2": 1
+      "x1": 1,
+      "x2": 2,
+      "x4": 1
     },
-    "cost": 12.0,
+    "cost": 4.0,
     "neutral_messages": 14,
     "step_neutral": false
   },
@@ -210,6 +210,30 @@
     "messages": [
       {
         "flow": "variable_to_factor",
+        "sender": "x3",
+        "recipient": "f34",
+        "values": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x3",
+        "recipient": "f23",
+        "values": [
+          0.0,
+          1.0,
+          2.0
+        ],
+        "argmin_index": 0,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
         "sender": "x1",
         "recipient": "f41",
         "values": [
@@ -224,54 +248,6 @@
         "flow": "variable_to_factor",
         "sender": "x1",
         "recipient": "f12",
-        "values": [
-          0.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          1.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f34",
-        "values": [
-          3.0,
-          0.0,
-          1.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f23",
-        "values": [
-          0.0,
-          3.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f34",
         "values": [
           0.0,
           0.0,
@@ -298,6 +274,18 @@
         "recipient": "f12",
         "values": [
           0.0,
+          3.0,
+          0.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f34",
+        "values": [
+          0.0,
           0.0,
           0.0
         ],
@@ -305,9 +293,21 @@
         "neutral": true
       },
       {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          3.0,
+          0.0,
+          1.0
+        ],
+        "argmin_index": 1,
+        "neutral": false
+      },
+      {
         "flow": "factor_to_variable",
-        "sender": "f41",
-        "recipient": "x1",
+        "sender": "f34",
+        "recipient": "x3",
         "values": [
           0.0,
           1.0,
@@ -318,7 +318,7 @@
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f41",
+        "sender": "f34",
         "recipient": "x4",
         "values": [
           3.0,
@@ -330,34 +330,34 @@
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f23",
-        "recipient": "x3",
+        "sender": "f41",
+        "recipient": "x1",
         "values": [
           0.0,
-          0.0,
-          0.0
+          1.0,
+          1.0
         ],
         "argmin_index": 0,
-        "neutral": true
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f23",
-        "recipient": "x2",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
+        "sender": "f41",
         "recipient": "x4",
         "values": [
           1.0,
+          1.0,
+          0.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f23",
+        "recipient": "x3",
+        "values": [
+          2.0,
           0.0,
           0.0
         ],
@@ -366,12 +366,12 @@
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
+        "sender": "f23",
+        "recipient": "x2",
         "values": [
-          0.0,
-          3.0,
-          0.0
+          1.0,
+          4.0,
+          1.0
         ],
         "argmin_index": 0,
         "neutral": true
@@ -382,11 +382,11 @@
         "recipient": "x1",
         "values": [
           1.0,
-          0.0,
+          1.0,
           0.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
@@ -394,21 +394,21 @@
         "recipient": "x2",
         "values": [
           1.0,
-          1.0,
-          2.0
+          0.0,
+          0.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 1,
         "neutral": true
       }
     ],
     "assignments": {
+      "x3": 1,
       "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x2": 2,
+      "x4": 2
     },
     "cost": 8.0,
-    "neutral_messages": 13,
+    "neutral_messages": 10,
     "step_neutral": false
   },
   {
@@ -416,10 +416,10 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
+        "sender": "x3",
+        "recipient": "f34",
         "values": [
-          1.0,
+          2.0,
           0.0,
           0.0
         ],
@@ -428,8 +428,8 @@
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
+        "sender": "x3",
+        "recipient": "f23",
         "values": [
           0.0,
           1.0,
@@ -440,8 +440,32 @@
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x4",
+        "sender": "x1",
         "recipient": "f41",
+        "values": [
+          1.0,
+          1.0,
+          0.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          0.0,
+          1.0,
+          1.0
+        ],
+        "argmin_index": 0,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f23",
         "values": [
           1.0,
           0.0,
@@ -452,8 +476,32 @@
       },
       {
         "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f12",
+        "values": [
+          1.0,
+          4.0,
+          1.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
         "sender": "x4",
         "recipient": "f34",
+        "values": [
+          1.0,
+          1.0,
+          0.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
         "values": [
           3.0,
           1.0,
@@ -463,107 +511,59 @@
         "neutral": true
       },
       {
-        "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f23",
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
         "values": [
-          0.0,
+          1.0,
+          1.0,
+          3.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x4",
+        "values": [
           3.0,
-          0.0
+          2.0,
+          1.0
         ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f34",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f23",
-        "values": [
-          1.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f12",
-        "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x1",
         "values": [
-          0.0,
           1.0,
-          2.0
+          1.0,
+          1.0
         ],
         "argmin_index": 0,
-        "neutral": false
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x4",
         "values": [
-          3.0,
           1.0,
-          1.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f23",
-        "recipient": "x3",
-        "values": [
           1.0,
-          2.0,
-          2.0
+          0.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
-        "recipient": "x2",
+        "recipient": "x3",
         "values": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
-          1.0,
+          2.0,
           0.0,
           0.0
         ],
@@ -572,8 +572,8 @@
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
+        "sender": "f23",
+        "recipient": "x2",
         "values": [
           1.0,
           4.0,
@@ -587,12 +587,12 @@
         "sender": "f12",
         "recipient": "x1",
         "values": [
-          1.0,
-          0.0,
-          0.0
+          2.0,
+          2.0,
+          1.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
@@ -601,20 +601,20 @@
         "values": [
           1.0,
           1.0,
-          2.0
+          1.0
         ],
         "argmin_index": 0,
         "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 0,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 13,
+    "cost": 6.0,
+    "neutral_messages": 9,
     "step_neutral": false
   },
   {
@@ -622,48 +622,12 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
-        "values": [
-          1.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
-        "values": [
-          0.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          1.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
+        "sender": "x3",
         "recipient": "f34",
         "values": [
-          3.0,
-          1.0,
-          1.0
+          2.0,
+          0.0,
+          0.0
         ],
         "argmin_index": 1,
         "neutral": true
@@ -672,6 +636,54 @@
         "flow": "variable_to_factor",
         "sender": "x3",
         "recipient": "f23",
+        "values": [
+          1.0,
+          1.0,
+          3.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f41",
+        "values": [
+          2.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f23",
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f12",
         "values": [
           1.0,
           4.0,
@@ -682,104 +694,92 @@
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
+        "sender": "x4",
         "recipient": "f34",
         "values": [
           1.0,
-          2.0,
-          2.0
+          1.0,
+          0.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f23",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          3.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
         "values": [
           1.0,
           1.0,
-          2.0
+          3.0
         ],
         "argmin_index": 0,
         "neutral": true
       },
       {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f12",
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x4",
         "values": [
-          0.0,
-          0.0,
-          0.0
+          3.0,
+          2.0,
+          1.0
         ],
-        "argmin_index": 0,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x1",
         "values": [
-          0.0,
+          2.0,
           1.0,
-          2.0
+          1.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x4",
         "values": [
-          3.0,
-          1.0,
+          2.0,
+          2.0,
           1.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x3",
         "values": [
-          1.0,
           2.0,
-          2.0
+          1.0,
+          1.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x2",
-        "values": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
-          2.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
         "values": [
           1.0,
           4.0,
@@ -793,34 +793,34 @@
         "sender": "f12",
         "recipient": "x1",
         "values": [
-          1.0,
-          0.0,
-          0.0
+          2.0,
+          2.0,
+          1.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f12",
         "recipient": "x2",
         "values": [
+          2.0,
           1.0,
-          1.0,
-          2.0
+          1.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 1,
         "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 11,
+    "cost": 4.0,
+    "neutral_messages": 10,
     "step_neutral": false
   },
   {
@@ -828,46 +828,10 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
-        "values": [
-          1.0,
-          0.0,
-          0.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
-        "values": [
-          0.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          2.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
+        "sender": "x3",
         "recipient": "f34",
         "values": [
-          3.0,
+          2.0,
           1.0,
           1.0
         ],
@@ -880,64 +844,136 @@
         "recipient": "f23",
         "values": [
           1.0,
-          4.0,
-          1.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f34",
-        "values": [
           1.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f23",
-        "values": [
-          1.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f12",
-        "values": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f41",
-        "recipient": "x1",
-        "values": [
-          1.0,
-          3.0,
           3.0
         ],
         "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f41",
+        "values": [
+          2.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
         "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          2.0,
+          1.0,
+          1.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f23",
+        "values": [
+          2.0,
+          1.0,
+          1.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f12",
+        "values": [
+          1.0,
+          4.0,
+          1.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f34",
+        "values": [
+          2.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          3.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
+        "values": [
+          2.0,
+          2.0,
+          4.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x4",
+        "values": [
+          4.0,
+          2.0,
+          2.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f41",
+        "recipient": "x1",
+        "values": [
+          2.0,
+          1.0,
+          1.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x4",
+        "values": [
+          2.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f23",
+        "recipient": "x3",
         "values": [
           3.0,
           1.0,
@@ -949,43 +985,7 @@
       {
         "flow": "factor_to_variable",
         "sender": "f23",
-        "recipient": "x3",
-        "values": [
-          1.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f23",
         "recipient": "x2",
-        "values": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
-          2.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
         "values": [
           1.0,
           4.0,
@@ -1000,33 +1000,33 @@
         "recipient": "x1",
         "values": [
           2.0,
-          1.0,
+          2.0,
           1.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f12",
         "recipient": "x2",
         "values": [
+          2.0,
           1.0,
-          1.0,
-          2.0
+          1.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 1,
         "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 10,
+    "cost": 4.0,
+    "neutral_messages": 11,
     "step_neutral": false
   },
   {
@@ -1034,43 +1034,7 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
-        "values": [
-          2.0,
-          1.0,
-          1.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
-        "values": [
-          1.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          2.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
+        "sender": "x3",
         "recipient": "f34",
         "values": [
           3.0,
@@ -1085,35 +1049,47 @@
         "sender": "x3",
         "recipient": "f23",
         "values": [
-          1.0,
-          4.0,
-          1.0
+          2.0,
+          2.0,
+          4.0
         ],
         "argmin_index": 0,
         "neutral": true
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f34",
+        "sender": "x1",
+        "recipient": "f41",
         "values": [
-          1.0,
           2.0,
-          2.0
+          2.0,
+          1.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          2.0,
+          1.0,
+          1.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "variable_to_factor",
         "sender": "x2",
         "recipient": "f23",
         "values": [
+          2.0,
           1.0,
-          1.0,
-          2.0
+          1.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 1,
         "neutral": true
       },
       {
@@ -1122,28 +1098,28 @@
         "recipient": "f12",
         "values": [
           1.0,
-          1.0,
+          4.0,
           1.0
         ],
         "argmin_index": 0,
         "neutral": true
       },
       {
-        "flow": "factor_to_variable",
-        "sender": "f41",
-        "recipient": "x1",
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f34",
         "values": [
-          1.0,
-          3.0,
-          3.0
+          2.0,
+          2.0,
+          1.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
       },
       {
-        "flow": "factor_to_variable",
-        "sender": "f41",
-        "recipient": "x4",
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
         "values": [
           4.0,
           2.0,
@@ -1154,24 +1130,12 @@
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f23",
+        "sender": "f34",
         "recipient": "x3",
         "values": [
-          1.0,
           2.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f23",
-        "recipient": "x2",
-        "values": [
-          1.0,
-          1.0,
-          1.0
+          2.0,
+          4.0
         ],
         "argmin_index": 0,
         "neutral": true
@@ -1181,21 +1145,57 @@
         "sender": "f34",
         "recipient": "x4",
         "values": [
-          2.0,
-          1.0,
+          4.0,
+          3.0,
           2.0
         ],
-        "argmin_index": 1,
+        "argmin_index": 2,
         "neutral": false
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f34",
+        "sender": "f41",
+        "recipient": "x1",
+        "values": [
+          2.0,
+          2.0,
+          2.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f41",
+        "recipient": "x4",
+        "values": [
+          2.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f23",
         "recipient": "x3",
         "values": [
+          3.0,
           1.0,
-          4.0,
           1.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f23",
+        "recipient": "x2",
+        "values": [
+          2.0,
+          5.0,
+          2.0
         ],
         "argmin_index": 0,
         "neutral": true
@@ -1206,11 +1206,11 @@
         "recipient": "x1",
         "values": [
           2.0,
-          1.0,
+          2.0,
           1.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
@@ -1218,21 +1218,21 @@
         "recipient": "x2",
         "values": [
           2.0,
-          3.0,
-          3.0
+          1.0,
+          1.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 9,
+    "cost": 4.0,
+    "neutral_messages": 11,
     "step_neutral": false
   },
   {
@@ -1240,48 +1240,12 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
-        "values": [
-          2.0,
-          1.0,
-          1.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
-        "values": [
-          1.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          2.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
+        "sender": "x3",
         "recipient": "f34",
         "values": [
-          4.0,
-          2.0,
-          2.0
+          3.0,
+          1.0,
+          1.0
         ],
         "argmin_index": 1,
         "neutral": true
@@ -1291,24 +1255,36 @@
         "sender": "x3",
         "recipient": "f23",
         "values": [
-          1.0,
-          4.0,
-          1.0
+          2.0,
+          2.0,
+          4.0
         ],
         "argmin_index": 0,
         "neutral": true
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f34",
+        "sender": "x1",
+        "recipient": "f41",
         "values": [
-          1.0,
+          2.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          2.0,
           2.0,
           2.0
         ],
         "argmin_index": 0,
-        "neutral": false
+        "neutral": true
       },
       {
         "flow": "variable_to_factor",
@@ -1316,88 +1292,112 @@
         "recipient": "f23",
         "values": [
           2.0,
-          3.0,
-          3.0
+          1.0,
+          1.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "variable_to_factor",
         "sender": "x2",
         "recipient": "f12",
         "values": [
-          1.0,
-          1.0,
-          1.0
+          2.0,
+          5.0,
+          2.0
         ],
         "argmin_index": 0,
         "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f34",
+        "values": [
+          2.0,
+          2.0,
+          1.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          4.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
+        "values": [
+          2.0,
+          2.0,
+          4.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x4",
+        "values": [
+          4.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x1",
         "values": [
-          1.0,
           3.0,
-          3.0
+          2.0,
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x4",
         "values": [
-          4.0,
           2.0,
-          2.0
+          2.0,
+          1.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x3",
         "values": [
-          2.0,
           3.0,
-          3.0
+          1.0,
+          1.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x2",
-        "values": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
-          2.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
         "values": [
           2.0,
           5.0,
@@ -1411,34 +1411,34 @@
         "sender": "f12",
         "recipient": "x1",
         "values": [
-          2.0,
-          1.0,
-          1.0
+          3.0,
+          3.0,
+          2.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f12",
         "recipient": "x2",
         "values": [
-          2.0,
           3.0,
-          3.0
+          2.0,
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 8,
+    "cost": 4.0,
+    "neutral_messages": 10,
     "step_neutral": false
   },
   {
@@ -1446,10 +1446,10 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
+        "sender": "x3",
+        "recipient": "f34",
         "values": [
-          2.0,
+          3.0,
           1.0,
           1.0
         ],
@@ -1458,34 +1458,34 @@
       },
       {
         "flow": "variable_to_factor",
+        "sender": "x3",
+        "recipient": "f23",
+        "values": [
+          2.0,
+          2.0,
+          4.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f41",
+        "values": [
+          3.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
         "sender": "x1",
         "recipient": "f12",
         "values": [
-          1.0,
           3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          2.0,
-          1.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f34",
-        "values": [
-          4.0,
           2.0,
           2.0
         ],
@@ -1494,8 +1494,20 @@
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
+        "sender": "x2",
         "recipient": "f23",
+        "values": [
+          3.0,
+          2.0,
+          2.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f12",
         "values": [
           2.0,
           5.0,
@@ -1506,56 +1518,80 @@
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
+        "sender": "x4",
         "recipient": "f34",
         "values": [
           2.0,
-          3.0,
-          3.0
+          2.0,
+          1.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f23",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          4.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
         "values": [
           2.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f12",
-        "values": [
-          1.0,
-          1.0,
-          1.0
+          2.0,
+          4.0
         ],
         "argmin_index": 0,
         "neutral": true
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f41",
-        "recipient": "x1",
+        "sender": "f34",
+        "recipient": "x4",
         "values": [
-          1.0,
+          4.0,
           3.0,
-          3.0
+          2.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
+        "recipient": "x1",
+        "values": [
+          3.0,
+          2.0,
+          2.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f41",
         "recipient": "x4",
+        "values": [
+          3.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f23",
+        "recipient": "x3",
         "values": [
           4.0,
           2.0,
@@ -1567,43 +1603,7 @@
       {
         "flow": "factor_to_variable",
         "sender": "f23",
-        "recipient": "x3",
-        "values": [
-          2.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f23",
         "recipient": "x2",
-        "values": [
-          2.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
-          3.0,
-          2.0,
-          3.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
         "values": [
           2.0,
           5.0,
@@ -1617,34 +1617,34 @@
         "sender": "f12",
         "recipient": "x1",
         "values": [
-          2.0,
-          1.0,
-          1.0
+          3.0,
+          3.0,
+          2.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f12",
         "recipient": "x2",
         "values": [
-          2.0,
           3.0,
-          3.0
+          2.0,
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 8,
+    "cost": 4.0,
+    "neutral_messages": 10,
     "step_neutral": false
   },
   {
@@ -1652,43 +1652,7 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
-        "values": [
-          2.0,
-          1.0,
-          1.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
-        "values": [
-          1.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          3.0,
-          2.0,
-          3.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
+        "sender": "x3",
         "recipient": "f34",
         "values": [
           4.0,
@@ -1704,64 +1668,136 @@
         "recipient": "f23",
         "values": [
           2.0,
-          5.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f34",
-        "values": [
           2.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f23",
-        "values": [
-          2.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f12",
-        "values": [
-          2.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f41",
-        "recipient": "x1",
-        "values": [
-          2.0,
-          4.0,
           4.0
         ],
         "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f41",
+        "values": [
+          3.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          3.0,
+          2.0,
+          2.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f23",
+        "values": [
+          3.0,
+          2.0,
+          2.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f12",
+        "values": [
+          2.0,
+          5.0,
+          2.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f34",
+        "values": [
+          3.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          4.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
+        "values": [
+          3.0,
+          3.0,
+          5.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x4",
+        "values": [
+          5.0,
+          4.0,
+          3.0
+        ],
+        "argmin_index": 2,
         "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
+        "recipient": "x1",
+        "values": [
+          3.0,
+          2.0,
+          2.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f41",
         "recipient": "x4",
+        "values": [
+          3.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f23",
+        "recipient": "x3",
         "values": [
           4.0,
           2.0,
@@ -1773,43 +1809,7 @@
       {
         "flow": "factor_to_variable",
         "sender": "f23",
-        "recipient": "x3",
-        "values": [
-          2.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f23",
         "recipient": "x2",
-        "values": [
-          2.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
-          3.0,
-          2.0,
-          3.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
         "values": [
           2.0,
           5.0,
@@ -1824,33 +1824,33 @@
         "recipient": "x1",
         "values": [
           3.0,
-          2.0,
+          3.0,
           2.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f12",
         "recipient": "x2",
         "values": [
-          2.0,
           3.0,
-          3.0
+          2.0,
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 8,
+    "cost": 4.0,
+    "neutral_messages": 10,
     "step_neutral": false
   },
   {
@@ -1858,43 +1858,7 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
-        "values": [
-          3.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
-        "values": [
-          2.0,
-          4.0,
-          4.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          3.0,
-          2.0,
-          3.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
+        "sender": "x3",
         "recipient": "f34",
         "values": [
           4.0,
@@ -1909,36 +1873,48 @@
         "sender": "x3",
         "recipient": "f23",
         "values": [
-          2.0,
-          5.0,
-          2.0
+          3.0,
+          3.0,
+          5.0
         ],
         "argmin_index": 0,
         "neutral": true
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f34",
+        "sender": "x1",
+        "recipient": "f41",
         "values": [
-          2.0,
           3.0,
-          3.0
+          3.0,
+          2.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          3.0,
+          2.0,
+          2.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "variable_to_factor",
         "sender": "x2",
         "recipient": "f23",
         "values": [
-          2.0,
           3.0,
-          3.0
+          2.0,
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "variable_to_factor",
@@ -1946,80 +1922,104 @@
         "recipient": "f12",
         "values": [
           2.0,
-          2.0,
+          5.0,
           2.0
         ],
         "argmin_index": 0,
         "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f34",
+        "values": [
+          3.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          5.0,
+          4.0,
+          3.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
+        "values": [
+          3.0,
+          3.0,
+          5.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x4",
+        "values": [
+          5.0,
+          4.0,
+          3.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x1",
         "values": [
-          2.0,
           4.0,
-          4.0
+          3.0,
+          3.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x4",
         "values": [
-          5.0,
           3.0,
-          3.0
+          3.0,
+          2.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x3",
         "values": [
+          4.0,
           2.0,
-          3.0,
-          3.0
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x2",
         "values": [
-          2.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
           3.0,
-          2.0,
+          6.0,
           3.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
-        "values": [
-          2.0,
-          5.0,
-          2.0
         ],
         "argmin_index": 0,
         "neutral": true
@@ -2030,11 +2030,11 @@
         "recipient": "x1",
         "values": [
           3.0,
-          2.0,
+          3.0,
           2.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
@@ -2042,21 +2042,21 @@
         "recipient": "x2",
         "values": [
           3.0,
-          4.0,
-          4.0
+          2.0,
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 8,
+    "cost": 4.0,
+    "neutral_messages": 10,
     "step_neutral": false
   },
   {
@@ -2064,48 +2064,12 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
-        "values": [
-          3.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 1,
-        "neutral": true
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f12",
-        "values": [
-          2.0,
-          4.0,
-          4.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          3.0,
-          2.0,
-          3.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
+        "sender": "x3",
         "recipient": "f34",
         "values": [
-          5.0,
-          3.0,
-          3.0
+          4.0,
+          2.0,
+          2.0
         ],
         "argmin_index": 1,
         "neutral": true
@@ -2115,24 +2079,36 @@
         "sender": "x3",
         "recipient": "f23",
         "values": [
-          2.0,
-          5.0,
-          2.0
+          3.0,
+          3.0,
+          5.0
         ],
         "argmin_index": 0,
         "neutral": true
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
-        "recipient": "f34",
+        "sender": "x1",
+        "recipient": "f41",
         "values": [
-          2.0,
+          3.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f12",
+        "values": [
+          4.0,
           3.0,
           3.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "variable_to_factor",
@@ -2140,88 +2116,112 @@
         "recipient": "f23",
         "values": [
           3.0,
-          4.0,
-          4.0
+          2.0,
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "variable_to_factor",
         "sender": "x2",
         "recipient": "f12",
         "values": [
-          2.0,
-          2.0,
-          2.0
+          3.0,
+          6.0,
+          3.0
         ],
         "argmin_index": 0,
         "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f34",
+        "values": [
+          3.0,
+          3.0,
+          2.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          5.0,
+          4.0,
+          3.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
+        "values": [
+          3.0,
+          3.0,
+          5.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x4",
+        "values": [
+          5.0,
+          4.0,
+          3.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x1",
         "values": [
-          2.0,
           4.0,
-          4.0
+          3.0,
+          3.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
         "recipient": "x4",
         "values": [
-          5.0,
           3.0,
-          3.0
+          3.0,
+          2.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x3",
         "values": [
-          3.0,
           4.0,
-          4.0
+          2.0,
+          2.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       },
       {
         "flow": "factor_to_variable",
         "sender": "f23",
         "recipient": "x2",
-        "values": [
-          2.0,
-          2.0,
-          2.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
-          3.0,
-          2.0,
-          3.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
         "values": [
           3.0,
           6.0,
@@ -2235,34 +2235,34 @@
         "sender": "f12",
         "recipient": "x1",
         "values": [
-          3.0,
-          2.0,
-          2.0
+          4.0,
+          4.0,
+          3.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f12",
         "recipient": "x2",
         "values": [
-          3.0,
           4.0,
-          4.0
+          3.0,
+          3.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 8,
+    "cost": 4.0,
+    "neutral_messages": 10,
     "step_neutral": false
   },
   {
@@ -2270,10 +2270,10 @@
     "messages": [
       {
         "flow": "variable_to_factor",
-        "sender": "x1",
-        "recipient": "f41",
+        "sender": "x3",
+        "recipient": "f34",
         "values": [
-          3.0,
+          4.0,
           2.0,
           2.0
         ],
@@ -2282,34 +2282,34 @@
       },
       {
         "flow": "variable_to_factor",
+        "sender": "x3",
+        "recipient": "f23",
+        "values": [
+          3.0,
+          3.0,
+          5.0
+        ],
+        "argmin_index": 0,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x1",
+        "recipient": "f41",
+        "values": [
+          4.0,
+          4.0,
+          3.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "variable_to_factor",
         "sender": "x1",
         "recipient": "f12",
         "values": [
-          2.0,
           4.0,
-          4.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f41",
-        "values": [
-          3.0,
-          2.0,
-          3.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x4",
-        "recipient": "f34",
-        "values": [
-          5.0,
           3.0,
           3.0
         ],
@@ -2318,8 +2318,20 @@
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
+        "sender": "x2",
         "recipient": "f23",
+        "values": [
+          4.0,
+          3.0,
+          3.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "variable_to_factor",
+        "sender": "x2",
+        "recipient": "f12",
         "values": [
           3.0,
           6.0,
@@ -2330,56 +2342,80 @@
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x3",
+        "sender": "x4",
         "recipient": "f34",
         "values": [
           3.0,
-          4.0,
-          4.0
+          3.0,
+          2.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
       },
       {
         "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f23",
+        "sender": "x4",
+        "recipient": "f41",
+        "values": [
+          5.0,
+          4.0,
+          3.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f34",
+        "recipient": "x3",
         "values": [
           3.0,
-          4.0,
-          4.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "variable_to_factor",
-        "sender": "x2",
-        "recipient": "f12",
-        "values": [
-          2.0,
-          2.0,
-          2.0
+          3.0,
+          5.0
         ],
         "argmin_index": 0,
         "neutral": true
       },
       {
         "flow": "factor_to_variable",
-        "sender": "f41",
-        "recipient": "x1",
+        "sender": "f34",
+        "recipient": "x4",
         "values": [
-          2.0,
+          5.0,
           4.0,
-          4.0
+          3.0
         ],
-        "argmin_index": 0,
+        "argmin_index": 2,
         "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f41",
+        "recipient": "x1",
+        "values": [
+          4.0,
+          3.0,
+          3.0
+        ],
+        "argmin_index": 1,
+        "neutral": true
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f41",
         "recipient": "x4",
+        "values": [
+          4.0,
+          4.0,
+          3.0
+        ],
+        "argmin_index": 2,
+        "neutral": false
+      },
+      {
+        "flow": "factor_to_variable",
+        "sender": "f23",
+        "recipient": "x3",
         "values": [
           5.0,
           3.0,
@@ -2391,43 +2427,7 @@
       {
         "flow": "factor_to_variable",
         "sender": "f23",
-        "recipient": "x3",
-        "values": [
-          3.0,
-          4.0,
-          4.0
-        ],
-        "argmin_index": 0,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f23",
         "recipient": "x2",
-        "values": [
-          3.0,
-          3.0,
-          3.0
-        ],
-        "argmin_index": 0,
-        "neutral": true
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x4",
-        "values": [
-          4.0,
-          3.0,
-          4.0
-        ],
-        "argmin_index": 1,
-        "neutral": false
-      },
-      {
-        "flow": "factor_to_variable",
-        "sender": "f34",
-        "recipient": "x3",
         "values": [
           3.0,
           6.0,
@@ -2441,34 +2441,34 @@
         "sender": "f12",
         "recipient": "x1",
         "values": [
-          3.0,
-          2.0,
-          2.0
+          4.0,
+          4.0,
+          3.0
         ],
-        "argmin_index": 1,
-        "neutral": true
+        "argmin_index": 2,
+        "neutral": false
       },
       {
         "flow": "factor_to_variable",
         "sender": "f12",
         "recipient": "x2",
         "values": [
-          3.0,
           4.0,
-          4.0
+          3.0,
+          3.0
         ],
-        "argmin_index": 0,
-        "neutral": false
+        "argmin_index": 1,
+        "neutral": true
       }
     ],
     "assignments": {
-      "x1": 0,
-      "x4": 1,
-      "x3": 0,
-      "x2": 0
+      "x3": 1,
+      "x1": 2,
+      "x2": 2,
+      "x4": 2
     },
-    "cost": 8.0,
-    "neutral_messages": 8,
+    "cost": 4.0,
+    "neutral_messages": 10,
     "step_neutral": false
   }
 ]
