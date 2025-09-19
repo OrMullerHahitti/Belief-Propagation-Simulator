@@ -21,3 +21,5 @@ src/propflow.egg-info/SOURCES.txt
 src/propflow.egg-info/top_level.txt
 /logs
 /configs
+configs/logs/Simulator.log
+configs/logs/Simulator.log

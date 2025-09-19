@@ -63,7 +63,17 @@ class SnapshotVisualizer:
         figsize: tuple[float, float] | None = None,
         show: bool = True,
         savepath: str | None = None,
+        combined_savepath: str | None = None,
     ) -> None:
+        """Plot argmin trajectories per variable and optionally a combined chart.
+
+        One subplot per variable if the selection is small; otherwise the per-variable
+        figure collapses into a single multi-line chart. When a `savepath` is supplied
+        and more than one variable is plotted, an additional file with suffix
+        ``_combined`` is written automatically (unless ``combined_savepath`` overrides
+        the target). A combined figure is also rendered when ``combined_savepath`` is
+        provided or when ``show`` is true for multiple variables.
+        """
         target_vars = self._select_variables(vars_filter, enforce_limit=True)
         series = self._compute_belief_argmins(target_vars)
 
@@ -71,15 +81,17 @@ class SnapshotVisualizer:
         if not steps:
             raise ValueError("No steps to plot")
 
+        per_var_fig = None
+
         if len(target_vars) <= self._SMALL_PLOT_THRESHOLD:
-            fig, axes = plt.subplots(len(target_vars), 1, figsize=figsize or (10, 3 * len(target_vars)))
+            per_var_fig, axes = plt.subplots(len(target_vars), 1, figsize=figsize or (10, 3 * len(target_vars)))
             if len(target_vars) == 1:
                 axes = [axes]
             for ax, var in zip(axes, target_vars):
                 self._plot_variable_series(ax, var, steps, series[var])
             plt.tight_layout()
         else:
-            fig, ax = plt.subplots(figsize=figsize or (12, 6))
+            per_var_fig, ax = plt.subplots(figsize=figsize or (12, 6))
             for var in target_vars:
                 ax.plot(steps, series[var], marker="o", label=var)
             ax.set_xlabel("Iteration")
@@ -90,13 +102,42 @@ class SnapshotVisualizer:
             self._set_integer_ticks(ax, series)
             plt.tight_layout()
 
+        derived_combined = combined_savepath
         if savepath:
-            Path(savepath).parent.mkdir(parents=True, exist_ok=True)
-            fig.savefig(savepath, dpi=150)
-        if show:
-            plt.show()
+            save_path_obj = Path(savepath)
+            save_path_obj.parent.mkdir(parents=True, exist_ok=True)
+            per_var_fig.savefig(save_path_obj, dpi=150)
+            if derived_combined is None and len(target_vars) > 1:
+                derived_combined = str(
+                    save_path_obj.with_name(f"{save_path_obj.stem}_combined{save_path_obj.suffix}")
+                )
+
+        if derived_combined or (show and len(target_vars) > 1):
+            combined_fig, combined_ax = plt.subplots(figsize=figsize or (12, 6))
+            for var in target_vars:
+                combined_ax.plot(steps, series[var], marker="o", label=var)
+            combined_ax.set_xlabel("Iteration")
+            combined_ax.set_ylabel("Argmin index")
+            combined_ax.set_title("Belief argmin trajectories (combined)")
+            combined_ax.grid(True, alpha=0.3)
+            combined_ax.legend()
+            self._set_integer_ticks(combined_ax, series)
+            plt.tight_layout()
+
+            if derived_combined:
+                combined_path_obj = Path(derived_combined)
+                combined_path_obj.parent.mkdir(parents=True, exist_ok=True)
+                combined_fig.savefig(combined_path_obj, dpi=150)
+
+            if show:
+                combined_fig.show()
+            else:
+                plt.close(combined_fig)
+
+        if show and len(target_vars) <= self._SMALL_PLOT_THRESHOLD:
+            per_var_fig.show()
         else:
-            plt.close(fig)
+            plt.close(per_var_fig)
 
     # ------------------------------ internals -----------------------------
     @staticmethod
@@ -177,11 +218,9 @@ class SnapshotVisualizer:
     def _collect_variables(records: Sequence[_SnapshotRecord]) -> List[str]:
         vars_set = set()
         for rec in records:
-            vars_set.update(rec.assignments.keys())
-            for msg in rec.messages:
-                recip = msg.get("recipient")
-                if isinstance(recip, str):
-                    vars_set.add(recip)
+            vars_set.update(str(key) for key in rec.assignments.keys())
+        if not vars_set:
+            raise ValueError("No variable assignments found in snapshots")
         return sorted(vars_set)
 
     @staticmethod
