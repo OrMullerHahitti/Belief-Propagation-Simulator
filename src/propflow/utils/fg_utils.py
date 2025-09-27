@@ -1,3 +1,10 @@
+"""Utilities for creating, loading, and manipulating factor graphs.
+
+This module provides a collection of helper functions and classes for common
+tasks related to factor graphs, such as building graphs with specific
+topologies (random, cycle), calculating bounds, and safely handling pickled
+graph objects.
+"""
 import pickle
 import sys
 from typing import Callable, Dict, Any, List, Tuple
@@ -6,45 +13,34 @@ from functools import lru_cache
 import networkx as nx
 import numpy as np
 
-from .path_utils import find_project_root  # Added import
+from .path_utils import find_project_root
 from ..bp.factor_graph import FactorGraph
 from ..configs.global_config_mapping import get_ct_factory, CTFactory
 from ..core.agents import VariableAgent, FactorAgent
 
-# Make sure your project root is in the Python path
 project_root = find_project_root()
 sys.path.append(str(project_root))
 
 
 def _make_variable(idx: int, domain: int) -> VariableAgent:
-    name = f"x{idx}"
-    return VariableAgent(name=name, domain=domain)
+    """Creates a single `VariableAgent` with a standardized name."""
+    return VariableAgent(name=f"x{idx}", domain=domain)
 
 
 def _make_factor(
     name: str, domain: int, ct_factory: Callable | CTFactory | str, ct_params: dict
 ) -> FactorAgent:
-    # we postpone cost‑table creation until FactorGraph initialises
+    """Creates a single `FactorAgent`, deferring cost table creation."""
     ct_fn = get_ct_factory(ct_factory)
-    return FactorAgent(
-        name=name,
-        domain=domain,
-        ct_creation_func=ct_fn,
-        param=ct_params,
-    )
+    return FactorAgent(name=name, domain=domain, ct_creation_func=ct_fn, param=ct_params)
 
 
 def _build_factor_edge_list(
-    edges: List[Tuple[VariableAgent, VariableAgent]], domain_size, ct_factory, ct_params
+    edges: List[Tuple[VariableAgent, VariableAgent]], domain_size: int, ct_factory: Any, ct_params: dict
 ) -> Dict[FactorAgent, List[VariableAgent]]:
-    """
-    Build a dictionary of edges from a list of edges.
-    :param edges: List of edges
-    :return: Dictionary of edges
-    """
+    """Creates factor nodes for binary constraints and maps them to variables."""
     edge_dict = {}
-    for edge in edges:
-        a, b = edge
+    for a, b in edges:
         fname = f"f{a.name[1:]}{b.name[1:]}"
         fnode = _make_factor(fname, domain_size, ct_factory, ct_params)
         edge_dict[fnode] = [a, b]
@@ -54,15 +50,16 @@ def _build_factor_edge_list(
 def _make_connections_density(
     variable_list: List[VariableAgent], density: float
 ) -> List[Tuple[VariableAgent, VariableAgent]]:
-    """ """
+    """Creates a random graph of variable connections based on a given density."""
     r_graph = nx.erdos_renyi_graph(len(variable_list), density)
     variable_map = dict(enumerate(variable_list))
     full_graph = nx.relabel_nodes(r_graph, variable_map)
     return list(full_graph.edges())
 
 
-##-------------------------- fg builder --------------------------##
 class FGBuilder:
+    """A builder class providing static methods to construct factor graphs."""
+
     @staticmethod
     def build_random_graph(
         num_vars: int,
@@ -70,136 +67,126 @@ class FGBuilder:
         ct_factory: Callable | CTFactory | str,
         ct_params: Dict[str, Any],
         density: float,
-    ):
-        """
-        Build a random binary constraints graph.
-        :param num_vars: Number of variables
-        :param domain_size: Size of the domain
-        :param ct_factory: Cost table factory
-        :param ct_params: Cost table parameters
-        :param density: Density of the graph
-        :return: List of variables, list of factors, dictionary of edges
-        """
-        variables: List[VariableAgent] = [
-            _make_variable(i + 1, domain_size) for i in range(num_vars)
-        ]
-        connections = _make_connections_density(variables, density)
-        edges: Dict[FactorAgent, List[VariableAgent]] = _build_factor_edge_list(
-            connections, domain_size, ct_factory, ct_params
-        )
-        factors = list(edges.keys())
+    ) -> FactorGraph:
+        """Builds a factor graph with random binary constraints.
 
+        Args:
+            num_vars: The number of variables in the graph.
+            domain_size: The size of the domain for each variable.
+            ct_factory: The factory for creating cost tables.
+            ct_params: Parameters for the cost table factory.
+            density: The density of the graph (probability of an edge).
+
+        Returns:
+            A `FactorGraph` instance with a random topology.
+        """
+        variables = [_make_variable(i + 1, domain_size) for i in range(num_vars)]
+        connections = _make_connections_density(variables, density)
+        edges = _build_factor_edge_list(connections, domain_size, ct_factory, ct_params)
+        factors = list(edges.keys())
         return FactorGraph(variables, factors, edges)
 
-    ### ------------ IMPORTANT:  DO NOT CHANGE ------------------ ###
     @staticmethod
     def build_cycle_graph(
-        *,
         num_vars: int,
         domain_size: int,
         ct_factory: Callable | CTFactory | str,
         ct_params: Dict[str, Any],
-        density: float = 1.0,  # density is not used in cycle graph, but kept for consistency
-    ):
+        **kwargs,
+    ) -> FactorGraph:
+        """Builds a factor graph with a simple cycle topology.
+
+        The graph structure is `x1 – f12 – x2 – ... – xn – fn1 – x1`.
+
+        Args:
+            num_vars: The number of variables in the cycle.
+            domain_size: The size of the domain for each variable.
+            ct_factory: The factory for creating cost tables.
+            ct_params: Parameters for the cost table factory.
+            **kwargs: Catches unused arguments like `density` for API consistency.
+
+        Returns:
+            A `FactorGraph` instance with a cycle topology.
         """
-        Simple N-variable cycle: x1–f12–x2–f23–…–xn–fn1–x1
-        Returns (variables, factors, edges).
-
-        Parameters
-        ----------
-        num_vars
-        domain_size
-        ct_factory
-        ct_params
-        density
-        """
-        variables: List[VariableAgent] = [
-            _make_variable(i + 1, domain_size) for i in range(num_vars)
-        ]
-
-        factors: List[FactorAgent] = []
-        edges: Dict[FactorAgent, List[VariableAgent]] = {}
-
+        variables = [_make_variable(i + 1, domain_size) for i in range(num_vars)]
+        edges = {}
         for j in range(num_vars):
             a, b = variables[j], variables[(j + 1) % num_vars]
             f_name = f"f{a.name[1:]}{b.name[1:]}"
             f_node = _make_factor(f_name, domain_size, ct_factory, ct_params)
-            factors.append(f_node)
             edges[f_node] = [a, b]
-
+        factors = list(edges.keys())
         return FactorGraph(variables, factors, edges)
 
-    ##### ------------ Private Methods ------------------ #####
 
-
-def get_message_shape(
-    domain_size: int,
-    connections: int = 2,
-) -> tuple[int, ...]:
-    """
-    Calculate the shape of the cost table based on the number of connections and domain size.
+def get_message_shape(domain_size: int, connections: int = 2) -> tuple[int, ...]:
+    """Calculates the shape of a cost table for a factor.
 
     Args:
-        connections (int): Number of connections for the factor.
-        domain_size (int): Size of the domain for each variable.
+        domain_size: The size of the domain for each connected variable.
+        connections: The number of variables connected to the factor.
 
     Returns:
-        tuple[int, ...]: Shape of the cost table.
+        A tuple representing the shape of the cost table.
     """
     return (domain_size,) * connections
 
 
 @lru_cache(maxsize=128)
-def get_broadcast_shape(ct_dims, domain_size: int, ax: int) -> tuple[int, ...]:
-    # create ones np array with the shape of the cost table
-    br_message = np.ones(ct_dims)
-    br_message[ax] = domain_size
-    return tuple(br_message)
+def get_broadcast_shape(ct_dims: int, domain_size: int, ax: int) -> tuple[int, ...]:
+    """Calculates the shape for broadcasting a message into a cost table."""
+    shape = [1] * ct_dims
+    shape[ax] = domain_size
+    return tuple(shape)
 
 
-def generate_random_cost(fg: FactorGraph) -> int | float:
-    cost = 0
+def generate_random_cost(fg: FactorGraph) -> float:
+    """Calculates a total cost based on a random assignment for each factor.
+
+    Args:
+        fg: The factor graph to evaluate.
+
+    Returns:
+        The sum of costs from a random assignment in each factor's cost table.
+    """
+    cost = 0.0
     for fact in fg.factors:
-        random_index = tuple(
-            np.random.randint(0, fact.domain, size=fact.cost_table.ndim)
-        )
+        random_index = tuple(np.random.randint(0, fact.domain, size=fact.cost_table.ndim))
         cost += fact.cost_table[random_index]
     return cost
 
 
-# Custom unpickler to handle potential issues
 class SafeUnpickler(pickle.Unpickler):
-    def find_class(self, module, name):
-        # Handle potential module renames or reorganizations
-        if module == "bp.factor_graph" and name == "FactorGraph":
-            from ..bp.factor_graph import FactorGraph
+    """A custom unpickler to handle module path changes during deserialization.
 
-            return FactorGraph
-        elif module == "bp.agents" and name == "VariableAgent":
-            from ..core.agents import VariableAgent
-
-            return VariableAgent
-        elif module == "bp.agents" and name == "FactorAgent":
-            from ..core.agents import FactorAgent
-
-            return FactorAgent
-        elif module == "bp.components" and name == "Message":
-            from ..core.components import Message
-
-            return Message
-        # Add more mappings as needed
-
+    This class overrides `find_class` to intercept and correct module paths
+    that may have changed between the time of pickling and unpickling,
+    preventing `ImportError` or `AttributeError`.
+    """
+    def find_class(self, module: str, name: str) -> Any:
+        """Finds a class, handling potential module path changes."""
+        module_mapping = {
+            "bp.factor_graph": "propflow.bp.factor_graph",
+            "bp.agents": "propflow.core.agents",
+            "bp.components": "propflow.core.components",
+        }
+        module = module_mapping.get(module, module)
         try:
-            # Default behavior - try to import normally
             return super().find_class(module, name)
         except (ImportError, AttributeError) as e:
             print(f"Warning: Could not import {module}.{name}: {e}")
-            # Return a placeholder class if the real one can't be imported
             return type(name, (), {})
 
 
-# Safely load pickle file
-def load_pickle_safely(file_path):
+def load_pickle_safely(file_path: str) -> Any:
+    """Loads a pickle file using the `SafeUnpickler` to prevent import errors.
+
+    Args:
+        file_path: The path to the pickle file.
+
+    Returns:
+        The deserialized object, or `None` if an error occurs.
+    """
     try:
         with open(file_path, "rb") as f:
             return SafeUnpickler(f).load()
@@ -208,149 +195,55 @@ def load_pickle_safely(file_path):
         return None
 
 
-# Fix potential issues with the factor graph after loading
-def repair_factor_graph(fg):
-    """Attempt to repair any issues with the loaded factor graph"""
+def repair_factor_graph(fg: FactorGraph) -> FactorGraph:
+    """Attempts to repair a loaded factor graph by ensuring essential attributes exist.
 
-    # Ensure G exists
+    This is useful when unpickling older versions of `FactorGraph` objects
+    that may be missing attributes added in newer versions.
+
+    Args:
+        fg: The `FactorGraph` object to repair.
+
+    Returns:
+        The repaired `FactorGraph` object.
+    """
     if not hasattr(fg, "G") or fg.G is None:
         print("Initializing missing NetworkX graph")
         fg.G = nx.Graph()
-
-        # Reconstruct graph from variables and factors
         if hasattr(fg, "variables") and hasattr(fg, "factors"):
-            # Add nodes
             fg.G.add_nodes_from(fg.variables)
             fg.G.add_nodes_from(fg.factors)
-
-            # Try to reconstruct edges
             for factor in fg.factors:
                 if hasattr(factor, "connection_number"):
                     for var, dim in factor.connection_number.items():
                         fg.G.add_edge(factor, var, dim=dim)
-
-    # Ensure all required attributes exist
     for node in fg.G.nodes():
-        # Ensure mailbox exists
         if not hasattr(node, "mailbox"):
             node.mailbox = []
-
-        # Ensure other attributes exist based on node type
         if hasattr(node, "type") and node.type == "factor":
             if not hasattr(node, "cost_table") or node.cost_table is None:
                 try:
-                    # Try to initialize cost table if missing
                     if hasattr(node, "initiate_cost_table"):
                         node.initiate_cost_table()
                 except Exception as e:
                     print(f"Could not initialize cost table for {node}: {e}")
-
     return fg
 
 
-#
-# try:
-#     # Import all the required classes
-#     from bp.factor_graph import FactorGraph
-#     from core.agents import VariableAgent, FactorAgent
-#     from core.components import Message
-#
-#     print(f"NetworkX version: {nx.__version__}")
-#
-#     # Try to load the pickle
-#     pickle_path = os.path.join(
-#         project_root,
-#         "configs",
-#         "factor_graphs",
-#         "factor-graph-cycle-3-random_intlow1,high100-number5.pkl",
-#     )
-#     print(f"Attempting to load: {pickle_path}")
-#
-#     # Check if file exists
-#     if not os.path.exists(pickle_path):
-#         print(f"File does not exist: {pickle_path}")
-#         # List available factor graph files
-#         factor_graphs_dir = os.path.join(project_root, "configs", "factor_graphs")
-#         if os.path.exists(factor_graphs_dir):
-#             print(f"Available factor graph files in {factor_graphs_dir}:")
-#             for file in os.listdir(factor_graphs_dir):
-#                 if file.startswith("factor-graph"):
-#                     print(f"  - {file}")
-#                     # Update pickle_path to use an existing file
-#                     pickle_path = os.path.join(factor_graphs_dir, file)
-#                     print(f"Using first available file: {pickle_path}")
-#                     break
-#
-#     if os.path.exists(pickle_path):
-#         # Load the factor graph
-#         fg = load_pickle_safely(pickle_path)
-#
-#         if fg is not None:
-#             print(f"Graph loaded. Type: {type(fg)}")
-#
-#             # Repair any issues with the loaded graph
-#             fg = repair_factor_graph(fg)
-#
-#             # Check if the graph is usable
-#             print("\nFactor graph details:")
-#             try:
-#                 print(f"Variables: {len(fg.variables)}")
-#                 print(f"Factors: {len(fg.factors)}")
-#                 print(f"Graph nodes: {len(fg.G.nodes())}")
-#                 print(f"Graph edges: {len(fg.G.edges())}")
-#
-#                 # Print first few nodes
-#                 print("\nFirst few nodes:")
-#                 for i, node in enumerate(fg.G.nodes()):
-#                     if i >= 5:  # Limit to 5 nodes
-#                         break
-#                     print(f"  - {node}")
-#
-#                 # Try to access a variable node's attributes
-#                 if fg.variables:
-#                     var = fg.variables[0]
-#                     print(f"\nFirst variable: {var.name}, Domain: {var.domain}")
-#
-#                 # Try to access a factor node's attributes
-#                 if fg.factors:
-#                     factor = fg.factors[0]
-#                     print(f"\nFirst factor: {factor.name}")
-#                     if hasattr(factor, "cost_table") and factor.cost_table is not None:
-#                         print(f"Cost table shape: {factor.cost_table.shape}")
-#             except Exception as e:
-#                 print(f"Error inspecting graph: {e}")
-#
-#             # Try to save the repaired graph
-#             try:
-#                 output_path = os.path.join(
-#                     os.path.dirname(pickle_path),
-#                     "repaired_" + os.path.basename(pickle_path),
-#                 )
-#                 with open(output_path, "wb") as f:
-#                     pickle.dump(fg, f, protocol=pickle.HIGHEST_PROTOCOL)
-#                 print(f"\nRepaired graph saved to: {output_path}")
-#             except Exception as e:
-#                 print(f"Error saving repaired graph: {e}")
-#     else:
-#         print("No factor graph files found.")
-#
-# except ImportError as e:
-#     print(f"Import error: {e}")
-#     print("Make sure all required modules are installed and in your Python path.")
-# except Exception as e:
-#     print(f"Unexpected error: {e}")
+def get_bound(factor_graph: FactorGraph, reduce_func: Callable = np.min) -> float:
+    """Calculates a simple bound on the total cost of the factor graph.
 
-
-def get_bound(factor_graph: FactorGraph, reduce_func=np.min) -> float:
-    """
-    Get the lower bound of the factor graph by summing the minimum costs of each factor.
+    This is typically used to get a lower bound by summing the minimum values
+    from each factor's cost table.
 
     Args:
-        factor_graph (FactorGraph): The factor graph to analyze.
-        reduce_func (callable): A function to reduce the cost table, default is np.min.
+        factor_graph: The factor graph to analyze.
+        reduce_func: The function to apply to each cost table to get a single
+            value (e.g., `np.min` for a lower bound, `np.max` for an upper bound).
+            Defaults to `np.min`.
 
     Returns:
-        float: The lower bound of the factor graph.
+        The calculated bound.
     """
     bound = 0.0
     for factor in factor_graph.factors:
