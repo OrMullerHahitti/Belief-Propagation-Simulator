@@ -1,231 +1,126 @@
+"""Factory functions for creating cost tables for factor nodes.
+
+This module provides a set of functions to generate numpy arrays that can be
+used as cost tables in factor graphs. It includes a general-purpose creator
+and several convenience wrappers for common random distributions.
+"""
 import numpy as np
-from typing import Callable
+from typing import Callable, Any
 from ...core.protocols import CostTable
 from scipy.special import logsumexp
 
 
 def _create_cost_table(
-    connections: int, domain: int, policy: Callable = np.random.randint, **policy_params
+    connections: int, domain: int, policy: Callable[..., np.ndarray], **policy_params: Any
 ) -> CostTable:
-    """
-    Main funtion that will be used in variations below
-    Create a random cost table with shape (d0, d1, ..., dn-1).
+    """A generic factory for creating a cost table of a given shape and distribution.
 
     Args:
-        connections: Number of connected variables to factor
-        domain: domain size
-        policy: policy function , e.g., np.random.randint, np.random.uniform, etc.
-        policy_params: Additional parameters for the policy
+        connections: The number of variables connected to the factor, which
+            determines the number of dimensions of the cost table.
+        domain: The domain size for each variable, which determines the size
+            of each dimension.
+        policy: A numpy random function used to generate the values (e.g.,
+            `np.random.randint`, `np.random.uniform`).
+        **policy_params: Additional keyword arguments to pass to the `policy` function.
 
     Returns:
-        n-dimensional cost table as numpy array
+        An n-dimensional numpy array representing the cost table.
     """
-    # Handle dimension sizes
-    if isinstance(domain, int):
-        shape = tuple([domain] * connections)  # All dimensions have the same size
-    else:
-        raise ValueError("d must be an int")
-
-    if callable(policy):
-        # Use custom function to generate values
-        return policy(**policy_params, size=shape)
-    else:
-        raise ValueError(f"Unknown policy: {policy}")
+    shape = tuple([domain] * connections)
+    return policy(**policy_params, size=shape)
 
 
-#####-------create_cost_table implementations --------#######
-# functions that implement create_cost_table with different policies:
-def create_random_int_table(n: int, domain: int, low=0, high=10) -> CostTable:
-    """
-    Create a random cost table with shape (domain, domain).
+def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10) -> CostTable:
+    """Creates a cost table with random integer values from a uniform distribution.
 
     Args:
-        domain: Domain size
+        n: The number of dimensions for the cost table (number of connected variables).
+        domain: The size of the domain for each variable.
+        low: The lower bound of the random integer range (inclusive).
+        high: The upper bound of the random integer range (exclusive).
 
     Returns:
-        Random cost table as numpy array
+        A numpy array representing the cost table.
     """
     return _create_cost_table(n, domain, np.random.randint, low=low, high=high)
 
 
-def create_uniform_table(n: int, domain: int, low=0, high=1) -> CostTable:
-    """
-    Create a uniform cost table with shape (domain, domain).
+def create_uniform_table(n: int, domain: int, low: float = 0.0, high: float = 1.0) -> CostTable:
+    """Creates a cost table with random float values from a uniform distribution.
 
     Args:
-        domain: Domain size
+        n: The number of dimensions for the cost table.
+        domain: The size of the domain for each variable.
+        low: The lower bound of the distribution.
+        high: The upper bound of the distribution.
 
     Returns:
-        Uniform cost table as numpy array
-        :param n: number of connections
-        :param domain: domain size
-        :param high:
-        :param low:
+        A numpy array representing the cost table.
     """
     return _create_cost_table(n, domain, np.random.uniform, low=low, high=high)
 
 
-def create_normal_table(n: int, domain: int, loc=0, scale=1) -> CostTable:
-    """
-    Create a normal cost table with shape (domain, domain).
+def create_normal_table(n: int, domain: int, loc: float = 0.0, scale: float = 1.0) -> CostTable:
+    """Creates a cost table with values from a normal (Gaussian) distribution.
 
     Args:
-        domain: Domain size
+        n: The number of dimensions for the cost table.
+        domain: The size of the domain for each variable.
+        loc: The mean of the distribution.
+        scale: The standard deviation of the distribution.
 
     Returns:
-        Normal cost table as numpy array
-        :param domain: dimenstion size (conections)
-        :param loc: mean
-        :param scale: SD
+        A numpy array representing the cost table.
     """
     return _create_cost_table(n, domain, np.random.normal, loc=loc, scale=scale)
 
 
-def create_exponential_table(n: int, domain: int, scale=1) -> CostTable:
-    """
-    Create an exponential cost table with shape (domain, domain).
+def create_exponential_table(n: int, domain: int, scale: float = 1.0) -> CostTable:
+    """Creates a cost table with values from an exponential distribution.
 
     Args:
-        domain: Domain size
+        n: The number of dimensions for the cost table.
+        domain: The size of the domain for each variable.
+        scale: The scale parameter (beta = 1/lambda) of the distribution.
 
     Returns:
-        Exponential cost table as numpy array
-        :param scale: exponential parameter
+        A numpy array representing the cost table.
     """
     return _create_cost_table(n, domain, np.random.exponential, scale=scale)
 
 
 def create_symmetric_cost_table(n: int, m: int) -> CostTable:
-    """
-    Create a symmetric cost table of size n x m.
+    """Creates a 2D symmetric cost table.
+
+    The resulting table will have the property `cost[i, j] == cost[j, i]`.
+
+    Args:
+        n: The size of the first dimension.
+        m: The size of the second dimension.
+
+    Returns:
+        A symmetric 2D numpy array.
     """
     cost_table = np.random.rand(n, m)
     return (cost_table + cost_table.T) / 2
 
 
-# example for noramlizing cost table for 3*3 ndarray
-
-
 def normalize_cost_table(cost_table: np.ndarray, axis: int = None) -> np.ndarray:
-    """
-    Convert integer cost table into a normalized distribution via log-domain softmin.
+    """Normalizes a cost table into a probability distribution using log-domain softmin.
+
+    This is useful for converting raw costs into a probabilistic representation
+    where lower costs correspond to higher probabilities.
 
     Args:
-        cost_table (np.ndarray): Raw cost table (e.g., integers or floats).
-        axis (int, optional): Axis along which to normalize (e.g., 1 to normalize rows).
+        cost_table: The raw cost table (e.g., integers or floats).
+        axis: The axis along which to normalize. If None, normalization is
+            performed over the entire table.
 
     Returns:
-        np.ndarray: Normalized distribution (softmin over cost values).
+        A normalized numpy array where values sum to 1 (across the specified axis).
     """
-    # Convert cost to log-domain potentials (lower cost → higher potential)
     log_potentials = -cost_table.astype(float)
-
-    # Compute log-normalizer (logZ) over the desired axis
     logZ = logsumexp(log_potentials, axis=axis, keepdims=True)
-
-    # Compute normalized log-probabilities
     log_probs = log_potentials - logZ
-
-    # Convert back from log-domain to probabilities
-    probs = np.exp(log_probs)
-
-    return probs
-
-
-"""
-# CostTable Creator Module Documentation
-
-This module provides various functions to create cost tables for belief propagation algorithms.
-
-## Functions
-
-### create_cost_table
-    Creates a random cost table with specified dimensions.
-
-    Parameters:
-        connections (int): Number of connected variables to factor
-        domain (int): Domain size for each dimension
-        policy (Callable): Function for generating values (default: np.random.randint)
-        **policy_params: Additional parameters for the policy function
-
-    Returns:
-        np.ndarray: n-dimensional cost table
-
-### create_random_table
-    Creates a random integer cost table with shape (domain, domain).
-    Values are integers from 0 to 9.
-
-    Parameters:
-        domain (int): Domain size
-
-    Returns:
-        np.ndarray: Random cost table
-
-### create_uniform_table
-    Creates a uniform cost table with shape (domain, domain).
-    Values are floats from 0 to 1.
-
-    Parameters:
-        domain (int): Domain size
-
-    Returns:
-        np.ndarray: Uniform cost table
-
-### create_normal_table
-    Creates a normal distribution cost table with shape (domain, domain).
-
-    Parameters:
-        domain (int): Domain size
-        loc (float): Mean of the distribution (default: 0)
-        scale (float): Standard deviation (default: 1)
-
-    Returns:
-        np.ndarray: Normal cost table
-
-### create_exponential_table
-    Creates an exponential cost table with shape (domain, domain).
-
-    Parameters:
-        domain (int): Domain size
-        scale (float): Scale parameter for exponential distribution (default: 1)
-
-    Returns:
-        np.ndarray: Exponential cost table
-
-### create_symmetric_cost_table
-    Creates a symmetric cost table of size n x m where cost(i,j) = cost(j,i).
-
-    Parameters:
-        n (int): First dimension size
-        m (int): Second dimension size
-
-    Returns:
-        np.ndarray: Symmetric cost table
-
-### normalize_cost_table
-    Normalizes the cost table so the sum of all dimensions is equal.
-    Note: Current implementation needs review.
-
-    Parameters:
-        cost_table (np.ndarray): n-dimensional cost table
-
-    Returns:
-        np.ndarray: Normalized cost table
-
-## Usage Examples
-
-# Create a 3x3 random cost table with integers from 0 to 9
-random_table = create_random_table(3)
-
-# Create a 4x4 uniform cost table with values from 0 to 1
-uniform_table = create_uniform_table(4)
-
-# Create a 5x5 normal distribution cost table with mean 0 and SD 1
-normal_table = create_normal_table(5)
-
-# Create a 3x3 exponential cost table with scale parameter 2
-exp_table = create_exponential_table(3, scale=2)
-
-# Create a 4x4 symmetric cost table
-sym_table = create_symmetric_cost_table(4, 4)
-"""
+    return np.exp(log_probs)

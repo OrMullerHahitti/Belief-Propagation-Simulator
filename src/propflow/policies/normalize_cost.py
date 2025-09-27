@@ -1,12 +1,25 @@
-from typing import Dict, List
+"""Policies for Normalizing Costs and Messages.
+
+This module contains various functions used to normalize cost tables and
+messages within the belief propagation framework. Normalization is often crucial
+for preventing numerical instability and ensuring that costs or probabilities
+remain in a manageable range.
+"""
+from typing import List
 import numpy as np
 from ..core.agents import VariableAgent, FactorAgent
-from ..core.components import Message
-from ..core.protocols import PolicyType, CostTable
-from .bp_policies import Policy
+from ..core.protocols import CostTable
 
 
-def init_normalization(li: List[FactorAgent]):
+def init_normalization(li: List[FactorAgent]) -> None:
+    """Performs an initial normalization of cost tables for a list of factors.
+
+    This function divides each factor's cost table by the total number of
+    factors in the list.
+
+    Args:
+        li: A list of `FactorAgent` objects to be normalized.
+    """
     x = len(li)
     for factor in li:
         if factor.cost_table is not None:
@@ -14,28 +27,34 @@ def init_normalization(li: List[FactorAgent]):
 
 
 def normalize_soft_max(cost_table: np.ndarray) -> CostTable:
-    """
-    Normalize the cost table using softmax to ensure all values are positive and sum to 1.
+    """Normalizes a cost table using the softmax function.
+
+    This ensures all values are positive and sum to 1, effectively converting
+    costs into a probability distribution. A stability trick (subtracting the
+    max value) is used to prevent overflow with large cost values.
 
     Args:
-        cost_table: n-dimensional cost table as numpy array
+        cost_table: An n-dimensional numpy array representing the cost table.
 
     Returns:
-        Normalized cost table
+        The normalized cost table.
     """
-    exp_cost_table = np.exp(cost_table - np.max(cost_table))  # Stability improvement
+    exp_cost_table = np.exp(cost_table - np.max(cost_table))
     return exp_cost_table / np.sum(exp_cost_table)
 
 
 def normalize_cost_table_sum(cost_table: np.ndarray) -> CostTable:
-    """
-    Normalize the cost table so that the sum of all dimensions is equal.
+    """Normalizes a cost table so that the sum across all dimensions is equal.
+
+    Note:
+        The implementation of this function appears to be incorrect for its
+        stated purpose and may not produce the intended normalization.
 
     Args:
-        cost_table: n-dimensional cost table as numpy array
+        cost_table: An n-dimensional numpy array representing the cost table.
 
     Returns:
-        Normalized cost table
+        The modified cost table.
     """
     total_sum = np.sum(cost_table)
     shape = cost_table.shape
@@ -45,128 +64,22 @@ def normalize_cost_table_sum(cost_table: np.ndarray) -> CostTable:
     return cost_table
 
 
-def normalize_inbox(variables: List[VariableAgent]):
-    """
-    Normalize the message data of all variables in the factor graph after each cycle.
+def normalize_inbox(variables: List[VariableAgent]) -> None:
+    """Normalizes all messages in the inboxes of a list of variable agents.
+
+    This function iterates through each variable's inbox and last iteration's
+    messages, normalizing them by subtracting the minimum value. This centers
+    the message values around zero without changing their relative differences.
+
+    Args:
+        variables: A list of `VariableAgent` objects whose messages will be
+            normalized.
     """
     for var in variables:
         if var.last_iteration is not None:
-            # Normalize the last iteration messages
             for message in var.last_iteration:
                 if message.data is not None:
                     message.data = message.data - message.data.min()
         for message in var.mailer.inbox:
             if message.data is not None:
-                # Normalize the message data
                 message.data = message.data - message.data.min()
-
-
-class MessagePruningPolicy(Policy):
-    """
-    Policy that prunes redundant messages based on L2-norm threshold.
-    Prevents message explosion by filtering out similar consecutive messages.
-    """
-
-    def __init__(
-        self,
-        prune_threshold: float = 1e-4,
-        min_iterations: int = 5,
-        adaptive_threshold: bool = True,
-    ):
-        super().__init__(PolicyType.MESSAGE)
-        self.prune_threshold = prune_threshold
-        self.min_iterations = min_iterations
-        self.adaptive_threshold = adaptive_threshold
-        self.iteration_count = 0
-        self.pruned_count = 0
-        self.total_count = 0
-
-    def __call__(self, agent, new_message: Message) -> bool:
-        """
-        Decide whether to accept or prune an incoming message.
-
-        Args:
-            agent: The receiving agent (Variable or Factor)
-            new_message: The incoming message to evaluate
-
-        Returns:
-            bool: True if message should be kept, False if pruned
-        """
-        self.total_count += 1
-
-        # Always accept messages in first few iterations
-        if self.iteration_count < self.min_iterations:
-            return True
-
-        # Get previous message from same sender
-        prev_message = agent.mailer[new_message.sender.name]
-        if prev_message is None:
-            return True
-
-        # Calculate L2 norm of difference
-        diff_norm = np.linalg.norm(new_message.data - prev_message.data)
-
-        # Adaptive threshold based on message magnitude
-        threshold = self.prune_threshold
-        if self.adaptive_threshold:
-            msg_magnitude = np.linalg.norm(new_message.data)
-            threshold = self.prune_threshold * max(1.0, msg_magnitude * 0.1)
-
-        # Prune if difference is below threshold
-        if diff_norm < threshold:
-            self.pruned_count += 1
-            return False
-
-        return True
-
-    def step_completed(self):
-        """Called after each BP step to update internal state."""
-        self.iteration_count += 1
-
-    def get_pruning_stats(self) -> Dict[str, float]:
-        """Get statistics about message pruning performance."""
-        if self.total_count == 0:
-            return {"pruning_rate": 0.0, "total_messages": 0, "pruned_messages": 0}
-
-        return {
-            "pruning_rate": self.pruned_count / self.total_count,
-            "total_messages": self.total_count,
-            "pruned_messages": self.pruned_count,
-            "iterations": self.iteration_count,
-        }
-
-    def reset(self):
-        """Reset statistics for new run."""
-        self.iteration_count = 0
-        self.pruned_count = 0
-        self.total_count = 0
-
-
-# Integration with MailHandler
-class PruningMailHandler:
-    """Extended MailHandler with message pruning capability."""
-
-    def __init__(self, domain_size: int, pruning_policy: MessagePruningPolicy = None):
-        # Copy existing MailHandler initialization
-        self._message_domain_size = domain_size
-        self._incoming: Dict[str, Message] = {}
-        self._outgoing: List[Message] = []
-        self.pruning_policy = pruning_policy
-
-    def receive_messages_with_pruning(self, owner, message: Message):
-        """Receive message with optional pruning."""
-        if self.pruning_policy is None:
-            # Fallback to original behavior
-            key = self._make_key(message.sender)
-            self._incoming[key] = message
-            return
-
-        # Apply pruning policy
-        should_keep = self.pruning_policy(owner, message)
-        if should_keep:
-            key = self._make_key(message.sender)
-            self._incoming[key] = message
-
-    def _make_key(self, agent) -> str:
-        """Create unique key for agent to handle identity issues."""
-        return f"{agent.name}_{agent.type}"
