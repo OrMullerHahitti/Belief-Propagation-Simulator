@@ -1,6 +1,19 @@
-########################################################################
-# ----  Internal registries, global configs  ----------------------------------------
-########################################################################
+"""
+Global Configuration and Registries for the PropFlow Library.
+
+This module serves as a centralized location for default configurations,
+registries, and factory functions used throughout the application. It ensures
+consistent and manageable settings for various components like the simulation
+engine, logging, policies, and more.
+
+Key Sections:
+- Core Configurations: Basic settings like domain size and project root.
+- Component Defaults: Dictionaries holding default parameters for the engine,
+  logging, convergence criteria, policies, etc.
+- Configuration Validation: Functions to validate configuration dictionaries.
+- Registries and Factories: Mappings for dynamically loading graph builders,
+  computators, and cost table factories.
+"""
 from socket import timeout
 from typing import Dict, Callable, Any, Optional
 from enum import Enum
@@ -13,18 +26,18 @@ from ..utils.path_utils import find_project_root
 # ---- Core Configuration Sections ------------------------------------
 ########################################################################
 
-# Message and Domain Configuration
+# Default domain size for messages if not otherwise specified.
 MESSAGE_DOMAIN_SIZE = 3
 
-# Default computator
+# Default computator instance used across the application.
 COMPUTATOR = MinSumComputator()
 
-# Project root path
+# Automatically determine the project's root directory.
 PROJECT_ROOT: str = find_project_root()
 
 
-# Directory structure configuration
 class Dirs(Enum):
+    """Standardized names for common project directories."""
     LOGS = "logs"
     TEST_LOGS = "test_logs"
     TEST_DATA = "test_data"
@@ -40,6 +53,7 @@ class Dirs(Enum):
 # ---- Engine Configuration -------------------------------------------
 ########################################################################
 
+# Default parameters for the belief propagation engine.
 ENGINE_DEFAULTS: Dict[str, Any] = {
     "max_iterations": 2000,
     "normalize_messages": True,
@@ -53,6 +67,7 @@ ENGINE_DEFAULTS: Dict[str, Any] = {
 # ---- Logging Configuration ------------------------------------------
 ########################################################################
 
+# Default configuration for the logging system.
 LOGGING_CONFIG: Dict[str, Any] = {
     "default_level": logging.INFO,
     "verbose_logging": False,
@@ -70,6 +85,7 @@ LOGGING_CONFIG: Dict[str, Any] = {
     "file_format": "%(asctime)s - %(name)s  - %(message)s",
 }
 
+# Mapping of descriptive log level names to `logging` module constants.
 LOG_LEVELS: Dict[str, int] = {
     "HIGH": logging.DEBUG,
     "INFORMATIVE": logging.INFO,
@@ -82,6 +98,7 @@ LOG_LEVELS: Dict[str, int] = {
 # ---- Convergence Configuration --------------------------------------
 ########################################################################
 
+# Default parameters for the convergence monitor.
 CONVERGENCE_DEFAULTS: Dict[str, Any] = {
     "belief_threshold": 1e-6,
     "assignment_threshold": 0,
@@ -95,16 +112,13 @@ CONVERGENCE_DEFAULTS: Dict[str, Any] = {
 # ---- Policy Configuration -------------------------------------------
 ########################################################################
 
+# Default parameters for various belief propagation policies.
 POLICY_DEFAULTS: Dict[str, Any] = {
-    # Damping policy defaults
     "damping_factor": 0.9,
     "damping_diameter": 1,
-    # Splitting policy defaults
     "split_factor": 0.5,
-    # Message pruning defaults
     "pruning_threshold": 0.1,
     "pruning_magnitude_factor": 0.1,
-    # Cost reduction defaults
     "cost_reduction_enabled": True,
 }
 
@@ -112,6 +126,7 @@ POLICY_DEFAULTS: Dict[str, Any] = {
 # ---- Simulator Configuration ----------------------------------------
 ########################################################################
 
+# Default parameters for the multi-simulation runner.
 SIMULATOR_DEFAULTS: Dict[str, Any] = {
     "default_max_iter": 5000,
     "default_log_level": "INFORMATIVE",
@@ -123,6 +138,7 @@ SIMULATOR_DEFAULTS: Dict[str, Any] = {
 # ---- Search Engine Configuration ------------------------------------
 ########################################################################
 
+# Default parameters for search-based algorithms.
 SEARCH_DEFAULTS: Dict[str, Any] = {
     "max_iterations": 100,
     "search_timeout": 1800,  # 30 minutes
@@ -130,7 +146,7 @@ SEARCH_DEFAULTS: Dict[str, Any] = {
     "exploration_factor": 0.1,
 }
 
-# Legacy support
+# Legacy support for verbose logging flag.
 VERBOSE_LOGGING = LOGGING_CONFIG["verbose_logging"]
 
 ########################################################################
@@ -139,74 +155,96 @@ VERBOSE_LOGGING = LOGGING_CONFIG["verbose_logging"]
 
 
 def validate_engine_config(config: Dict[str, Any]) -> bool:
-    """Validate engine configuration parameters."""
-    required_keys = [
-        "max_iterations",
-        "normalize_messages",
-        "monitor_performance",
-        "anytime",
-        "use_bct_history",
-    ]
+    """Validates engine configuration parameters.
 
+    Args:
+        config: A dictionary containing engine configuration.
+
+    Returns:
+        True if the configuration is valid.
+
+    Raises:
+        ValueError: If a required key is missing or a value is invalid.
+    """
+    required_keys = [
+        "max_iterations", "normalize_messages", "monitor_performance",
+        "anytime", "use_bct_history",
+    ]
     for key in required_keys:
         if key not in config:
             raise ValueError(f"Missing required engine config key: {key}")
-
     if not isinstance(config["max_iterations"], int) or config["max_iterations"] <= 0:
         raise ValueError("max_iterations must be a positive integer")
-
     return True
 
 
 def validate_policy_config(config: Dict[str, Any]) -> bool:
-    """Validate policy configuration parameters."""
-    if "damping_factor" in config:
-        if not 0.0 < config["damping_factor"] <= 1.0:
-            raise ValueError("damping_factor must be in range (0, 1]")
+    """Validates policy configuration parameters.
 
-    if "split_factor" in config:
-        if not 0.0 < config["split_factor"] < 1.0:
-            raise ValueError("split_factor must be in range (0, 1)")
+    Args:
+        config: A dictionary containing policy configuration.
 
-    if "pruning_threshold" in config:
-        if (
-            not isinstance(config["pruning_threshold"], (int, float))
-            or config["pruning_threshold"] < 0
-        ):
-            raise ValueError("pruning_threshold must be a non-negative number")
+    Returns:
+        True if the configuration is valid.
 
+    Raises:
+        ValueError: If a value is outside its expected range.
+    """
+    if "damping_factor" in config and not 0.0 < config["damping_factor"] <= 1.0:
+        raise ValueError("damping_factor must be in range (0, 1]")
+    if "split_factor" in config and not 0.0 < config["split_factor"] < 1.0:
+        raise ValueError("split_factor must be in range (0, 1)")
+    if "pruning_threshold" in config and (
+        not isinstance(config["pruning_threshold"], (int, float))
+        or config["pruning_threshold"] < 0
+    ):
+        raise ValueError("pruning_threshold must be a non-negative number")
     return True
 
 
 def validate_convergence_config(config: Dict[str, Any]) -> bool:
-    """Validate convergence configuration parameters."""
-    if "belief_threshold" in config:
-        if (
-            not isinstance(config["belief_threshold"], (int, float))
-            or config["belief_threshold"] <= 0
-        ):
-            raise ValueError("belief_threshold must be a positive number")
+    """Validates convergence configuration parameters.
 
-    if "min_iterations" in config:
-        if (
-            not isinstance(config["min_iterations"], int)
-            or config["min_iterations"] < 0
-        ):
-            raise ValueError("min_iterations must be a non-negative integer")
+    Args:
+        config: A dictionary containing convergence configuration.
 
-    if "patience" in config:
-        if not isinstance(config["patience"], int) or config["patience"] < 0:
-            raise ValueError("patience must be a non-negative integer")
+    Returns:
+        True if the configuration is valid.
 
+    Raises:
+        ValueError: If a value is invalid or outside its expected range.
+    """
+    if "belief_threshold" in config and (
+        not isinstance(config["belief_threshold"], (int, float))
+        or config["belief_threshold"] <= 0
+    ):
+        raise ValueError("belief_threshold must be a positive number")
+    if "min_iterations" in config and (
+        not isinstance(config["min_iterations"], int) or config["min_iterations"] < 0
+    ):
+        raise ValueError("min_iterations must be a non-negative integer")
+    if "patience" in config and (
+        not isinstance(config["patience"], int) or config["patience"] < 0
+    ):
+        raise ValueError("patience must be a non-negative integer")
     return True
 
 
 def get_validated_config(
     config_type: str, user_config: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
-    """Get a validated configuration by merging user overrides with defaults."""
+    """Merges a user configuration with defaults and validates it.
 
-    # Get base configuration
+    Args:
+        config_type: The type of configuration to retrieve (e.g., 'engine', 'policy').
+        user_config: An optional dictionary of user-provided overrides.
+
+    Returns:
+        A dictionary containing the final, validated configuration.
+
+    Raises:
+        ValueError: If the config_type is unknown or validation fails.
+    """
     base_configs = {
         "engine": ENGINE_DEFAULTS,
         "policy": POLICY_DEFAULTS,
@@ -215,24 +253,18 @@ def get_validated_config(
         "logging": LOGGING_CONFIG,
         "search": SEARCH_DEFAULTS,
     }
-
     if config_type not in base_configs:
         raise ValueError(f"Unknown config type: {config_type}")
 
-    # Start with base configuration
     final_config = base_configs[config_type].copy()
-
-    # Apply user overrides
     if user_config:
         final_config.update(user_config)
 
-    # Validate the final configuration
     validators = {
         "engine": validate_engine_config,
         "policy": validate_policy_config,
         "convergence": validate_convergence_config,
     }
-
     if config_type in validators:
         validators[config_type](final_config)
 

@@ -1,10 +1,18 @@
-"""Command line interface for Belief Propagation Simulator."""
+"""Command-Line Interface for the PropFlow Simulator.
+
+This module provides a basic CLI for interacting with the PropFlow package.
+Currently, its main function is to display the package version.
+"""
 
 import argparse
 from ._version import __version__
 
 
 def main() -> None:
+    """The main entry point for the command-line interface.
+
+    Parses command-line arguments and executes the corresponding action.
+    """
     parser = argparse.ArgumentParser(
         description="Belief Propagation Simulator command line interface"
     )
@@ -14,12 +22,9 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.version:
-        print(__version__)
+        print(f"PropFlow Version: {__version__}")
     else:
-        print(
-            "Belief Propagation Simulator CLI is under development. "
-            "See documentation for usage examples."
-        )
+        parser.print_help()
 
 
 if __name__ == "__main__":

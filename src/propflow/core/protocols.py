@@ -19,12 +19,19 @@ from typing import (
 import numpy as np
 
 PolicyType = Literal["message", "cost_table", "stopping_criteria", "assignment"]
+"""Defines the types of policies that can be applied in the simulation."""
+
 
 # --- Protocols for typing purposes ---
 
 
 @runtime_checkable
 class FGAgent(Protocol):
+    """A protocol defining the interface for a Factor Graph Agent.
+
+    This protocol outlines the essential attributes and methods that any agent
+    in the factor graph (either a variable or a factor) must implement.
+    """
     name: str
     domain: int
     mailbox: dict
@@ -74,10 +81,12 @@ class FGAgent(Protocol):
 
 
 CostTable: TypeAlias = np.ndarray
+"""A type alias for a cost table, represented as a numpy array."""
 
 
 @runtime_checkable
 class Message(Protocol):
+    """A protocol defining the interface for a Message."""
     data: np.ndarray
     sender: Any
     recipient: Any
@@ -88,6 +97,7 @@ class Message(Protocol):
 
 @runtime_checkable
 class MailHandler(Protocol):
+    """A protocol defining the interface for a MailHandler."""
     inbox: List["Message"]
     outbox: List["Message"]
 
@@ -115,6 +125,7 @@ class MailHandler(Protocol):
 
 @runtime_checkable
 class Computator(Protocol):
+    """A protocol defining the interface for a Computator object."""
     def compute_Q(self, messages: List["Message"]) -> List["Message"]:
         ...
 
@@ -132,6 +143,7 @@ class Computator(Protocol):
 
 @runtime_checkable
 class Policy(Protocol):
+    """A protocol defining the interface for a generic Policy."""
     type: PolicyType
 
     def __call__(self, *args, **kwargs):
@@ -140,6 +152,7 @@ class Policy(Protocol):
 
 @runtime_checkable
 class Step(Protocol):
+    """A protocol defining a single step in a simulation's history."""
     num: int
     messages: Dict[str, List["Message"]]
 
@@ -149,6 +162,7 @@ class Step(Protocol):
 
 @runtime_checkable
 class Cycle(Protocol):
+    """A protocol defining a cycle of steps in a simulation's history."""
     number: int
     steps: List[Step]
 
@@ -161,6 +175,11 @@ class Cycle(Protocol):
 
 @runtime_checkable
 class HistoryProtocol(Protocol):
+    """A protocol for an object that tracks the history of a simulation.
+
+    This includes configuration, cycles, beliefs, assignments, costs, and
+    methods for saving results.
+    """
     config: dict
     cycles: Dict[int, Cycle]
     beliefs: Dict[int, Dict[str, np.ndarray]]

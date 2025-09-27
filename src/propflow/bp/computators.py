@@ -21,12 +21,23 @@ logger.setLevel(logging.CRITICAL)
 
 
 class BPComputator(Computator):
+    """A vectorized, cache-friendly Belief Propagation computator.
+
+    This class provides a highly optimized implementation for the core
+    computations in belief propagation algorithms. It uses function dispatch
+    tables for common operations (e.g., `min`, `max`, `sum`, `add`, `multiply`)
+    to minimize overhead and leverages vectorized numpy operations for
+    performance.
+
+    The behavior of the computator (e.g., Min-Sum, Max-Product) is determined
+    by the `reduce_func` and `combine_func` arguments passed during
+    initialization.
+
+    Attributes:
+        reduce_func (Callable): The function used for message reduction (e.g., `np.min`).
+        combine_func (Callable): The function used for message combination (e.g., `np.add`).
     """
-    Vectorized, cache-friendly version of the original BPComputator.
-    Same interface as original but optimized for performance.
-    Uses function dispatch tables for zero-overhead lookups for common operations.
-    """
-    # Function dispatch tables for zero-overhead lookups (THE BEST PRACTICE FOR PERFORMANCE TRUST ME)
+    # Function dispatch tables for zero-overhead lookups
     _REDUCE_DISPATCH = {
         np.min: (np.ndarray.min, np.ndarray.argmin),
         np.max: (np.ndarray.max, np.ndarray.argmax),
@@ -39,12 +50,19 @@ class BPComputator(Computator):
     }
 
     def __init__(self, reduce_func=np.min, combine_func=np.add):
+        """Initializes the BPComputator.
+
+        Args:
+            reduce_func (Callable): The function to use for reducing messages
+                (e.g., `np.min` for Min-Sum). Defaults to `np.min`.
+            combine_func (Callable): The function to use for combining messages
+                (e.g., `np.add` for Min-Sum). Defaults to `np.add`.
+        """
         self.reduce_func = reduce_func
         self.combine_func = combine_func
-        # Cache frequently used operations
         self._connection_cache = {}
 
-        # Pre-compile optimized functions using dispatch tables
+        # Pre-select optimized functions using dispatch tables
         self._reduce_msg, self._argreduce_func = self._setup_reduce_functions(
             reduce_func
         )
@@ -55,7 +73,7 @@ class BPComputator(Computator):
         ) = self._setup_combine_functions(combine_func)
 
     def _setup_reduce_functions(self, reduce_func):
-        """Setup reduce function dispatch with zero overhead."""
+        """Sets up reduce functions from the dispatch table for performance."""
         if reduce_func in self._REDUCE_DISPATCH:
             return self._REDUCE_DISPATCH[reduce_func]
         else:
@@ -66,48 +84,47 @@ class BPComputator(Computator):
             )
 
     def _setup_combine_functions(self, combine_func):
-        """Setup combine function dispatch with zero overhead."""
+        """Sets up combine functions from the dispatch table for performance."""
         if combine_func in self._COMBINE_DISPATCH:
             return self._COMBINE_DISPATCH[combine_func]
         else:
-            # Generic fallback (will have function call overhead)
+            # Generic fallback
             return (
                 lambda x, axis: np.apply_along_axis(
                     lambda arr: functools.reduce(combine_func, arr), axis, x
                 ),
-                None,  # Will need special handling
-                np.ones,  # Safe default
+                None,  # No inverse function available
+                np.ones,  # Safe default for identity
             )
 
     def _remove_message_from_aggregate(
         self, agg, message_to_remove, all_messages, axis, cost_table=None
     ):
-        """
-        Efficiently remove a message from the aggregate using inverse operation or fallback.
+        """Efficiently removes a message from an aggregate.
+
+        Uses a fast inverse operation if available (e.g., subtraction for
+        addition), otherwise falls back to re-computing the aggregate.
 
         Args:
-            agg: Current aggregate array
-            message_to_remove: The message to remove
-            all_messages: List of all messages for fallback
-            axis: The axis/index of the message to remove
-            cost_table: Optional cost table for fallback reconstruction
+            agg (np.ndarray): The current aggregate array.
+            message_to_remove (np.ndarray): The message data to remove.
+            all_messages (list): A list of all message data for fallback.
+            axis (int): The index of the message to remove.
+            cost_table (np.ndarray, optional): The cost table for fallback.
 
         Returns:
-            Array with the message removed
+            np.ndarray: The aggregate with the message removed.
         """
         if self._combine_inverse is not None:
-            # Fast path for add/multiply operations
             return self._combine_inverse(agg, message_to_remove)
         else:
-            # Generic fallback: recompute aggregate without this message
+            # Fallback: recompute aggregate without this message
             if cost_table is not None:
-                # For compute_R: start with cost table
                 temp_agg = cost_table.astype(agg.dtype, copy=True)
                 for i, msg in enumerate(all_messages):
                     if i != axis:
                         self.combine_func(temp_agg, msg, out=temp_agg)
             else:
-                # For compute_Q: start with identity
                 temp_agg = self._belief_identity(agg.shape).astype(agg.dtype)
                 for i, msg in enumerate(all_messages):
                     if i != axis:
@@ -115,29 +132,31 @@ class BPComputator(Computator):
             return temp_agg
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
-        """
-        Optimized Q message computation - same interface as original.
-        Uses vectorized operations for better performance.
+        """Computes outgoing messages from a variable node to factor nodes (Q messages).
+
+        This is an optimized, vectorized implementation.
+
+        Args:
+            messages: A list of incoming messages from factor nodes.
+
+        Returns:
+            A list of computed messages to be sent to factor nodes.
         """
         early = self._validate(messages=messages)
         if early is not None:
             return early
 
-        # the recipient is the same for all messages
         variable = messages[0].recipient
         n_messages = len(messages)
 
-        # Stack all message data for vectorized operations
         msg_data = np.stack([msg.data for msg in messages])
         total_combined = self._combine_axis(msg_data, axis=0)
         outgoing_messages = []
 
-        # Vectorized computation: combine all except own message
         for i in range(n_messages):
             combined_data = self._remove_message_from_aggregate(
                 total_combined, msg_data[i], msg_data, i
             )
-
             outgoing_messages.append(
                 Message(
                     data=combined_data,
@@ -145,17 +164,30 @@ class BPComputator(Computator):
                     recipient=messages[i].sender,
                 )
             )
-
         return outgoing_messages
 
-    def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]):
+    def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]) -> List[Message]:
+        """Computes outgoing messages from a factor node to variable nodes (R messages).
+
+        This is an optimized, vectorized implementation that involves three main steps:
+        1. Broadcast each incoming Q message to the dimensionality of the cost table.
+        2. Combine the cost table with all broadcasted Q messages once.
+        3. For each recipient, efficiently "remove" its Q message from the aggregate
+           and reduce to produce the outgoing R message.
+
+        Args:
+            cost_table: The factor's cost table.
+            incoming_messages: A list of incoming messages from variable nodes.
+
+        Returns:
+            A list of computed messages to be sent to variable nodes.
+        """
         k = cost_table.ndim
         shape = cost_table.shape
         dtype = cost_table.dtype
         combine_func = self.combine_func
         reduce_msg = self._reduce_msg
 
-        # 1) broadcast each Q once
         b_msgs = []
         axes_cache = []
         for axis, msg in enumerate(incoming_messages):
@@ -164,15 +196,12 @@ class BPComputator(Computator):
             b_msgs.append(br)
             axes_cache.append(tuple(j for j in range(k) if j != axis))
 
-        # 2) aggregate once  (F combined with all Q messages)
         agg = cost_table.astype(dtype, copy=True)
         for q in b_msgs:
-            combine_func(agg, q, out=agg)  # Use modular combine function
+            combine_func(agg, q, out=agg)
 
-        # 3) build each R_i
         out = []
         for axis, broadcasted_q in enumerate(b_msgs):
-            # Use inverse operation to "remove" the message from aggregate
             temp = self._remove_message_from_aggregate(
                 agg, broadcasted_q, b_msgs, axis, cost_table
             )
@@ -187,9 +216,7 @@ class BPComputator(Computator):
         return out
 
     def _validate(self, messages=None, cost_table=None, incoming_messages=None):
-        """
-        Validate and handle early return cases for compute_Q and compute_R.
-        """
+        """Validates inputs and handles edge cases for compute methods."""
         if messages is not None:
             if not messages:
                 return []
@@ -213,24 +240,17 @@ class BPComputator(Computator):
         return None
 
     def _get_node_dimension(self, factor, node) -> int:
-        """
-        Optimized dimension lookup with caching.
-        Same interface as original but with performance improvements.
-        """
-        # Use cached connection lookup if available
+        """Optimized dimension lookup with caching."""
         cache_key = (id(factor), node.name)
-
         if cache_key in self._connection_cache:
             return self._connection_cache[cache_key]
 
-        # Original logic with caching
         if hasattr(factor, "connection_number") and factor.connection_number:
             if node.name in factor.connection_number:
                 dim = factor.connection_number[node.name]
                 self._connection_cache[cache_key] = dim
                 return dim
 
-        # Error handling
         available_keys = list(getattr(factor, "connection_number", {}).keys())
         raise KeyError(
             f"Node '{node.name}' not found in factor '{factor.name}' connections. "
@@ -245,18 +265,33 @@ class BPComputator(Computator):
         return tuple(shape)
 
     def get_assignment(self, belief: np.ndarray) -> int:
-        """Get optimal assignment from belief vector with zero overhead."""
+        """Gets the optimal assignment from a belief vector.
+
+        Uses the pre-selected `_argreduce_func` (e.g., `argmin`, `argmax`)
+        for zero-overhead execution.
+
+        Args:
+            belief: The belief vector.
+
+        Returns:
+            The index of the optimal assignment.
+        """
         return int(self._argreduce_func(belief))
 
     def compute_belief(self, messages: List[Message], domain: int) -> np.ndarray:
-        """Compute belief from incoming messages using modular combine function."""
+        """Computes the belief of a variable node from incoming messages.
+
+        Args:
+            messages: A list of incoming messages.
+            domain: The domain size of the variable.
+
+        Returns:
+            A numpy array representing the belief distribution.
+        """
         if not messages:
-            return np.ones(domain) / domain  # Uniform belief
+            return np.ones(domain) / domain
 
-        # Initialize belief with identity element
         belief = self._belief_identity(domain)
-
-        # Combine all incoming messages
         for message in messages:
             belief = self.combine_func(belief, message.data)
 
@@ -264,36 +299,51 @@ class BPComputator(Computator):
 
 
 class MinSumComputator(BPComputator):
-    """
-    Min-sum algorithm.
+    """A computator for the Min-Sum belief propagation algorithm.
+
+    This is equivalent to finding the Most Probable Explanation (MPE) in a
+    graphical model represented in the log-domain. It combines messages
+    using addition and reduces them using the min operator.
     """
 
     def __init__(self):
+        """Initializes the MinSumComputator."""
         super().__init__(reduce_func=np.min, combine_func=np.add)
 
 
 class MaxSumComputator(BPComputator):
-    """
-    Max-sum algorithm .
+    """A computator for the Max-Sum belief propagation algorithm.
+
+    This is used for problems where the goal is to maximize a sum of utilities.
+    It combines messages using addition and reduces them using the max operator.
     """
 
     def __init__(self):
+        """Initializes the MaxSumComputator."""
         super().__init__(reduce_func=np.max, combine_func=np.add)
 
 
 class MaxProductComputator(BPComputator):
-    """
-    Max-product algorithm using multiplication for combining messages.
+    """A computator for the Max-Product belief propagation algorithm.
+
+    This is equivalent to finding the Most Probable Explanation (MPE) in a
+    graphical model. It combines messages using multiplication and reduces
+    them using the max operator.
     """
 
     def __init__(self):
+        """Initializes the MaxProductComputator."""
         super().__init__(reduce_func=np.max, combine_func=np.multiply)
 
 
 class SumProductComputator(BPComputator):
-    """
-    Sum-product algorithm using multiplication for combining messages and sum for reduction.
+    """A computator for the Sum-Product belief propagation algorithm.
+
+    This is used to compute marginal probabilities in a graphical model.
+    It combines messages using multiplication and reduces them (marginalizes)
+    using summation.
     """
 
     def __init__(self):
+        """Initializes the SumProductComputator."""
         super().__init__(reduce_func=np.sum, combine_func=np.multiply)

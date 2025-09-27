@@ -1,12 +1,11 @@
+"""Snapshot Builders and Adapters.
+
+This module provides utility functions for translating the state of a simulation
+engine at a specific step into a `SnapshotData` object. This standardized
+snapshot format is designed to be consumed by downstream analysis components,
+such as those for calculating Jacobians or analyzing message cycles.
+"""
 from __future__ import annotations
-
-"""
-Snapshot builders and adapters.
-
-These utilities translate engine/step state into a minimal, analysis-ready
-SnapshotData that downstream components (Jacobians, cycles) can consume.
-"""
-
 from typing import Dict, List, Tuple, Any
 import numpy as np
 
@@ -16,10 +15,12 @@ from .types import SnapshotData
 
 
 def _labels_for_domain(domain_size: int) -> List[str]:
+    """Generates string labels for a given domain size."""
     return [str(i) for i in range(int(domain_size))]
 
 
 def _normalize_min_zero(arr: np.ndarray) -> np.ndarray:
+    """Normalizes a numpy array by subtracting its minimum value."""
     if arr.size == 0:
         return arr
     m = float(np.min(arr))
@@ -29,24 +30,28 @@ def _normalize_min_zero(arr: np.ndarray) -> np.ndarray:
 def extract_qr_from_step(
     step: Step,
 ) -> Tuple[Dict[Tuple[str, str], np.ndarray], Dict[Tuple[str, str], np.ndarray]]:
-    """
-    Build Q and R mappings from the Step's captured message objects.
+    """Extracts and formats Q and R messages from a `Step` object.
 
-    Q: (u, f) -> ndarray(|X_u|,)
-    R: (f, v) -> ndarray(|X_v|,)
+    Args:
+        step: The `Step` object containing captured messages for a single
+            simulation step.
+
+    Returns:
+        A tuple containing two dictionaries:
+        - Q: A mapping from (variable_name, factor_name) to the message array.
+        - R: A mapping from (factor_name, variable_name) to the message array.
     """
     Q: Dict[Tuple[str, str], np.ndarray] = {}
     R: Dict[Tuple[str, str], np.ndarray] = {}
 
-    # Variable -> Factor messages captured in step.q_messages
+    # Variable -> Factor messages (Q)
     for var_name, msgs in step.q_messages.items():
         for msg in msgs:
-            # Expect msg.recipient is FactorAgent and msg.data is (|domain_u|,)
             key = (var_name, getattr(msg.recipient, "name", str(msg.recipient)))
             data = np.asarray(getattr(msg, "data", np.array([])), dtype=float)
             Q[key] = _normalize_min_zero(data)
 
-    # Factor -> Variable messages captured in step.r_messages
+    # Factor -> Variable messages (R)
     for fac_name, msgs in step.r_messages.items():
         for msg in msgs:
             key = (fac_name, getattr(msg.recipient, "name", str(msg.recipient)))
@@ -56,47 +61,48 @@ def extract_qr_from_step(
     return Q, R
 
 
-def build_snapshot_from_engine(step_idx: int, step: Step, engine) -> SnapshotData:
-    """
-    Construct a SnapshotData instance from the engine and the captured Step.
+def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> SnapshotData:
+    """Constructs a `SnapshotData` instance from the current state of an engine.
 
-    - Uses current graph topology for N_var/N_fac and variable domains
-    - Uses Step-captured messages for Q/R
-    - Infers lambda (damping) when present, otherwise 0.0
-    - Wraps factor cost tables as callable accessors when available
+    This function captures a comprehensive view of the simulation at a specific
+    step, including graph topology, variable domains, messages, damping factor,
+    and cost functions.
+
+    Args:
+        step_idx: The index of the simulation step being captured.
+        step: The `Step` object containing the message data for this step.
+        engine: The simulation engine instance, from which graph structure
+            and other parameters are extracted.
+
+    Returns:
+        A `SnapshotData` object populated with the state of the simulation.
     """
-    # Domains and labels
-    dom: Dict[str, List[str]] = {}
     variables: List[VariableAgent] = list(engine.var_nodes)
     factors: List[FactorAgent] = list(engine.factor_nodes)
 
-    for v in variables:
-        dom[v.name] = _labels_for_domain(int(getattr(v, "domain", 0)))
+    # Extract domains and neighborhoods from the graph
+    dom: Dict[str, List[str]] = {
+        v.name: _labels_for_domain(int(getattr(v, "domain", 0))) for v in variables
+    }
+    N_var: Dict[str, List[str]] = {
+        v.name: [getattr(n, "name", str(n)) for n in engine.graph.G.neighbors(v)]
+        for v in variables
+    }
+    N_fac: Dict[str, List[str]] = {
+        f.name: [getattr(n, "name", str(n)) for n in engine.graph.G.neighbors(f)]
+        for f in factors
+    }
 
-    # Neighborhoods
-    N_var: Dict[str, List[str]] = {}
-    N_fac: Dict[str, List[str]] = {}
-
-    for v in variables:
-        neighbors = [n for n in engine.graph.G.neighbors(v)]
-        N_var[v.name] = [getattr(f, "name", str(f)) for f in neighbors]
-
-    for f in factors:
-        neighbors = [n for n in engine.graph.G.neighbors(f)]
-        N_fac[f.name] = [getattr(v, "name", str(v)) for v in neighbors]
-
-    # Messages from this step
+    # Extract messages from the step
     Q, R = extract_qr_from_step(step)
 
-    # Damping (lambda)
+    # Infer damping factor and create unary potentials
     lambda_val = float(getattr(engine, "damping_factor", 0.0))
-
-    # Optional unary (zeros by default)
     unary: Dict[str, np.ndarray] = {
         v.name: np.zeros(int(getattr(v, "domain", 0))) for v in variables
     }
 
-    # Factor cost mapping
+    # Create callable accessors for factor cost tables
     cost: Dict[str, Any] = {}
     for f in factors:
         table = getattr(f, "cost_table", None)
@@ -104,7 +110,6 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine) -> SnapshotDat
         if table is None or not conn:
             continue
 
-        # Closure capturing cost table and variable order
         var_by_dim = sorted(conn.items(), key=lambda kv: kv[1])
         var_order = [name for name, _ in var_by_dim]
 
@@ -115,7 +120,6 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine) -> SnapshotDat
                     return float(ct[tuple(idx)])
                 except Exception:
                     return 0.0
-
             return _cost
 
         cost[f.name] = make_cost_fn(np.asarray(table), var_order)
