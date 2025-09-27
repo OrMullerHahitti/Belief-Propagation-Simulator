@@ -1,6 +1,9 @@
-"""
-Computator classes for search-based algorithms like DSA and MGM.
-These extend the base Computator interface to fit search problems.
+"""Computator Classes for Search-Based DCOP Algorithms.
+
+This module defines the `Computator` logic for various distributed local
+search algorithms like DSA (Distributed Stochastic Algorithm) and MGM (Maximum
+Gain Message). These computators are designed to be used with `SearchAgent`
+and `SearchEngine` classes.
 """
 
 from abc import ABC, abstractmethod
@@ -12,28 +15,31 @@ from ..core.components import Message
 
 
 class SearchComputator(Computator, ABC):
-    """
-    Abstract base class for search-based algorithm computators.
-    This class adapts the BP Computator interface for search algorithms.
+    """Abstract base class for computators used in search-based algorithms.
+
+    This class adapts the `Computator` interface, which is originally designed
+    for belief propagation, to the needs of local search algorithms. It
+    introduces methods for making decisions and evaluating costs based on the
+    local state of an agent and its neighbors.
     """
 
     def __init__(self):
-        """Initialize the search computator."""
+        """Initializes the search computator."""
         super().__init__()
         self.iteration = 0
-        self.is_decision_phase = True  # Toggles between decision and value phases
+        self.is_decision_phase = True
 
     @abstractmethod
     def compute_decision(self, agent: Agent, neighbors_values: Dict[str, Any]) -> Any:
-        """
-        Compute a decision based on neighbors' current values.
+        """Computes a decision for an agent based on its neighbors' current values.
 
         Args:
-            agent: The agent making the decision
-            neighbors_values: Dictionary mapping neighbor agent names to their current values
+            agent: The agent making the decision.
+            neighbors_values: A dictionary mapping neighbor agent names to their
+                current assignment values.
 
         Returns:
-            The computed decision value
+            The computed decision value for the agent.
         """
         pass
 
@@ -41,122 +47,103 @@ class SearchComputator(Computator, ABC):
     def evaluate_cost(
         self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]
     ) -> float:
-        """
-        Evaluate the cost of a potential value assignment.
+        """Evaluates the local cost of a potential value assignment for an agent.
 
         Args:
-            agent: The agent being evaluated
-            value: The potential value for this agent
-            neighbors_values: Dictionary mapping neighbor agent names to their current values
+            agent: The agent being evaluated.
+            value: The potential value to assign to the agent.
+            neighbors_values: A dictionary of neighbor agent assignments.
 
         Returns:
-            The cost (lower is better)
+            The resulting local cost (lower is better).
         """
         pass
 
     async def compute_Q(self, messages: List[Message]) -> List[Message]:
-        """
-        Adapt BP's compute_Q for search algorithms.
-        In search algorithms, Q messages usually contain value assignments.
+        """Adapts the `compute_Q` method for search algorithms.
+
+        In search, this method is primarily for compatibility and may be used
+        to exchange current value assignments.
 
         Args:
-            messages: List of incoming messages
+            messages: A list of incoming messages.
 
         Returns:
-            List of outgoing messages
+            A list of outgoing messages, typically containing the agent's
+            current assignment.
         """
         if not messages:
             return []
-
-        # Default implementation for compatibility
         variable = messages[0].recipient
-        outgoing_messages = []
-
-        for msg in messages:
-            factor = msg.sender
-            # Create a simple reply message with the variable's current assignment
-            outgoing_messages.append(
-                Message(
-                    data=np.array([getattr(variable, "curr_assignment", 0)]),
-                    sender=variable,
-                    recipient=factor,
-                )
+        return [
+            Message(
+                data=np.array([getattr(variable, "curr_assignment", 0)]),
+                sender=variable,
+                recipient=msg.sender,
             )
-
-        return outgoing_messages
+            for msg in messages
+        ]
 
     async def compute_R(
-        self, cost_table, incoming_messages: List[Message]
+        self, cost_table: np.ndarray, incoming_messages: List[Message]
     ) -> List[Message]:
-        """
-        Adapt BP's compute_R for search algorithms.
-        In search algorithms, R messages may contain cost information.
+        """Adapts the `compute_R` method for search algorithms.
+
+        In search, this method is primarily for compatibility and may be used
+        to exchange cost or gain information.
 
         Args:
-            cost_table: The cost table used for computation
-            incoming_messages: List of incoming messages
+            cost_table: The factor's cost table.
+            incoming_messages: A list of incoming messages.
 
         Returns:
-            List of outgoing messages
+            A list of outgoing messages, typically containing placeholder cost data.
         """
         if not incoming_messages:
             return []
-
-        # Default implementation for compatibility
         factor = incoming_messages[0].recipient
-        outgoing_messages = []
+        return [
+            Message(data=np.array([0.0]), sender=factor, recipient=msg.sender)
+            for msg in incoming_messages
+        ]
 
-        for msg in incoming_messages:
-            variable = msg.sender
-            # Create a simple reply message with cost information
-            outgoing_messages.append(
-                Message(
-                    data=np.array([0.0]),  # Placeholder for cost
-                    sender=factor,
-                    recipient=variable,
-                )
-            )
-
-        return outgoing_messages
-
-    def next_iteration(self):
-        """Move to the next iteration and toggle phase if needed."""
+    def next_iteration(self) -> None:
+        """Moves to the next iteration and toggles the decision phase flag."""
         self.iteration += 1
-        # Some search algorithms alternate between decision and value phases
         self.is_decision_phase = not self.is_decision_phase
 
 
 class DSAComputator(SearchComputator):
-    """
-    Distributed Stochastic Algorithm (DSA) computator.
-    DSA is a local search algorithm where agents probabilistically decide to change their values.
+    """A computator for the Distributed Stochastic Algorithm (DSA).
 
-    In DSA, each agent:
-    1. Evaluates the cost of changing to each possible value
-    2. If an improvement is found, changes with probability p
-    3. Otherwise, stays with current value
+    DSA is a simple local search algorithm where each agent decides to change
+    its value to the one that yields the best local cost improvement with a
+    certain probability.
     """
 
     def __init__(self, probability: float = 0.7):
-        """
-        Initialize the DSA computator.
+        """Initializes the DSA computator.
 
         Args:
-            probability: Probability of changing value when an improvement is found
+            probability: The probability of changing value when a local
+                improvement is found.
         """
         super().__init__()
         self.probability = probability
 
     def compute_decision(self, agent: Agent, neighbors_values: Dict[str, Any]) -> Any:
-        """
-        Compute DSA decision for an agent.
+        """Computes the DSA decision for an agent.
+
+        The agent evaluates the cost of all possible values in its domain. If a
+        value with a lower cost is found, the agent decides to switch to the
+        best new value with a probability `p`.
 
         Args:
-            agent: The agent making the decision
-            neighbors_values: Dictionary mapping neighbor agent names to their current values
+            agent: The agent making the decision.
+            neighbors_values: A dictionary of neighbor assignments.
 
         Returns:
-            The new value to assign, or None to keep current value
+            The new value to assign, or the current value if no change is made.
         """
         import random
 
@@ -166,7 +153,6 @@ class DSAComputator(SearchComputator):
         best_value = curr_value
         best_cost = curr_cost
 
-        # Check all possible values for improvements
         domain_size = getattr(agent, "domain", 2)
         for value in range(domain_size):
             if value != curr_value:
@@ -175,318 +161,239 @@ class DSAComputator(SearchComputator):
                     best_cost = cost
                     best_value = value
 
-        # If improvement found, change with probability p
-        if best_value != curr_value:
-            if random.random() < self.probability:
-                return best_value
+        if best_value != curr_value and random.random() < self.probability:
+            return best_value
 
-        # No change
         return curr_value
 
     def evaluate_cost(
         self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]
     ) -> float:
-        """
-        Evaluate the local cost of an agent taking a specific value.
+        """Evaluates the local cost for an agent given a potential value.
 
-        This calculates the cost contribution from all factors connected to this agent.
+        The cost is the sum of the costs from all factors connected to this agent,
+        calculated based on the proposed `value` for the agent and the current
+        values of its neighbors.
 
         Args:
-            agent: The agent being evaluated
-            value: The potential value for this agent
-            neighbors_values: Dictionary of neighbor values
+            agent: The agent being evaluated.
+            value: The potential value for the agent.
+            neighbors_values: A dictionary of neighbor assignments.
 
         Returns:
-            The local cost (lower is better)
+            The total local cost.
         """
         total_cost = 0.0
-
-        # Get all factor neighbors of this variable agent
-        if hasattr(agent, "factor_neighbors"):
-            factors = agent.factor_neighbors
-        else:
-            # Fallback: look for factors in a graph context
-            # This will need to be set by the engine
-            factors = getattr(agent, "_connected_factors", [])
-
+        factors = getattr(agent, "_connected_factors", [])
         for factor in factors:
             if factor.cost_table is not None:
-                # Build indices for cost table lookup
                 indices = [None] * len(factor.connection_number)
                 valid_lookup = True
-
                 for var_name, dim in factor.connection_number.items():
                     if var_name == agent.name:
-                        # Use the proposed value for this agent
                         indices[dim] = value
                     elif var_name in neighbors_values:
-                        # Use neighbor's current value
                         indices[dim] = neighbors_values[var_name]
                     else:
-                        # Missing neighbor value - skip this factor
                         valid_lookup = False
                         break
-
                 if valid_lookup and None not in indices:
                     try:
                         total_cost += factor.cost_table[tuple(indices)]
                     except (IndexError, TypeError):
-                        # Handle potential indexing errors gracefully
                         pass
-
         return total_cost
 
 
 class MGMComputator(SearchComputator):
-    """
-    Maximum Gain Message (MGM) computator.
-    MGM is a local search algorithm where agents coordinate to make the move with maximum gain.
+    """A computator for the Maximum Gain Message (MGM) algorithm.
 
-    In MGM:
-    1. Each agent calculates its best possible gain from changing values
-    2. Agents exchange their gain values with neighbors
-    3. Only the agent with the maximum gain in its neighborhood changes
-    4. In case of ties, deterministic tie-breaking is used (e.g., lexicographic by agent name)
+    MGM is a local search algorithm where agents coordinate to allow only the
+    agent with the maximum local gain to change its value in each iteration.
+
+    The algorithm operates in two phases:
+    1.  **Gain Calculation**: Each agent calculates its best possible gain.
+    2.  **Decision**: Agents exchange gain values, and only the one with the
+        highest gain (with deterministic tie-breaking) makes a move.
     """
 
     def __init__(self):
-        """Initialize the MGM computator."""
+        """Initializes the MGM computator."""
         super().__init__()
-        self.agent_gains = {}  # Store gains for coordination
-        self.phase = "gain_calculation"  # "gain_calculation" or "decision"
+        self.agent_gains = {}
+        self.phase = "gain_calculation"
 
     def compute_decision(self, agent: Agent, neighbors_values: Dict[str, Any]) -> Any:
-        """
-        Compute MGM decision for an agent.
+        """Computes the MGM decision for an agent based on the current phase.
 
         Args:
-            agent: The agent making the decision
-            neighbors_values: Dictionary mapping neighbor agent names to their current values
+            agent: The agent making the decision.
+            neighbors_values: A dictionary of neighbor assignments.
 
         Returns:
-            The new value to assign, or None to keep current value
+            The new value to assign, or the current value if no change is made.
         """
         if self.phase == "gain_calculation":
-            # Calculate and store this agent's best gain
             curr_value = getattr(agent, "curr_assignment", 0)
             curr_cost = self.evaluate_cost(agent, curr_value, neighbors_values)
+            best_value, best_gain = curr_value, 0.0
 
-            best_value = curr_value
-            best_gain = 0.0
-
-            # Find best possible move
             domain_size = getattr(agent, "domain", 2)
             for value in range(domain_size):
                 if value != curr_value:
                     cost = self.evaluate_cost(agent, value, neighbors_values)
-                    gain = curr_cost - cost  # Positive gain means improvement
+                    gain = curr_cost - cost
                     if gain > best_gain:
-                        best_gain = gain
-                        best_value = value
+                        best_gain, best_value = gain, value
 
-            # Store gain for coordination phase
             self.agent_gains[agent.name] = {
-                "gain": best_gain,
-                "best_value": best_value,
-                "current_value": curr_value,
+                "gain": best_gain, "best_value": best_value, "current_value": curr_value
             }
-
-            return None  # No decision yet in gain calculation phase
-
+            return None  # No decision in this phase
         elif self.phase == "decision":
-            # Check if this agent should make the move
             agent_info = self.agent_gains.get(agent.name, {})
             agent_gain = agent_info.get("gain", 0.0)
+            current_value = agent_info.get("current_value", getattr(agent, "curr_assignment", 0))
 
             if agent_gain <= 0:
-                return agent_info.get(
-                    "current_value", getattr(agent, "curr_assignment", 0)
-                )
+                return current_value
 
-            # Check if this agent has maximum gain among neighbors
             has_max_gain = True
-            neighbor_gains = []
-
-            # Get neighbor gains - this would need to be populated by the engine
-            # during the coordination phase
-            if hasattr(agent, "neighbor_gains"):
-                neighbor_gains = agent.neighbor_gains
-
+            neighbor_gains = getattr(agent, "neighbor_gains", {})
             for neighbor_name, neighbor_gain in neighbor_gains.items():
-                if neighbor_gain > agent_gain:
+                if neighbor_gain > agent_gain or (
+                    neighbor_gain == agent_gain and neighbor_name < agent.name
+                ):
                     has_max_gain = False
                     break
-                elif neighbor_gain == agent_gain:
-                    # Tie-breaking: lexicographic by name
-                    if neighbor_name < agent.name:
-                        has_max_gain = False
-                        break
 
-            if has_max_gain:
-                return agent_info.get("best_value", agent_info.get("current_value", 0))
-            else:
-                return agent_info.get(
-                    "current_value", getattr(agent, "curr_assignment", 0)
-                )
+            return agent_info.get("best_value", current_value) if has_max_gain else current_value
 
     def evaluate_cost(
         self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]
     ) -> float:
-        """
-        Evaluate the local cost of an agent taking a specific value.
-
-        This calculates the cost contribution from all factors connected to this agent.
+        """Evaluates the local cost for an agent given a potential value.
 
         Args:
-            agent: The agent being evaluated
-            value: The potential value for this agent
-            neighbors_values: Dictionary of neighbor values
+            agent: The agent being evaluated.
+            value: The potential value for the agent.
+            neighbors_values: A dictionary of neighbor assignments.
 
         Returns:
-            The local cost (lower is better)
+            The total local cost.
         """
         total_cost = 0.0
-
-        # Get all factor neighbors of this variable agent
-        if hasattr(agent, "factor_neighbors"):
-            factors = agent.factor_neighbors
-        else:
-            # Fallback: look for factors in a graph context
-            # This will need to be set by the engine
-            factors = getattr(agent, "_connected_factors", [])
-
+        factors = getattr(agent, "_connected_factors", [])
         for factor in factors:
             if factor.cost_table is not None:
-                # Build indices for cost table lookup
                 indices = [None] * len(factor.connection_number)
                 valid_lookup = True
-
                 for var_name, dim in factor.connection_number.items():
                     if var_name == agent.name:
-                        # Use the proposed value for this agent
                         indices[dim] = value
                     elif var_name in neighbors_values:
-                        # Use neighbor's current value
                         indices[dim] = neighbors_values[var_name]
                     else:
-                        # Missing neighbor value - skip this factor
                         valid_lookup = False
                         break
-
                 if valid_lookup and None not in indices:
                     try:
                         total_cost += factor.cost_table[tuple(indices)]
                     except (IndexError, TypeError):
-                        # Handle potential indexing errors gracefully
                         pass
-
         return total_cost
 
-    def reset_phase(self):
-        """Reset to gain calculation phase for next iteration."""
+    def reset_phase(self) -> None:
+        """Resets the computator to the gain calculation phase."""
         self.phase = "gain_calculation"
         self.agent_gains.clear()
 
-    def move_to_decision_phase(self):
-        """Move to decision phase."""
+    def move_to_decision_phase(self) -> None:
+        """Moves the computator to the decision-making phase."""
         self.phase = "decision"
 
 
 class KOptMGMComputator(SearchComputator):
-    """
-    K-Opt MGM (Maximum Gain Message) computator.
+    """A computator for the K-Optimal Maximum Gain Message (k-opt MGM) algorithm.
 
-    This is an extension of MGM that allows for k agents to coordinate and make
-    simultaneous moves, potentially escaping local optima that standard MGM
-    would get stuck in.
+    This is an extension of MGM that allows for coalitions of up to `k` agents
+    to coordinate and make simultaneous moves, which can help escape local optima.
 
-    The algorithm has two main phases:
-    1. Exploration: Agents explore potential value changes and calculate gains
-    2. Coordination: Agents coordinate to form coalitions of size <= k to maximize overall gain
+    The algorithm cycles through three phases:
+    1.  **Exploration**: Agents calculate their best individual moves and gains.
+    2.  **Coordination**: Agents (via the engine) form coalitions to maximize joint gain.
+    3.  **Execution**: Agents in a winning coalition execute their planned moves.
     """
 
     def __init__(self, k: int = 2, coalition_timeout: int = 10):
-        """
-        Initialize the K-Opt MGM computator.
+        """Initializes the K-Opt MGM computator.
 
         Args:
-            k: Maximum coalition size (k=1 is standard MGM, k=2 is MGM-2, etc.)
-            coalition_timeout: Maximum iterations to attempt forming coalitions
+            k: The maximum size of a coalition (e.g., k=2 allows pairs of
+                agents to move together). Defaults to 2.
+            coalition_timeout: The maximum number of iterations to attempt
+                forming coalitions. Defaults to 10.
         """
         super().__init__()
         self.k = k
         self.coalition_timeout = coalition_timeout
-        self.phase = "exploration"  # exploration, coordination, or execution
-        self.current_gains = {}  # Agent name -> potential gain
+        self.phase = "exploration"
+        self.current_gains = {}
         self.coalition_attempts = 0
-        self.coalitions = []  # List of formed coalitions
-        self.best_values = {}  # Agent name -> best value to switch to
+        self.coalitions = []
+        self.best_values = {}
 
     def compute_decision(self, agent: Agent, neighbors_values: Dict[str, Any]) -> Any:
-        """
-        Compute decision based on the current phase of k-opt MGM.
+        """Computes the k-opt MGM decision based on the current phase.
 
         Args:
-            agent: The agent making the decision
-            neighbors_values: Dictionary of neighbor values
+            agent: The agent making the decision.
+            neighbors_values: A dictionary of neighbor assignments.
 
         Returns:
-            The computed decision (may be None if no decision yet)
+            The new value if a move is executed, otherwise the current value or None.
         """
         if self.phase == "exploration":
-            # Calculate best local move and gain
             curr_value = getattr(agent, "curr_assignment", 0)
             curr_cost = self.evaluate_cost(agent, curr_value, neighbors_values)
+            best_value, best_gain = curr_value, 0.0
 
-            best_value = curr_value
-            best_gain = 0.0
-
-            # Check all possible values
             domain_size = getattr(agent, "domain", 2)
             for value in range(domain_size):
                 if value != curr_value:
                     new_cost = self.evaluate_cost(agent, value, neighbors_values)
                     gain = curr_cost - new_cost
                     if gain > best_gain:
-                        best_gain = gain
-                        best_value = value
+                        best_gain, best_value = gain, value
 
-            # Store best value and gain
             self.current_gains[agent.name] = best_gain
             self.best_values[agent.name] = best_value
-
-            return None  # No immediate decision in exploration phase
-
-        elif self.phase == "coordination":
-            # Determine if this agent should be part of a coalition
-            # This requires complex message exchange logic handled by the engine
             return None
-
+        elif self.phase == "coordination":
+            return None
         elif self.phase == "execution":
-            # Execute the planned move if part of a coalition
             for coalition in self.coalitions:
                 if agent.name in coalition:
-                    return self.best_values[agent.name]
-
-            # If not in a coalition, keep current value
+                    return self.best_values.get(agent.name)
             return getattr(agent, "curr_assignment", 0)
 
     def evaluate_cost(
         self, agent: Agent, value: Any, neighbors_values: Dict[str, Any]
     ) -> float:
-        """
-        Evaluate the cost of a potential value assignment.
-        This is problem-specific and should be overridden in subclasses.
+        """Evaluates the cost of a potential value assignment.
+
+        Note:
+            This is a placeholder and should be implemented by a subclass that
+            is specific to the problem being solved.
 
         Args:
-            agent: The agent being evaluated
-            value: The potential value for this agent
-            neighbors_values: Dictionary of neighbor values
+            agent: The agent being evaluated.
+            value: The potential value for the agent.
+            neighbors_values: A dictionary of neighbor assignments.
 
         Returns:
-            The cost (lower is better)
+            The local cost (defaults to 0.0).
         """
-        # Default implementation - should be overridden in specific problem instances
         return 0.0
 
     def form_coalitions(
@@ -494,70 +401,53 @@ class KOptMGMComputator(SearchComputator):
         agents: List[Agent],
         constraints: Dict[Tuple[str, str], Dict[Tuple[Any, Any], float]],
     ) -> List[Set[str]]:
-        """
-        Form coalitions of up to k agents to maximize overall gain.
+        """Forms coalitions of up to k agents to maximize overall gain.
+
+        This is a greedy implementation where coalitions are built around the
+        agents with the highest individual gains.
 
         Args:
-            agents: List of agents
-            constraints: Dictionary mapping agent pairs to their constraint costs
-                constraints[(a1, a2)][(v1, v2)] = cost of a1=v1, a2=v2
+            agents: A list of all agents to consider for coalitions.
+            constraints: A dictionary defining the costs between pairs of agents.
 
         Returns:
-            List of coalitions (sets of agent names)
+            A list of coalitions, where each coalition is a set of agent names.
         """
         coalitions = []
         agent_names = [agent.name for agent in agents]
         available_agents = set(agent_names)
-
-        # Start with highest gain agents
         sorted_agents = sorted(
             agent_names, key=lambda a: self.current_gains.get(a, 0.0), reverse=True
         )
 
-        # Greedy coalition formation
         for seed_agent in sorted_agents:
             if seed_agent not in available_agents:
                 continue
 
-            # Start a new coalition
             coalition = {seed_agent}
             coalition_gain = self.current_gains.get(seed_agent, 0.0)
             available_agents.remove(seed_agent)
 
-            # Try to add more agents to this coalition
             while len(coalition) < self.k and available_agents:
-                best_addition = None
-                best_addition_gain = 0.0
-
+                best_addition, best_addition_gain = None, 0.0
                 for candidate in available_agents:
-                    # Calculate marginal gain of adding this agent
-                    # This is a simplified estimate - full calculation would need to
-                    # evaluate all constraint violations in the coalition
                     marginal_gain = self.current_gains.get(candidate, 0.0)
-
                     if marginal_gain > best_addition_gain:
-                        best_addition = candidate
-                        best_addition_gain = marginal_gain
+                        best_addition, best_addition_gain = candidate, marginal_gain
 
                 if best_addition and best_addition_gain > 0:
                     coalition.add(best_addition)
                     available_agents.remove(best_addition)
                     coalition_gain += best_addition_gain
                 else:
-                    break  # No more beneficial additions
-
+                    break
             if coalition_gain > 0:
                 coalitions.append(coalition)
-
         return coalitions
 
-    def next_iteration(self):
-        """
-        Advance to the next phase in the k-opt MGM algorithm cycle.
-        """
+    def next_iteration(self) -> None:
+        """Advances the algorithm to the next phase in its cycle."""
         super().next_iteration()
-
-        # Cycle through phases
         if self.phase == "exploration":
             self.phase = "coordination"
         elif self.phase == "coordination":
@@ -566,7 +456,6 @@ class KOptMGMComputator(SearchComputator):
                 self.phase = "execution"
                 self.coalition_attempts = 0
         elif self.phase == "execution":
-            # Reset for next cycle
             self.phase = "exploration"
             self.current_gains.clear()
             self.coalitions.clear()

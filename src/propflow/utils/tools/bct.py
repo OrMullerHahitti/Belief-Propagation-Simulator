@@ -1,71 +1,81 @@
-"""
-BCTCreator - Creates BCTs from History and FactorGraph
+"""Tools for creating and analyzing Backtrack Cost Trees (BCTs).
 
-Takes the enhanced History object and FactorGraph, builds BCT trees,
-and provides analysis and visualization capabilities.
+This module provides the `BCTCreator` class, which can take the history of a
+simulation run and construct a BCT. A BCT is a tree structure that visualizes
+how costs or beliefs from earlier iterations contribute to the final belief of
+a specific variable, making it a powerful tool for debugging and understanding
+the dynamics of belief propagation.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from typing import Dict, List, Any, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
-from collections import defaultdict, deque
 
 
 @dataclass
 class BCTNode:
-    """Node in a Backtrack Cost Tree"""
+    """Represents a single node in a Backtrack Cost Tree (BCT).
 
+    Attributes:
+        name: The name of the node, typically identifying the source agent.
+        iteration: The simulation iteration this node corresponds to.
+        cost: The belief or message value at this node.
+        node_type: The type of the node (e.g., 'variable', 'factor').
+        children: A list of child `BCTNode` objects.
+        coefficient: The damping coefficient applied to this node's cost.
+    """
     name: str
     iteration: int
     cost: float
     node_type: str  # 'variable', 'factor', 'cost'
-    children: List["BCTNode"] = None
+    children: List["BCTNode"] = field(default_factory=list)
     coefficient: float = 1.0
-
-    def __post_init__(self):
-        if self.children is None:
-            self.children = []
 
 
 class BCTCreator:
-    """Creates and analyzes BCTs from History and FactorGraph"""
+    """Creates, analyzes, and visualizes Backtrack Cost Trees (BCTs).
 
-    def __init__(self, factor_graph, history, damping_factor: float = 0.0):
-        """
-        Initialize BCTCreator
+    This class uses the data collected in a `History` object to trace the
+    dependencies of a variable's final belief back through the message-passing
+    history of the simulation.
+    """
+
+    def __init__(self, factor_graph: Any, history: Any, damping_factor: float = 0.0):
+        """Initializes the BCTCreator.
 
         Args:
-            factor_graph: Your FactorGraph object
-            history: Enhanced History object (with or without BCT data)
-            damping_factor: Damping factor used in simulation
+            factor_graph: The `FactorGraph` object from the simulation.
+            history: The `History` object containing the simulation run data.
+            damping_factor: The damping factor used in the simulation, for
+                correctly calculating cost contributions.
         """
         self.factor_graph = factor_graph
         self.history = history
         self.damping_factor = damping_factor
         self.bct_data = history.get_bct_data()
-        self.bcts = {}  # Cache for built BCTs
+        self.bcts: Dict[str, BCTNode] = {}  # Cache for built BCTs
 
-        print(f"BCTCreator initialized:")
+        print("BCTCreator initialized:")
         print(f"  - BCT mode: {history.use_bct_history}")
         print(f"  - Variables tracked: {len(self.bct_data.get('beliefs', {}))}")
         print(f"  - Message flows: {len(self.bct_data.get('messages', {}))}")
-        print(
-            f"  - Total steps: {self.bct_data.get('metadata', {}).get('total_steps', 0)}"
-        )
+        print(f"  - Total steps: {self.bct_data.get('metadata', {}).get('total_steps', 0)}")
 
     def create_bct(self, variable_name: str, final_iteration: int = -1) -> BCTNode:
-        """
-        Create BCT for a specific variable
+        """Creates a BCT for a specific variable, tracing its belief back in time.
 
         Args:
-            variable_name: Variable to create BCT for
-            final_iteration: Which iteration to analyze (-1 for last)
+            variable_name: The name of the variable to create the BCT for.
+            final_iteration: The final iteration to analyze. Defaults to -1 (the last one).
 
         Returns:
-            BCTNode: Root of the BCT
+            The root `BCTNode` of the constructed tree.
+
+        Raises:
+            ValueError: If no data is found for the specified variable.
         """
         if variable_name not in self.bct_data.get("beliefs", {}):
             raise ValueError(f"Variable {variable_name} not found in history data")
@@ -74,292 +84,174 @@ class BCTCreator:
         if not beliefs:
             raise ValueError(f"No belief data found for {variable_name}")
 
-        # Handle final_iteration
         if final_iteration == -1 or final_iteration >= len(beliefs):
             final_iteration = len(beliefs) - 1
-
         final_belief = beliefs[final_iteration]
 
-        # Create root node
         root = BCTNode(
-            name=f"{variable_name}_belief",
-            iteration=final_iteration,
-            cost=final_belief,
-            node_type="variable",
-            coefficient=self._get_damping_coefficient(final_iteration),
+            name=f"{variable_name}_belief", iteration=final_iteration, cost=final_belief,
+            node_type="variable", coefficient=self._get_damping_coefficient(final_iteration)
         )
-
-        # Build tree recursively
         self._build_bct_recursive(root, variable_name, final_iteration)
-
-        # Cache the BCT
-        cache_key = f"{variable_name}_{final_iteration}"
-        self.bcts[cache_key] = root
-
+        self.bcts[f"{variable_name}_{final_iteration}"] = root
         return root
 
-    def _build_bct_recursive(self, node: BCTNode, variable_name: str, iteration: int):
-        """Recursively build BCT tree"""
+    def _build_bct_recursive(self, node: BCTNode, variable_name: str, iteration: int) -> None:
+        """Recursively builds the BCT by backtracking through message history."""
         if iteration <= 0:
             return
 
-        # Find incoming messages to this variable at this iteration
         messages = self.bct_data.get("messages", {})
-
         for flow_key, msg_values in messages.items():
             if "->" in flow_key:
                 sender, recipient = flow_key.split("->")
-
-                # Check if this message is TO our variable
-                if recipient == variable_name and iteration <= len(msg_values):
-
-                    # Get message value from previous iteration
-                    if iteration > 0 and (iteration - 1) < len(msg_values):
-                        msg_cost = msg_values[iteration - 1]
-                    else:
-                        continue
-
-                    # Determine node type (factor or variable based on sender name)
+                if recipient == variable_name and iteration - 1 < len(msg_values):
+                    msg_cost = msg_values[iteration - 1]
                     sender_type = "factor" if "f" in sender.lower() else "variable"
-
-                    # Create child node
                     child = BCTNode(
-                        name=f"{sender}->msg",
-                        iteration=iteration - 1,
-                        cost=msg_cost,
-                        node_type=sender_type,
-                        coefficient=self._get_damping_coefficient(iteration - 1),
+                        name=f"{sender}->msg", iteration=iteration - 1, cost=msg_cost,
+                        node_type=sender_type, coefficient=self._get_damping_coefficient(iteration - 1)
                     )
-
-                    # Apply damping to cost
                     child.cost *= child.coefficient
-
                     node.children.append(child)
-
-                    # Recurse for earlier iterations
                     self._build_bct_recursive(child, sender, iteration - 1)
 
     def _get_damping_coefficient(self, iteration: int) -> float:
-        """Calculate damping coefficient for given iteration"""
+        """Calculates the damping coefficient for a given iteration."""
         if self.damping_factor == 0.0:
             return 1.0
-        return (1 - self.damping_factor) * (
-            self.damping_factor ** max(0, iteration - 1)
-        )
+        return (1 - self.damping_factor) * (self.damping_factor ** max(0, iteration - 1))
 
-    def analyze_convergence(self, variable_name: str) -> Dict:
-        """
-        Analyze convergence pattern for a variable
+    def analyze_convergence(self, variable_name: str) -> Dict[str, Any]:
+        """Analyzes the convergence pattern for a single variable.
 
         Args:
-            variable_name: Variable to analyze
+            variable_name: The name of the variable to analyze.
 
         Returns:
-            Convergence analysis dictionary
+            A dictionary containing convergence metrics like total change,
+            average change, and whether the variable has stabilized.
         """
         if variable_name not in self.bct_data.get("beliefs", {}):
             return {"error": f"Variable {variable_name} not found"}
-
         beliefs = self.bct_data["beliefs"][variable_name]
         assignments = self.bct_data.get("assignments", {}).get(variable_name, [])
+        if not beliefs: return {"error": "No belief data available"}
 
-        if not beliefs:
-            return {"error": "No belief data available"}
-
-        # Calculate belief changes
-        changes = []
-        for i in range(1, len(beliefs)):
-            change = abs(beliefs[i] - beliefs[i - 1])
-            changes.append(change)
-
-        # Detect convergence
-        converged = False
-        convergence_iter = -1
-
-        if len(changes) >= 3:
-            # Check if last 3 changes are small
-            recent_changes = changes[-3:]
-            if all(change < 0.001 for change in recent_changes):
-                converged = True
-                convergence_iter = len(beliefs) - 3
-
-        # Assignment stability
-        assignment_stable = False
-        if assignments and len(assignments) >= 3:
-            recent_assignments = assignments[-3:]
-            assignment_stable = len(set(recent_assignments)) == 1
+        changes = [abs(beliefs[i] - beliefs[i - 1]) for i in range(1, len(beliefs))]
+        converged = len(changes) >= 3 and all(c < 0.001 for c in changes[-3:])
+        convergence_iter = len(beliefs) - 3 if converged else -1
+        assignment_stable = len(assignments) >= 3 and len(set(assignments[-3:])) == 1
 
         return {
-            "variable": variable_name,
-            "total_iterations": len(beliefs),
-            "initial_belief": beliefs[0],
-            "final_belief": beliefs[-1],
+            "variable": variable_name, "total_iterations": len(beliefs),
+            "initial_belief": beliefs[0], "final_belief": beliefs[-1],
             "total_change": abs(beliefs[-1] - beliefs[0]) if len(beliefs) >= 2 else 0.0,
             "max_change": max(changes) if changes else 0.0,
             "average_change": sum(changes) / len(changes) if changes else 0.0,
-            "converged": converged,
-            "convergence_iteration": convergence_iter,
-            "assignment_stable": assignment_stable,
-            "belief_evolution": beliefs,
-            "assignment_evolution": assignments,
-            "changes": changes,
+            "converged": converged, "convergence_iteration": convergence_iter,
+            "assignment_stable": assignment_stable, "belief_evolution": beliefs,
+            "assignment_evolution": assignments, "changes": changes,
         }
 
-    def visualize_bct(
-        self, variable_name: str, iteration: int = -1, save_path: str = None
-    ) -> plt.Figure:
-        """
-        Visualize BCT for a variable
+    def visualize_bct(self, variable_name: str, iteration: int = -1, save_path: Optional[str] = None) -> plt.Figure:
+        """Generates and optionally saves a visualization of a BCT.
 
         Args:
-            variable_name: Variable to visualize
-            iteration: Which iteration to visualize (-1 for last)
-            save_path: Optional path to save figure
+            variable_name: The name of the variable to visualize the BCT for.
+            iteration: The final iteration to trace back from. Defaults to -1 (last).
+            save_path: An optional path to save the generated figure.
 
         Returns:
-            matplotlib Figure
+            The `matplotlib.Figure` object of the visualization.
         """
-        # Get or create BCT
         cache_key = f"{variable_name}_{iteration}"
-        if cache_key in self.bcts:
-            root = self.bcts[cache_key]
-        else:
-            root = self.create_bct(variable_name, iteration)
+        root = self.bcts.get(cache_key) or self.create_bct(variable_name, iteration)
 
-        # Build networkx graph
         G = nx.DiGraph()
-        pos = {}
-        labels = {}
-        colors = []
+        pos, labels, colors = {}, {}, []
+        queue = deque([(root, 0, 0)])
+        node_map = {root: f"{root.name}_{root.iteration}_{id(root)}"}
+        G.add_node(node_map[root])
 
-        def add_nodes_recursive(node: BCTNode, x: int = 0, y: int = 0, level: int = 0):
-            node_id = f"{node.name}_{node.iteration}_{id(node)}"
-            G.add_node(node_id)
-
-            # Position nodes
+        while queue:
+            node, x, level = queue.popleft()
+            node_id = node_map[node]
             pos[node_id] = (x, -level)
-
-            # Create label
             label = f"{node.name}\niter:{node.iteration}\ncost:{node.cost:.3f}"
-            if node.coefficient != 1.0:
-                label += f"\ncoeff:{node.coefficient:.3f}"
+            if node.coefficient != 1.0: label += f"\ncoeff:{node.coefficient:.3f}"
             labels[node_id] = label
+            colors.append("lightblue" if node.node_type == "variable" else "lightcoral" if node.node_type == "factor" else "lightgreen")
 
-            # Color by type
-            if node.node_type == "variable":
-                colors.append("lightblue")
-            elif node.node_type == "factor":
-                colors.append("lightcoral")
-            else:
-                colors.append("lightgreen")
-
-            # Add children
+            num_children = len(node.children)
+            start_x = x - (num_children - 1) / 2
             for i, child in enumerate(node.children):
                 child_id = f"{child.name}_{child.iteration}_{id(child)}"
+                node_map[child] = child_id
                 G.add_edge(node_id, child_id)
-                add_nodes_recursive(child, x + i - len(node.children) / 2, y, level + 1)
+                queue.append((child, start_x + i, level + 1))
 
-        add_nodes_recursive(root)
-
-        # Create plot
         plt.figure(figsize=(14, 10))
-        nx.draw(
-            G,
-            pos,
-            with_labels=False,
-            node_color=colors,
-            node_size=2500,
-            arrows=True,
-            arrowsize=20,
-        )
+        nx.draw(G, pos, with_labels=False, node_color=colors, node_size=2500, arrows=True, arrowsize=20)
         nx.draw_networkx_labels(G, pos, labels, font_size=7)
-
         plt.title(f"BCT for {variable_name} at iteration {iteration}")
         plt.tight_layout()
 
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches="tight")
             print(f"BCT visualization saved to: {save_path}")
-
         return plt.gcf()
 
-    def compare_variables(self, variable_names: List[str]) -> Dict:
-        """
-        Compare convergence across multiple variables
+    def compare_variables(self, variable_names: List[str]) -> Dict[str, Any]:
+        """Performs a comparative analysis of convergence across multiple variables.
 
         Args:
-            variable_names: List of variables to compare
+            variable_names: A list of variable names to compare.
 
         Returns:
-            Comparison analysis
+            A dictionary containing the analysis for each variable and a summary.
         """
         comparison = {"variables": variable_names, "analyses": {}, "summary": {}}
-
         for var_name in variable_names:
             if var_name in self.bct_data.get("beliefs", {}):
-                analysis = self.analyze_convergence(var_name)
-                comparison["analyses"][var_name] = analysis
-
-        # Create summary
+                comparison["analyses"][var_name] = self.analyze_convergence(var_name)
         if comparison["analyses"]:
             all_analyses = list(comparison["analyses"].values())
-
             comparison["summary"] = {
                 "all_converged": all(a.get("converged", False) for a in all_analyses),
-                "convergence_rates": [
-                    a.get("convergence_iteration", -1) for a in all_analyses
-                ],
+                "convergence_rates": [a.get("convergence_iteration", -1) for a in all_analyses],
                 "final_beliefs": [a.get("final_belief", 0.0) for a in all_analyses],
                 "total_changes": [a.get("total_change", 0.0) for a in all_analyses],
             }
-
         return comparison
 
-    def export_analysis(self, output_file: str):
-        """
-        Export complete analysis to JSON
+    def export_analysis(self, output_file: str) -> None:
+        """Exports the complete analysis for all variables to a JSON file.
 
         Args:
-            output_file: Path to save JSON file
+            output_file: The path where the JSON file will be saved.
         """
         analysis_data = {
             "metadata": {
-                "damping_factor": self.damping_factor,
-                "bct_mode": self.history.use_bct_history,
+                "damping_factor": self.damping_factor, "bct_mode": self.history.use_bct_history,
                 "total_variables": len(self.bct_data.get("beliefs", {})),
                 "total_steps": self.bct_data.get("metadata", {}).get("total_steps", 0),
             },
-            "variable_analyses": {},
-            "global_data": {
-                "costs": self.bct_data.get("costs", []),
-                "message_flows": list(self.bct_data.get("messages", {}).keys()),
-            },
+            "variable_analyses": {var: self.analyze_convergence(var) for var in self.bct_data.get("beliefs", {})},
+            "global_data": {"costs": self.bct_data.get("costs", []), "message_flows": list(self.bct_data.get("messages", {}).keys())},
         }
-
-        # Analyze each variable
-        for var_name in self.bct_data.get("beliefs", {}):
-            analysis_data["variable_analyses"][var_name] = self.analyze_convergence(
-                var_name
-            )
-
-        # Save to file
         with open(output_file, "w") as f:
             json.dump(analysis_data, f, indent=2, default=str)
-
         print(f"Complete analysis exported to: {output_file}")
 
-    def print_summary(self):
-        """Print a summary of the BCT analysis"""
+    def print_summary(self) -> None:
+        """Prints a human-readable summary of the BCT analysis to the console."""
         print("\n=== BCT Analysis Summary ===")
-        print(
-            f"History mode: {'BCT (step-by-step)' if self.history.use_bct_history else 'Legacy (cycle-based)'}"
-        )
+        print(f"History mode: {'BCT (step-by-step)' if self.history.use_bct_history else 'Legacy (cycle-based)'}")
         print(f"Damping factor: {self.damping_factor}")
-
         beliefs = self.bct_data.get("beliefs", {})
         print(f"Variables: {len(beliefs)}")
         print(f"Message flows: {len(self.bct_data.get('messages', {}))}")
-
         if beliefs:
             print("\nPer-variable analysis:")
             for var_name in beliefs:
@@ -369,87 +261,60 @@ class BCTCreator:
                 print(f"    Final belief: {analysis.get('final_belief', 0):.4f}")
                 print(f"    Total change: {analysis.get('total_change', 0):.4f}")
                 print(f"    Converged: {analysis.get('converged', False)}")
-
         costs = self.bct_data.get("costs", [])
         if costs:
-            print(f"\nGlobal costs:")
+            print("\nGlobal costs:")
             print(f"  Initial: {costs[0]:.2f}")
             print(f"  Final: {costs[-1]:.2f}")
             print(f"  Improvement: {costs[0] - costs[-1]:.2f}")
 
 
-# Quick usage functions
-def quick_bct_analysis(
-    factor_graph, history, variable_name: str, damping_factor: float = 0.0
-) -> Dict:
-    """
-    Quick BCT analysis - one function call
+def quick_bct_analysis(factor_graph: Any, history: Any, variable_name: str, damping_factor: float = 0.0) -> Dict[str, Any]:
+    """A convenience function for performing a quick BCT analysis on a variable.
 
     Args:
-        factor_graph: Your FactorGraph
-        history: Enhanced History object
-        variable_name: Variable to analyze
-        damping_factor: Damping factor used
+        factor_graph: The `FactorGraph` object.
+        history: The `History` object from a simulation run.
+        variable_name: The name of the variable to analyze.
+        damping_factor: The damping factor used in the simulation.
 
     Returns:
-        Analysis dictionary
+        A dictionary containing the convergence analysis for the variable.
     """
     creator = BCTCreator(factor_graph, history, damping_factor)
     return creator.analyze_convergence(variable_name)
 
 
-def quick_bct_visualization(
-    factor_graph,
-    history,
-    variable_name: str,
-    save_path: str = None,
-    damping_factor: float = 0.0,
-) -> plt.Figure:
-    """
-    Quick BCT visualization - one function call
+def quick_bct_visualization(factor_graph: Any, history: Any, variable_name: str, save_path: Optional[str] = None, damping_factor: float = 0.0) -> plt.Figure:
+    """A convenience function for generating a quick BCT visualization.
 
     Args:
-        factor_graph: Your FactorGraph
-        history: Enhanced History object
-        variable_name: Variable to visualize
-        save_path: Optional save path
-        damping_factor: Damping factor used
+        factor_graph: The `FactorGraph` object.
+        history: The `History` object from a simulation run.
+        variable_name: The name of the variable to visualize.
+        save_path: An optional path to save the generated figure.
+        damping_factor: The damping factor used in the simulation.
 
     Returns:
-        matplotlib Figure
+        The `matplotlib.Figure` object of the visualization.
     """
     creator = BCTCreator(factor_graph, history, damping_factor)
     return creator.visualize_bct(variable_name, save_path=save_path)
 
 
-# Example usage
-def example_usage():
-    """Example of how to use BCTCreator"""
-
-    # Your existing code:
-    # engine = BPEngine(factor_graph=my_graph, use_bct_history=True)  # Enable BCT mode
-    # engine.run(max_iter=20)
-
-    # Create BCT analysis:
-    # creator = BCTCreator(my_graph, engine.history, damping_factor=0.2)
+def example_usage() -> None:
+    """Provides an example of how to use the `BCTCreator` class."""
+    print("BCTCreator ready for use! See the function's docstring for an example.")
+    # Example usage pattern:
     #
-    # # Analyze convergence
+    # # Assuming `my_graph` and `engine` (after a run) exist
+    # creator = BCTCreator(my_graph, engine.history, damping_factor=0.2)
     # analysis = creator.analyze_convergence('x1')
     # print(f"Variable x1 converged: {analysis['converged']}")
-    #
-    # # Visualize BCT
     # creator.visualize_bct('x1', save_path='x1_bct.png')
-    #
-    # # Compare variables
     # comparison = creator.compare_variables(['x1', 'x2', 'x3'])
-    #
-    # # Export complete analysis
     # creator.export_analysis('complete_bct_analysis.json')
-    #
-    # # Print summary
     # creator.print_summary()
-
-    print("BCTCreator ready for use!")
 
 
 if __name__ == "__main__":
