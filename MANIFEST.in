@@ -1,10 +1,11 @@
 include README.md
 include LICENSE
-include CHANGELOG.md
-include CONTRIBUTING.md
+include CLAUDE.md
+include docs/CHANGELOG.md
+include docs/CONTRIBUTING.md
 include requirements.txt
 recursive-include examples *.py *.ipynb
-recursive-include configs *.py *.md
+recursive-include docs *.md
 prune configs/logs
 exclude *.pyc
 exclude __pycache__

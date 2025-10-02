@@ -5,6 +5,8 @@ check.py
 __pycache__/
 .venv
 /older_stuff/
+/.mypy_cache/
+/.pytest_cache/
 
 # Packaging artifacts
 /dist/
