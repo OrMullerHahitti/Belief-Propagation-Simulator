@@ -12,9 +12,9 @@ max-line-length = 120
 name = "propflow"
 version = "0.1.0"
 description = "Highly configurable belief propagation simulator for factor graphs"
-readme = "README.md"
+readme = {file = "README.md", content-type = "text/markdown"}
 authors = [{name = "Or Muller"}]
-license = {text = "MIT"}
+license = "MIT"
 requires-python = ">=3.10"
 keywords = [
     "belief-propagation",
@@ -26,28 +26,30 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Framework :: Matplotlib",
 ]
 
 # Runtime dependencies
 dependencies = [
-    "networkx~=3.4.2",
-    "numpy~=2.2.1",
-    "matplotlib~=3.10.0",
-    "scipy~=1.15.2",
-    "dash~=2.18.2",
-    "dash_cytoscape~=1.0.2",
-    "colorlog~=6.9.0",
-    "pandas~=2.2.3",
-    "seaborn~=0.13.2",
-    "psutil~=7.0.0",
-    "pytest>=8.4.2",
+    "networkx>=3.0.0,<4.0.0",
+    "numpy>=2.0.0,<3.0.0",
+    "matplotlib>=3.8.0,<4.0.0",
+    "scipy>=1.10.0,<2.0.0",
+    "dash>=2.15.0,<3.0.0",
+    "dash_cytoscape>=1.0.0,<2.0.0",
+    "colorlog>=6.0.0,<7.0.0",
+    "pandas>=2.0.0,<3.0.0",
+    "seaborn>=0.12.0,<1.0.0",
+    "psutil>=5.9.0,<8.0.0",
 ]
 
 [project.optional-dependencies]
