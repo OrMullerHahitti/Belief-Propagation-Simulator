@@ -35,6 +35,12 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
+[project.urls]
+Homepage = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
+Repository = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
+Issues = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/issues"
+Documentation = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator#readme"
+
 # Runtime dependencies
 dependencies = [
     "networkx~=3.4.2",
@@ -47,7 +53,6 @@ dependencies = [
     "pandas~=2.2.3",
     "seaborn~=0.13.2",
     "psutil~=7.0.0",
-    "pytest>=8.4.2",
 ]
 
 [project.optional-dependencies]
