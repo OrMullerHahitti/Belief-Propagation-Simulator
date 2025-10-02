@@ -116,7 +116,7 @@ def test_split_engine_calls_policy(monkeypatch):
         captured["graph"] = target_graph
         captured["fraction"] = fraction
 
-    monkeypatch.setattr("propflow.policies.splitting.split_all_factors", fake_split)
+    monkeypatch.setattr("propflow.bp.engines.split_all_factors", fake_split)
 
     engine = SplitEngine(graph, split_factor=0.42)
 
