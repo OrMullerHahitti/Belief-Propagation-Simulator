@@ -141,10 +141,9 @@ class TestPolicyIntegration:
     def test_engine_with_convergence_config(self, sample_factor_graph):
         """Test engine with convergence configuration."""
         convergence_config = ConvergenceConfig(
-            max_iterations=20,
-            convergence_threshold=1e-4,
-            time_limit=5.0,
-            check_interval=2,
+            min_iterations=5,
+            belief_threshold=1e-4,
+            patience=10,
         )
 
         engine = DampingEngine(
