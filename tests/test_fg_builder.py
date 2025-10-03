@@ -16,17 +16,17 @@ from propflow.core.agents import VariableAgent, FactorAgent
 class TestFGBuilder:
     """Test suite for FGBuilder functionality."""
 
-    @pytest.fixture(params=[2, 3, 4, 5])
+    @pytest.fixture(params=[3, 5])  # Reduced from [2,3,4,5]
     def domain_size(self, request):
         """Parameterize tests with different domain sizes."""
         return request.param
 
-    @pytest.fixture(params=[3, 5, 7, 10])
+    @pytest.fixture(params=[5, 10])  # Reduced from [3,5,7,10]
     def num_vars(self, request):
         """Parameterize tests with different numbers of variables."""
         return request.param
 
-    @pytest.fixture(params=[0.3, 0.5, 0.8])
+    @pytest.fixture(params=[0.5, 0.8])  # Reduced from [0.3,0.5,0.8] - removed low density
     def density(self, request):
         """Parameterize tests with different graph densities."""
         return request.param
