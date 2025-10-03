@@ -50,6 +50,7 @@ dependencies = [
     "pandas~=2.2.3",
     "seaborn~=0.13.2",
     "psutil~=7.0.0",
+    "twine>=6.2.0",
 ]
 
 [project.urls]

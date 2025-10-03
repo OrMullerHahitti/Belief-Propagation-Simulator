@@ -2448,6 +2448,7 @@ dependencies = [
     { name = "psutil" },
     { name = "scipy" },
     { name = "seaborn" },
+    { name = "twine" },
 ]
 
 [package.optional-dependencies]
@@ -2483,6 +2484,7 @@ requires-dist = [
     { name = "pytest-cov", marker = "extra == 'dev'" },
     { name = "scipy", specifier = "~=1.15.2" },
     { name = "seaborn", specifier = "~=0.13.2" },
+    { name = "twine", specifier = ">=6.2.0" },
     { name = "twine", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev"]
