@@ -25,3 +25,19 @@ configs/logs/Simulator.log
 configs/logs/Simulator.log
 CLAUDE.md
 GEMINI.md
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Analysis results
+notebook_results/
+results/
+
+.gemini/
+gha-creds-*.json

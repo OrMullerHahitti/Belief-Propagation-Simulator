@@ -8,7 +8,7 @@ from propflow.policies.bp_policies import (
     SplittingPolicy,
 )
 from propflow.policies.convergance import ConvergenceConfig
-from propflow.bp.engines import DampingEngine, SplittingEngine
+from propflow.bp.engines import DampingEngine, SplitEngine
 
 
 class TestBasicPolicies:
@@ -65,7 +65,7 @@ class TestBasicPolicies:
 
     def test_splitting_engine_with_policy(self, sample_factor_graph):
         """Test splitting engine with splitting policy."""
-        engine = SplittingEngine(factor_graph=sample_factor_graph, split_ratio=0.5)
+        engine = SplitEngine(factor_graph=sample_factor_graph, split_ratio=0.5)
 
         # Run a few iterations
         engine.run(max_iter=3)
@@ -95,7 +95,7 @@ class TestBasicPolicies:
         self, sample_factor_graph, split_ratio
     ):
         """Test splitting policy with different split ratios."""
-        engine = SplittingEngine(
+        engine = SplitEngine(
             factor_graph=sample_factor_graph, split_ratio=split_ratio
         )
 
@@ -180,7 +180,7 @@ class TestPolicyIntegration:
         )
 
         # Splitting engine
-        splitting_engine = SplittingEngine(
+        splitting_engine = SplitEngine(
             factor_graph=sample_factor_graph, split_ratio=0.5
         )
 

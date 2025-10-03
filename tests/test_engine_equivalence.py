@@ -3,7 +3,8 @@ import random
 import pickle
 import sys, os
 
-from examples.debugging import create_factor_graph
+from propflow.utils import FGBuilder
+from propflow.configs import CTFactory
 from propflow.bp.engines import SplitEngine, CostReductionOnceEngine
 from propflow.policies import ConvergenceConfig
 
@@ -18,11 +19,10 @@ def test_split_vs_cost_reduction_once_equivalence():
     random.seed(seed)
 
     # Generate a random factor graph
-    fg1 = create_factor_graph(
-        graph_type="random",
+    fg1 = FGBuilder.build_random_graph(
         num_vars=5,
         domain_size=3,
-        ct_factory="random_int",
+        ct_factory=CTFactory.random_int,
         ct_params={"low": 1, "high": 10},
         density=0.4,
     )

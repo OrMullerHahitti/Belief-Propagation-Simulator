@@ -4,8 +4,8 @@ from propflow.bp.factor_graph import FactorGraph
 from propflow.bp.engines import DampingEngine
 from propflow.core import VariableAgent, FactorAgent
 from propflow.core import Message
-from propflow.utils import build_cycle_graph
-from propflow.configs import create_random_int_table
+from propflow.utils import FGBuilder
+from propflow.configs import create_random_int_table, CTFactory
 from propflow.policies import ConvergenceConfig
 
 
@@ -35,14 +35,15 @@ def test_damp_function():
 
 def test_damping_engine_with_direct_initialization():
     # Use a realistic small cycle graph with random integer cost tables
-    variables, factors, edges = build_cycle_graph(
+    fg = FGBuilder.build_cycle_graph(
         num_vars=3,
         domain_size=2,
-        ct_factory=create_random_int_table,
+        ct_factory=CTFactory.random_int,
         ct_params={"low": 1, "high": 10},
-        density=1.0,
     )
-    fg = FactorGraph(variables, factors, edges)
+    variables = fg.variables
+    factors = fg.factors
+    edges = fg.edges
 
     # Initialize with convergence config like in debugging.py
     engine = DampingEngine(
@@ -119,14 +120,12 @@ def test_damping_engine_with_direct_initialization():
 
 def test_damping_engine_with_multiple_iterations():
     # Use a realistic small cycle graph with random integer cost tables
-    variables, factors, edges = build_cycle_graph(
+    fg = FGBuilder.build_cycle_graph(
         num_vars=3,
         domain_size=2,
-        ct_factory=create_random_int_table,
+        ct_factory=CTFactory.random_int,
         ct_params={"low": 1, "high": 10},
-        density=1.0,
     )
-    fg = FactorGraph(variables, factors, edges)
 
     # Initialize the DampingEngine
     engine = DampingEngine(
