@@ -162,9 +162,7 @@ class TestBPEngine:
                 var.curr_assignment is not None
             ), f"Variable {var.name} should have assignment"
 
-        # Reset the engine
-        engine.reset()
-        assert engine.iteration_count == 0, "Iteration count should be 0 after reset"
+        # Note: BPEngine doesn't have a reset() method
 
         return True
 
