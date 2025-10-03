@@ -126,6 +126,7 @@ def test_damping_engine_with_multiple_iterations():
         ct_factory=CTFactory.random_int,
         ct_params={"low": 1, "high": 10},
     )
+    variables = fg.variables
 
     # Initialize the DampingEngine
     engine = DampingEngine(
@@ -136,7 +137,7 @@ def test_damping_engine_with_multiple_iterations():
     )
 
     # Create direct test of damping
-    var = variables[0]
+    var = fg.variables[0]
     factor = list(fg.G.neighbors(var))[0]
 
     # Create a test message and manually set up the scenario
