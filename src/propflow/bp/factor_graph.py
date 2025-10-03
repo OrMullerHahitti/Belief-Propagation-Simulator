@@ -103,6 +103,22 @@ class FactorGraph:
         """dict: The current assignment for all variables in the graph."""
         return {node: node.curr_assignment for node in self.variables}
 
+    @property
+    def edges(self) -> Dict[FactorAgent, List[VariableAgent]]:
+        """dict: Reconstructs the edge dictionary mapping factors to variables."""
+        edge_dict = {}
+        var_by_name = {v.name: v for v in self.variables}
+        for factor in self.factors:
+            if hasattr(factor, 'connection_number'):
+                # Sort variables by their dimension index
+                vars_with_dims = []
+                for var_name, dim in factor.connection_number.items():
+                    if var_name in var_by_name:
+                        vars_with_dims.append((var_by_name[var_name], dim))
+                vars_with_dims.sort(key=lambda x: x[1])
+                edge_dict[factor] = [var for var, _ in vars_with_dims]
+        return edge_dict
+
     def set_computator(self, computator: Computator, **kwargs) -> None:
         """Assigns a computator to all nodes in the graph.
 

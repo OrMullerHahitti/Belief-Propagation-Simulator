@@ -38,15 +38,8 @@ classifiers = [
     "Framework :: Matplotlib",
 ]
 
-[project.urls]
-Homepage = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
-Repository = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
-Issues = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/issues"
-Documentation = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator#readme"
-
 # Runtime dependencies
 dependencies = [
-
     "networkx~=3.4.2",
     "numpy~=2.2.1",
     "matplotlib~=3.10.0",
@@ -58,6 +51,12 @@ dependencies = [
     "seaborn~=0.13.2",
     "psutil~=7.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
+Repository = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
+Issues = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/issues"
+Documentation = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator#readme"
 
 [project.optional-dependencies]
 # Development extras
