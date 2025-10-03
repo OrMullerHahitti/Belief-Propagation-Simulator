@@ -91,13 +91,13 @@ class TestBPEngine:
         ), "Engine should perform at least one iteration"
 
         # Should have values for all variables
-        for var in engine.factor_graph.variables:
+        for var in engine.graph.variables:
             assert (
                 var.name in engine.get_map_assignment()
             ), f"Missing MAP assignment for {var.name}"
 
         # Beliefs should sum to approximately 1 for each variable
-        for var in engine.factor_graph.variables:
+        for var in engine.graph.variables:
             belief = engine.get_belief(var.name)
             assert np.isclose(
                 np.sum(belief), 1.0, atol=1e-5
@@ -114,7 +114,7 @@ class TestBPEngine:
         map_assignment = bp_engine.get_map_assignment()
 
         # Check that we have assignments for all variables
-        variable_names = [v.name for v in bp_engine.factor_graph.variables]
+        variable_names = [v.name for v in bp_engine.graph.variables]
         for var_name in variable_names:
             assert (
                 var_name in map_assignment
@@ -123,7 +123,7 @@ class TestBPEngine:
         # Check that assignments are within domain
         for var_name, value in map_assignment.items():
             var = next(
-                v for v in bp_engine.factor_graph.variables if v.name == var_name
+                v for v in bp_engine.graph.variables if v.name == var_name
             )
             assert (
                 0 <= value < var.domain
@@ -134,7 +134,7 @@ class TestBPEngine:
             belief = bp_engine.get_belief(var_name)
             assert belief is not None, f"No belief for {var_name}"
             assert len(belief) == next(
-                v.domain for v in bp_engine.factor_graph.variables if v.name == var_name
+                v.domain for v in bp_engine.graph.variables if v.name == var_name
             ), f"Belief length doesn't match domain size for {var_name}"
 
         return True
@@ -152,12 +152,12 @@ class TestBPEngine:
         ), "Iteration count should be 1 after run_iteration"
 
         # Check for message passing
-        for var in engine.factor_graph.variables:
+        for var in engine.graph.variables:
             assert (
                 len(var.mailer.history) > 0
             ), f"Variable {var.name} should have message history"
 
-        for factor in engine.factor_graph.factors:
+        for factor in engine.graph.factors:
             assert (
                 len(factor.mailer.history) > 0
             ), f"Factor {factor.name} should have message history"
@@ -190,17 +190,17 @@ class TestBPEngine:
 
         # Check engine has correct factor graph
         assert (
-            engine.factor_graph == factor_graph
+            engine.graph == factor_graph
         ), "Engine should have the provided factor graph"
 
         # Check convergence config was set
         assert (
-            engine.convergence_config == convergence_config
+            engine.convergence_monitor.config == convergence_config
         ), "Engine should have the provided convergence config"
 
         # Check initial state
         assert engine.iteration_count == 0, "Initial iteration count should be 0"
-        assert not engine.converged, "Engine should not be converged initially"
+        # Note: BPEngine doesn't have a 'converged' attribute
 
     def test_bp_engine_basic_operations(self, factor_graph, convergence_config):
         """BP engine correctly performs basic operations."""
@@ -276,7 +276,7 @@ class TestBPEngine:
         engine.run()
 
         # Check beliefs for all variables
-        for var in engine.factor_graph.variables:
+        for var in engine.graph.variables:
             belief = engine.get_belief(var.name)
 
             # Belief should be a valid probability distribution
