@@ -5,6 +5,8 @@ check.py
 __pycache__/
 .venv
 /older_stuff/
+/.mypy_cache/
+/.pytest_cache/
 
 # Packaging artifacts
 /dist/
@@ -23,6 +25,7 @@ src/propflow.egg-info/top_level.txt
 /configs
 configs/logs/Simulator.log
 configs/logs/Simulator.log
+
 CLAUDE.md
 GEMINI.md
 
@@ -41,3 +44,4 @@ results/
 
 .gemini/
 gha-creds-*.json
+CLAUDE.MD

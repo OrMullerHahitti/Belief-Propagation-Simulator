@@ -1,13 +1,10 @@
 include README.md
 include LICENSE
 include CHANGELOG.md
-include PYPI_READINESS_REPORT.md
+include CONTRIBUTING.md
+include requirements.txt
 recursive-include examples *.py *.ipynb
-recursive-include src/analyzer *.md
-global-exclude *.pyc
-global-exclude __pycache__
-global-exclude .ipynb_checkpoints
-global-exclude *-checkpoint.ipynb
+recursive-include configs *.py *.md
 prune configs/logs
 prune .vscode
 prune .venv
