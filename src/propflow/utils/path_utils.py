@@ -17,17 +17,17 @@ def find_project_root() -> Path:
     `pyproject.toml`, or `setup.py` that typically indicate the root of a project.
 
     Returns:
-        A `Path` object representing the project root directory.
-
-    Raises:
-        FileNotFoundError: If the project root cannot be determined.
+        A `Path` object representing the project root directory, or the current
+        working directory if no project root markers are found (e.g., when
+        installed as a package).
     """
     current_dir = Path.cwd()
     while True:
         if any((current_dir / marker).exists() for marker in [".git", "pyproject.toml", "setup.py"]):
             return current_dir
         if current_dir == current_dir.parent:
-            raise FileNotFoundError("Project root not found.")
+            # When installed as a package, no project root exists - use cwd
+            return Path.cwd()
         current_dir = current_dir.parent
 
 
