@@ -22,10 +22,9 @@ class TestBPEngine:
     def convergence_config(self):
         """Create a standard convergence configuration for tests."""
         return ConvergenceConfig(
-            max_iterations=50,
-            convergence_threshold=1e-6,
-            time_limit=10,
-            check_interval=5,
+            min_iterations=5,
+            belief_threshold=1e-6,
+            patience=10,
         )
 
     @pytest.fixture(params=[2, 3, 4])
@@ -38,7 +37,7 @@ class TestBPEngine:
             (FGBuilder.build_cycle_graph, {"num_vars": 5, "density": 1.0}),
             (
                 FGBuilder.build_random_graph,
-                {"num_vars": 4, "num_factors": 4, "density": 0.8},
+                {"num_vars": 4, "density": 0.8},
             ),
         ]
     )
@@ -53,12 +52,11 @@ class TestBPEngine:
         params["ct_factory"] = create_random_int_table
         params["ct_params"] = {"low": 1, "high": 10}
 
-        # Build the graph
-        variables, factors, edges = builder_func(**params)
-        fg = FactorGraph(variables, factors, edges)
+        # Build the graph - FGBuilder methods return FactorGraph directly
+        fg = builder_func(**params)
 
         verbose_print(
-            f"Created {builder_func.__name__} with {len(variables)} variables and {len(factors)} factors"
+            f"Created {builder_func.__name__} with {len(fg.variables)} variables and {len(fg.factors)} factors"
         )
         return fg
 
