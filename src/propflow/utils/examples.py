@@ -9,11 +9,8 @@ import os
 import sys
 
 from ..configs.global_config_mapping import CTFactory, get_ct_factory
-from .create.create_factor_graphs_from_config import (
-    FactorGraphBuilder,
-    build_cycle_graph,
-    build_random_graph,
-)
+from .create.create_factor_graphs_from_config import FactorGraphBuilder
+from .fg_utils import FGBuilder
 from .path_utils import find_project_root
 
 
@@ -74,7 +71,7 @@ def create_factor_graph(
     ct_factory_fn = get_ct_factory(ct_factory)
 
     if graph_type == "cycle":
-        variables, factors, edges = build_cycle_graph(
+        return FGBuilder.build_cycle_graph(
             num_vars=num_vars,
             domain_size=domain_size,
             ct_factory=ct_factory_fn,
@@ -82,7 +79,7 @@ def create_factor_graph(
             density=density,
         )
     elif graph_type == "random":
-        variables, factors, edges = build_random_graph(
+        return FGBuilder.build_random_graph(
             num_vars=num_vars,
             domain_size=domain_size,
             ct_factory=ct_factory_fn,
@@ -91,5 +88,3 @@ def create_factor_graph(
         )
     else:
         raise ValueError(f"Unknown graph type: '{graph_type}'. Supported types are 'cycle' and 'random'.")
-
-    return FactorGraph(variable_li=variables, factor_li=factors, edges=edges)
