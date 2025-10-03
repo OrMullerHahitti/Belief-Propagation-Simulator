@@ -224,6 +224,11 @@ class BPEngine:
         """str: The name of the engine instance."""
         return self._name
 
+    @property
+    def iteration_count(self) -> int:
+        """int: The number of iterations completed so far."""
+        return len(self.history.costs)
+
     def get_beliefs(self) -> Dict[str, np.ndarray]:
         """Retrieves the current beliefs of all variable nodes.
 
