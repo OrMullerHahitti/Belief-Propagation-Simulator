@@ -5,11 +5,11 @@ Provides convenient imports like:
     from propflow.engines import BPEngine, DampingEngine, SplitEngine
 
 These map to implementations in `propflow.bp.engine_base` and
-`propflow.bp.engines_realizations`.
+`propflow.bp.engines`.
 """
 
 from ..bp.engine_base import BPEngine
-from ..bp.engines_realizations import (
+from ..bp.engines import (
     Engine,
     SplitEngine,
     DampingEngine,
