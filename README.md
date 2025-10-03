@@ -13,7 +13,19 @@
 
 ## Installation
 
-The package is not yet published on PyPI. To install for development, clone the repository and install it in editable mode:
+### Install from PyPI (Recommended)
+
+PropFlow is now available on PyPI! Install it with pip:
+
+```bash
+pip install propflow
+```
+
+**PyPI Package**: https://pypi.org/project/propflow/
+
+### Install from Source (Development)
+
+For development or to get the latest changes, clone the repository and install in editable mode:
 
 ```bash
 git clone https://github.com/OrMullerHahitti/Belief-Propagation-Simulator.git
