@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Setup &amp; Dependencies &mdash; PropFlow 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PropFlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#from-pypi-recommended">From PyPI (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#verifying-installation">Verifying Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#your-first-factor-graph">Your First Factor Graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#using-the-graph-builder">Using the Graph Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#applying-policies">Applying Policies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#running-experiments">Running Experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#core-concepts">Core Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#factor-graphs">Factor Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#factors">Factors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#belief-propagation-algorithms">Belief Propagation Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#min-sum">Min-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#max-sum">Max-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#sum-product">Sum-Product</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#policies-and-engine-variants">Policies and Engine Variants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#damping">Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#factor-splitting">Factor Splitting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#cost-reduction">Cost Reduction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#graph-construction">Graph Construction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#cycle-graphs">Cycle Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#random-graphs">Random Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#custom-graphs">Custom Graphs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#advanced-topics">Advanced Topics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#custom-cost-tables">Custom Cost Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#snapshots-and-analysis">Snapshots and Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#search-algorithms">Search Algorithms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#core-modules">Core Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.bp.engine_base">Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engine_base.BPEngine"><code class="docutils literal notranslate"><span class="pre">BPEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.SplitEngine"><code class="docutils literal notranslate"><span class="pre">SplitEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.CostReductionOnceEngine"><code class="docutils literal notranslate"><span class="pre">CostReductionOnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.DampingEngine"><code class="docutils literal notranslate"><span class="pre">DampingEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.DampingSCFGEngine"><code class="docutils literal notranslate"><span class="pre">DampingSCFGEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.DampingCROnceEngine"><code class="docutils literal notranslate"><span class="pre">DampingCROnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.MessagePruningEngine"><code class="docutils literal notranslate"><span class="pre">MessagePruningEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.DiscountEngine"><code class="docutils literal notranslate"><span class="pre">DiscountEngine</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.bp.factor_graph">Factor Graphs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.factor_graph.FactorGraph"><code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.core.agents">Agents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.agents.FGAgent"><code class="docutils literal notranslate"><span class="pre">FGAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.agents.VariableAgent"><code class="docutils literal notranslate"><span class="pre">VariableAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.agents.FactorAgent"><code class="docutils literal notranslate"><span class="pre">FactorAgent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.core.components">Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.components.Message"><code class="docutils literal notranslate"><span class="pre">Message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.components.MailHandler"><code class="docutils literal notranslate"><span class="pre">MailHandler</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.policies">Policies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.damp"><code class="docutils literal notranslate"><span class="pre">damp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.TD"><code class="docutils literal notranslate"><span class="pre">TD()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.cost_reduction_all_factors_once"><code class="docutils literal notranslate"><span class="pre">cost_reduction_all_factors_once()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.discount_attentive"><code class="docutils literal notranslate"><span class="pre">discount_attentive()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.split_all_factors"><code class="docutils literal notranslate"><span class="pre">split_all_factors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.MessagePruningPolicy"><code class="docutils literal notranslate"><span class="pre">MessagePruningPolicy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.normalize_inbox"><code class="docutils literal notranslate"><span class="pre">normalize_inbox()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.normalize_soft_max"><code class="docutils literal notranslate"><span class="pre">normalize_soft_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.normalize_cost_table_sum"><code class="docutils literal notranslate"><span class="pre">normalize_cost_table_sum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.init_normalization"><code class="docutils literal notranslate"><span class="pre">init_normalization()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.utils">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.simulator">Simulator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.simulator.Simulator"><code class="docutils literal notranslate"><span class="pre">Simulator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#basic-graph-coloring">Basic Graph Coloring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#comparing-engine-variants">Comparing Engine Variants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#custom-cost-function">Custom Cost Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#large-scale-problem">Large-Scale Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#analyzing-convergence">Analyzing Convergence</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#code-quality">Code Quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#contribution-guidelines">Contribution Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#commit-messages">Commit Messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#pull-requests">Pull Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#what-to-contribute">What to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#need-ideas">Need Ideas?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#questions">Questions?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#license">License</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PropFlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">System Setup &amp; Dependencies</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/blob/main/docs/handbook/02_system_setup.md" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="system-setup-dependencies">
+<h1>System Setup &amp; Dependencies<a class="headerlink" href="#system-setup-dependencies" title="Link to this heading"></a></h1>
+<section id="supported-platforms">
+<h2>1. Supported Platforms<a class="headerlink" href="#supported-platforms" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Operating systems</strong>: macOS, Linux, Windows 10/11 (WSL recommended on Windows).</p></li>
+<li><p><strong>Python</strong>: 3.10 – 3.13 (project currently tested with 3.13.7 via Homebrew and <code class="docutils literal notranslate"><span class="pre">uv</span></code>).</p></li>
+<li><p><strong>Hardware</strong>: CPU-only; BP workloads scale with core count. Memory requirements depend on factor graph size (expect several hundred MB for dense graphs with 50+ variables).</p></li>
+</ul>
+</section>
+<section id="core-dependencies">
+<h2>2. Core Dependencies<a class="headerlink" href="#core-dependencies" title="Link to this heading"></a></h2>
+<p>Defined in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> under <code class="docutils literal notranslate"><span class="pre">[project.dependencies]</span></code>:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Package</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">networkx</span></code></p></td>
+<td><p>Factor graph manipulation and diameter calculations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">numpy</span></code>, <code class="docutils literal notranslate"><span class="pre">scipy</span></code></p></td>
+<td><p>Numerical operations for message updates and cost computation.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">matplotlib</span></code></p></td>
+<td><p>Plotting cost trajectories and visual analytics.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dash</span></code>, <code class="docutils literal notranslate"><span class="pre">dash_cytoscape</span></code>, <code class="docutils literal notranslate"><span class="pre">seaborn</span></code>, <code class="docutils literal notranslate"><span class="pre">pandas</span></code></p></td>
+<td><p>Optional dashboards and analysis tooling.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">psutil</span></code>, <code class="docutils literal notranslate"><span class="pre">colorlog</span></code></p></td>
+<td><p>Monitoring and structured logging.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Development extras (<code class="docutils literal notranslate"><span class="pre">.[dev]</span></code>) include <code class="docutils literal notranslate"><span class="pre">pytest</span></code>, <code class="docutils literal notranslate"><span class="pre">pytest-cov</span></code>, <code class="docutils literal notranslate"><span class="pre">black</span></code>, <code class="docutils literal notranslate"><span class="pre">mypy</span></code>, <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code>, <code class="docutils literal notranslate"><span class="pre">jupyter</span></code>, etc.</p>
+</section>
+<section id="environment-bootstrapping">
+<h2>3. Environment Bootstrapping<a class="headerlink" href="#environment-bootstrapping" title="Link to this heading"></a></h2>
+<section id="option-a-recommended-uv">
+<h3>Option A – Recommended: <code class="docutils literal notranslate"><span class="pre">uv</span></code><a class="headerlink" href="#option-a-recommended-uv" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># From repository root</span>
+uv<span class="w"> </span>sync
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>check<span class="w">  </span><span class="c1"># optional verification</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">uv</span></code> creates a <code class="docutils literal notranslate"><span class="pre">.venv</span></code> folder by default and resolves dependency locks via <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code>.</p>
+</section>
+<section id="option-b-standard-virtualenv-pip">
+<h3>Option B – Standard virtualenv + pip<a class="headerlink" href="#option-b-standard-virtualenv-pip" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">  </span><span class="c1"># .venv\Scripts\activate on Windows</span>
+pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+<section id="option-c-conda">
+<h3>Option C – Conda<a class="headerlink" href="#option-c-conda" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>propflow<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.11
+conda<span class="w"> </span>activate<span class="w"> </span>propflow
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="verifying-installation">
+<h2>4. Verifying Installation<a class="headerlink" href="#verifying-installation" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Activate the environment.</p></li>
+<li><p>Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-c</span> <span class="pre">&quot;import</span> <span class="pre">propflow;</span> <span class="pre">print(propflow.__version__)&quot;</span></code> to confirm package import.</p></li>
+<li><p>Execute <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">examples/minsum_basic.py</span></code> to ensure engines and graph builders are functional.</p></li>
+<li><p>Optionally run <code class="docutils literal notranslate"><span class="pre">pytest</span> <span class="pre">-q</span></code> to validate the suite (expect some longer runtimes for heavy graph tests).</p></li>
+</ol>
+</section>
+<section id="external-services-data">
+<h2>5. External Services &amp; Data<a class="headerlink" href="#external-services-data" title="Link to this heading"></a></h2>
+<p>No external services are required. Factor graphs are generated on the fly or loaded from pickled artefacts. For reproducibility, ensure deterministic seeds are configured in configs or snapshot recorders.</p>
+</section>
+<section id="file-system-expectations">
+<h2>6. File System Expectations<a class="headerlink" href="#file-system-expectations" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Write access to <code class="docutils literal notranslate"><span class="pre">configs/logs/</span></code> (default log directory) and optional <code class="docutils literal notranslate"><span class="pre">results/</span></code> directories for export.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/handbook/</span></code> houses this deployment guide; no runtime writes expected.</p></li>
+<li><p>Ensure large outputs (plots, CSVs) are excluded from version control or placed under a dedicated <code class="docutils literal notranslate"><span class="pre">results/</span></code> directory.</p></li>
+</ul>
+<p>With an environment ready, proceed to <a class="reference internal" href="03_running_simulations.html"><span class="std std-doc">Running Simulations &amp; Tools</span></a> to launch jobs and capture artefacts.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Or Muller.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

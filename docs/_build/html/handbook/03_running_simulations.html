@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Running Simulations &amp; Tools &mdash; PropFlow 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PropFlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#from-pypi-recommended">From PyPI (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../installation.html#verifying-installation">Verifying Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#your-first-factor-graph">Your First Factor Graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#using-the-graph-builder">Using the Graph Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#applying-policies">Applying Policies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#running-experiments">Running Experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../user_guide.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#core-concepts">Core Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#factor-graphs">Factor Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#factors">Factors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#belief-propagation-algorithms">Belief Propagation Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#min-sum">Min-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#max-sum">Max-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#sum-product">Sum-Product</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#policies-and-engine-variants">Policies and Engine Variants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#damping">Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#factor-splitting">Factor Splitting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#cost-reduction">Cost Reduction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#graph-construction">Graph Construction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#cycle-graphs">Cycle Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#random-graphs">Random Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#custom-graphs">Custom Graphs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../user_guide.html#advanced-topics">Advanced Topics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#custom-cost-tables">Custom Cost Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#snapshots-and-analysis">Snapshots and Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../user_guide.html#search-algorithms">Search Algorithms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../api/index.html#core-modules">Core Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.bp.engine_base">Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engine_base.BPEngine"><code class="docutils literal notranslate"><span class="pre">BPEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.SplitEngine"><code class="docutils literal notranslate"><span class="pre">SplitEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.CostReductionOnceEngine"><code class="docutils literal notranslate"><span class="pre">CostReductionOnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.DampingEngine"><code class="docutils literal notranslate"><span class="pre">DampingEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.DampingSCFGEngine"><code class="docutils literal notranslate"><span class="pre">DampingSCFGEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.DampingCROnceEngine"><code class="docutils literal notranslate"><span class="pre">DampingCROnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.MessagePruningEngine"><code class="docutils literal notranslate"><span class="pre">MessagePruningEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.engines.DiscountEngine"><code class="docutils literal notranslate"><span class="pre">DiscountEngine</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.bp.factor_graph">Factor Graphs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.bp.factor_graph.FactorGraph"><code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.core.agents">Agents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.agents.FGAgent"><code class="docutils literal notranslate"><span class="pre">FGAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.agents.VariableAgent"><code class="docutils literal notranslate"><span class="pre">VariableAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.agents.FactorAgent"><code class="docutils literal notranslate"><span class="pre">FactorAgent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.core.components">Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.components.Message"><code class="docutils literal notranslate"><span class="pre">Message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.core.components.MailHandler"><code class="docutils literal notranslate"><span class="pre">MailHandler</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.policies">Policies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.damp"><code class="docutils literal notranslate"><span class="pre">damp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.TD"><code class="docutils literal notranslate"><span class="pre">TD()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.cost_reduction_all_factors_once"><code class="docutils literal notranslate"><span class="pre">cost_reduction_all_factors_once()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.discount_attentive"><code class="docutils literal notranslate"><span class="pre">discount_attentive()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.split_all_factors"><code class="docutils literal notranslate"><span class="pre">split_all_factors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.MessagePruningPolicy"><code class="docutils literal notranslate"><span class="pre">MessagePruningPolicy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.normalize_inbox"><code class="docutils literal notranslate"><span class="pre">normalize_inbox()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.normalize_soft_max"><code class="docutils literal notranslate"><span class="pre">normalize_soft_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.normalize_cost_table_sum"><code class="docutils literal notranslate"><span class="pre">normalize_cost_table_sum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.policies.init_normalization"><code class="docutils literal notranslate"><span class="pre">init_normalization()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.utils">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api/index.html#module-propflow.simulator">Simulator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../api/index.html#propflow.simulator.Simulator"><code class="docutils literal notranslate"><span class="pre">Simulator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#basic-graph-coloring">Basic Graph Coloring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#comparing-engine-variants">Comparing Engine Variants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#custom-cost-function">Custom Cost Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#large-scale-problem">Large-Scale Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#analyzing-convergence">Analyzing Convergence</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#code-quality">Code Quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#contribution-guidelines">Contribution Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#commit-messages">Commit Messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#pull-requests">Pull Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#what-to-contribute">What to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../contributing.html#need-ideas">Need Ideas?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#questions">Questions?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../contributing.html#license">License</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PropFlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Running Simulations &amp; Tools</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/blob/main/docs/handbook/03_running_simulations.md" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="running-simulations-tools">
+<h1>Running Simulations &amp; Tools<a class="headerlink" href="#running-simulations-tools" title="Link to this heading"></a></h1>
+<section id="quick-smoke-test-main-py">
+<h2>1. Quick Smoke Test (<code class="docutils literal notranslate"><span class="pre">main.py</span></code>)<a class="headerlink" href="#quick-smoke-test-main-py" title="Link to this heading"></a></h2>
+<p>The repository root includes <code class="docutils literal notranslate"><span class="pre">main.py</span></code>, which generates random factor graphs and runs multiple engine variants.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>main.py
+</pre></div>
+</div>
+<p>What it does:</p>
+<ul class="simple">
+<li><p>Builds 10 random factor graphs (<code class="docutils literal notranslate"><span class="pre">FGBuilder.build_random_graph</span></code>) with 50 variables, domain size 10, density 0.25.</p></li>
+<li><p>Configures <code class="docutils literal notranslate"><span class="pre">BPEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">DampingSCFGEngine</span></code>, and <code class="docutils literal notranslate"><span class="pre">SplitEngine</span></code> variants using defaults from <code class="docutils literal notranslate"><span class="pre">ENGINE_DEFAULTS</span></code> / <code class="docutils literal notranslate"><span class="pre">POLICY_DEFAULTS</span></code>.</p></li>
+<li><p>Runs the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> across each engine/graph combination, timing total runtimes.</p></li>
+<li><p>Plots aggregated cost trajectories if results are available.</p></li>
+</ul>
+<blockquote>
+<div><p><strong>Troubleshooting</strong>: If you see <code class="docutils literal notranslate"><span class="pre">ModuleNotFoundError:</span> <span class="pre">No</span> <span class="pre">module</span> <span class="pre">named</span> <span class="pre">'propflow'</span></code>, ensure the <code class="docutils literal notranslate"><span class="pre">src/</span></code> directory is on <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> or run via <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">run</span></code>/<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code>.</p>
+</div></blockquote>
+</section>
+<section id="using-the-simulator-api">
+<h2>2. Using the <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> API<a class="headerlink" href="#using-the-simulator-api" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Simulator</span></code> (<code class="docutils literal notranslate"><span class="pre">src/propflow/simulator.py</span></code>) accepts a dict of engine configurations and a list of factor graphs.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">propflow.simulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">propflow.utils.fg_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">FGBuilder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">propflow.bp.engines</span><span class="w"> </span><span class="kn">import</span> <span class="n">BPEngine</span>
+
+<span class="n">engines</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;baseline&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">BPEngine</span><span class="p">},</span>
+<span class="p">}</span>
+<span class="n">fg</span> <span class="o">=</span> <span class="n">FGBuilder</span><span class="o">.</span><span class="n">build_random_graph</span><span class="p">(</span><span class="n">num_vars</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">domain_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">density</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">engines</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run_simulations</span><span class="p">([</span><span class="n">fg</span><span class="p">],</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">plot_results</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Key kwargs:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_iter</span></code>: Defaults to <code class="docutils literal notranslate"><span class="pre">SIMULATOR_DEFAULTS[&quot;default_max_iter&quot;]</span></code> (5000).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_level</span></code>: Accepts symbolic levels (<code class="docutils literal notranslate"><span class="pre">&quot;INFORMATIVE&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;HIGH&quot;</span></code>, etc.).</p></li>
+<li><p>Internally, <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> parallelises runs via <code class="docutils literal notranslate"><span class="pre">multiprocessing.Pool</span></code> with graceful fallbacks to sequential execution when necessary.</p></li>
+</ul>
+</section>
+<section id="command-line-interface-bp-sim">
+<h2>3. Command-Line Interface (<code class="docutils literal notranslate"><span class="pre">bp-sim</span></code>)<a class="headerlink" href="#command-line-interface-bp-sim" title="Link to this heading"></a></h2>
+<p>The CLI is defined in <code class="docutils literal notranslate"><span class="pre">src/propflow/cli.py</span></code>. Currently it exposes a version check and placeholder messaging. Extend this module if you wish to support command-line configuration of simulations.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>bp-sim<span class="w"> </span>--version
+</pre></div>
+</div>
+</section>
+<section id="snapshot-capture-analysis">
+<h2>4. Snapshot Capture &amp; Analysis<a class="headerlink" href="#snapshot-capture-analysis" title="Link to this heading"></a></h2>
+<section id="enginesnapshotrecorder">
+<h3>4.1 EngineSnapshotRecorder<a class="headerlink" href="#enginesnapshotrecorder" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">src/analyzer/snapshot_recorder.py</span></code> provides an external recorder that keeps engine internals untouched.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">analyzer.snapshot_recorder</span><span class="w"> </span><span class="kn">import</span> <span class="n">EngineSnapshotRecorder</span>
+
+<span class="n">recorder</span> <span class="o">=</span> <span class="n">EngineSnapshotRecorder</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+<span class="n">recorder</span><span class="o">.</span><span class="n">record_run</span><span class="p">(</span><span class="n">max_steps</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">break_on_convergence</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">recorder</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="s2">&quot;results/run_001_snapshots.json&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Captured fields per iteration include:</p>
+<ul class="simple">
+<li><p>Message flows (sender, recipient, values, argmin index, neutrality flag)</p></li>
+<li><p>Variable assignments and global cost</p></li>
+<li><p>Counts of neutral messages / step neutrality</p></li>
+</ul>
+</section>
+<section id="snapshotvisualizer">
+<h3>4.2 SnapshotVisualizer<a class="headerlink" href="#snapshotvisualizer" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">src/analyzer/snapshot_visualizer.py</span></code> helps interpret argmin trajectories per variable.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">analyzer.snapshot_visualizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">SnapshotVisualizer</span>
+
+<span class="n">viz</span> <span class="o">=</span> <span class="n">SnapshotVisualizer</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="s2">&quot;results/run_001_snapshots.json&quot;</span><span class="p">)</span>
+<span class="n">series</span> <span class="o">=</span> <span class="n">viz</span><span class="o">.</span><span class="n">argmin_series</span><span class="p">(</span><span class="n">vars_filter</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;X1&quot;</span><span class="p">,</span> <span class="s2">&quot;X5&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+<span class="c1"># {&#39;X1&#39;: [0, 0, 1, ...], &#39;X5&#39;: [2, 1, 1, ...]}</span>
+
+<span class="n">viz</span><span class="o">.</span><span class="n">plot_argmin_per_variable</span><span class="p">(</span><span class="n">vars_filter</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;X1&quot;</span><span class="p">,</span> <span class="s2">&quot;X5&quot;</span><span class="p">],</span> <span class="n">savepath</span><span class="o">=</span><span class="s2">&quot;plots/X15.png&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>CLI usage:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>src/analyzer/snapshot_visualizer.py<span class="w"> </span>results/run_001_snapshots.json<span class="w"> </span>--vars<span class="w"> </span>X1<span class="w"> </span>X5<span class="w"> </span>--save<span class="w"> </span>plots/X15.png
+</pre></div>
+</div>
+</section>
+</section>
+<section id="examples-directory">
+<h2>5. Examples Directory<a class="headerlink" href="#examples-directory" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">examples/minsum_basic.py</span></code>: step-by-step min-sum demonstration.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">examples/analyzer_ring_demo.py</span></code>: runs a 4-variable ring, records snapshots, and generates per-variable and combined argmin plots via the visualiser.</p></li>
+<li><p>Use these scripts to validate installation or to template new experiments.</p></li>
+</ul>
+<p>Run any example with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>examples/minsum_basic.py
+</pre></div>
+</div>
+</section>
+<section id="testing-validation">
+<h2>6. Testing &amp; Validation<a class="headerlink" href="#testing-validation" title="Link to this heading"></a></h2>
+<section id="unit-tests">
+<h3>Unit Tests<a class="headerlink" href="#unit-tests" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-q
+</pre></div>
+</div>
+<p>Focus areas: BP engine behaviour, policies, utilities, and search components.</p>
+</section>
+<section id="coverage">
+<h3>Coverage<a class="headerlink" href="#coverage" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>src<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+</pre></div>
+</div>
+</section>
+<section id="static-analysis">
+<h3>Static Analysis<a class="headerlink" href="#static-analysis" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>uv<span class="w"> </span>run<span class="w"> </span>flake8
+uv<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>src
+uv<span class="w"> </span>run<span class="w"> </span>black<span class="w"> </span>--check<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+</section>
+<section id="logging-artefacts">
+<h2>7. Logging &amp; Artefacts<a class="headerlink" href="#logging-artefacts" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Logs default to <code class="docutils literal notranslate"><span class="pre">configs/logs/</span></code>. Ensure this directory is writable when deploying.</p></li>
+<li><p>Engine history and simulator outputs can be persisted via <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> or custom scripts.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">results/</span></code> or dedicated experiment directories to store plots, JSON traces, or CSV exports.</p></li>
+</ul>
+<p>With these tools you can execute and monitor simulations. Next, read <a class="reference internal" href="04_deployment_playbooks.html"><span class="std std-doc">Deployment Playbooks</span></a> to see how to package and run PropFlow in different environments.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Or Muller.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,715 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>propflow.bp.engine_base &mdash; PropFlow 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            PropFlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#from-pypi-recommended">From PyPI (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../installation.html#verifying-installation">Verifying Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#your-first-factor-graph">Your First Factor Graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#using-the-graph-builder">Using the Graph Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#applying-policies">Applying Policies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#running-experiments">Running Experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../user_guide.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../user_guide.html#core-concepts">Core Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#factor-graphs">Factor Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#factors">Factors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user_guide.html#belief-propagation-algorithms">Belief Propagation Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#min-sum">Min-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#max-sum">Max-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#sum-product">Sum-Product</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user_guide.html#policies-and-engine-variants">Policies and Engine Variants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#damping">Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#factor-splitting">Factor Splitting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#cost-reduction">Cost Reduction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user_guide.html#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user_guide.html#graph-construction">Graph Construction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#cycle-graphs">Cycle Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#random-graphs">Random Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#custom-graphs">Custom Graphs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../user_guide.html#advanced-topics">Advanced Topics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#custom-cost-tables">Custom Cost Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#snapshots-and-analysis">Snapshots and Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../user_guide.html#search-algorithms">Search Algorithms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../api/index.html#core-modules">Core Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/index.html#module-propflow.bp.engine_base">Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engine_base.BPEngine"><code class="docutils literal notranslate"><span class="pre">BPEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engines.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engines.SplitEngine"><code class="docutils literal notranslate"><span class="pre">SplitEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engines.CostReductionOnceEngine"><code class="docutils literal notranslate"><span class="pre">CostReductionOnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engines.DampingEngine"><code class="docutils literal notranslate"><span class="pre">DampingEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engines.DampingSCFGEngine"><code class="docutils literal notranslate"><span class="pre">DampingSCFGEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engines.DampingCROnceEngine"><code class="docutils literal notranslate"><span class="pre">DampingCROnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engines.MessagePruningEngine"><code class="docutils literal notranslate"><span class="pre">MessagePruningEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.engines.DiscountEngine"><code class="docutils literal notranslate"><span class="pre">DiscountEngine</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/index.html#module-propflow.bp.factor_graph">Factor Graphs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.bp.factor_graph.FactorGraph"><code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/index.html#module-propflow.core.agents">Agents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.core.agents.FGAgent"><code class="docutils literal notranslate"><span class="pre">FGAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.core.agents.VariableAgent"><code class="docutils literal notranslate"><span class="pre">VariableAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.core.agents.FactorAgent"><code class="docutils literal notranslate"><span class="pre">FactorAgent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/index.html#module-propflow.core.components">Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.core.components.Message"><code class="docutils literal notranslate"><span class="pre">Message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.core.components.MailHandler"><code class="docutils literal notranslate"><span class="pre">MailHandler</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/index.html#module-propflow.policies">Policies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.damp"><code class="docutils literal notranslate"><span class="pre">damp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.TD"><code class="docutils literal notranslate"><span class="pre">TD()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.cost_reduction_all_factors_once"><code class="docutils literal notranslate"><span class="pre">cost_reduction_all_factors_once()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.discount_attentive"><code class="docutils literal notranslate"><span class="pre">discount_attentive()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.split_all_factors"><code class="docutils literal notranslate"><span class="pre">split_all_factors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.MessagePruningPolicy"><code class="docutils literal notranslate"><span class="pre">MessagePruningPolicy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.normalize_inbox"><code class="docutils literal notranslate"><span class="pre">normalize_inbox()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.normalize_soft_max"><code class="docutils literal notranslate"><span class="pre">normalize_soft_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.normalize_cost_table_sum"><code class="docutils literal notranslate"><span class="pre">normalize_cost_table_sum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.policies.init_normalization"><code class="docutils literal notranslate"><span class="pre">init_normalization()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/index.html#module-propflow.utils">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../api/index.html#module-propflow.simulator">Simulator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../../../api/index.html#propflow.simulator.Simulator"><code class="docutils literal notranslate"><span class="pre">Simulator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples.html#basic-graph-coloring">Basic Graph Coloring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples.html#comparing-engine-variants">Comparing Engine Variants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples.html#custom-cost-function">Custom Cost Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples.html#large-scale-problem">Large-Scale Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../examples.html#analyzing-convergence">Analyzing Convergence</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#code-quality">Code Quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#contribution-guidelines">Contribution Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#commit-messages">Commit Messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#pull-requests">Pull Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#what-to-contribute">What to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../../contributing.html#need-ideas">Need Ideas?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#questions">Questions?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../contributing.html#license">License</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">PropFlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">propflow.bp.engine_base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for propflow.bp.engine_base</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..policies.normalize_cost</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalize_inbox</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..core.agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">VariableAgent</span><span class="p">,</span> <span class="n">FactorAgent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.computators</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinSumComputator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.engine_components</span><span class="w"> </span><span class="kn">import</span> <span class="n">History</span><span class="p">,</span> <span class="n">Step</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.factor_graph</span><span class="w"> </span><span class="kn">import</span> <span class="n">FactorGraph</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..core.dcop_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Computator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..policies.convergance</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvergenceMonitor</span><span class="p">,</span> <span class="n">ConvergenceConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..snapshots</span><span class="w"> </span><span class="kn">import</span> <span class="n">SnapshotsConfig</span><span class="p">,</span> <span class="n">SnapshotManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils.tools.performance</span><span class="w"> </span><span class="kn">import</span> <span class="n">PerformanceMonitor</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..configs.loggers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Logger</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..configs.global_config_mapping</span><span class="w"> </span><span class="kn">import</span> <span class="n">ENGINE_DEFAULTS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">dummy_func</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BPEngine">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">BPEngine</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The core engine for running belief propagation simulations.</span>
+
+<span class="sd">    This class orchestrates the belief propagation process on a factor graph.</span>
+<span class="sd">    It manages the simulation loop, message passing schedule, history tracking,</span>
+<span class="sd">    convergence checking, and performance monitoring. It is designed to be</span>
+<span class="sd">    extended by other engine classes that implement specific BP variants or policies.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        computator (Computator): The computator instance for message calculation.</span>
+<span class="sd">        anytime (bool): If True, the engine tracks the best cost found so far.</span>
+<span class="sd">        normalize_messages (bool): If True, messages are normalized each cycle.</span>
+<span class="sd">        graph (FactorGraph): The factor graph on which the simulation runs.</span>
+<span class="sd">        var_nodes (list): A list of variable agent nodes in the graph.</span>
+<span class="sd">        factor_nodes (list): A list of factor agent nodes in the graph.</span>
+<span class="sd">        history (History): An object for tracking the simulation&#39;s history.</span>
+<span class="sd">        graph_diameter (int): The diameter of the factor graph.</span>
+<span class="sd">        convergence_monitor (ConvergenceMonitor): The monitor for checking convergence.</span>
+<span class="sd">        performance_monitor (PerformanceMonitor): An optional monitor for performance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">factor_graph</span><span class="p">:</span> <span class="n">FactorGraph</span><span class="p">,</span>
+        <span class="n">computator</span><span class="p">:</span> <span class="n">Computator</span> <span class="o">=</span> <span class="n">MinSumComputator</span><span class="p">(),</span>
+        <span class="n">init_normalization</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">dummy_func</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;BPEngine&quot;</span><span class="p">,</span>
+        <span class="n">convergence_config</span><span class="p">:</span> <span class="n">ConvergenceConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">monitor_performance</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">normalize_messages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">anytime</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_bct_history</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">snapshots_config</span><span class="p">:</span> <span class="n">SnapshotsConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the belief propagation engine.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            factor_graph: The factor graph for the simulation.</span>
+<span class="sd">            computator: The message computation logic. Defaults to MinSumComputator().</span>
+<span class="sd">            init_normalization: A function to normalize initial cost tables.</span>
+<span class="sd">            name: The name of the engine instance.</span>
+<span class="sd">            convergence_config: Configuration for the convergence monitor.</span>
+<span class="sd">            monitor_performance: Whether to monitor performance.</span>
+<span class="sd">            normalize_messages: Whether to normalize messages during execution.</span>
+<span class="sd">            anytime: Whether to operate in &quot;anytime&quot; mode, tracking best cost.</span>
+<span class="sd">            use_bct_history: Whether to use BCT-specific history tracking.</span>
+<span class="sd">            snapshots_config: Configuration for taking snapshots during the run.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Apply defaults from global config with override capability</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">computator</span> <span class="o">=</span> <span class="n">computator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anytime</span> <span class="o">=</span> <span class="n">anytime</span> <span class="k">if</span> <span class="n">anytime</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ENGINE_DEFAULTS</span><span class="p">[</span><span class="s2">&quot;anytime&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalize_messages</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">normalize_messages</span>
+            <span class="k">if</span> <span class="n">normalize_messages</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">ENGINE_DEFAULTS</span><span class="p">[</span><span class="s2">&quot;normalize_messages&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">factor_graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_init</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_messages</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">set_computator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">computator</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor_nodes</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">bipartite</span><span class="o">.</span><span class="n">sets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">G</span><span class="p">)</span>
+
+        <span class="c1"># Setup history</span>
+        <span class="n">engine_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="n">use_bct</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">use_bct_history</span>
+            <span class="k">if</span> <span class="n">use_bct_history</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">ENGINE_DEFAULTS</span><span class="p">[</span><span class="s2">&quot;use_bct_history&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">History</span><span class="p">(</span>
+            <span class="n">engine_type</span><span class="o">=</span><span class="n">engine_type</span><span class="p">,</span>
+            <span class="n">computator</span><span class="o">=</span><span class="n">computator</span><span class="p">,</span>
+            <span class="n">factor_graph</span><span class="o">=</span><span class="n">factor_graph</span><span class="p">,</span>
+            <span class="n">use_bct_history</span><span class="o">=</span><span class="n">use_bct</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph_diameter</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">diameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">G</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convergence_monitor</span> <span class="o">=</span> <span class="n">ConvergenceMonitor</span><span class="p">(</span><span class="n">convergence_config</span><span class="p">)</span>
+        <span class="n">monitor_perf</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">monitor_performance</span>
+            <span class="k">if</span> <span class="n">monitor_performance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">ENGINE_DEFAULTS</span><span class="p">[</span><span class="s2">&quot;monitor_performance&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_monitor</span> <span class="o">=</span> <span class="n">PerformanceMonitor</span><span class="p">()</span> <span class="k">if</span> <span class="n">monitor_perf</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">init_normalization</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">factor_nodes</span><span class="p">)</span>
+
+        <span class="c1"># Optional snapshots manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_manager</span><span class="p">:</span> <span class="n">SnapshotManager</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">snapshots_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_manager</span> <span class="o">=</span> <span class="n">SnapshotManager</span><span class="p">(</span><span class="n">snapshots_config</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BPEngine.step">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Step</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs one full step of the synchronous belief propagation algorithm.</span>
+
+<span class="sd">        A step consists of two main phases:</span>
+<span class="sd">        1. Variable nodes compute and send messages to factor nodes.</span>
+<span class="sd">        2. Factor nodes compute and send messages to variable nodes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i: The current step number.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A `Step` object containing information about the messages exchanged.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">performance_monitor</span><span class="p">:</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">performance_monitor</span><span class="o">.</span><span class="n">start_step</span><span class="p">()</span>
+
+        <span class="n">step</span> <span class="o">=</span> <span class="n">Step</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="c1"># Phase 1: All variables compute and send messages</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_nodes</span><span class="p">:</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">compute_messages</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">post_var_compute</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">outbox</span><span class="p">:</span>
+                <span class="n">step</span><span class="o">.</span><span class="n">add_q</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">outbox</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_nodes</span><span class="p">:</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_nodes</span><span class="p">:</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">empty_mailbox</span><span class="p">()</span>
+            <span class="n">var</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
+
+        <span class="c1"># Phase 2: All factors compute and send messages</span>
+        <span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor_nodes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pre_factor_compute</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">factor</span><span class="o">.</span><span class="n">compute_messages</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">post_factor_compute</span><span class="p">(</span><span class="n">factor</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">factor</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">outbox</span><span class="p">:</span>
+                <span class="n">step</span><span class="o">.</span><span class="n">add_r</span><span class="p">(</span><span class="n">factor</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">factor</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">outbox</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor_nodes</span><span class="p">:</span>
+            <span class="n">factor</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">factor</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">outbox</span><span class="p">:</span>
+                <span class="n">step</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">recipient</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">factor_nodes</span><span class="p">:</span>
+            <span class="n">factor</span><span class="o">.</span><span class="n">empty_mailbox</span><span class="p">()</span>
+            <span class="n">factor</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_global_cost</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">track_step_data</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_manager</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_manager</span><span class="o">.</span><span class="n">capture_step</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">performance_monitor</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">performance_monitor</span><span class="o">.</span><span class="n">end_step</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">step</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.run">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_json</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">save_csv</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">config_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the simulation until convergence or max iterations is reached.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            max_iter: The maximum number of iterations to run.</span>
+<span class="sd">            save_json: Whether to save the full history as a JSON file.</span>
+<span class="sd">            save_csv: Whether to save the cost history as a CSV file.</span>
+<span class="sd">            filename: The base name for the output files.</span>
+<span class="sd">            config_name: The name of the configuration to use for saving.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            An optional string, typically for results or status.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">max_iterations</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">max_iter</span> <span class="k">if</span> <span class="n">max_iter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">ENGINE_DEFAULTS</span><span class="p">[</span><span class="s2">&quot;max_iterations&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convergence_monitor</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_iterations</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_handle_cycle_events</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">save_json</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">filename</span> <span class="ow">or</span> <span class="s2">&quot;results.json&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">save_csv</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">save_csv</span><span class="p">(</span><span class="n">config_name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">performance_monitor</span><span class="p">:</span>
+            <span class="n">summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">performance_monitor</span><span class="o">.</span><span class="n">get_summary</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performance summary: </span><span class="si">{</span><span class="n">summary</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates a configuration name based on engine parameters.&quot;&quot;&quot;</span>
+        <span class="n">config_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">config_name</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">config_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str: The name of the engine instance.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">iteration_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;int: The number of iterations completed so far.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">costs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BPEngine.get_beliefs">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.get_beliefs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_beliefs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves the current beliefs of all variable nodes.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A dictionary mapping variable names to their belief vectors.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">beliefs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_nodes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">VariableAgent</span><span class="p">):</span>
+                <span class="n">beliefs</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s2">&quot;belief&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">beliefs</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_is_converged</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if the simulation has converged.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">beliefs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">assignments</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">latest_cycle</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">beliefs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">beliefs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">beliefs</span><span class="p">[</span><span class="n">latest_cycle</span><span class="p">]</span>
+        <span class="n">assignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">assignments</span><span class="p">[</span><span class="n">latest_cycle</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">convergence_monitor</span><span class="o">.</span><span class="n">check_convergence</span><span class="p">(</span><span class="n">beliefs</span><span class="p">,</span> <span class="n">assignments</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">assignments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;dict: The current assignments of all variable nodes.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">curr_assignment</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_nodes</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">VariableAgent</span><span class="p">)</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="BPEngine.calculate_global_cost">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.calculate_global_cost">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_global_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates the global cost based on the current variable assignments.</span>
+
+<span class="sd">        This method uses the original, unmodified factor cost tables to ensure</span>
+<span class="sd">        the true cost is computed, independent of any runtime cost modifications.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The total cost of the current assignments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">var_assignments</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">node</span><span class="o">.</span><span class="n">curr_assignment</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">var_nodes</span><span class="p">}</span>
+        <span class="n">total_cost</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">_original_factors</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">factor</span><span class="o">.</span><span class="n">cost_table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">factor</span><span class="o">.</span><span class="n">connection_number</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">var_assignments</span><span class="p">:</span>
+                        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">dim</span><span class="p">:</span>
+                            <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                        <span class="n">indices</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span> <span class="o">=</span> <span class="n">var_assignments</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="kc">None</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">indices</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">factor</span><span class="o">.</span><span class="n">connection_number</span>
+                <span class="p">):</span>
+                    <span class="n">cost_table</span> <span class="o">=</span> <span class="n">factor</span><span class="o">.</span><span class="n">original_cost_table</span> <span class="k">if</span> <span class="n">factor</span><span class="o">.</span><span class="n">original_cost_table</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">factor</span><span class="o">.</span><span class="n">cost_table</span>
+                    <span class="n">total_cost</span> <span class="o">+=</span> <span class="n">cost_table</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">indices</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">total_cost</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_initialize_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes mailboxes for all nodes with zero-messages.</span>
+
+<span class="sd">        This ensures that every node has a message from each neighbor before</span>
+<span class="sd">        the first computation step, preventing errors with missing messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+            <span class="n">neighbors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">node</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">VariableAgent</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Initializing mailbox for node: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">node</span><span class="p">)</span>
+                    <span class="n">node</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">set_first_message</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">neighbor</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the name of the engine.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<div class="viewcode-block" id="BPEngine.post_init">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.post_init">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_init</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for logic to be executed after engine initialization.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.post_factor_cycle">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.post_factor_cycle">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_factor_cycle</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for logic after a full message passing cycle.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.post_two_cycles">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.post_two_cycles">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_two_cycles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for logic after the first two message passing cycles.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.pre_factor_compute">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.pre_factor_compute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pre_factor_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="p">:</span> <span class="n">FactorAgent</span><span class="p">,</span> <span class="n">iteration</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for logic before a factor computes its messages.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            factor: The factor agent about to compute messages.</span>
+<span class="sd">            iteration: The current simulation iteration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.post_factor_compute">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.post_factor_compute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_factor_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="p">:</span> <span class="n">FactorAgent</span><span class="p">,</span> <span class="n">iteration</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for logic after a factor computes its messages.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            factor: The factor agent that just computed messages.</span>
+<span class="sd">            iteration: The current simulation iteration.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.pre_var_compute">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.pre_var_compute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pre_var_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">VariableAgent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for logic before a variable computes its messages.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            var: The variable agent about to compute messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.post_var_compute">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.post_var_compute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_var_compute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">var</span><span class="p">:</span> <span class="n">VariableAgent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for logic after a variable computes its messages.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            var: The variable agent that just computed messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.init_normalize">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.init_normalize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Hook for initial normalization logic.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.update_global_cost">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.update_global_cost">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_global_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates and records the global cost for the current step.</span>
+
+<span class="sd">        If in &quot;anytime&quot; mode, it ensures the cost recorded does not increase.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_global_cost</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anytime</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">costs</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">costs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cost</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">costs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">costs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">costs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.normalize_messages">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.normalize_messages">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">normalize_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Placeholder hook for message normalization logic.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_cycle_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles events that occur at specific cycle intervals.</span>
+
+<span class="sd">        This includes checking for convergence and calling cycle-based hooks.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i: The current iteration number.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            StopIteration: If convergence is detected.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph_diameter</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_two_cycle_event</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph_diameter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_regular_cycle_event</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_two_cycle_event</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calls the hook for the two-cycle event.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">post_two_cycles</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_regular_cycle_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles events for regular message passing cycles.</span>
+
+<span class="sd">        This involves normalizing messages (if enabled), tracking beliefs and</span>
+<span class="sd">        assignments, and checking for convergence.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            i: The current iteration number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_messages</span><span class="p">:</span>
+            <span class="n">normalize_inbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_nodes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">beliefs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_beliefs</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">assignments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignments</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_converged</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Converged after </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> steps&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span>
+
+    <span class="c1"># --- Snapshots convenience API ---</span>
+<div class="viewcode-block" id="BPEngine.latest_snapshot">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.latest_snapshot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">latest_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the latest snapshot record if snapshots are enabled.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The latest snapshot object, or None if snapshots are disabled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_manager</span><span class="o">.</span><span class="n">latest</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="BPEngine.get_snapshot">
+<a class="viewcode-back" href="../../../api/index.html#propflow.bp.engine_base.BPEngine.get_snapshot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the snapshot record for a given step index.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            step_index: The step for which to retrieve the snapshot.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The snapshot object for the given step, or None if not available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_manager</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_manager</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">step_index</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Or Muller.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

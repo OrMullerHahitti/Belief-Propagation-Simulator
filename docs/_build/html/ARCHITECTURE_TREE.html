@@ -1,0 +1,696 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Belief Propagation Simulator — Architecture &amp; Usage Tree &mdash; PropFlow 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PropFlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-pypi-recommended">From PyPI (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-installation">Verifying Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#your-first-factor-graph">Your First Factor Graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#using-the-graph-builder">Using the Graph Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#applying-policies">Applying Policies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#running-experiments">Running Experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#core-concepts">Core Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#factor-graphs">Factor Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#factors">Factors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#belief-propagation-algorithms">Belief Propagation Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#min-sum">Min-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#max-sum">Max-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#sum-product">Sum-Product</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#policies-and-engine-variants">Policies and Engine Variants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#damping">Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#factor-splitting">Factor Splitting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#cost-reduction">Cost Reduction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#graph-construction">Graph Construction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#cycle-graphs">Cycle Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#random-graphs">Random Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#custom-graphs">Custom Graphs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#advanced-topics">Advanced Topics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#custom-cost-tables">Custom Cost Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#snapshots-and-analysis">Snapshots and Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#search-algorithms">Search Algorithms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#core-modules">Core Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.bp.engine_base">Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engine_base.BPEngine"><code class="docutils literal notranslate"><span class="pre">BPEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.SplitEngine"><code class="docutils literal notranslate"><span class="pre">SplitEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.CostReductionOnceEngine"><code class="docutils literal notranslate"><span class="pre">CostReductionOnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.DampingEngine"><code class="docutils literal notranslate"><span class="pre">DampingEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.DampingSCFGEngine"><code class="docutils literal notranslate"><span class="pre">DampingSCFGEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.DampingCROnceEngine"><code class="docutils literal notranslate"><span class="pre">DampingCROnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.MessagePruningEngine"><code class="docutils literal notranslate"><span class="pre">MessagePruningEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.DiscountEngine"><code class="docutils literal notranslate"><span class="pre">DiscountEngine</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.bp.factor_graph">Factor Graphs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.factor_graph.FactorGraph"><code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.core.agents">Agents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.agents.FGAgent"><code class="docutils literal notranslate"><span class="pre">FGAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.agents.VariableAgent"><code class="docutils literal notranslate"><span class="pre">VariableAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.agents.FactorAgent"><code class="docutils literal notranslate"><span class="pre">FactorAgent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.core.components">Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.components.Message"><code class="docutils literal notranslate"><span class="pre">Message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.components.MailHandler"><code class="docutils literal notranslate"><span class="pre">MailHandler</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.policies">Policies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.damp"><code class="docutils literal notranslate"><span class="pre">damp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.TD"><code class="docutils literal notranslate"><span class="pre">TD()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.cost_reduction_all_factors_once"><code class="docutils literal notranslate"><span class="pre">cost_reduction_all_factors_once()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.discount_attentive"><code class="docutils literal notranslate"><span class="pre">discount_attentive()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.split_all_factors"><code class="docutils literal notranslate"><span class="pre">split_all_factors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.MessagePruningPolicy"><code class="docutils literal notranslate"><span class="pre">MessagePruningPolicy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.normalize_inbox"><code class="docutils literal notranslate"><span class="pre">normalize_inbox()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.normalize_soft_max"><code class="docutils literal notranslate"><span class="pre">normalize_soft_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.normalize_cost_table_sum"><code class="docutils literal notranslate"><span class="pre">normalize_cost_table_sum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.init_normalization"><code class="docutils literal notranslate"><span class="pre">init_normalization()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.utils">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.simulator">Simulator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.simulator.Simulator"><code class="docutils literal notranslate"><span class="pre">Simulator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#basic-graph-coloring">Basic Graph Coloring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#comparing-engine-variants">Comparing Engine Variants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#custom-cost-function">Custom Cost Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#large-scale-problem">Large-Scale Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#analyzing-convergence">Analyzing Convergence</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#code-quality">Code Quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#contribution-guidelines">Contribution Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#commit-messages">Commit Messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#pull-requests">Pull Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#what-to-contribute">What to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#need-ideas">Need Ideas?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#questions">Questions?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#license">License</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PropFlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Belief Propagation Simulator — Architecture &amp; Usage Tree</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/blob/main/docs/ARCHITECTURE_TREE.md" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="belief-propagation-simulator-architecture-usage-tree">
+<h1>Belief Propagation Simulator — Architecture &amp; Usage Tree<a class="headerlink" href="#belief-propagation-simulator-architecture-usage-tree" title="Link to this heading"></a></h1>
+<p>This guide maps the full codebase in a tree-like view and explains how the simulator, engines, factor graphs, policies, and utilities compose together. It focuses on practical usage (inputs/outputs), recommended imports, and extension points so you can ship a clean, easy-to-use package.</p>
+<section id="high-level-overview">
+<h2>High-Level Overview<a class="headerlink" href="#high-level-overview" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Public API: <code class="docutils literal notranslate"><span class="pre">propflow</span></code> exposes the main classes for most users.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">propflow</span> <span class="pre">import</span> <span class="pre">FactorGraph,</span> <span class="pre">VariableAgent,</span> <span class="pre">FactorAgent,</span> <span class="pre">BPEngine,</span> <span class="pre">Simulator,</span> <span class="pre">FGBuilder,</span> <span class="pre">DampingEngine,</span> <span class="pre">SplitEngine,</span> <span class="pre">MessagePruningEngine,</span> <span class="pre">...</span></code></p></li>
+</ul>
+</li>
+<li><p>Core flow: create a <code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code> → choose/compose an <code class="docutils literal notranslate"><span class="pre">Engine</span></code> → <code class="docutils literal notranslate"><span class="pre">engine.run(max_iter=N)</span></code> → inspect <code class="docutils literal notranslate"><span class="pre">engine.history</span></code> and (optionally) <code class="docutils literal notranslate"><span class="pre">engine.latest_snapshot()</span></code>.</p></li>
+<li><p>Batch flow: create multiple graphs → define multiple engines → pass both into <code class="docutils literal notranslate"><span class="pre">Simulator</span></code> → run in parallel and plot costs.</p></li>
+</ul>
+</section>
+<section id="directory-tree-annotated">
+<h2>Directory Tree (annotated)<a class="headerlink" href="#directory-tree-annotated" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>src/propflow
+├── __init__.py                   # Public API exports
+├── _version.py                   # Package version
+├── cli.py                        # Console entry-point: `bp-sim`
+├── simulator.py                  # Batch runner over {engines × graphs}
+├── bp/                           # BP algorithms layer
+│   ├── __init__.py
+│   ├── factor_graph.py           # Bipartite factor graph (variables ↔ factors)
+│   ├── engine_base.py            # Base BPEngine (fixed-schedule BP loop)
+│   ├── engines_realizations.py   # Engine variants (damping, splitting, pruning, ...)
+│   ├── computators.py            # Min-sum / Max-sum / Sum-product / Max-product
+│   └── engine_components.py      # Step, Cycle, History (BCT-ready formats)
+├── core/                         # Agents and messaging primitives
+│   ├── __init__.py
+│   ├── agents.py                 # VariableAgent, FactorAgent
+│   ├── components.py             # Message, MailHandler (inbox/outbox), CostTable alias
+│   └── dcop_base.py              # Computator, Agent ABCs
+├── configs/                      # Defaults, registries, logging
+│   ├── __init__.py
+│   ├── global_config_mapping.py  # ENGINE_DEFAULTS, SIMULATOR_DEFAULTS, CT_FACTORY registry
+│   └── loggers.py                # Color/file loggers, log dirs
+├── policies/                     # Optional runtime policies (BP modifiers)
+│   ├── __init__.py               # Re-exports common policies
+│   ├── damping.py                # `damp` (+ TD cycle-based variant)
+│   ├── splitting.py              # Split factor tables (p*C,(1-p)*C)
+│   ├── cost_reduction.py         # Single-pass factor cost discounting
+│   ├── message_pruning.py        # Threshold-based pruning policy (accept/prune)
+│   ├── normalize_cost.py         # Normalization helpers + alt pruning impl
+│   └── convergance.py            # ConvergenceConfig, ConvergenceMonitor
+├── snapshots/                    # Per-step capture + Jacobian/cycle analysis
+│   ├── __init__.py
+│   ├── types.py                  # SnapshotsConfig, SnapshotData/Jacobians
+│   ├── manager.py                # SnapshotManager (A,P,B, cycles, norms, winners)
+│   └── builder.py                # Extract Q/R, neighborhoods, domains from step
+├── search/                       # Local search engines (DSA, MGM, K-Opt MGM)
+│   ├── __init__.py
+│   ├── search_engine.py          # Engines adapting the BPEngine lifecycle
+│   ├── search_computator.py      # DSA, MGM, KOptMGM computators
+│   └── search_agents.py          # Variable agent extensions for search
+├── utils/                        # Builders, tools, IO helpers
+│   ├── __init__.py
+│   ├── fg_utils.py               # FGBuilder, helpers, pickle safety
+│   ├── examples.py               # Easy FG creation without pickles
+│   ├── create/
+│   │   ├── create_factor_graph_config.py
+│   │   └── create_factor_graphs_from_config.py
+│   └── tools/ (perf, jacobian viz, figures, etc.)
+└── ... egg-info/ (packaging)
+
+src/analyzer                      # Optional deep analysis toolkit
+├── __init__.py                   # Analysis decorator &amp; helpers exports
+├── snapshot.py, matrices.py, ... # Cycle analysis, invariants, margins, winners
+</pre></div>
+</div>
+</section>
+<section id="data-flow-one-run">
+<h2>Data Flow (one run)<a class="headerlink" href="#data-flow-one-run" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Build or load a <code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code> with <code class="docutils literal notranslate"><span class="pre">VariableAgent</span></code> and <code class="docutils literal notranslate"><span class="pre">FactorAgent</span></code> nodes and cost tables.</p></li>
+<li><p>Create a BP <code class="docutils literal notranslate"><span class="pre">Engine</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">DampingEngine</span></code>) with a <code class="docutils literal notranslate"><span class="pre">Computator</span></code> (default: min-sum).</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">engine.run(max_iter=N)</span></code>; the engine executes synchronized phases per step:</p>
+<ul class="simple">
+<li><p>Variables compute Q messages → send → clear → prepare</p></li>
+<li><p>Factors compute R messages → send → clear → prepare</p></li>
+<li><p>Compute global cost, track history; optional normalization &amp; convergence checks</p></li>
+<li><p>Optional: <code class="docutils literal notranslate"><span class="pre">SnapshotManager</span></code> captures Q/R, Jacobians (A,P,B), cycles, winners</p></li>
+</ul>
+</li>
+<li><p>Inspect outputs: <code class="docutils literal notranslate"><span class="pre">engine.history</span></code> (costs, beliefs/assignments per cycle), <code class="docutils literal notranslate"><span class="pre">engine.get_beliefs()</span></code>, <code class="docutils literal notranslate"><span class="pre">engine.assignments</span></code>, <code class="docutils literal notranslate"><span class="pre">engine.latest_snapshot()</span></code>.</p></li>
+</ol>
+</section>
+<section id="public-api-recommended-imports">
+<h2>Public API (recommended imports)<a class="headerlink" href="#public-api-recommended-imports" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Graph &amp; Agents:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code>, <code class="docutils literal notranslate"><span class="pre">VariableAgent</span></code>, <code class="docutils literal notranslate"><span class="pre">FactorAgent</span></code></p></li>
+</ul>
+</li>
+<li><p>Engines (BP):</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">BPEngine</span></code> (base), <code class="docutils literal notranslate"><span class="pre">DampingEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">SplitEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">CostReductionOnceEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">DampingSCFGEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">DampingCROnceEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">DiscountEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">MessagePruningEngine</span></code></p></li>
+</ul>
+</li>
+<li><p>Batch runner:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Simulator</span></code></p></li>
+</ul>
+</li>
+<li><p>Builders:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">FGBuilder</span></code> (<code class="docutils literal notranslate"><span class="pre">build_random_graph</span></code>, <code class="docutils literal notranslate"><span class="pre">build_cycle_graph</span></code>), <code class="docutils literal notranslate"><span class="pre">CTFactory</span></code> registry</p></li>
+</ul>
+</li>
+<li><p>Search (optional):</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">search</span></code> engines (<code class="docutils literal notranslate"><span class="pre">DSAEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">MGMEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">KOptMGMEngine</span></code>) and computators</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="factor-graphs">
+<h2>Factor Graphs<a class="headerlink" href="#factor-graphs" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Structure: <code class="docutils literal notranslate"><span class="pre">FactorGraph(variables,</span> <span class="pre">factors,</span> <span class="pre">edges)</span></code> where <code class="docutils literal notranslate"><span class="pre">edges:</span> <span class="pre">{FactorAgent:</span> <span class="pre">[VariableAgent,</span> <span class="pre">...]}</span></code>.</p></li>
+<li><p>Nodes:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">VariableAgent(name,</span> <span class="pre">domain)</span></code>: holds domain size, computes Q, tracks belief and current assignment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FactorAgent(name,</span> <span class="pre">domain,</span> <span class="pre">ct_creation_func,</span> <span class="pre">param|cost_table)</span></code>: holds an n-D cost table; computes R.</p></li>
+</ul>
+</li>
+<li><p>Internals:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">G</span></code>: NetworkX bipartite graph (variables bipartite=0, factors bipartite=1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">connection_number</span></code>: per-factor map of variable name → dimension index (for cost-table broadcasting/order)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">global_cost</span></code>: sum of costs using current variable assignments across original factors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">set_computator(...)</span></code>: assigns computator to all nodes</p></li>
+<li><p>Pickle-safe (<code class="docutils literal notranslate"><span class="pre">__getstate__/__setstate__</span></code>) for multiprocessing &amp; persistence</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="engines-bp">
+<h2>Engines (BP)<a class="headerlink" href="#engines-bp" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Base: <code class="docutils literal notranslate"><span class="pre">BPEngine(factor_graph,</span> <span class="pre">computator=MinSumComputator(),</span> <span class="pre">init_normalization=dummy,</span> <span class="pre">name=&quot;BPEngine&quot;,</span> <span class="pre">convergence_config=None,</span> <span class="pre">monitor_performance=None,</span> <span class="pre">normalize_messages=None,</span> <span class="pre">anytime=None,</span> <span class="pre">use_bct_history=None,</span> <span class="pre">snapshots_config=None)</span></code></p>
+<ul>
+<li><p>Inputs:</p>
+<ul>
+<li><p>Required: <code class="docutils literal notranslate"><span class="pre">factor_graph</span></code></p></li>
+<li><p>Optional: <code class="docutils literal notranslate"><span class="pre">computator</span></code> (min-sum/max-sum/sum-product/max-product), convergence &amp; performance configs, normalization flags, snapshots</p></li>
+</ul>
+</li>
+<li><p>Step Phases (synchronized): variable Q compute → send; factor R compute → send; cost update → history; optional normalization and convergence; optional snapshot</p></li>
+<li><p>Outputs: <code class="docutils literal notranslate"><span class="pre">history</span></code> (Step/Cycle, costs, beliefs, assignments), <code class="docutils literal notranslate"><span class="pre">assignments</span></code>, <code class="docutils literal notranslate"><span class="pre">get_beliefs()</span></code>, <code class="docutils literal notranslate"><span class="pre">latest_snapshot()</span></code></p></li>
+<li><p>Hooks for variants: <code class="docutils literal notranslate"><span class="pre">post_init</span></code>, <code class="docutils literal notranslate"><span class="pre">pre/post_factor_compute</span></code>, <code class="docutils literal notranslate"><span class="pre">post_var_compute</span></code>, <code class="docutils literal notranslate"><span class="pre">post_two_cycles</span></code>, <code class="docutils literal notranslate"><span class="pre">post_factor_cycle</span></code></p></li>
+</ul>
+</li>
+<li><p>Engine Variants (what they add)</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Engine</span></code>: alias to base engine</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DampingEngine(damping_factor=0.9)</span></code></p>
+<ul>
+<li><p>Applies <code class="docutils literal notranslate"><span class="pre">damp(var,</span> <span class="pre">x)</span></code> after variable compute; stores last iteration per variable</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SplitEngine(split_factor=0.6)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">post_init</span></code> splits every factor into two clones with tables <code class="docutils literal notranslate"><span class="pre">p*C</span></code> and <code class="docutils literal notranslate"><span class="pre">(1-p)*C</span></code>; updates graph and factor list</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CostReductionOnceEngine(reduction_factor=0.5)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">post_init</span></code> single-pass cost reduction across all factors; <code class="docutils literal notranslate"><span class="pre">post_factor_compute</span></code> multiplies factor outbox attentively</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DampingSCFGEngine(damping_factor=0.9,</span> <span class="pre">split_factor=0.6)</span></code></p>
+<ul>
+<li><p>Composition of damping + splitting</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DampingCROnceEngine(damping_factor=0.9,</span> <span class="pre">reduction_factor=0.5)</span></code></p>
+<ul>
+<li><p>Composition of damping + single-pass cost reduction</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DiscountEngine()</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">post_factor_cycle</span></code> applies discounted updates to factor side</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MessagePruningEngine(prune_threshold=1e-4,</span> <span class="pre">min_iterations=5,</span> <span class="pre">adaptive_threshold=True)</span></code></p>
+<ul>
+<li><p>Initializes a pruning policy to reduce near-duplicate messages (accept/prune by L2-diff); integrate by setting policy on agent mailers if needed</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="computators">
+<h2>Computators<a class="headerlink" href="#computators" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BPComputator</span></code> (base): vectorized message operations (dispatch tables for <code class="docutils literal notranslate"><span class="pre">reduce</span></code>/<code class="docutils literal notranslate"><span class="pre">combine</span></code>).</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">compute_Q(messages)</span></code> → list[Message] from variable to factor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compute_R(cost_table,</span> <span class="pre">incoming_messages)</span></code> → list[Message] from factor to variable</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compute_belief(messages,</span> <span class="pre">domain)</span></code> → np.ndarray</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_assignment(belief)</span></code> → arg-reduce index (e.g., argmin for min-sum)</p></li>
+</ul>
+</li>
+<li><p>Variants:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">MinSumComputator</span></code> (default): reduce=min, combine=add</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MaxSumComputator</span></code>: reduce=max, combine=add</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MaxProductComputator</span></code>: reduce=max, combine=mul</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SumProductComputator</span></code>: reduce=sum, combine=mul</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="policies-optional-modifiers">
+<h2>Policies (optional modifiers)<a class="headerlink" href="#policies-optional-modifiers" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">damping.damp(variable,</span> <span class="pre">x=0.9)</span></code> and cycle-based <code class="docutils literal notranslate"><span class="pre">TD(vars,</span> <span class="pre">x,</span> <span class="pre">diameter)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">splitting.split_all_factors(fg,</span> <span class="pre">p=0.5)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cost_reduction.cost_reduction_all_factors_once(fg,</span> <span class="pre">k)</span></code> / <code class="docutils literal notranslate"><span class="pre">discount_attentive</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">message_pruning.MessagePruningPolicy(prune_threshold,</span> <span class="pre">min_iterations,</span> <span class="pre">adaptive)</span></code> with <code class="docutils literal notranslate"><span class="pre">MailHandler.set_pruning_policy(policy)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">normalize_cost.normalize_inbox(variables)</span></code> after cycles and other normalization helpers</p></li>
+<li><p>Convergence: <code class="docutils literal notranslate"><span class="pre">ConvergenceMonitor(ConvergenceConfig)</span></code> used by <code class="docutils literal notranslate"><span class="pre">BPEngine</span></code> during cycles</p></li>
+</ul>
+</section>
+<section id="history-step-cycle-and-snapshots">
+<h2>History, Step/Cycle, and Snapshots<a class="headerlink" href="#history-step-cycle-and-snapshots" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">engine_components.History</span></code> tracks:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">costs</span></code>: per-step scalar cost; <code class="docutils literal notranslate"><span class="pre">beliefs</span></code>/<code class="docutils literal notranslate"><span class="pre">assignments</span></code>: per-graph-diameter cycles</p></li>
+<li><p>Optional BCT mode: step-level <code class="docutils literal notranslate"><span class="pre">step_beliefs</span></code>, <code class="docutils literal notranslate"><span class="pre">step_messages</span></code>, <code class="docutils literal notranslate"><span class="pre">step_costs</span></code> for detailed analysis</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save_results(filename)</span></code> / <code class="docutils literal notranslate"><span class="pre">to_json(path)</span></code></p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Step</span></code>: per-step captured messages</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">q_messages</span></code>: variable→factor; <code class="docutils literal notranslate"><span class="pre">r_messages</span></code>: factor→variable (used by snapshots)</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">snapshots.SnapshotManager(SnapshotsConfig)</span></code></p>
+<ul>
+<li><p>Builds <code class="docutils literal notranslate"><span class="pre">SnapshotData</span></code> with Q/R, neighborhoods, domains; computes Jacobians <code class="docutils literal notranslate"><span class="pre">(A,P,B)</span></code> and optional cycle metrics and block norms; supports <code class="docutils literal notranslate"><span class="pre">save_step(dir)</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="simulator-batch">
+<h2>Simulator (batch)<a class="headerlink" href="#simulator-batch" title="Link to this heading"></a></h2>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Simulator(engine_configs:</span> <span class="pre">dict,</span> <span class="pre">log_level=None)</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">engine_configs</span></code> shape:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">engine_configs</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;DampingEngine&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">DampingEngine</span><span class="p">,</span> <span class="s2">&quot;damping_factor&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">},</span>
+  <span class="s2">&quot;Split&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">SplitEngine</span><span class="p">,</span> <span class="s2">&quot;split_factor&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">},</span>
+  <span class="c1"># ...any engine class with its kwargs</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">run_simulations(graphs:</span> <span class="pre">list[FactorGraph],</span> <span class="pre">max_iter=SIMULATOR_DEFAULTS['default_max_iter'])</span></code> → dict[str, list[list[float]]]</p>
+<ul class="simple">
+<li><p>Returns: <code class="docutils literal notranslate"><span class="pre">engine_name</span> <span class="pre">-&gt;</span> <span class="pre">[cost_series_per_graph]</span></code></p></li>
+<li><p>Uses multiprocessing with fallbacks; logs per-process; timeouts configurable</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_results(max_iter=None,</span> <span class="pre">verbose=False)</span></code> → inline matplotlib plot (avg ± std if verbose)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">set_log_level(level_str)</span></code> to switch logging during a run</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="builders-configs-and-registries">
+<h2>Builders, Configs, and Registries<a class="headerlink" href="#builders-configs-and-registries" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FGBuilder</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">build_random_graph(num_vars,</span> <span class="pre">domain_size,</span> <span class="pre">ct_factory,</span> <span class="pre">ct_params,</span> <span class="pre">density)</span></code> → <code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">build_cycle_graph(num_vars,</span> <span class="pre">domain_size,</span> <span class="pre">ct_factory,</span> <span class="pre">ct_params,</span> <span class="pre">density=1.0)</span></code> → <code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code></p></li>
+</ul>
+</li>
+<li><p>Config infrastructure (<code class="docutils literal notranslate"><span class="pre">configs/global_config_mapping.py</span></code>)</p>
+<ul>
+<li><p>Defaults: <code class="docutils literal notranslate"><span class="pre">ENGINE_DEFAULTS</span></code>, <code class="docutils literal notranslate"><span class="pre">POLICY_DEFAULTS</span></code>, <code class="docutils literal notranslate"><span class="pre">CONVERGENCE_DEFAULTS</span></code>, <code class="docutils literal notranslate"><span class="pre">SIMULATOR_DEFAULTS</span></code></p></li>
+<li><p>CT factories: register via <code class="docutils literal notranslate"><span class="pre">&#64;ct_factory(&quot;name&quot;)</span></code> and then use <code class="docutils literal notranslate"><span class="pre">CTFactory.name</span></code> or <code class="docutils literal notranslate"><span class="pre">get_ct_factory(&quot;name&quot;)</span></code></p></li>
+<li><p>Graph types registry: <code class="docutils literal notranslate"><span class="pre">GRAPH_TYPES</span></code> → dotted path of builder functions</p></li>
+<li><p>Logging: <code class="docutils literal notranslate"><span class="pre">LOGGING_CONFIG</span></code>, <code class="docutils literal notranslate"><span class="pre">Logger</span></code>, level names: <code class="docutils literal notranslate"><span class="pre">HIGH</span></code>, <code class="docutils literal notranslate"><span class="pre">INFORMATIVE</span></code>, <code class="docutils literal notranslate"><span class="pre">VERBOSE</span></code>, <code class="docutils literal notranslate"><span class="pre">MILD</span></code>, <code class="docutils literal notranslate"><span class="pre">MINIMAL</span></code></p></li>
+</ul>
+</li>
+<li><p>Declarative graph config (optional): <code class="docutils literal notranslate"><span class="pre">utils/create/*</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ConfigCreator.create_graph_config(...)</span></code> → pickled <code class="docutils literal notranslate"><span class="pre">GraphConfig</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FactorGraphBuilder.build_and_return(cfg_path)</span></code> or <code class="docutils literal notranslate"><span class="pre">build_and_save(cfg_path)</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="search-engines-optional">
+<h2>Search Engines (optional)<a class="headerlink" href="#search-engines-optional" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Engines adapt BP lifecycle to local search: <code class="docutils literal notranslate"><span class="pre">SearchEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">DSAEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">MGMEngine</span></code>, <code class="docutils literal notranslate"><span class="pre">KOptMGMEngine</span></code></p></li>
+<li><p>Computators: <code class="docutils literal notranslate"><span class="pre">DSAComputator</span></code>, <code class="docutils literal notranslate"><span class="pre">MGMComputator</span></code>, <code class="docutils literal notranslate"><span class="pre">KOptMGMComputator</span></code></p></li>
+<li><p>Agents: <code class="docutils literal notranslate"><span class="pre">SearchVariableAgent</span></code> extends <code class="docutils literal notranslate"><span class="pre">VariableAgent</span></code> with neighbor-value access, pending decisions, and direct assignment property</p></li>
+<li><p>I/O:</p>
+<ul>
+<li><p>Inputs: same <code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code> + a search computator</p></li>
+<li><p>Per-step output: best assignment/cost tracking via <code class="docutils literal notranslate"><span class="pre">history.costs</span></code> and <code class="docutils literal notranslate"><span class="pre">best_assignment</span></code> fields (see <code class="docutils literal notranslate"><span class="pre">SearchEngine</span></code>)</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="cli-examples">
+<h2>CLI &amp; Examples<a class="headerlink" href="#cli-examples" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>CLI: <code class="docutils literal notranslate"><span class="pre">bp-sim</span> <span class="pre">--version</span></code> prints version (more commands can be added later)</p></li>
+<li><p>Examples:</p>
+<ul>
+<li><p>Quick start (<code class="docutils literal notranslate"><span class="pre">examples/quick_start.py</span></code>): minimal 2-variable graph and <code class="docutils literal notranslate"><span class="pre">DampingEngine</span></code></p></li>
+<li><p>Simulator run (<code class="docutils literal notranslate"><span class="pre">examples/run_simulator.py</span></code>): builds many random graphs and compares engines with plots</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="typical-usage-patterns">
+<h2>Typical Usage Patterns<a class="headerlink" href="#typical-usage-patterns" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Minimal run</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">propflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">FactorGraph</span><span class="p">,</span> <span class="n">VariableAgent</span><span class="p">,</span> <span class="n">FactorAgent</span><span class="p">,</span> <span class="n">DampingEngine</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">v1</span><span class="p">,</span> <span class="n">v2</span> <span class="o">=</span> <span class="n">VariableAgent</span><span class="p">(</span><span class="s2">&quot;v1&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">VariableAgent</span><span class="p">(</span><span class="s2">&quot;v2&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">table</span><span class="p">(</span><span class="n">num_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">domain_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">_</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">FactorAgent</span><span class="p">(</span><span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">ct_creation_func</span><span class="o">=</span><span class="n">table</span><span class="p">)</span>
+<span class="n">fg</span> <span class="o">=</span> <span class="n">FactorGraph</span><span class="p">([</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">],</span> <span class="p">[</span><span class="n">f</span><span class="p">],</span> <span class="n">edges</span><span class="o">=</span><span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="p">[</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">]})</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">DampingEngine</span><span class="p">(</span><span class="n">factor_graph</span><span class="o">=</span><span class="n">fg</span><span class="p">,</span> <span class="n">damping_factor</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">max_iter</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">engine</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">costs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">engine</span><span class="o">.</span><span class="n">assignments</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Batch compare engines on random graphs</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">propflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Simulator</span><span class="p">,</span> <span class="n">FGBuilder</span><span class="p">,</span> <span class="n">DampingEngine</span><span class="p">,</span> <span class="n">SplitEngine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">propflow.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">CTFactory</span>
+
+<span class="n">graphs</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="n">FGBuilder</span><span class="o">.</span><span class="n">build_random_graph</span><span class="p">(</span>
+    <span class="n">num_vars</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">domain_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">ct_factory</span><span class="o">=</span><span class="n">CTFactory</span><span class="o">.</span><span class="n">random_int</span><span class="o">.</span><span class="n">fn</span><span class="p">,</span>
+    <span class="n">ct_params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;low&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">},</span> <span class="n">density</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+  <span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="p">]</span>
+
+<span class="n">engines</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;Damping&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">DampingEngine</span><span class="p">,</span> <span class="s2">&quot;damping_factor&quot;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">},</span>
+  <span class="s2">&quot;Split&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="n">SplitEngine</span><span class="p">,</span> <span class="s2">&quot;split_factor&quot;</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">},</span>
+<span class="p">}</span>
+
+<span class="n">sim</span> <span class="o">=</span> <span class="n">Simulator</span><span class="p">(</span><span class="n">engines</span><span class="p">,</span> <span class="n">log_level</span><span class="o">=</span><span class="s2">&quot;INFORMATIVE&quot;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">sim</span><span class="o">.</span><span class="n">run_simulations</span><span class="p">(</span><span class="n">graphs</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">plot_results</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Enable snapshots (Jacobian/cycle analysis)</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">propflow.snapshots</span><span class="w"> </span><span class="kn">import</span> <span class="n">SnapshotsConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">propflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">DampingEngine</span>
+
+<span class="n">snap_cfg</span> <span class="o">=</span> <span class="n">SnapshotsConfig</span><span class="p">(</span>
+  <span class="n">compute_jacobians</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compute_cycles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compute_block_norms</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+  <span class="n">retain_last</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">save_each_step</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">DampingEngine</span><span class="p">(</span><span class="n">factor_graph</span><span class="o">=</span><span class="n">fg</span><span class="p">,</span> <span class="n">damping_factor</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">snapshots_config</span><span class="o">=</span><span class="n">snap_cfg</span><span class="p">)</span>
+<span class="n">engine</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">max_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">snap</span> <span class="o">=</span> <span class="n">engine</span><span class="o">.</span><span class="n">latest_snapshot</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">snap</span><span class="o">.</span><span class="n">jacobians</span><span class="o">.</span><span class="n">block_norms</span> <span class="k">if</span> <span class="n">snap</span> <span class="ow">and</span> <span class="n">snap</span><span class="o">.</span><span class="n">jacobians</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="inputs-outputs-summary-engines">
+<h2>Inputs/Outputs Summary (engines)<a class="headerlink" href="#inputs-outputs-summary-engines" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Common engine inputs</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">factor_graph</span></code>: <code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">computator</span></code>: one of <code class="docutils literal notranslate"><span class="pre">MinSumComputator</span></code> (default), <code class="docutils literal notranslate"><span class="pre">MaxSumComputator</span></code>, <code class="docutils literal notranslate"><span class="pre">SumProductComputator</span></code>, <code class="docutils literal notranslate"><span class="pre">MaxProductComputator</span></code></p></li>
+<li><p>Optional: <code class="docutils literal notranslate"><span class="pre">ConvergenceConfig</span></code>, performance monitoring, normalization flags, <code class="docutils literal notranslate"><span class="pre">SnapshotsConfig</span></code></p></li>
+</ul>
+</li>
+<li><p>Common outputs</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">history.costs</span></code>: list[float]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">history.beliefs[cycle]</span></code>: dict[var -&gt; np.ndarray]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">history.assignments[cycle]</span></code>: dict[var -&gt; int]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get_beliefs()</span></code>: dict[var -&gt; np.ndarray]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">assignments</span></code>: dict[var -&gt; int]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">latest_snapshot()</span></code>: <code class="docutils literal notranslate"><span class="pre">SnapshotRecord</span> <span class="pre">|</span> <span class="pre">None</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="extension-points">
+<h2>Extension Points<a class="headerlink" href="#extension-points" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Add a new engine</p>
+<ul>
+<li><p>Subclass <code class="docutils literal notranslate"><span class="pre">BPEngine</span></code>; override hooks (<code class="docutils literal notranslate"><span class="pre">post_init</span></code>, <code class="docutils literal notranslate"><span class="pre">post_var_compute</span></code>, <code class="docutils literal notranslate"><span class="pre">post_factor_compute</span></code>, <code class="docutils literal notranslate"><span class="pre">post_factor_cycle</span></code>) as needed</p></li>
+<li><p>Add to your app via <code class="docutils literal notranslate"><span class="pre">engine_configs</span> <span class="pre">=</span> <span class="pre">{&quot;MyEngine&quot;:</span> <span class="pre">{&quot;class&quot;:</span> <span class="pre">MyEngine,</span> <span class="pre">...}}</span></code></p></li>
+</ul>
+</li>
+<li><p>Add a new computator</p>
+<ul>
+<li><p>Subclass <code class="docutils literal notranslate"><span class="pre">BPComputator</span></code> and define reduce/combine ops; plug into an engine via <code class="docutils literal notranslate"><span class="pre">computator=YourComputator()</span></code></p></li>
+</ul>
+</li>
+<li><p>Add a new policy</p>
+<ul>
+<li><p>Implement a callable or <code class="docutils literal notranslate"><span class="pre">Policy</span></code> subclass; apply from engine hooks or set on <code class="docutils literal notranslate"><span class="pre">MailHandler</span></code> (e.g., <code class="docutils literal notranslate"><span class="pre">set_pruning_policy</span></code>)</p></li>
+</ul>
+</li>
+<li><p>Add a new cost-table factory</p>
+<ul>
+<li><p>Decorate a function with <code class="docutils literal notranslate"><span class="pre">&#64;ct_factory(&quot;my_factory&quot;)</span></code> in <code class="docutils literal notranslate"><span class="pre">global_config_mapping.py</span></code></p></li>
+</ul>
+</li>
+<li><p>Add a new graph topology builder</p>
+<ul>
+<li><p>Implement a builder returning <code class="docutils literal notranslate"><span class="pre">(variables,</span> <span class="pre">factors,</span> <span class="pre">edges)</span></code>; register in <code class="docutils literal notranslate"><span class="pre">GRAPH_TYPES</span></code></p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="packaging-imports-clean-user-surface">
+<h2>Packaging &amp; Imports (clean user surface)<a class="headerlink" href="#packaging-imports-clean-user-surface" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Preferred imports for end users (stable):</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">propflow</span> <span class="pre">import</span> <span class="pre">FactorGraph,</span> <span class="pre">VariableAgent,</span> <span class="pre">FactorAgent,</span> <span class="pre">Simulator,</span> <span class="pre">FGBuilder</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">propflow</span> <span class="pre">import</span> <span class="pre">DampingEngine,</span> <span class="pre">SplitEngine,</span> <span class="pre">MessagePruningEngine</span></code> (engine variants)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">propflow.configs</span> <span class="pre">import</span> <span class="pre">CTFactory</span></code> (cost-table factories)</p></li>
+</ul>
+</li>
+<li><p>CLI: <code class="docutils literal notranslate"><span class="pre">bp-sim</span> <span class="pre">--version</span></code></p></li>
+</ul>
+</section>
+<section id="notes-conventions">
+<h2>Notes &amp; Conventions<a class="headerlink" href="#notes-conventions" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Python 3.10+, type hints, Black formatting, <code class="docutils literal notranslate"><span class="pre">flake8</span></code> max line length 120.</p></li>
+<li><p>Avoid circular imports; use <code class="docutils literal notranslate"><span class="pre">propflow.__init__</span></code> re-exports for end-user code.</p></li>
+<li><p>Deterministic seeds for experiments; keep logs/artifacts under <code class="docutils literal notranslate"><span class="pre">configs/logs</span></code> and results in dedicated folders.</p></li>
+</ul>
+<hr class="docutils" />
+<p>If you want this file split into shorter topic pages (Engines, Factor Graphs, Simulator, Snapshots/Analyzer) or need a deeper table of each class’ arguments/returns, tell me and I’ll generate those as well.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Or Muller.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

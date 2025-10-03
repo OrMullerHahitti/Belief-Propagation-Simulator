@@ -1,0 +1,499 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AGENTS.md &mdash; PropFlow 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PropFlow
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-pypi-recommended">From PyPI (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#from-source">From Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#development-installation">Development Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-installation">Verifying Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#your-first-factor-graph">Your First Factor Graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#using-the-graph-builder">Using the Graph Builder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#applying-policies">Applying Policies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#running-experiments">Running Experiments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide.html">User Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#core-concepts">Core Concepts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#factor-graphs">Factor Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#variables">Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#factors">Factors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#belief-propagation-algorithms">Belief Propagation Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#min-sum">Min-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#max-sum">Max-Sum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#sum-product">Sum-Product</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#policies-and-engine-variants">Policies and Engine Variants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#damping">Damping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#factor-splitting">Factor Splitting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#cost-reduction">Cost Reduction</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#graph-construction">Graph Construction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#cycle-graphs">Cycle Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#random-graphs">Random Graphs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#custom-graphs">Custom Graphs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide.html#advanced-topics">Advanced Topics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#custom-cost-tables">Custom Cost Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#snapshots-and-analysis">Snapshots and Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide.html#search-algorithms">Search Algorithms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/index.html#core-modules">Core Modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.bp.engine_base">Engines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engine_base.BPEngine"><code class="docutils literal notranslate"><span class="pre">BPEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.Engine"><code class="docutils literal notranslate"><span class="pre">Engine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.SplitEngine"><code class="docutils literal notranslate"><span class="pre">SplitEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.CostReductionOnceEngine"><code class="docutils literal notranslate"><span class="pre">CostReductionOnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.DampingEngine"><code class="docutils literal notranslate"><span class="pre">DampingEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.DampingSCFGEngine"><code class="docutils literal notranslate"><span class="pre">DampingSCFGEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.DampingCROnceEngine"><code class="docutils literal notranslate"><span class="pre">DampingCROnceEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.MessagePruningEngine"><code class="docutils literal notranslate"><span class="pre">MessagePruningEngine</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.engines.DiscountEngine"><code class="docutils literal notranslate"><span class="pre">DiscountEngine</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.bp.factor_graph">Factor Graphs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.bp.factor_graph.FactorGraph"><code class="docutils literal notranslate"><span class="pre">FactorGraph</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.core.agents">Agents</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.agents.FGAgent"><code class="docutils literal notranslate"><span class="pre">FGAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.agents.VariableAgent"><code class="docutils literal notranslate"><span class="pre">VariableAgent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.agents.FactorAgent"><code class="docutils literal notranslate"><span class="pre">FactorAgent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.core.components">Components</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.components.Message"><code class="docutils literal notranslate"><span class="pre">Message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.core.components.MailHandler"><code class="docutils literal notranslate"><span class="pre">MailHandler</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.policies">Policies</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.damp"><code class="docutils literal notranslate"><span class="pre">damp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.TD"><code class="docutils literal notranslate"><span class="pre">TD()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.cost_reduction_all_factors_once"><code class="docutils literal notranslate"><span class="pre">cost_reduction_all_factors_once()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.discount_attentive"><code class="docutils literal notranslate"><span class="pre">discount_attentive()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.split_all_factors"><code class="docutils literal notranslate"><span class="pre">split_all_factors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.MessagePruningPolicy"><code class="docutils literal notranslate"><span class="pre">MessagePruningPolicy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.normalize_inbox"><code class="docutils literal notranslate"><span class="pre">normalize_inbox()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.normalize_soft_max"><code class="docutils literal notranslate"><span class="pre">normalize_soft_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.normalize_cost_table_sum"><code class="docutils literal notranslate"><span class="pre">normalize_cost_table_sum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.policies.init_normalization"><code class="docutils literal notranslate"><span class="pre">init_normalization()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.utils">Utilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/index.html#module-propflow.simulator">Simulator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/index.html#propflow.simulator.Simulator"><code class="docutils literal notranslate"><span class="pre">Simulator</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#basic-graph-coloring">Basic Graph Coloring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#comparing-engine-variants">Comparing Engine Variants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#custom-cost-function">Custom Cost Function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#large-scale-problem">Large-Scale Problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples.html#analyzing-convergence">Analyzing Convergence</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#code-quality">Code Quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#documentation">Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#contribution-guidelines">Contribution Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#commit-messages">Commit Messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#pull-requests">Pull Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#what-to-contribute">What to Contribute</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#need-ideas">Need Ideas?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#questions">Questions?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#license">License</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PropFlow</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">AGENTS.md</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/blob/main/docs/AGENTS.md" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="agents-md">
+<h1>AGENTS.md<a class="headerlink" href="#agents-md" title="Link to this heading"></a></h1>
+<section id="agent-architecture-in-the-belief-propagation-simulator">
+<h2>Agent Architecture in the Belief Propagation Simulator<a class="headerlink" href="#agent-architecture-in-the-belief-propagation-simulator" title="Link to this heading"></a></h2>
+<p>This document describes the agent-based architecture of our modular belief propagation simulator. The system is designed around autonomous agents that represent nodes in factor graphs and communicate through message passing.</p>
+</section>
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#overview"><span class="xref myst">Overview</span></a></p></li>
+<li><p><a class="reference internal" href="#agent-hierarchy"><span class="xref myst">Agent Hierarchy</span></a></p></li>
+<li><p><a class="reference internal" href="#core-agent-types"><span class="xref myst">Core Agent Types</span></a></p></li>
+<li><p><a class="reference internal" href="#message-passing-system"><span class="xref myst">Message Passing System</span></a></p></li>
+<li><p><a class="reference internal" href="#computators"><span class="xref myst">Computators</span></a></p></li>
+<li><p><a class="reference internal" href="#agent-lifecycle"><span class="xref myst">Agent Lifecycle</span></a></p></li>
+<li><p><a class="reference internal" href="#extending-agents"><span class="xref myst">Extending Agents</span></a></p></li>
+<li><p><a class="reference internal" href="#policy-integration"><span class="xref myst">Policy Integration</span></a></p></li>
+<li><p><a class="reference internal" href="#best-practices"><span class="xref myst">Best Practices</span></a></p></li>
+<li><p><a class="reference internal" href="#performance-considerations"><span class="xref myst">Performance Considerations</span></a></p></li>
+<li><p><a class="reference internal" href="#example-usage"><span class="xref myst">Example Usage</span></a></p></li>
+</ol>
+</section>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The simulator implements a distributed message-passing algorithm where each node in a factor graph is represented by an autonomous agent. These agents:</p>
+<ul class="simple">
+<li><p>Maintain local state (beliefs, assignments, message history)</p></li>
+<li><p>Compute and exchange messages with neighbors</p></li>
+<li><p>Apply configurable policies for behavior modification</p></li>
+<li><p>Support both synchronous and asynchronous execution</p></li>
+</ul>
+<p>The architecture follows the <strong>Single Responsibility Principle</strong> - each agent type has a clear, focused role in the belief propagation process.</p>
+</section>
+<section id="agent-hierarchy">
+<h2>Agent Hierarchy<a class="headerlink" href="#agent-hierarchy" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Agent (DCOP_base.py)
+├── BPAgent (agents.py) - Abstract BP node
+    ├── VariableAgent - Represents variables/decisions
+    └── FactorAgent - Represents constraints/factors
+</pre></div>
+</div>
+<section id="base-classes">
+<h3>Base Classes<a class="headerlink" href="#base-classes" title="Link to this heading"></a></h3>
+<section id="agent-dcop-base-py">
+<h4><code class="docutils literal notranslate"><span class="pre">Agent</span></code> (DCOP_base.py)<a class="headerlink" href="#agent-dcop-base-py" title="Link to this heading"></a></h4>
+<p>The top-level abstract base class for any node in the DCOP problem.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Agent</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;general&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>              <span class="c1"># Human-readable identifier</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">node_type</span>         <span class="c1"># Agent type classification</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_computator</span> <span class="o">=</span> <span class="kc">None</span>       <span class="c1"># Message computation strategy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mailer</span> <span class="o">=</span> <span class="kc">None</span>           <span class="c1"># Message handling system</span>
+</pre></div>
+</div>
+</section>
+<section id="bpagent-agents-py">
+<h4><code class="docutils literal notranslate"><span class="pre">BPAgent</span></code> (agents.py)<a class="headerlink" href="#bpagent-agents-py" title="Link to this heading"></a></h4>
+<p>Abstract base class for belief propagation nodes with message passing capabilities.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BPAgent</span><span class="p">(</span><span class="n">Agent</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">node_type</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">domain</span> <span class="o">=</span> <span class="n">domain</span>          <span class="c1"># Size of value domain</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history</span> <span class="o">=</span> <span class="p">[]</span>           <span class="c1"># Message history</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mailer</span> <span class="o">=</span> <span class="n">MailHandler</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>  <span class="c1"># Message management</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="core-agent-types">
+<h2>Core Agent Types<a class="headerlink" href="#core-agent-types" title="Link to this heading"></a></h2>
+<section id="variableagent">
+<h3>VariableAgent<a class="headerlink" href="#variableagent" title="Link to this heading"></a></h3>
+<p>Represents decision variables in the optimization problem. Each variable:</p>
+<ul class="simple">
+<li><p>Has a discrete domain of possible values</p></li>
+<li><p>Maintains beliefs about value preferences</p></li>
+<li><p>Computes Q-messages (variable-to-factor messages)</p></li>
+<li><p>Makes assignments based on incoming beliefs</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">VariableAgent</span><span class="p">(</span><span class="n">BPAgent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;variable&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">belief</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current belief distribution over domain values&quot;&quot;&quot;</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">curr_assignment</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current optimal assignment (argmin of beliefs)&quot;&quot;&quot;</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute Q-messages to factor neighbors&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p><strong>Key Responsibilities:</strong></p>
+<ul class="simple">
+<li><p>Sum incoming R-messages from factors</p></li>
+<li><p>Compute outgoing Q-messages (sum of all R-messages except to sender)</p></li>
+<li><p>Maintain belief state and current assignment</p></li>
+<li><p>Apply variable-specific policies (e.g., damping)</p></li>
+</ul>
+</section>
+<section id="factoragent">
+<h3>FactorAgent<a class="headerlink" href="#factoragent" title="Link to this heading"></a></h3>
+<p>Represents constraints or factors in the optimization problem. Each factor:</p>
+<ul class="simple">
+<li><p>Stores a cost/utility table over connected variables</p></li>
+<li><p>Computes R-messages (factor-to-variable messages)</p></li>
+<li><p>Enforces constraints between variables</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">FactorAgent</span><span class="p">(</span><span class="n">BPAgent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ct_creation_func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span> 
+                 <span class="n">param</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cost_table</span><span class="p">:</span> <span class="n">CostTable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;factor&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost_table</span> <span class="o">=</span> <span class="n">cost_table</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection_number</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Maps variable names to dimensions</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute R-messages to variable neighbors&quot;&quot;&quot;</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">initiate_cost_table</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create cost table based on specified distribution&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p><strong>Key Responsibilities:</strong></p>
+<ul class="simple">
+<li><p>Store and manage multi-dimensional cost tables</p></li>
+<li><p>Compute marginal costs for each connected variable</p></li>
+<li><p>Handle cost table modifications (splitting, discounting)</p></li>
+<li><p>Track variable-to-dimension mappings</p></li>
+</ul>
+</section>
+</section>
+<section id="message-passing-system">
+<h2>Message Passing System<a class="headerlink" href="#message-passing-system" title="Link to this heading"></a></h2>
+<section id="message-structure">
+<h3>Message Structure<a class="headerlink" href="#message-structure" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Message</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">sender</span><span class="p">:</span> <span class="n">Agent</span><span class="p">,</span> <span class="n">recipient</span><span class="p">:</span> <span class="n">Agent</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>          <span class="c1"># Belief/cost vector</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sender</span> <span class="o">=</span> <span class="n">sender</span>      <span class="c1"># Source agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recipient</span> <span class="o">=</span> <span class="n">recipient</span> <span class="c1"># Target agent</span>
+</pre></div>
+</div>
+</section>
+<section id="mailhandler">
+<h3>MailHandler<a class="headerlink" href="#mailhandler" title="Link to this heading"></a></h3>
+<p>Manages message routing, deduplication, and optional pruning:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MailHandler</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_incoming</span> <span class="o">=</span> <span class="p">{}</span>       <span class="c1"># Sender -&gt; Message mapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outgoing</span> <span class="o">=</span> <span class="p">[]</span>       <span class="c1"># Messages to send</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">receive_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">Message</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Accept incoming message with optional pruning&quot;&quot;&quot;</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deliver all outgoing messages&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p><strong>Features:</strong></p>
+<ul class="simple">
+<li><p><strong>Deduplication</strong>: Prevents duplicate messages from same sender</p></li>
+<li><p><strong>Pruning Support</strong>: Optional message filtering based on similarity</p></li>
+<li><p><strong>Synchronization</strong>: Ensures proper message ordering</p></li>
+</ul>
+</section>
+<section id="message-types">
+<h3>Message Types<a class="headerlink" href="#message-types" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Q-messages</strong> (Variable → Factor):</p>
+<ul class="simple">
+<li><p>Sum of all R-messages received except from target factor</p></li>
+<li><p>Represents variable’s current belief state</p></li>
+</ul>
+</li>
+<li><p><strong>R-messages</strong> (Factor → Variable):</p>
+<ul class="simple">
+<li><p>Marginal cost for each variable value</p></li>
+<li><p>Computed by minimizing over all other variables</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<section id="computators">
+<h2>Computators<a class="headerlink" href="#computators" title="Link to this heading"></a></h2>
+<p>Computators implement the core message computation algorithms. They are strategy objects that can be swapped to change the BP variant.</p>
+<section id="base-computator">
+<h3>Base Computator<a class="headerlink" href="#base-computator" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">BPComputator</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reduce_func</span><span class="p">,</span> <span class="n">combine_func</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduce_func</span> <span class="o">=</span> <span class="n">reduce_func</span>    <span class="c1"># np.min, np.max, etc.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combine_func</span> <span class="o">=</span> <span class="n">combine_func</span>  <span class="c1"># np.add, np.multiply, etc.</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_Q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute variable-to-factor messages&quot;&quot;&quot;</span>
+        
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_R</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cost_table</span><span class="p">,</span> <span class="n">incoming_messages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Message</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute factor-to-variable messages&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="available-computators">
+<h3>Available Computators<a class="headerlink" href="#available-computators" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>MinSumComputator</strong>: For minimization problems (DCOP)</p></li>
+<li><p><strong>MaxSumComputator</strong>: For maximization problems</p></li>
+<li><p><strong>Custom</strong>: Implement your own reduce/combine functions</p></li>
+</ul>
+</section>
+</section>
+<section id="agent-lifecycle">
+<h2>Agent Lifecycle<a class="headerlink" href="#agent-lifecycle" title="Link to this heading"></a></h2>
+<p>The agent lifecycle follows a structured pattern within each iteration:</p>
+<section id="message-computation-phase">
+<h3>1. Message Computation Phase<a class="headerlink" href="#message-computation-phase" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variable_agents</span><span class="p">:</span>
+    <span class="n">var</span><span class="o">.</span><span class="n">compute_messages</span><span class="p">()</span>     <span class="c1"># Compute Q-messages</span>
+    <span class="n">apply_policies</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>        <span class="c1"># Apply variable policies (damping, etc.)</span>
+</pre></div>
+</div>
+</section>
+<section id="message-sending-phase">
+<h3>2. Message Sending Phase<a class="headerlink" href="#message-sending-phase" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variable_agents</span><span class="p">:</span>
+    <span class="n">var</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>          <span class="c1"># Send all Q-messages</span>
+    <span class="n">var</span><span class="o">.</span><span class="n">empty_mailbox</span><span class="p">()</span>        <span class="c1"># Clear for next iteration</span>
+</pre></div>
+</div>
+</section>
+<section id="factor-processing-phase">
+<h3>3. Factor Processing Phase<a class="headerlink" href="#factor-processing-phase" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="n">factor_agents</span><span class="p">:</span>
+    <span class="n">factor</span><span class="o">.</span><span class="n">compute_messages</span><span class="p">()</span>   <span class="c1"># Compute R-messages</span>
+    <span class="n">factor</span><span class="o">.</span><span class="n">mailer</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>       <span class="c1"># Send all R-messages</span>
+    <span class="n">factor</span><span class="o">.</span><span class="n">empty_mailbox</span><span class="p">()</span>     <span class="c1"># Clear for next iteration</span>
+</pre></div>
+</div>
+</section>
+<section id="state-update-phase">
+<h3>4. State Update Phase<a class="headerlink" href="#state-update-phase" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">variable_agents</span><span class="p">:</span>
+    <span class="n">belief</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">belief</span>        <span class="c1"># Update beliefs</span>
+    <span class="n">assignment</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">curr_assignment</span>  <span class="c1"># Update assignments</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="extending-agents">
+<h2>Extending Agents<a class="headerlink" href="#extending-agents" title="Link to this heading"></a></h2>
+<section id="creating-custom-variable-agents">
+<h3>Creating Custom Variable Agents<a class="headerlink" href="#creating-custom-variable-agents" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">CustomVariableAgent</span><span class="p">(</span><span class="n">VariableAgent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">special_param</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">special_param</span> <span class="o">=</span> <span class="n">special_param</span>
+    
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Custom message computati</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Or Muller.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
