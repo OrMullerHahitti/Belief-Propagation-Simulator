@@ -1,10 +1,31 @@
-"""PropFlow snapshot recorder utilities.
+"""PropFlow analysis helpers for recording and interpreting engine runs.
 
-This lightweight package exposes the `EngineSnapshotRecorder`, a helper for
-capturing per-iteration message traffic, assignments, and costs from Belief
-Propagation engines. See `src/analyzer/README.md` for a comprehensive guide.
+The package exposes:
+
+* `EngineSnapshotRecorder` for capturing per-iteration message traffic.
+* `SnapshotAnalyzer` and `AnalysisReport` for deriving graph metrics, influence
+  scores, and connected-component insights from recorded snapshots.
+
+See `src/analyzer/README.md` and `examples/` for end-to-end usage guidance.
 """
 
 from .snapshot_recorder import EngineSnapshotRecorder, MessageSnapshot
+from .reporting import (
+    AnalysisReport,
+    MessageRecord,
+    SnapshotAnalyzer,
+    SnapshotRecord,
+    load_snapshots,
+    parse_snapshots,
+)
 
-__all__ = ["EngineSnapshotRecorder", "MessageSnapshot"]
+__all__ = [
+    "EngineSnapshotRecorder",
+    "MessageSnapshot",
+    "SnapshotAnalyzer",
+    "AnalysisReport",
+    "MessageRecord",
+    "SnapshotRecord",
+    "parse_snapshots",
+    "load_snapshots",
+]
