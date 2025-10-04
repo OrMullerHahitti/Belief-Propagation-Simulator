@@ -53,6 +53,7 @@ Basic Example:
    installation
    quickstart
    user_guide
+   handbook/index
    api/index
    examples
    contributing
