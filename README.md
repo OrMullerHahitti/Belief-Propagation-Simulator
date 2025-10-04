@@ -1,7 +1,7 @@
 # Belief Propagation Simulator - **PropFlow**
 
 **PropFlow** is a Python toolkit for building and experimenting with belief propagation and other distributed constraint optimization (DCOP) algorithms on factor graphs. It was designed for research and education, providing a flexible framework for implementing and testing new policies and engine variants.
-
+## for more comprehensive documentation, please click [here](https://ormullerhahitti.github.io/Belief-Propagation-Simulator/index.html)
 ## Key Features
 
 - **Belief Propagation Variants**: Simulates a variety of belief propagation algorithms, including Min-Sum, Max-Sum, and Sum-Product.
