@@ -10,7 +10,7 @@ max-line-length = 120
 
 [project]
 name = "propflow"
-version = "0.1.0"
+version = "0.1.1"
 description = "Highly configurable belief propagation simulator for factor graphs"
 readme = {file = "README.md", content-type = "text/markdown"}
 authors = [{name = "Or Muller"}]
@@ -53,13 +53,14 @@ dependencies = [
     "twine>=6.2.0",
     "sphinx>=8.1.3",
     "torch>=2.8.0",
+    "flake8>=7.3.0",
 ]
 
 [project.urls]
 Homepage = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
 Repository = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
 Issues = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/issues"
-Documentation = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator#readme"
+Documentation = "https://https://ormullerhahitti.github.io/Belief-Propagation-Simulator/index.html"
 
 [project.optional-dependencies]
 # Development extras
