@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Optional **SoftMinTorchComputator** (PyTorch-based soft-min for factor→variable messages).
+- Docs & example for Torch integration.
 - Comprehensive Jupyter notebook tutorial for analyzer module
 - PyPI readiness improvements
 - Enhanced README with badges and better structure
