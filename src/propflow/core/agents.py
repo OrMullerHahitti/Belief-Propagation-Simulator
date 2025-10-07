@@ -145,28 +145,28 @@ class VariableAgent(FGAgent):
     @property
     def belief(self) -> np.ndarray:
         """np.ndarray: The current belief distribution over the variable's domain."""
-        if self.computator:
+        if self.computator and hasattr(self.computator, "compute_belief"):
             return self.computator.compute_belief(self.inbox, self.domain)
-        else:
-            # Fallback to sum-product behavior if no computator
-            if not self.inbox:
-                return np.ones(self.domain) / self.domain  # Uniform belief
 
-            # Sum all incoming messages
-            belief = np.zeros(self.domain)
-            for message in self.inbox:
-                belief += message.data
+        # Fallback to sum-product behavior if no computator method is available
+        if not self.inbox:
+            return np.ones(self.domain) / self.domain  # Uniform belief
 
-            return belief
+        # Sum all incoming messages
+        belief = np.zeros(self.domain)
+        for message in self.inbox:
+            belief += message.data
+
+        return belief
 
     @property
     def curr_assignment(self) -> int | float:
         """int | float: The current assignment for the variable."""
-        if self.computator:
+        if self.computator and hasattr(self.computator, "get_assignment"):
             return self.computator.get_assignment(self.belief)
-        else:
-            # Fallback to default MinSum behavior if no computator
-            return int(np.argmin(self.belief))
+
+        # Fallback to default MinSum behavior if no computator support
+        return int(np.argmin(self.belief))
 
     def __str__(self) -> str:
         """Returns the uppercase name of the agent."""
@@ -243,7 +243,8 @@ class FactorAgent(FGAgent):
         """
         if self.computator and self.cost_table is not None and self.inbox:
             messages = self.computator.compute_R(
-                cost_table=self.cost_table, incoming_messages=self.inbox
+                cost_table=self.cost_table, 
+                incoming_messages=self.inbox
             )
             self.mailer.stage_sending(messages)
 

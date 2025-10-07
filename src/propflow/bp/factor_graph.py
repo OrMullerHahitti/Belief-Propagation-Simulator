@@ -101,7 +101,7 @@ class FactorGraph:
     @property
     def curr_assignment(self) -> Dict[VariableAgent, int]:
         """dict: The current assignment for all variables in the graph."""
-        return {node: node.curr_assignment for node in self.variables}
+        return {node: int(node.curr_assignment) for node in self.variables}
 
     @property
     def edges(self) -> Dict[FactorAgent, List[VariableAgent]]:
