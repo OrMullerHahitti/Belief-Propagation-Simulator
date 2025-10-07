@@ -5,13 +5,25 @@ PYTHON := $(VENV)/bin/python
 PIP := $(PYTHON) -m pip
 UV ?= uv
 
-.PHONY: help venv install fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example
+.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example
 
 help: ; @grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS=":.*## "} {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}' ## Show this help
 
 venv: ; python -m venv $(VENV) ## Create virtual environment
 
 install: venv ; $(PIP) install -U pip && $(PIP) install -e '.[dev]' ## Install project in dev mode
+
+# Added helper to align the uv-managed environment with declared runtime deps.
+sync: ; $(UV) sync ## Sync runtime dependencies into the uv environment
+
+# Added helper to sync development extras (pytest, linters, notebooks, etc.).
+sync-dev: ; $(UV) sync --extra dev ## Sync runtime + dev dependencies via uv
+
+# Added shortcut to run the full pre-commit suite locally before pushing.
+precommit: ; $(UV) run pre-commit run -a ## Execute all pre-commit hooks across the repo
+
+# Added composite check mirroring common CI (format check, lint, type-check, tests).
+ci: fmt-check lint type test ## Run the main quality gates locally
 
 fmt: ; $(PYTHON) -m black src tests ## Format code with black
 
