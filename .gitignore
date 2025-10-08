@@ -45,3 +45,4 @@ results/
 .gemini/
 gha-creds-*.json
 CLAUDE.MD
+AGENT.md

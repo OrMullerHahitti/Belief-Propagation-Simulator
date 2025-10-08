@@ -50,7 +50,7 @@ PropFlow has been thoroughly reviewed and is **ready for PyPI release**. All cri
 ### Metadata
 ```toml
 name = "propflow"
-version = "0.1.0"
+version = "0.1.1"
 description = "Highly configurable belief propagation simulator for factor graphs"
 license = "MIT"
 requires-python = ">=3.10"
@@ -169,9 +169,10 @@ python -c "from propflow import BPEngine; print('✓ PyPI install successful')"
 ```
 
 ### 4. Post-Release
+
 ```bash
 # Tag release
-git tag -a v0.1.0 -m "Release version 0.1.0"
+git tag -a v0.1.1 -m "Release version 0.1.0"
 git push origin v0.1.0
 
 # Create GitHub release with notes from CHANGELOG.md
