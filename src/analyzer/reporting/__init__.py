@@ -1,6 +1,6 @@
 """Modular snapshot analytics suited for report generation and future tooling."""
 
-from .analyzer import SnapshotAnalyzer
+from .analyzer import SnapshotAnalyzer, AnalysisReport
 from .snapshot_parser import (
     MessageRecord,
     SnapshotRecord,
@@ -11,6 +11,7 @@ from .snapshot_parser import (
 
 __all__ = [
     "SnapshotAnalyzer",
+    "AnalysisReport",
     "MessageRecord",
     "SnapshotRecord",
     "parse_snapshots",
