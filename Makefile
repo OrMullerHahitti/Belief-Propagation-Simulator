@@ -52,3 +52,16 @@ docs-example: ; $(PYTHON) examples/minsum_basic.py ## Run example to smoke-test 
 clean: ; rm -rf dist build src/*.egg-info __pycache__ .pytest_cache .mypy_cache htmlcov .coverage ## Remove build/test artifacts
 
 distclean: clean ; rm -rf $(VENV) ## Remove artifacts and virtualenv
+
+.PHONY: start-python notebook repl
+
+start-python: ## Create (if needed) .venv via uv and drop into an activated shell
+	@test -d .venv || $(UV) venv --seed
+	@echo "Launching shell with .venv activated (exit to return)."
+	@$(SHELL) -lc "source .venv/bin/activate && exec $$SHELL"
+
+notebook: ## Launch Jupyter Lab inside the uv-managed environment
+	$(UV) run jupyter lab
+
+repl: ## Open a Python REPL with project dependencies via uv
+	$(UV) run python
