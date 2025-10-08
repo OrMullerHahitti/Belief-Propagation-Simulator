@@ -436,6 +436,32 @@ Each snapshot contains:
 - Neutral message counts (plateaus)
 - Message directions and argmins
 
+### Snapshot Analyzer & Reporting
+
+```python
+from analyzer.reporting import SnapshotAnalyzer, AnalysisReport, parse_snapshots
+
+# Convert JSON payloads collected by EngineSnapshotRecorder
+records = parse_snapshots(snapshots)
+
+# Build the analyzer (optionally registering factor cost tables for neutrality checks)
+analyzer = SnapshotAnalyzer(records, max_cycle_len=6)
+analyzer.register_factor_cost("f12", cost_table)
+
+# Derive neutral covers and export reporting artefacts
+cover, _ = analyzer.scc_greedy_neutral_cover(step_idx=0, alpha={})
+report = AnalysisReport(analyzer)
+summary = report.to_json(step_idx=0)
+report.to_csv("results/analysis", step_idx=0)
+report.plots("results/analysis", step_idx=0, include_graph=True)
+```
+
+The CLI wrapper mirrors the same flow:
+
+```
+bp-analyze --snapshots results/my_run.json --out results/analysis --plot --cover
+```
+
 ### Analysis Workflows
 
 1. **Convergence diagnosis**: Plot cost + neutral message ratio over time

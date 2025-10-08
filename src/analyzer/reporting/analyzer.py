@@ -1,6 +1,9 @@
 """Core analysis utilities for parsed snapshot records."""
 from __future__ import annotations
 
+import csv
+import json
+from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Mapping, Sequence, Tuple
 
@@ -514,4 +517,97 @@ def _longest_path_length(graph: nx.DiGraph) -> int | None:
     return max(distances.values(), default=0)
 
 
-__all__ = ["SnapshotAnalyzer"]
+class AnalysisReport:
+    """Aggregate convenience helpers for turning analyzer outputs into artefacts."""
+
+    def __init__(self, analyzer: SnapshotAnalyzer) -> None:
+        self._analyzer = analyzer
+
+    def to_json(
+        self,
+        step_idx: int,
+        *,
+        include_cover: bool = True,
+        compute_spectral_radius: bool = True,
+    ) -> Dict[str, object]:
+        analyzer = self._analyzer
+        beliefs = analyzer.beliefs_per_variable()
+        cover, residual = analyzer.scc_greedy_neutral_cover(step_idx, alpha={}) if include_cover else ([], analyzer.dependency_digraph(step_idx))
+        nilpotent = analyzer.nilpotent_index(step_idx)
+        dag_bound = analyzer._dag_bound_cache.get(step_idx)
+        block_norms = analyzer.block_norms(step_idx)
+        cycles = analyzer.cycle_metrics(step_idx)
+        ratios = analyzer.recommend_split_ratios(step_idx)
+
+        spectral_radius = None
+        if compute_spectral_radius:
+            matrix = analyzer.jacobian(step_idx)
+            dense = matrix.toarray() if sparse.issparse(matrix) else np.asarray(matrix, dtype=float)
+            spectral_radius = float(np.max(np.abs(np.linalg.eigvals(dense)))) if dense.size else 0.0
+
+        return {
+            "step": step_idx,
+            "beliefs": beliefs,
+            "nilpotent_index": nilpotent,
+            "longest_path_bound": dag_bound,
+            "block_norms": block_norms,
+            "cycle_metrics": cycles,
+            "neutral_cover": cover if include_cover else None,
+            "recommended_alpha": ratios,
+            "spectral_radius": spectral_radius,
+            "residual_nodes": residual.number_of_nodes() if include_cover else None,
+        }
+
+    def to_csv(self, base_dir: str | Path, *, step_idx: int) -> None:
+        base = Path(base_dir)
+        base.mkdir(parents=True, exist_ok=True)
+        beliefs = self._analyzer.beliefs_per_variable()
+        steps = range(len(next(iter(beliefs.values()), [])))
+
+        with (base / "beliefs.csv").open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            header = ["step"] + list(beliefs.keys())
+            writer.writerow(header)
+            for step in steps:
+                row = [step]
+                for var in beliefs:
+                    seq = beliefs[var]
+                    row.append(seq[step] if step < len(seq) else None)
+                writer.writerow(row)
+
+        summary = self.to_json(step_idx, include_cover=True, compute_spectral_radius=True)
+        with (base / "metrics.csv").open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            for key, value in summary.items():
+                writer.writerow([key, value])
+
+    def plots(self, base_dir: str | Path, *, step_idx: int, include_graph: bool = False) -> None:
+        base = Path(base_dir)
+        base.mkdir(parents=True, exist_ok=True)
+
+        import matplotlib.pyplot as plt
+
+        beliefs = self._analyzer.beliefs_per_variable()
+        steps = range(len(next(iter(beliefs.values()), [])))
+        plt.figure(figsize=(10, 5))
+        for var, series in beliefs.items():
+            plt.plot(steps, series, marker="o", label=var)
+        plt.xlabel("Step")
+        plt.ylabel("Argmin index")
+        plt.title("Belief argmin trajectories")
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(base / "beliefs.png", dpi=150)
+        plt.close()
+
+        if include_graph:
+            graph = self._analyzer.dependency_digraph(step_idx)
+            plt.figure(figsize=(8, 6))
+            pos = nx.spring_layout(graph, seed=42)
+            nx.draw_networkx(graph, pos=pos, node_size=200, with_labels=False, arrows=True)
+            plt.savefig(base / "dependency_graph.png", dpi=150)
+            plt.close()
+
+
+__all__ = ["SnapshotAnalyzer", "AnalysisReport"]
