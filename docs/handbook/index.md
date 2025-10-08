@@ -12,6 +12,7 @@ The handbook collects operational guidance, deployment playbooks, and day-to-day
 05_development_workflow
 06_reference
 07_troubleshooting
+08_analyzer_reporting
 ```
 
 Additional architecture diagrams live alongside the chapters:
