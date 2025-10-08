@@ -48,6 +48,8 @@ class SnapshotAnalyzer:
         self._max_cycle_len = int(max_cycle_len)
         self._domain = dict(domain or self._infer_domain(self._snapshots[0]))
         self._factor_costs: Dict[str, np.ndarray] = {}
+        self._dag_bound_cache: Dict[int, int | None] = {}
+        self._nilpotent_cache: Dict[int, int | None] = {}
 
     # ------------------------------------------------------------------
     # Registration helpers
@@ -106,21 +108,7 @@ class SnapshotAnalyzer:
     def jacobian(self, step_idx: int) -> np.ndarray | sparse.spmatrix:
         """Construct the Jacobian matrix in difference coordinates for a step."""
         record = self._snapshot_by_index(step_idx)
-        delta_q, delta_r = self.difference_coordinates(step_idx)
-
-        q_arrays = {key: self._as_array(value) for key, value in delta_q.items()}
-        r_arrays = {key: self._as_array(value) for key, value in delta_r.items()}
-
-        q_coords: List[_Coordinate] = []
-        r_coords: List[_Coordinate] = []
-
-        for (var, factor), array in q_arrays.items():
-            for label in range(array.size):
-                q_coords.append(_Coordinate("Q", var, factor, label))
-
-        for (factor, var), array in r_arrays.items():
-            for label in range(array.size):
-                r_coords.append(_Coordinate("R", factor, var, label))
+        q_arrays, r_arrays, q_coords, r_coords = self._coordinate_arrays(step_idx)
 
         total_dim = len(q_coords) + len(r_coords)
         matrix: np.ndarray | sparse.lil_matrix
@@ -176,12 +164,7 @@ class SnapshotAnalyzer:
     def dependency_digraph(self, step_idx: int) -> nx.DiGraph:
         """Construct the dependency digraph induced by the Jacobian."""
         matrix = self.jacobian(step_idx)
-        delta_q, delta_r = self.difference_coordinates(step_idx)
-
-        q_arrays = {key: self._as_array(value) for key, value in delta_q.items()}
-        r_arrays = {key: self._as_array(value) for key, value in delta_r.items()}
-        q_coords = [_Coordinate("Q", var, factor, label) for (var, factor), arr in q_arrays.items() for label in range(arr.size)]
-        r_coords = [_Coordinate("R", factor, var, label) for (factor, var), arr in r_arrays.items() for label in range(arr.size)]
+        _, _, q_coords, r_coords = self._coordinate_arrays(step_idx)
         coord_list = q_coords + r_coords
 
         graph = nx.DiGraph()
@@ -246,19 +229,158 @@ class SnapshotAnalyzer:
     # Future extensions (implemented in subsequent steps)
     # ------------------------------------------------------------------
     def scc_greedy_neutral_cover(self, step_idx: int, *, alpha: Mapping[str, float], kappa: float = 0.0, delta: float = 1e-3):
-        raise NotImplementedError
+        graph = self.dependency_digraph(step_idx).copy()
+        record = self._snapshot_by_index(step_idx)
+        q_messages = self._index_messages(record.messages, flow="variable_to_factor")
+        cover: List[Dict[str, object]] = []
+
+        while True:
+            components = [comp for comp in nx.strongly_connected_components(graph) if len(comp) > 1 or any(graph.has_edge(node, node) for node in comp)]
+            if not components:
+                break
+            candidate_node = None
+            candidate_data: Dict[str, object] | None = None
+            for comp in components:
+                for node in comp:
+                    data = graph.nodes[node]
+                    if data.get("kind") != "R":
+                        continue
+                    factor = str(data["sender"])
+                    to_var = str(data["recipient"])
+                    from_var = self._pick_neighbor_variable(q_messages, factor, to_var)
+                    if from_var is None:
+                        continue
+                    try:
+                        neutral, label = self.neutral_step_test(step_idx, factor, from_var, to_var)
+                    except KeyError:
+                        continue
+                    if not neutral:
+                        continue
+                    slack = self._neutral_slack(step_idx, factor, from_var)
+                    entry = {
+                        "factor": factor,
+                        "from_var": from_var,
+                        "to_var": to_var,
+                        "slack": slack,
+                        "label": label,
+                    }
+                    if candidate_data is None or float(slack) > float(candidate_data["slack"]):
+                        candidate_node = node
+                        candidate_data = entry
+            if candidate_node is None or candidate_data is None:
+                break
+            cover.append(candidate_data)
+            graph.remove_node(candidate_node)
+
+        return cover, graph
 
     def nilpotent_index(self, step_idx: int) -> int | None:
-        raise NotImplementedError
+        if step_idx in self._nilpotent_cache:
+            return self._nilpotent_cache[step_idx]
+
+        matrix = self.jacobian(step_idx)
+        dense = matrix.toarray() if sparse.issparse(matrix) else np.asarray(matrix, dtype=float)
+        if dense.size == 0:
+            self._dag_bound_cache[step_idx] = 0
+            self._nilpotent_cache[step_idx] = 0
+            return 0
+
+        dag_graph = self.dependency_digraph(step_idx)
+        dag_bound = _longest_path_length(dag_graph)
+        self._dag_bound_cache[step_idx] = dag_bound
+
+        power = dense.copy()
+        for idx in range(1, dense.shape[0] + 1):
+            if np.allclose(power, 0.0, atol=1e-9):
+                self._nilpotent_cache[step_idx] = idx
+                return idx
+            power = power @ dense
+
+        self._nilpotent_cache[step_idx] = None
+        return None
 
     def block_norms(self, step_idx: int) -> Dict[str, float]:
-        raise NotImplementedError
+        matrix = self.jacobian(step_idx)
+        dense = matrix.toarray() if sparse.issparse(matrix) else np.asarray(matrix, dtype=float)
+        q_arrays, r_arrays, _, _ = self._coordinate_arrays(step_idx)
+        q_dim = sum(arr.size for arr in q_arrays.values())
+        r_dim = sum(arr.size for arr in r_arrays.values())
+
+        if q_dim + r_dim == 0:
+            return {"A": 0.0, "B": 0.0, "P": 0.0}
+
+        A_block = dense[:q_dim, q_dim: q_dim + r_dim]
+        B_block = dense[q_dim: q_dim + r_dim, :q_dim]
+        P_block = dense[q_dim: q_dim + r_dim, q_dim: q_dim + r_dim]
+
+        def _inf_norm(block: np.ndarray) -> float:
+            if block.size == 0:
+                return 0.0
+            return float(np.max(np.sum(np.abs(block), axis=1)))
+
+        return {
+            "A": _inf_norm(A_block),
+            "B": _inf_norm(B_block),
+            "P": _inf_norm(P_block),
+        }
 
     def cycle_metrics(self, step_idx: int) -> Dict[str, object]:
-        raise NotImplementedError
+        graph = self.dependency_digraph(step_idx)
+        cycles: List[List[int]] = []
+        aligned = 0
+        record = self._snapshot_by_index(step_idx)
+        q_messages = self._index_messages(record.messages, flow="variable_to_factor")
+
+        for cycle in nx.simple_cycles(graph):
+            if self._max_cycle_len and len(cycle) > self._max_cycle_len:
+                continue
+            cycles.append(cycle)
+            aligned += sum(1 for node in cycle if graph.nodes[node].get("kind") == "R")
+
+        has_neutral = False
+        for cycle in cycles:
+            for node in cycle:
+                data = graph.nodes[node]
+                if data.get("kind") != "R":
+                    continue
+                factor = str(data["sender"])
+                to_var = str(data["recipient"])
+                from_var = self._pick_neighbor_variable(q_messages, factor, to_var)
+                if from_var is None:
+                    continue
+                try:
+                    neutral, _ = self.neutral_step_test(step_idx, factor, from_var, to_var)
+                except KeyError:
+                    neutral = False
+                if neutral:
+                    has_neutral = True
+                    break
+            if has_neutral:
+                break
+
+        return {
+            "num_cycles": len(cycles),
+            "aligned_hops": aligned,
+            "has_neutral": has_neutral,
+        }
 
     def recommend_split_ratios(self, step_idx: int) -> Dict[str, float]:
-        raise NotImplementedError
+        record = self._snapshot_by_index(step_idx)
+        q_messages = self._index_messages(record.messages, flow="variable_to_factor")
+        ratios: Dict[str, float] = {}
+        for factor, table in self._factor_costs.items():
+            slacks: List[float] = []
+            for (var, target), _message in q_messages.items():
+                if target != factor:
+                    continue
+                slack = self._neutral_slack(step_idx, factor, var)
+                slacks.append(slack)
+            if not slacks:
+                continue
+            worst = max(slacks)
+            suggestion = 1.0 / (1.0 + worst) if worst > 0 else 1.0
+            ratios[factor] = float(max(0.0, min(1.0, suggestion)))
+        return ratios
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -313,12 +435,83 @@ class SnapshotAnalyzer:
                     domain[message.recipient] = max(domain.get(message.recipient, 0), values.size)
         return domain
 
+    def _coordinate_arrays(
+        self, step_idx: int
+    ) -> tuple[
+        Dict[tuple[str, str], np.ndarray],
+        Dict[tuple[str, str], np.ndarray],
+        List[_Coordinate],
+        List[_Coordinate],
+    ]:
+        delta_q, delta_r = self.difference_coordinates(step_idx)
+        q_arrays = {key: self._as_array(value) for key, value in delta_q.items()}
+        r_arrays = {key: self._as_array(value) for key, value in delta_r.items()}
+
+        q_coords: List[_Coordinate] = []
+        for (var, factor), array in q_arrays.items():
+            for label in range(array.size):
+                q_coords.append(_Coordinate("Q", var, factor, label))
+
+        r_coords: List[_Coordinate] = []
+        for (factor, var), array in r_arrays.items():
+            for label in range(array.size):
+                r_coords.append(_Coordinate("R", factor, var, label))
+
+        return q_arrays, r_arrays, q_coords, r_coords
+
+    def _pick_neighbor_variable(
+        self,
+        q_messages: Mapping[tuple[str, str], MessageRecord],
+        factor: str,
+        excluded_var: str,
+    ) -> str | None:
+        for (var, target), _message in q_messages.items():
+            if target == factor and var != excluded_var:
+                return str(var)
+        return None
+
+    def _neutral_slack(self, step_idx: int, factor: str, from_var: str) -> float:
+        record = self._snapshot_by_index(step_idx)
+        q_messages = self._index_messages(record.messages, flow="variable_to_factor")
+        message = q_messages.get((from_var, factor))
+        if message is None:
+            return 0.0
+        cost = self._factor_costs.get(factor)
+        if cost is None:
+            return 0.0
+        values = np.asarray(message.values, dtype=float)
+        if cost.shape == (2, 2) and values.size == 2:
+            theta0, theta1 = binary_thresholds(cost)
+            delta = float(values[1] - values[0])
+            if delta >= theta0:
+                return float(delta - theta0)
+            if delta <= -theta1:
+                return float(-theta1 - delta)
+            return float(min(theta0 - delta, delta + theta1))
+        gaps, _ = multilabel_gaps(cost)
+        winner = int(message.argmin_index) if message.argmin_index is not None else int(np.argmin(values))
+        query = values - values[winner]
+        slack_vec = query - gaps[winner]
+        return float(np.min(slack_vec))
+
 
 def _set_entry(matrix: np.ndarray | sparse.lil_matrix, row: int, col: int, value: float) -> None:
     if sparse.issparse(matrix):
         matrix[row, col] = value
     else:
         matrix[row, col] = value
+
+
+def _longest_path_length(graph: nx.DiGraph) -> int | None:
+    if not nx.is_directed_acyclic_graph(graph):
+        return None
+    distances: Dict[int, int] = {}
+    for node in nx.topological_sort(graph):
+        best = 0
+        for predecessor in graph.predecessors(node):
+            best = max(best, distances.get(predecessor, 0) + 1)
+        distances[node] = max(distances.get(node, 0), best)
+    return max(distances.values(), default=0)
 
 
 __all__ = ["SnapshotAnalyzer"]
