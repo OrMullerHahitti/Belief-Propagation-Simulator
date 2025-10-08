@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Tuple
 import numpy as np
-
+from propflow.core.protocols import Computator
 from ..core.components import Message
 
 try:
@@ -23,7 +23,7 @@ def _require_torch():
         ) from _TORCH_IMPORT_ERROR
 
 
-class SoftMinTorchComputator:
+class SoftMinTorchComputator(Computator):
     """
     Differentiable soft-min computator (log-sum-exp smoothing) for factor→variable messages.
 
@@ -70,8 +70,8 @@ class SoftMinTorchComputator:
             return []
 
         _require_torch()
-        device = self._device or ("cuda" if torch.cuda.is_available() else "cpu")
-        dtype = self._dtype or torch.float32
+        device = self._device or ("cuda" if torch.cuda.is_available() else "cpu") # type: ignore
+        dtype = self._dtype or torch.float32  # type: ignore
 
         k = cost_table.ndim
         shape = cost_table.shape

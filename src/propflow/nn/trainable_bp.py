@@ -55,15 +55,15 @@ class TrainableBPModule(nn.Module):
 
         self.fg = factor_graph
         self.tau = tau
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.dtype = dtype or torch.float32
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu") # type: ignore
+        self.dtype = dtype or torch.float32 # type: ignore
 
         # Create learnable cost tables as nn.Parameters
         self.cost_tables = nn.ParameterDict()
         for factor in self.fg.factors:
             # Initialize from current cost table
-            ct_np = factor.cost_table.costs
-            ct_tensor = torch.tensor(ct_np, device=self.device, dtype=self.dtype)
+            ct_np = factor.cost_table.costs # type: ignore
+            ct_tensor = torch.tensor(ct_np, device=self.device, dtype=self.dtype) # type: ignore
             self.cost_tables[factor.name] = nn.Parameter(ct_tensor)
 
         # Store variable info
@@ -76,7 +76,7 @@ class TrainableBPModule(nn.Module):
             neighbors = list(self.fg.G.neighbors(factor))
             self.factor_to_vars[factor.name] = [v.name for v in neighbors]
 
-    def forward(self, max_iter: int = 20) -> Tuple["torch.Tensor", Dict[str, int]]:
+    def forward(self, max_iter: int = 20) -> Tuple["torch.Tensor", Dict[str, int]]: # type: ignore
         """
         Run BP iterations and return final beliefs + assignments.
 
@@ -88,18 +88,18 @@ class TrainableBPModule(nn.Module):
             assignments: Dict mapping variable names to their argmin assignments
         """
         # Initialize messages: {(sender, recipient): tensor}
-        messages: Dict[Tuple[str, str], "torch.Tensor"] = {}
+        messages: Dict[Tuple[str, str], "torch.Tensor"] = {} # type: ignore
 
         # Initialize all messages to zeros
         for factor_name, var_names in self.factor_to_vars.items():
             for var_name in var_names:
                 domain = self.var_domains[var_name]
                 # Q: var -> factor
-                messages[(var_name, factor_name)] = torch.zeros(
+                messages[(var_name, factor_name)] = torch.zeros( # type: ignore
                     domain, device=self.device, dtype=self.dtype
                 )
                 # R: factor -> var
-                messages[(factor_name, var_name)] = torch.zeros(
+                messages[(factor_name, var_name)] = torch.zeros(# type: ignore
                     domain, device=self.device, dtype=self.dtype
                 )
 
