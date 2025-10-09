@@ -354,21 +354,26 @@ Chain of Creation
 Use this checklist when building your own experiments:
 
 1. **Choose a graph strategy**
-   * Prefer :class:`propflow.utils.FGBuilder` for standard cycles or random
+
+   - Prefer :class:`propflow.utils.FGBuilder` for standard cycles or random
      graphs.
-   * Fall back to manual agent construction when you need custom structures.
+   - Fall back to manual agent construction when you need custom structures.
 2. **Instantiate the factor graph**
-   * Pass lists of variable and factor agents plus an ordered ``edges`` map.
-   * Confirm domain sizes match the factor expectations.
+
+   - Pass lists of variable and factor agents plus an ordered ``edges`` map.
+   - Confirm domain sizes match the factor expectations.
 3. **Pick an engine configuration**
-   * Select a ``computator`` and, if needed, an engine variant with policies.
-   * Enable snapshots or convergence rules to match your evaluation criteria.
+
+   - Select a ``computator`` and, if needed, an engine variant with policies.
+   - Enable snapshots or convergence rules to match your evaluation criteria.
 4. **Run experiments**
-   * Call :meth:`BPEngine.run` for single cases.
-   * Use :class:`Simulator` to fan out across many graphs/configurations.
+
+   - Call :meth:`BPEngine.run` for single cases.
+   - Use :class:`Simulator` to fan out across many graphs/configurations.
 5. **Analyse results**
-   * Inspect :attr:`engine.history` for costs, beliefs, and assignments.
-   * Persist and revisit runs with :mod:`propflow.analyzer`.
+
+   - Inspect :attr:`engine.history` for costs, beliefs, and assignments.
+   - Persist and revisit runs with :mod:`propflow.analyzer`.
 
 
 Custom Graph Checklist

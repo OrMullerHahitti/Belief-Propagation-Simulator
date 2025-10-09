@@ -1,7 +1,8 @@
 Examples
 ========
 
-This page contains complete examples for common use cases.
+These end-to-end snippets mirror the recommended top-down pipeline and extend
+the :doc:`quickstart` with richer scenarios.
 
 Basic Graph Coloring
 --------------------
@@ -165,6 +166,7 @@ Track and analyze convergence behavior:
 .. code-block:: python
 
    from propflow import BPEngine, FGBuilder
+   from propflow.configs import create_random_int_table
    from propflow.snapshots import SnapshotsConfig
    import matplotlib.pyplot as plt
 
