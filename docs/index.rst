@@ -46,6 +46,19 @@ Basic Example:
 
    print(f"Solution: {engine.assignments}")
 
+Learning Path
+-------------
+
+PropFlow's documentation follows the same top-down pipeline implemented in the
+runtime:
+
+1. :doc:`quickstart` gives you runnable snippets using the recommended flow
+   (``FGBuilder`` → engine → simulator).
+2. :doc:`user_guide` dives into each layer in detail—from agents up through
+   analyzer tooling—highlighting when to rely on helpers versus manual wiring.
+3. :doc:`handbook/index` covers operational practices, deployments, and deeper
+   troubleshooting once you're running larger studies.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
