@@ -15,7 +15,31 @@ PropFlow is a belief propagation (BP) experimentation platform. It builds factor
 | **History & Snapshots** | Built-in engine history stores assignments, costs, and optional BCT artefacts. External snapshot tooling (`src/analyzer/snapshot_recorder.py`) captures per-iteration state for analysis or visualisation. |
 | **Analyzer Utilities** | Lightweight visual tools such as the `SnapshotVisualizer` (`src/analyzer/snapshot_visualizer.py`) for interpreting minimisers over time. |
 
-## 3. Directory Layout
+## 3. Creation Pipeline (Top-Down)
+
+PropFlow’s runtime mirrors the documentation flow:
+
+1. **Agents** — `VariableAgent` and `FactorAgent` live in `src/propflow/core/agents.py`.
+   They encapsulate message mailboxes and call into computators.
+2. **Factor graphs** — `FactorGraph` (`src/propflow/bp/factor_graph.py`) stitches agents
+   together, assigns dimension indices, and triggers cost-table creation. Use
+   `FGBuilder` helpers (`src/propflow/utils/fg_utils.py`) wherever possible.
+3. **Engines** — `BPEngine` and variants (`src/propflow/bp/engine_base.py`,
+   `src/propflow/bp/engines.py`) orchestrate the synchronous message schedule,
+   apply policies, and record history.
+4. **Simulator** — `Simulator` (`src/propflow/simulator.py`) executes batches of
+   engine configurations over one or many graphs, typically for benchmarks or
+   parameter sweeps.
+5. **Analyzer** — Modules under `src/analyzer/` capture snapshots and visualise
+   results, letting you inspect or report on specific runs.
+
+The quickest path for an end user is thus:
+``FGBuilder → BPEngine (or variant) → Simulator (optional) → Analyzer tooling``.
+Drop down to manual factor graph construction only when you need a topology that
+`FGBuilder` does not support, taking care to supply ordered factor–variable edge
+lists so cost-table dimensions remain aligned.
+
+## 4. Directory Layout
 
 ```
 src/
@@ -38,7 +62,7 @@ docs/handbook/     # Deployment & operations handbook (this document)
 configs/           # Logs and generated artefacts (excluded from version control)
 ```
 
-## 4. Data Flow Through an Engine Step
+## 5. Data Flow Through an Engine Step
 
 1. **Variable Phase**: Variable agents read inbox messages (`Mailer` component), compute outgoing Q-messages via the assigned computator (default Min-Sum), and stage them.
 2. **Variable Send & Reset**: Messages are dispatched; inboxes are cleared in preparation for the next iteration.
@@ -49,13 +73,13 @@ configs/           # Logs and generated artefacts (excluded from version control
 
 This loop repeats for each iteration until convergence or the configured maximum is reached.
 
-## 5. Extensibility Points
+## 6. Extensibility Points
 - **Custom Engines**: Subclass `BPEngine` and override hooks (`post_var_compute`, `pre_factor_compute`, etc.). Register the class in simulation configs for reuse.
 - **Policies**: Implement new policies under `src/propflow/policies` and wire them into engines or simulator configs.
 - **Cost Table Factories**: Extend `CTFactory` registries in `src/propflow/configs/global_config_mapping.py` to generate domain-specific cost tables.
 - **Analysis**: Use `EngineSnapshotRecorder` to capture structured outputs suitable for dashboards, machine learning pipelines, or audits.
 
-## 6. Operational Roles
+## 7. Operational Roles
 - **Simulation Engineer**: Configures factor graphs, chooses engine variants, evaluates convergence metrics.
 - **Algorithm Researcher**: Modifies computators, policies, or engines to test new BP strategies.
 - **Data Analyst**: Uses snapshot recordings and visualisers to interpret message dynamics and assignment stability.

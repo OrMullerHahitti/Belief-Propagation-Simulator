@@ -1,5 +1,9 @@
 # Running Simulations & Tools
 
+This chapter assumes you already know how to assemble graphs and engines (see
+the :doc:`../user_guide`). Here we focus on operationalising the flow:
+``FGBuilder → engine → Simulator → analyzer``.
+
 ## 1. Quick Smoke Test (`main.py`)
 The repository root includes `main.py`, which generates random factor graphs and runs multiple engine variants.
 
@@ -20,13 +24,18 @@ What it does:
 
 ```python
 from propflow.simulator import Simulator
-from propflow.utils.fg_utils import FGBuilder
+from propflow.utils import FGBuilder
 from propflow.bp.engines import BPEngine
+from propflow.configs import CTFactory
 
-engines = {
-    "baseline": {"class": BPEngine},
-}
-fg = FGBuilder.build_random_graph(num_vars=20, domain_size=5, density=0.3)
+engines = {"baseline": {"class": BPEngine}}
+fg = FGBuilder.build_random_graph(
+    num_vars=20,
+    domain_size=5,
+    ct_factory=CTFactory.random_int.fn,
+    ct_params={"low": 0, "high": 25},
+    density=0.3,
+)
 
 sim = Simulator(engines)
 results = sim.run_simulations([fg], max_iter=1000)
@@ -48,7 +57,7 @@ uv run bp-sim --version
 ## 4. Snapshot Capture & Analysis
 
 ### 4.1 EngineSnapshotRecorder
-`src/analyzer/snapshot_recorder.py` provides an external recorder that keeps engine internals untouched.
+`src/analyzer/snapshot_recorder.py` provides an external recorder that keeps engine internals untouched. Pair it with :class:`propflow.snapshots.SnapshotsConfig` when you need deterministic capture.
 
 ```python
 from analyzer.snapshot_recorder import EngineSnapshotRecorder
