@@ -48,27 +48,20 @@ from propflow import (
     create_random_int_table,
 )
 
-# 1. Define Variables and Factors
-var1 = VariableAgent(name="x1", domain=2)
-var2 = VariableAgent(name="x2", domain=2)
+# 1. get the ct_factory you want (from which function to create the cost table) using
+from propflow.utils import CTFactory
+ct_factory_fn = CTFactory.random_int.fn
 
-# Create a factor with a cost table that prefers different assignments
-# The cost table is a 2x2 matrix for the two variables, each with a domain of 2.
-factor = FactorAgent(
-    name="f12",
-    domain=2,
-    ct_creation_func=create_random_int_table,
-    param={"low": 1, "high": 100} # Params for the factory
-)
 
-# 2. Create the Factor Graph
-# A factor graph connects variables to factors.
-edges = {factor: [var1, var2]}
-factor_graph = FactorGraph(
-    variable_li=[var1, var2],
-    factor_li=[factor],
-    edges=edges
-)
+# 2. Use FGBuilder class to easily create all sorts of factor graphs
+factor_graph = FGBuilder.build_random_graph(
+            num_vars=50,
+            domain_size=10,
+            ct_factory=ct_factory_fn,
+            ct_params={"low": 100, "high": 200},
+            density=0.25,
+        )
+
 
 # 3. Initialize and Run the Engine
 # The engine orchestrates the message-passing process.
