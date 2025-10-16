@@ -12,7 +12,12 @@ from ..bp.engine_components import Cycle, Step
 from ..bp.factor_graph import FactorGraph
 from ..core.agents import VariableAgent
 from .search_agents import SearchVariableAgent, extend_variable_agent_for_search
-from .search_computator import DSAComputator, MGMComputator, SearchComputator
+from .search_computator import (
+    DSAComputator,
+    MGMComputator,
+    MGM2Computator,
+    SearchComputator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -252,6 +257,103 @@ class MGMEngine(SearchEngine):
             current_value = int(var.curr_assignment)
             if new_value != current_value:
                 var.curr_assignment = new_value
+                changes += 1
+
+        return step, changes
+
+
+class MGM2Engine(SearchEngine):
+    """Engine for the MGM2 algorithm allowing coordinated pair moves."""
+
+    def __init__(
+        self,
+        factor_graph: FactorGraph,
+        computator: MGM2Computator,
+        *,
+        name: str = "MGM2Engine",
+        max_iterations: int = 100,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            factor_graph=factor_graph,
+            computator=computator,
+            name=name,
+            max_iterations=max_iterations,
+            **kwargs,
+        )
+
+    def _variable_lookup(self) -> Dict[str, SearchVariableAgent]:
+        return {
+            var.name: var
+            for var in self.var_nodes
+            if isinstance(var, SearchVariableAgent)
+        }
+
+    def step(self, i: int = 0) -> Tuple[Step, int]:
+        step = Step(i)
+        computator = self.computator
+        if not isinstance(computator, MGM2Computator):
+            raise TypeError("MGM2Engine requires an MGM2Computator instance.")
+
+        computator.begin_iteration()
+        var_lookup = self._variable_lookup()
+
+        for var in var_lookup.values():
+            neighbours = self._neighbour_assignments(var)
+            computator.compute_decision(var, neighbours)
+
+        best_single_gain = 0.0
+        best_single_agent: Optional[str] = None
+        for name, info in computator.single_gains.items():
+            gain = float(info["gain"])
+            if gain > best_single_gain or (
+                gain == best_single_gain and best_single_agent and name < best_single_agent
+            ):
+                best_single_gain = gain
+                best_single_agent = name
+
+        best_pair_gain = 0.0
+        best_pair_data: Optional[Tuple[SearchVariableAgent, SearchVariableAgent, Tuple[int, int]]] = None
+        best_pair_names: Optional[Tuple[str, str]] = None
+        seen_pairs: set[Tuple[str, str]] = set()
+
+        for var in var_lookup.values():
+            for factor in self.graph.G.neighbors(var):
+                if getattr(factor, "type", None) != "factor":
+                    continue
+                for neighbour in self.graph.G.neighbors(factor):
+                    if neighbour is var or getattr(neighbour, "type", None) != "variable":
+                        continue
+                    if not isinstance(neighbour, SearchVariableAgent):
+                        continue
+                    key = tuple(sorted((var.name, neighbour.name)))
+                    if key in seen_pairs:
+                        continue
+                    pair_info = computator.evaluate_pair_gain(var, neighbour)
+                    seen_pairs.add(key)
+                    gain = float(pair_info["gain"])
+                    if gain > best_pair_gain or (
+                        gain == best_pair_gain and best_pair_names and key < best_pair_names
+                    ):
+                        best_pair_gain = gain
+                        best_pair_data = (var, neighbour, tuple(int(v) for v in pair_info["values"]))
+                        best_pair_names = key
+
+        changes = 0
+        if best_pair_data and best_pair_gain > max(best_single_gain, 0.0):
+            var_a, var_b, (val_a, val_b) = best_pair_data
+            if int(var_a.curr_assignment) != val_a:
+                var_a.curr_assignment = val_a
+                changes += 1
+            if int(var_b.curr_assignment) != val_b:
+                var_b.curr_assignment = val_b
+                changes += 1
+        elif best_single_agent and best_single_gain > 0.0:
+            info = computator.single_gains[best_single_agent]
+            target_value = int(info["best_value"])
+            agent = var_lookup[best_single_agent]
+            if int(agent.curr_assignment) != target_value:
+                agent.curr_assignment = target_value
                 changes += 1
 
         return step, changes
