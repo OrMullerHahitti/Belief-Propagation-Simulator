@@ -5,7 +5,7 @@ PYTHON := $(VENV)/bin/python
 PIP := $(PYTHON) -m pip
 UV ?= uv
 
-.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example
+.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example start-python notebook repl bump bump-patch bump-minor bump-major
 
 help: ; @grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS=":.*## "} {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}' ## Show this help
 
@@ -47,13 +47,25 @@ publish: check-dist ; $(UV) run twine upload dist/* ## Upload to PyPI
 
 release: check-dist publish ## Convenience alias for PyPI release
 
+# Version bumping targets
+bump: bump-patch ## Bump patch version (default)
+
+bump-patch: ## Bump patch version (e.g., 0.1.2 -> 0.1.3)
+	$(PYTHON) tools/bump_version.py . patch
+
+bump-minor: ## Bump minor version (e.g., 0.1.2 -> 0.2.0)
+	$(PYTHON) tools/bump_version.py . minor
+
+bump-major: ## Bump major version (e.g., 0.1.2 -> 1.0.0)
+	$(PYTHON) tools/bump_version.py . major
+
 docs-example: ; $(PYTHON) examples/minsum_basic.py ## Run example to smoke-test docs flow
 
 clean: ; rm -rf dist build src/*.egg-info __pycache__ .pytest_cache .mypy_cache htmlcov .coverage ## Remove build/test artifacts
 
 distclean: clean ; rm -rf $(VENV) ## Remove artifacts and virtualenv
 
-.PHONY: start-python notebook repl
+
 
 start-python: ## Create (if needed) .venv via uv and drop into an activated shell
 	@test -d .venv || $(UV) venv --seed
