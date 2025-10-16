@@ -46,3 +46,7 @@ results/
 gha-creds-*.json
 CLAUDE.MD
 AGENT.md
+.dockerfile
+.dockerignore
+Dockerfile
+compose.yaml

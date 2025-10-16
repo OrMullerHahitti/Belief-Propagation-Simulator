@@ -140,6 +140,17 @@ class SnapshotManager:
             return np.asarray(arr).tolist() if arr is not None else None
 
         data = rec.data
+
+        def serialize_winners(winners: Optional[Dict[Tuple[str, str, str], Dict[str, str]]]):
+            if not winners:
+                return None
+            grouped: Dict[str, Dict[str, Dict[str, str]]] = {}
+            for (f, v, label), assignment in winners.items():
+                edge_key = f"{f}->{v}"
+                slot = grouped.setdefault(edge_key, {})
+                slot[label] = dict(assignment)
+            return grouped
+
         meta = {
             "step": data.step, "lambda": data.lambda_, "dom": data.dom,
             "N_var": data.N_var, "N_fac": data.N_fac,
@@ -147,7 +158,7 @@ class SnapshotManager:
             "R": {f"{f}->{v}": to_list(vec) for (f, v), vec in data.R.items()},
             "block_norms": rec.jacobians.block_norms if rec.jacobians else None,
             "cycles": rec.cycles.to_dict() if rec.cycles else None,
-            "winners": rec.winners,
+            "winners": serialize_winners(rec.winners),
             "min_idx": {f"{u}->{f}": int(i) for (u, f), i in (rec.min_idx or {}).items()},
         }
         with (step_dir / "meta.json").open("w") as fh:
