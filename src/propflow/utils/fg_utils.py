@@ -9,6 +9,7 @@ import pickle
 import sys
 from typing import Callable, Dict, Any, List, Tuple
 from functools import lru_cache
+import random
 
 import networkx as nx
 import numpy as np
@@ -51,7 +52,15 @@ def _make_connections_density(
     variable_list: List[VariableAgent], density: float
 ) -> List[Tuple[VariableAgent, VariableAgent]]:
     """Creates a random graph of variable connections based on a given density."""
-    r_graph = nx.erdos_renyi_graph(len(variable_list), density)
+    num_vars = len(variable_list)
+    r_graph = nx.erdos_renyi_graph(num_vars, density)
+    if num_vars > 1 and not nx.is_connected(r_graph):
+        components = list(nx.connected_components(r_graph))
+        # Connect components sequentially to ensure a single connected component.
+        for comp_a, comp_b in zip(components, components[1:]):
+            u = random.choice(tuple(comp_a))
+            v = random.choice(tuple(comp_b))
+            r_graph.add_edge(u, v)
     variable_map = dict(enumerate(variable_list))
     full_graph = nx.relabel_nodes(r_graph, variable_map)
     return list(full_graph.edges())
