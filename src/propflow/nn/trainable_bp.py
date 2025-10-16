@@ -1,3 +1,9 @@
+'''
+This module is still in development and may change in future releases.
+its only purpose is to provide a differentiable BP implementation
+with learnable cost tables for end-to-end training. IT DOESNT WORK YET
+'''
+
 from __future__ import annotations
 
 from typing import List, Dict, Optional, Tuple
