@@ -2,8 +2,8 @@ import numpy as np
 
 from src.propflow.bp.factor_graph import FactorGraph
 from src.propflow.core.agents import FactorAgent, VariableAgent
-from src.propflow.search.search_computator import DSAComputator
-from src.propflow.search.search_engine import DSAEngine
+from src.propflow.search.search_computator import DSAComputator, MGMComputator
+from src.propflow.search.search_engine import DSAEngine, MGMEngine
 
 
 def _build_two_variable_graph() -> FactorGraph:
@@ -34,6 +34,21 @@ def test_dsa_engine_finds_optimum_assignment():
         variable.curr_assignment = 1
 
     result = engine.run(max_iter=3, save_csv=False, save_json=False)
+
+    assert result["best_assignment"] == {"x1": 0, "x2": 0}
+    assert result["best_cost"] == 0.0
+    assert engine.assignments == {"x1": 0, "x2": 0}
+
+
+def test_mgm_engine_coordinates_single_winner_per_iteration():
+    factor_graph = _build_two_variable_graph()
+    computator = MGMComputator(seed=0)
+    engine = MGMEngine(factor_graph=factor_graph, computator=computator, max_iterations=5)
+
+    for variable in engine.var_nodes:
+        variable.curr_assignment = 1
+
+    result = engine.run(max_iter=4, save_json=False, save_csv=False)
 
     assert result["best_assignment"] == {"x1": 0, "x2": 0}
     assert result["best_cost"] == 0.0
