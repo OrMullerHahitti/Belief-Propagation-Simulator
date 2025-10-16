@@ -100,6 +100,29 @@ def test_snapshot_manager_capture_and_retain(tmp_path, sample_engine, sample_ste
     assert payload["step"] == 2
 
 
+def test_snapshot_manager_serializes_winners(tmp_path, sample_engine, sample_step):
+    config = SnapshotsConfig(
+        compute_jacobians=True,
+        compute_block_norms=False,
+        compute_cycles=False,
+        retain_last=1,
+        save_each_step=True,
+        save_dir=str(tmp_path),
+    )
+    manager = SnapshotManager(config)
+    manager.capture_step(0, sample_step, sample_engine)
+    saved_dir = manager.save_step(0, tmp_path)
+    meta_path = saved_dir / "meta.json"
+    with meta_path.open() as fh:
+        payload = json.load(fh)
+    winners = payload["winners"]
+    assert winners is not None
+    edge_key = f"{sample_engine.factor_nodes[0].name}->{sample_engine.var_nodes[0].name}"
+    assert edge_key in winners
+    assert isinstance(winners[edge_key], dict)
+    assert winners[edge_key]
+
+
 def test_snapshot_manager_helpers():
     manager = SnapshotManager(SnapshotsConfig(compute_jacobians=False, compute_block_norms=False, compute_cycles=False))
     dom = {"x1": ["0", "1"], "x2": ["0", "1"]}
