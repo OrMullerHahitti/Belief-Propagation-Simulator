@@ -13,6 +13,9 @@ from src.propflow.search.search_engine import DSAEngine, MGMEngine, MGM2Engine
 def _build_two_variable_graph() -> FactorGraph:
     var_x = VariableAgent("x1", domain=2)
     var_y = VariableAgent("x2", domain=2)
+    # Start in a suboptimal configuration so search has work to do.
+    var_x._assignment = 1
+    var_y._assignment = 1
 
     def cost_table(_, domain_size: int, **__) -> np.ndarray:
         # Simple binary constraint that prefers the assignment (0, 0).
@@ -31,6 +34,9 @@ def _build_two_variable_graph() -> FactorGraph:
 def _build_pair_only_graph() -> FactorGraph:
     var_x = VariableAgent("x1", domain=2)
     var_y = VariableAgent("x2", domain=2)
+    # Require coordinated change from (1, 1) to (0, 0).
+    var_x._assignment = 1
+    var_y._assignment = 1
 
     def cost_table(_, domain_size: int, **__) -> np.ndarray:
         # Only the joint move to (0, 0) reduces the cost.
@@ -51,10 +57,6 @@ def test_dsa_engine_finds_optimum_assignment():
     computator = DSAComputator(probability=1.0, seed=0)
     engine = DSAEngine(factor_graph=factor_graph, computator=computator, max_iterations=5)
 
-    # Start from a deliberately suboptimal assignment.
-    for variable in engine.var_nodes:
-        variable.curr_assignment = 1
-
     result = engine.run(max_iter=3, save_csv=False, save_json=False)
 
     assert result["best_assignment"] == {"x1": 0, "x2": 0}
@@ -67,9 +69,6 @@ def test_mgm_engine_coordinates_single_winner_per_iteration():
     computator = MGMComputator(seed=0)
     engine = MGMEngine(factor_graph=factor_graph, computator=computator, max_iterations=5)
 
-    for variable in engine.var_nodes:
-        variable.curr_assignment = 1
-
     result = engine.run(max_iter=4, save_json=False, save_csv=False)
 
     assert result["best_assignment"] == {"x1": 0, "x2": 0}
@@ -81,9 +80,6 @@ def test_mgm2_engine_executes_pair_move_when_needed():
     factor_graph = _build_pair_only_graph()
     computator = MGM2Computator(seed=0)
     engine = MGM2Engine(factor_graph=factor_graph, computator=computator, max_iterations=5)
-
-    for variable in engine.var_nodes:
-        variable.curr_assignment = 1
 
     result = engine.run(max_iter=3, save_json=False, save_csv=False)
 
