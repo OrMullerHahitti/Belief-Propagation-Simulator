@@ -12,7 +12,7 @@ from ..bp.engine_components import Cycle, Step
 from ..bp.factor_graph import FactorGraph
 from ..core.agents import VariableAgent
 from .search_agents import SearchVariableAgent, extend_variable_agent_for_search
-from .search_computator import DSAComputator, SearchComputator
+from .search_computator import DSAComputator, MGMComputator, SearchComputator
 
 logger = logging.getLogger(__name__)
 
@@ -179,6 +179,79 @@ class DSAEngine(SearchEngine):
             current_value = int(var.curr_assignment)
             if new_value != current_value:
                 var.curr_assignment = int(new_value)
+                changes += 1
+
+        return step, changes
+
+
+class MGMEngine(SearchEngine):
+    """Engine for the Maximum Gain Messaging (MGM) algorithm."""
+
+    def __init__(
+        self,
+        factor_graph: FactorGraph,
+        computator: MGMComputator,
+        *,
+        name: str = "MGMEngine",
+        max_iterations: int = 100,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(
+            factor_graph=factor_graph,
+            computator=computator,
+            name=name,
+            max_iterations=max_iterations,
+            **kwargs,
+        )
+
+    def _gather_neighbour_gains(self, agent: SearchVariableAgent) -> Dict[str, float]:
+        gains: Dict[str, float] = {}
+        computator: MGMComputator = self.computator  # type: ignore[assignment]
+        for factor in self.graph.G.neighbors(agent):
+            if getattr(factor, "type", None) != "factor":
+                continue
+            for neighbour in self.graph.G.neighbors(factor):
+                if neighbour is agent or getattr(neighbour, "type", None) != "variable":
+                    continue
+                info = computator.agent_gains.get(neighbour.name, {})
+                gains[neighbour.name] = float(info.get("gain", 0.0))
+        return gains
+
+    def step(self, i: int = 0) -> Tuple[Step, int]:
+        step = Step(i)
+        computator = self.computator
+        if not isinstance(computator, MGMComputator):
+            raise TypeError("MGMEngine requires an MGMComputator instance.")
+
+        computator.begin_gain_phase()
+        for var in self.var_nodes:
+            if not isinstance(var, SearchVariableAgent):
+                continue
+            neighbours = self._neighbour_assignments(var)
+            computator.compute_decision(var, neighbours)
+
+        for var in self.var_nodes:
+            if not isinstance(var, SearchVariableAgent):
+                continue
+            neighbour_gains = self._gather_neighbour_gains(var)
+            computator.set_neighbour_gains(var.name, neighbour_gains)
+
+        computator.set_phase("decision")
+        proposals: Dict[SearchVariableAgent, int] = {}
+        for var in self.var_nodes:
+            if not isinstance(var, SearchVariableAgent):
+                continue
+            neighbours = self._neighbour_assignments(var)
+            decision = computator.compute_decision(var, neighbours)
+            if decision is None:
+                decision = var.curr_assignment
+            proposals[var] = int(decision)
+
+        changes = 0
+        for var, new_value in proposals.items():
+            current_value = int(var.curr_assignment)
+            if new_value != current_value:
+                var.curr_assignment = new_value
                 changes += 1
 
         return step, changes

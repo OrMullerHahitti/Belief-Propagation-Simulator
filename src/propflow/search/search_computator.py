@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import random
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import numpy as np
 
@@ -127,6 +127,28 @@ class SearchComputator(Computator, ABC):
             total_cost += float(cost_table[tuple(indices)])
         return total_cost
 
+    def best_improvement(
+        self, agent: Agent, neighbours_values: Optional[Dict[str, Any]] = None
+    ) -> Tuple[int, float, float]:
+        """Return the best value, gain, and current cost for ``agent``."""
+        neighbours_values = neighbours_values or {}
+        current_value = int(getattr(agent, "curr_assignment", 0))
+        current_cost = self.evaluate_cost(agent, current_value, neighbours_values)
+        best_value = current_value
+        best_gain = 0.0
+        domain_size = int(getattr(agent, "domain", 2))
+
+        for value in range(domain_size):
+            if value == current_value:
+                continue
+            candidate_cost = self.evaluate_cost(agent, value, neighbours_values)
+            gain = current_cost - candidate_cost
+            if gain > best_gain:
+                best_gain = gain
+                best_value = value
+
+        return best_value, best_gain, current_cost
+
     # ------------------------------------------------------------------#
     # Algorithm contract
     # ------------------------------------------------------------------#
@@ -151,21 +173,69 @@ class DSAComputator(SearchComputator):
     ) -> Any:
         neighbours_values = neighbours_values or {}
         current_value = int(getattr(agent, "curr_assignment", 0))
-        current_cost = self.evaluate_cost(agent, current_value, neighbours_values)
+        best_value, best_gain, _ = self.best_improvement(agent, neighbours_values)
 
-        best_value = current_value
-        best_cost = current_cost
-        domain_size = int(getattr(agent, "domain", 2))
-
-        for value in range(domain_size):
-            if value == current_value:
-                continue
-            candidate_cost = self.evaluate_cost(agent, value, neighbours_values)
-            if candidate_cost < best_cost:
-                best_cost = candidate_cost
-                best_value = value
-
-        if best_value != current_value:
-            if self._rng.random() <= self.probability:
-                return best_value
+        if best_gain <= 0.0:
+            return current_value
+        if self._rng.random() <= self.probability:
+            return best_value
         return current_value
+
+
+class MGMComputator(SearchComputator):
+    """Maximum Gain Messaging (MGM) computator."""
+
+    def __init__(self, *, seed: Optional[int] = None) -> None:
+        super().__init__(seed=seed)
+        self.phase = "gain"
+        self.agent_gains: Dict[str, Dict[str, Any]] = {}
+        self._neighbour_gains: Dict[str, Dict[str, float]] = {}
+
+    def begin_gain_phase(self) -> None:
+        self.phase = "gain"
+        self.agent_gains.clear()
+        self._neighbour_gains.clear()
+
+    def set_phase(self, phase: str) -> None:
+        self.phase = phase
+
+    def set_neighbour_gains(self, agent_name: str, gains: Dict[str, float]) -> None:
+        self._neighbour_gains[agent_name] = gains
+
+    def compute_decision(
+        self, agent: Agent, neighbours_values: Dict[str, Any] | None
+    ) -> Any:
+        neighbours_values = neighbours_values or {}
+        current_value = int(getattr(agent, "curr_assignment", 0))
+
+        if self.phase == "gain":
+            best_value, best_gain, current_cost = self.best_improvement(
+                agent, neighbours_values
+            )
+            self.agent_gains[agent.name] = {
+                "gain": best_gain,
+                "best_value": best_value,
+                "current_value": current_value,
+                "current_cost": current_cost,
+            }
+            return None
+
+        if self.phase != "decision":
+            return current_value
+
+        info = self.agent_gains.get(agent.name)
+        if not info:
+            return current_value
+
+        gain = info["gain"]
+        if gain <= 0.0:
+            return current_value
+
+        neighbour_gains = self._neighbour_gains.get(agent.name, {})
+        for neighbour_name, neighbour_gain in neighbour_gains.items():
+            if neighbour_gain > gain:
+                return current_value
+            if neighbour_gain == gain and neighbour_name < agent.name:
+                return current_value
+
+        return info["best_value"]
