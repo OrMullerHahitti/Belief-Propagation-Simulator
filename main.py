@@ -13,8 +13,9 @@ if SRC_DIR.is_dir() and str(SRC_DIR) not in sys.path:
 
 from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
+from propflow.utils import CTFactory
 from propflow.configs.global_config_mapping import (
-    CTFactory,
+    
     get_ct_factory,
     SIMULATOR_DEFAULTS,
     POLICY_DEFAULTS,
