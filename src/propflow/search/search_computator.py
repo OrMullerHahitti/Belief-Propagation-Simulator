@@ -239,3 +239,64 @@ class MGMComputator(SearchComputator):
                 return current_value
 
         return info["best_value"]
+
+
+class MGM2Computator(SearchComputator):
+    """MGM2 computator allowing coordinated moves of two agents."""
+
+    def __init__(self, *, seed: Optional[int] = None) -> None:
+        super().__init__(seed=seed)
+        self.single_gains: Dict[str, Dict[str, Any]] = {}
+        self.pair_cache: Dict[Tuple[str, str], Dict[str, Any]] = {}
+
+    def begin_iteration(self) -> None:
+        self.single_gains.clear()
+        self.pair_cache.clear()
+
+    def compute_decision(
+        self, agent: Agent, neighbours_values: Dict[str, Any] | None
+    ) -> Any:
+        neighbours_values = neighbours_values or {}
+        best_value, gain, current_cost = self.best_improvement(agent, neighbours_values)
+        self.single_gains[agent.name] = {
+            "gain": gain,
+            "best_value": best_value,
+            "current_value": int(getattr(agent, "curr_assignment", 0)),
+            "current_cost": current_cost,
+        }
+        return None
+
+    def evaluate_pair_gain(self, agent: Agent, neighbour: Agent) -> Dict[str, Any]:
+        key = tuple(sorted((agent.name, neighbour.name)))
+        if key in self.pair_cache:
+            return self.pair_cache[key]
+
+        graph = self._ensure_graph()
+        baseline_cost = graph.global_cost
+        original_agent = int(getattr(agent, "curr_assignment", 0))
+        original_neighbour = int(getattr(neighbour, "curr_assignment", 0))
+
+        best_gain = 0.0
+        best_values = (original_agent, original_neighbour)
+
+        domain_agent = range(int(getattr(agent, "domain", 2)))
+        domain_neighbour = range(int(getattr(neighbour, "domain", 2)))
+
+        for val_agent in domain_agent:
+            for val_neighbour in domain_neighbour:
+                if val_agent == original_agent and val_neighbour == original_neighbour:
+                    continue
+                agent.curr_assignment = val_agent
+                neighbour.curr_assignment = val_neighbour
+                new_cost = graph.global_cost
+                gain = baseline_cost - new_cost
+                if gain > best_gain:
+                    best_gain = gain
+                    best_values = (val_agent, val_neighbour)
+
+        agent.curr_assignment = original_agent
+        neighbour.curr_assignment = original_neighbour
+
+        result = {"gain": best_gain, "values": best_values}
+        self.pair_cache[key] = result
+        return result

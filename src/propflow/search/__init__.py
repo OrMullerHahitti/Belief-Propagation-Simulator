@@ -4,11 +4,16 @@ This module extends the belief propagation framework to support search algorithm
 """
 
 # Import computators first (they have fewer dependencies)
-from .search_computator import SearchComputator, DSAComputator, MGMComputator
+from .search_computator import (
+    SearchComputator,
+    DSAComputator,
+    MGMComputator,
+    MGM2Computator,
+)
 
 # Conditionally import bp and agents (which need more dependencies)
 try:
-    from .search_engine import SearchEngine, DSAEngine, MGMEngine
+    from .search_engine import SearchEngine, DSAEngine, MGMEngine, MGM2Engine
     from .search_agents import (
         SearchVariableAgent,
         extend_variable_agent_for_search,
@@ -21,9 +26,10 @@ try:
         "SearchEngine",
         "DSAEngine",
         "MGMEngine",
+        "MGM2Engine",
         "SearchVariableAgent",
         "extend_variable_agent_for_search",
     ]
 except ImportError:
     # If dependencies aren't available, just provide computators
-    __all__ = ["SearchComputator", "DSAComputator", "MGMComputator"]
+    __all__ = ["SearchComputator", "DSAComputator", "MGMComputator", "MGM2Computator"]
