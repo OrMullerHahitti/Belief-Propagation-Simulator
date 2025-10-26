@@ -37,8 +37,14 @@ from .configs import (
     create_poisson_table,
 )
 
-# Snapshot configuration
-from .snapshots import SnapshotsConfig, SnapshotManager
+# Snapshot configuration and analysis
+from .snapshots import (
+    SnapshotsConfig,
+    SnapshotManager,
+    SnapshotAnalyzer,
+    AnalysisReport,
+    SnapshotVisualizer,
+)
 
 __all__ = [
     # Version
@@ -64,8 +70,7 @@ __all__ = [
     # Builders & Simulation
     "FGBuilder",
     "Simulator",
-    "CTFactory"
-
+    "CTFactory",
     # Configs
     "create_random_int_table",
     "create_uniform_float_table",
@@ -73,6 +78,9 @@ __all__ = [
     # Snapshots
     "SnapshotsConfig",
     "SnapshotManager",
+    "SnapshotAnalyzer",
+    "AnalysisReport",
+    "SnapshotVisualizer",
 ]
 
 # --- Optional (only if PyTorch is available) ---
