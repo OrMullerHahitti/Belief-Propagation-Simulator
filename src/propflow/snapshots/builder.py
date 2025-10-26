@@ -7,6 +7,8 @@ such as those for calculating Jacobians or analyzing message cycles.
 """
 from __future__ import annotations
 from typing import Dict, List, Tuple, Any
+from datetime import datetime, timezone
+
 import numpy as np
 
 from ..bp.engine_components import Step
@@ -16,7 +18,7 @@ from .types import SnapshotData
 
 def _labels_for_domain(domain_size: int) -> List[str]:
     """Generates string labels for a given domain size."""
-    return [str(i) for i in range(int(domain_size))]
+    return [str(i) for i in range(domain_size)]
 
 
 def _normalize_min_zero(arr: np.ndarray) -> np.ndarray:
@@ -25,6 +27,40 @@ def _normalize_min_zero(arr: np.ndarray) -> np.ndarray:
         return arr
     m = float(np.min(arr))
     return arr - m
+
+
+def _to_builtin(obj: Any) -> Any:
+    """Recursively convert numpy/scalar types to Python builtins."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, (np.integer, np.floating)):
+        return obj.item()
+    if isinstance(obj, dict):
+        return {str(k): _to_builtin(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_to_builtin(v) for v in obj]
+    return obj
+
+
+def _belief_scalar(value: Any) -> float:
+    """Convert a belief-like value into a scalar representative."""
+    if isinstance(value, np.ndarray):
+        return float(np.min(value)) if value.size else 0.0
+    if isinstance(value, (list, tuple)):
+        arr = np.asarray(value, dtype=float)
+        return float(np.min(arr)) if arr.size else 0.0
+    try:
+        return float(value)
+    except Exception:
+        return 0.0
+
+
+def _assignment_scalar(value: Any) -> int:
+    """Coerce assignment-like value to an int."""
+    try:
+        return int(value.item()) if isinstance(value, np.integer) else int(value)
+    except Exception:
+        return 0
 
 
 def extract_qr_from_step(
@@ -124,6 +160,85 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> Snapsh
 
         cost[f.name] = make_cost_fn(np.asarray(table), var_order)
 
+    # Runtime beliefs/assignments/cost sourced from history when available.
+    beliefs: Dict[str, float] = {}
+    assignments: Dict[str, int] = {}
+    global_cost = None
+    metadata: Dict[str, Any] = {
+        "engine": engine.__class__.__name__,
+        "graph_diameter": getattr(engine, "graph_diameter", None),
+        "num_variables": len(variables),
+        "num_factors": len(factors),
+        "captured_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    history = getattr(engine, "history", None)
+    if history is not None:
+        metadata["history_config"] = _to_builtin(getattr(history, "config", {}))
+        metadata["history_name"] = getattr(history, "name", None)
+        metadata["use_bct_history"] = bool(getattr(history, "use_bct_history", False))
+
+        if getattr(history, "use_bct_history", False):
+            beliefs = {
+                str(var): _belief_scalar(val)
+                for var, val in getattr(history, "step_beliefs", {}).get(step_idx, {}).items()
+            }
+            assignments = {
+                str(var): _assignment_scalar(val)
+                for var, val in getattr(history, "step_assignments", {}).get(step_idx, {}).items()
+            }
+            step_costs = getattr(history, "step_costs", [])
+            if 0 <= step_idx < len(step_costs):
+                try:
+                    global_cost = float(step_costs[step_idx])
+                    metadata["global_cost_source"] = "history.step_costs"
+                except Exception:
+                    global_cost = None
+
+    if not beliefs and hasattr(engine, "get_beliefs"):
+        try:
+            engine_beliefs = getattr(engine, "get_beliefs")()
+            beliefs = {str(k): _belief_scalar(v) for k, v in engine_beliefs.items()}
+            metadata.setdefault("global_cost_source", "engine.get_beliefs")
+        except Exception:
+            beliefs = {}
+
+    if not assignments and hasattr(engine, "assignments"):
+        try:
+            assignments = {
+                str(k): _assignment_scalar(v)
+                for k, v in getattr(engine, "assignments", {}).items()
+            }
+        except Exception:
+            assignments = {}
+
+    if global_cost is None and hasattr(engine, "calculate_global_cost"):
+        try:
+            global_cost = float(engine.calculate_global_cost())
+            metadata["global_cost_source"] = "engine.calculate_global_cost"
+        except Exception:
+            metadata.setdefault("global_cost_source", "unavailable")
+
+    convergence_monitor = getattr(engine, "convergence_monitor", None)
+    if convergence_monitor is not None:
+        try:
+            summary = convergence_monitor.get_convergence_summary()
+            if summary:
+                metadata["convergence_summary"] = _to_builtin(summary)
+        except Exception:
+            pass
+
+    performance_monitor = getattr(engine, "performance_monitor", None)
+    if performance_monitor is not None:
+        try:
+            perf_summary = performance_monitor.get_summary()
+            if perf_summary:
+                metadata["performance_summary"] = _to_builtin(perf_summary)
+        except Exception:
+            pass
+
+    metadata = _to_builtin(metadata)
+
     return SnapshotData(
         step=step_idx,
         lambda_=lambda_val,
@@ -134,4 +249,8 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> Snapsh
         R=R,
         cost=cost,
         unary=unary,
+        beliefs=beliefs,
+        assignments=assignments,
+        global_cost=global_cost,
+        metadata=metadata,
     )

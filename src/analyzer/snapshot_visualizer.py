@@ -58,13 +58,13 @@ class SnapshotVisualizer:
 
     def plot_argmin_per_variable(
         self,
-        vars_filter: List[str] | None = None,
+        vars_filter: List[ str] | None = None,
         *,
         figsize: tuple[float, float] | None = None,
         show: bool = True,
         savepath: str | None = None,
         combined_savepath: str | None = None,
-    ) -> None:
+    ) -> None:  # sourcery skip: low-code-quality
         """Plot argmin trajectories per variable and optionally a combined chart.
 
         One subplot per variable if the selection is small; otherwise the per-variable

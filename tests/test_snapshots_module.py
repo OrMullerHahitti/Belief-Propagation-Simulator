@@ -1,4 +1,5 @@
 import json
+from types import SimpleNamespace
 import numpy as np
 import pytest
 
@@ -14,6 +15,8 @@ from propflow.snapshots.builder import (
 from propflow.snapshots.manager import SnapshotManager
 from propflow.snapshots.types import SnapshotData, SnapshotsConfig
 from propflow.utils.fg_utils import FGBuilder
+from propflow.bp.engine_base import BPEngine
+from propflow.core.agents import VariableAgent, FactorAgent
 
 np.random.seed(42)
 
@@ -36,6 +39,7 @@ def sample_engine(sample_factor_graph):
             self.var_nodes = graph.variables
             self.factor_nodes = graph.factors
             self.damping_factor = 0.25
+            self.assignments = {var.name: 0 for var in graph.variables}
 
     return DummyEngine(sample_factor_graph)
 
@@ -75,6 +79,10 @@ def test_build_snapshot_from_engine(sample_engine, sample_step):
     assert factor_name in snapshot.N_fac
     assert (var_name, factor_name) in snapshot.Q
     assert snapshot.lambda_ == pytest.approx(0.25)
+    assert snapshot.beliefs == {}
+    assert snapshot.assignments == sample_engine.assignments
+    assert snapshot.global_cost is None
+    assert snapshot.metadata["engine"] == "DummyEngine"
 
 
 def test_snapshot_manager_capture_and_retain(tmp_path, sample_engine, sample_step):
@@ -92,12 +100,36 @@ def test_snapshot_manager_capture_and_retain(tmp_path, sample_engine, sample_ste
     latest = manager.capture_step(2, sample_step, sample_engine)
     assert manager.get(0) is None
     assert manager.latest() is latest
-    saved_dir = manager.save_step(2, tmp_path)
+    saved_dir = manager.save_step(2, tmp_path, save=True)
     meta_path = saved_dir / "meta.json"
     assert meta_path.exists()
     with meta_path.open() as fh:
         payload = json.load(fh)
-    assert payload["step"] == 2
+    assert payload["context"]["step"] == 2
+    assert payload["graph"]["dom"][sample_engine.var_nodes[0].name] == ["0", "1", "2"]
+    q_section = payload["messages"]["Q"]
+    assert q_section["file"] == "messages_q.npz"
+    with np.load(saved_dir / q_section["file"]) as q_npz:
+        q_key = next(iter(q_section["index"].values()))
+        np.testing.assert_allclose(q_npz[q_key], np.array([0.0, 2.0, 1.0]))
+    r_section = payload["messages"]["R"]
+    assert r_section["file"] == "messages_r.npz"
+    with np.load(saved_dir / r_section["file"]) as r_npz:
+        r_key = next(iter(r_section["index"].values()))
+        np.testing.assert_allclose(r_npz[r_key], np.array([0.5, 0.2, 1.1]))
+    unary_section = payload["messages"]["unary"]
+    assert unary_section["file"] == "unary.npz"
+    assert (saved_dir / unary_section["file"]).exists()
+    assert payload["analysis"]["min_idx"] == {}
+
+    index_path = tmp_path / "index.json"
+    assert index_path.exists()
+    with index_path.open() as fh:
+        manifest = json.load(fh)
+    step_entry = next(entry for entry in manifest["steps"] if entry["step"] == 2)
+    assert step_entry["messages"]["Q"] == 1
+    assert step_entry["messages"]["R"] == 1
+    assert step_entry["has_jacobians"] is False
 
 
 def test_snapshot_manager_serializes_winners(tmp_path, sample_engine, sample_step):
@@ -111,16 +143,22 @@ def test_snapshot_manager_serializes_winners(tmp_path, sample_engine, sample_ste
     )
     manager = SnapshotManager(config)
     manager.capture_step(0, sample_step, sample_engine)
-    saved_dir = manager.save_step(0, tmp_path)
+    saved_dir = manager.save_step(0, tmp_path, save=True)
     meta_path = saved_dir / "meta.json"
     with meta_path.open() as fh:
         payload = json.load(fh)
-    winners = payload["winners"]
+    winners = payload["analysis"]["winners"]
     assert winners is not None
     edge_key = f"{sample_engine.factor_nodes[0].name}->{sample_engine.var_nodes[0].name}"
     assert edge_key in winners
     assert isinstance(winners[edge_key], dict)
     assert winners[edge_key]
+
+    index_path = tmp_path / "index.json"
+    with index_path.open() as fh:
+        manifest = json.load(fh)
+    step_entry = manifest["steps"][0]
+    assert step_entry["has_jacobians"] is True
 
 
 def test_snapshot_manager_helpers():
@@ -146,3 +184,74 @@ def test_snapshot_manager_helpers():
     winners = manager._compute_winners(data)
     assert winners[("f", "x1", "0")]["x2"] == "0"
     assert winners[("f", "x2", "1")]["x1"] == "1"
+
+
+def test_snapshot_builder_includes_history_context(sample_factor_graph):
+    class BCTEngine:
+        def __init__(self, graph):
+            self.graph = graph
+            self.var_nodes = graph.variables
+            self.factor_nodes = graph.factors
+            self.damping_factor = 0.4
+            self.assignments = {var.name: 1 for var in graph.variables}
+            belief_series = {var.name: 0.5 for var in graph.variables}
+            assignment_series = {var.name: 1 for var in graph.variables}
+            self.history = SimpleNamespace(
+                config={"mode": "bct"},
+                use_bct_history=True,
+                step_beliefs={0: belief_series},
+                step_assignments={0: assignment_series},
+                step_costs=[10.0],
+                name="history",
+            )
+            self.convergence_monitor = SimpleNamespace(
+                get_convergence_summary=lambda: {"total_iterations": 1, "converged": False}
+            )
+            self.performance_monitor = SimpleNamespace(
+                get_summary=lambda: {"total_steps": 1, "total_time": 0.1}
+            )
+
+        def get_beliefs(self):
+            return {var.name: np.array([0.1, 0.2, 0.3]) for var in self.var_nodes}
+
+        def calculate_global_cost(self):
+            return 10.0
+
+    engine = BCTEngine(sample_factor_graph)
+    step = Step(num=0)
+    var = sample_factor_graph.variables[0]
+    fac = sample_factor_graph.factors[0]
+    step.add_q(var.name, [Message(data=np.array([1.0, 2.0, 3.0]), sender=var, recipient=fac)])
+    step.add_r(fac.name, [Message(data=np.array([0.3, 0.1, 0.2]), sender=fac, recipient=var)])
+
+    snapshot = build_snapshot_from_engine(0, step, engine)
+    assert snapshot.beliefs == engine.history.step_beliefs[0]
+    assert snapshot.assignments == engine.history.step_assignments[0]
+    assert snapshot.global_cost == pytest.approx(10.0)
+    assert snapshot.metadata["convergence_summary"]["total_iterations"] == 1
+    assert snapshot.metadata["performance_summary"]["total_steps"] == 1
+
+
+def test_engine_step_messages_include_all_directions(sample_factor_graph):
+    engine = BPEngine(factor_graph=sample_factor_graph)
+    step = engine.step(0)
+    factor_names = {f.name for f in sample_factor_graph.factors}
+    variable_names = {v.name for v in sample_factor_graph.variables}
+    factor_msg_groups = [
+        step.messages[name] for name in step.messages if name in factor_names
+    ]
+    variable_msg_groups = [
+        step.messages[name] for name in step.messages if name in variable_names
+    ]
+    assert factor_msg_groups, "expected factor recipients in step messages"
+    assert variable_msg_groups, "expected variable recipients in step messages"
+    assert any(
+        isinstance(msg.sender, VariableAgent)
+        for group in factor_msg_groups
+        for msg in group
+    )
+    assert any(
+        isinstance(msg.sender, FactorAgent)
+        for group in variable_msg_groups
+        for msg in group
+    )

@@ -9,7 +9,9 @@ algorithm's dynamics.
 from __future__ import annotations
 from typing import Dict, Optional, Tuple, List, Any
 from pathlib import Path
+from datetime import datetime, timezone
 import json
+import re
 import numpy as np
 import networkx as nx
 from scipy.sparse import csr_matrix, lil_matrix
@@ -74,11 +76,14 @@ class SnapshotManager:
             winners = self._compute_winners(data)
 
         rec = SnapshotRecord(data=data, jacobians=jac, cycles=cycles, winners=winners, min_idx=min_idx)
+        rec.data.metadata.setdefault("step_index", step_index)
+        rec.data.metadata.setdefault("captured_at", rec.captured_at.isoformat())
+        rec.data.metadata.setdefault("message_counts", {"Q": len(data.Q), "R": len(data.R)})
         self._store(step_index, rec)
 
         if self.config.save_each_step and self.config.save_dir:
             try:
-                self.save_step(step_index, self.config.save_dir)
+                self.save_step(step_index, self.config.save_dir, save=True)
             except Exception:
                 pass
         return rec
@@ -104,42 +109,47 @@ class SnapshotManager:
             return None
         return self._buffer.get(self._order[-1])
 
-    def save_step(self, step_index: int, out_dir: str | Path) -> Path:
+    def save_step(self, step_index: int, out_dir: str | Path, *, save: bool = False) -> Path | None:
         """Saves a snapshot record for a specific step to disk.
 
-        The snapshot is saved in a directory named `step_<n>`, containing the
-        Jacobian matrices (if computed) and a `meta.json` file with all other
-        serializable data.
+        The snapshot is saved in a directory named `step_<n>` only when ``save`` is
+        explicitly set to ``True``. Otherwise the record remains buffered in memory.
 
         Args:
             step_index: The step index of the snapshot to save.
             out_dir: The base directory where the snapshot directory will be created.
+            save: Whether the snapshot should be persisted to disk.
 
         Returns:
-            The `Path` object for the directory where the snapshot was saved.
+            The `Path` object for the directory where the snapshot was saved, or
+            ``None`` if persistence was skipped.
 
         Raises:
             ValueError: If no snapshot exists for the given `step_index`.
         """
+        if not save:
+            return None
+
         rec = self.get(step_index)
         if rec is None:
             raise ValueError(f"No snapshot for step {step_index}")
 
         base = Path(out_dir)
         base.mkdir(parents=True, exist_ok=True)
-        step_dir = base / f"step_{int(step_index):04d}"
+        step_dir = base / f"step_{step_index:04d}"
         step_dir.mkdir(parents=True, exist_ok=True)
+
+        data = rec.data
+
+        q_index, q_file = self._persist_message_arrays(step_dir / "messages_q.npz", data.Q)
+        r_index, r_file = self._persist_message_arrays(step_dir / "messages_r.npz", data.R)
+        unary_index, unary_file = self._persist_unary_arrays(step_dir / "unary.npz", data.unary)
 
         if rec.jacobians:
             from scipy.sparse import save_npz
             save_npz(step_dir / "A.npz", rec.jacobians.A)
             save_npz(step_dir / "P.npz", rec.jacobians.P)
             save_npz(step_dir / "B.npz", rec.jacobians.B)
-
-        def to_list(arr):
-            return np.asarray(arr).tolist() if arr is not None else None
-
-        data = rec.data
 
         def serialize_winners(winners: Optional[Dict[Tuple[str, str, str], Dict[str, str]]]):
             if not winners:
@@ -151,18 +161,69 @@ class SnapshotManager:
                 slot[label] = dict(assignment)
             return grouped
 
-        meta = {
-            "step": data.step, "lambda": data.lambda_, "dom": data.dom,
-            "N_var": data.N_var, "N_fac": data.N_fac,
-            "Q": {f"{u}->{f}": to_list(vec) for (u, f), vec in data.Q.items()},
-            "R": {f"{f}->{v}": to_list(vec) for (f, v), vec in data.R.items()},
+        context = {
+            "step": data.step,
+            "lambda": float(data.lambda_),
+            "timestamp": data.metadata.get("captured_at", rec.captured_at.isoformat()),
+        }
+
+        graph_info = {"dom": data.dom, "N_var": data.N_var, "N_fac": data.N_fac}
+
+        messages_info = {
+            "Q": {"file": q_file, "count": len(data.Q), "index": q_index},
+            "R": {"file": r_file, "count": len(data.R), "index": r_index},
+            "unary": {"file": unary_file, "count": len(data.unary), "index": unary_index},
+        }
+
+        runtime_info = {
+            "beliefs": data.beliefs,
+            "assignments": data.assignments,
+            "cost": data.global_cost,
+        }
+
+        analysis_info = {
             "block_norms": rec.jacobians.block_norms if rec.jacobians else None,
+            "jacobians": {"A": "A.npz", "P": "P.npz", "B": "B.npz"} if rec.jacobians else None,
             "cycles": rec.cycles.to_dict() if rec.cycles else None,
             "winners": serialize_winners(rec.winners),
             "min_idx": {f"{u}->{f}": int(i) for (u, f), i in (rec.min_idx or {}).items()},
         }
+
+        metadata = dict(data.metadata)
+        metadata.setdefault("message_counts", {"Q": len(data.Q), "R": len(data.R)})
+        metadata["recorded_at"] = rec.captured_at.isoformat()
+
+        meta = {
+            "context": context,
+            "graph": graph_info,
+            "messages": messages_info,
+            "runtime": runtime_info,
+            "analysis": analysis_info,
+            "metadata": metadata,
+        }
         with (step_dir / "meta.json").open("w") as fh:
-            json.dump(meta, fh, indent=2)
+            json.dump(self._to_builtin(meta), fh, indent=2)
+
+        self._update_index_manifest(
+            base,
+            {
+                "step": data.step,
+                "dir": step_dir.name,
+                "timestamp": context["timestamp"],
+                "lambda": data.lambda_,
+                "cost": data.global_cost,
+                "messages": {"Q": len(data.Q), "R": len(data.R)},
+                "has_jacobians": bool(rec.jacobians),
+                "has_cycles": bool(rec.cycles),
+                "block_norm_upper": (
+                    rec.jacobians.block_norms.get("||M||_inf_upper")
+                    if rec.jacobians and rec.jacobians.block_norms
+                    else None
+                ),
+                "aligned_hops_total": rec.cycles.aligned_hops_total if rec.cycles else None,
+                "num_cycles": rec.cycles.num_cycles if rec.cycles else None,
+            },
+        )
         return step_dir
 
     def _store(self, idx: int, rec: SnapshotRecord) -> None:
@@ -368,3 +429,95 @@ class SnapshotManager:
             return abs(val) * (lam ** len(cycle))
         except Exception:
             return None
+
+    def _persist_message_arrays(
+        self, path: Path, messages: Dict[Tuple[str, str], np.ndarray]
+    ) -> Tuple[Dict[str, str], Optional[str]]:
+        """Persist variable→factor or factor→variable message dictionaries."""
+        if not messages:
+            return {}, None
+        arrays: Dict[str, np.ndarray] = {}
+        index_map: Dict[str, str] = {}
+        collisions: Dict[str, int] = {}
+        for (src, dst), arr in sorted(messages.items()):
+            label = f"{src}->{dst}"
+            safe_key = self._sanitize_label(label)
+            counter = collisions.get(safe_key, 0)
+            derived_key = safe_key
+            while derived_key in arrays:
+                counter += 1
+                derived_key = f"{safe_key}_{counter}"
+            collisions[safe_key] = counter
+            arrays[derived_key] = np.asarray(arr)
+            index_map[label] = derived_key
+        np.savez_compressed(path, **arrays)
+        return index_map, path.name
+
+    def _persist_unary_arrays(
+        self, path: Path, unary: Dict[str, np.ndarray]
+    ) -> Tuple[Dict[str, str], Optional[str]]:
+        """Persist unary potential arrays to disk."""
+        if not unary:
+            return {}, None
+        arrays: Dict[str, np.ndarray] = {}
+        index_map: Dict[str, str] = {}
+        collisions: Dict[str, int] = {}
+        for var, arr in sorted(unary.items()):
+            label = str(var)
+            safe_key = self._sanitize_label(label)
+            counter = collisions.get(safe_key, 0)
+            derived_key = safe_key
+            while derived_key in arrays:
+                counter += 1
+                derived_key = f"{safe_key}_{counter}"
+            collisions[safe_key] = counter
+            arrays[derived_key] = np.asarray(arr)
+            index_map[label] = derived_key
+        np.savez_compressed(path, **arrays)
+        return index_map, path.name
+
+    @staticmethod
+    def _sanitize_label(label: str) -> str:
+        """Sanitise an arbitrary label for use as an npz key."""
+        sanitized = re.sub(r"[^A-Za-z0-9_]+", "_", str(label)).strip("_")
+        if not sanitized:
+            sanitized = "entry"
+        if sanitized[0].isdigit():
+            sanitized = f"_{sanitized}"
+        return sanitized
+
+    @staticmethod
+    def _to_builtin(obj: Any) -> Any:
+        """Convert numpy/scalar objects to JSON-serialisable structures."""
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, (np.integer, np.floating)):
+            return obj.item()
+        if isinstance(obj, dict):
+            return {str(k): SnapshotManager._to_builtin(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [SnapshotManager._to_builtin(v) for v in obj]
+        return obj
+
+    def _update_index_manifest(self, base: Path, entry: Dict[str, Any]) -> None:
+        """Maintain an index.json manifest summarising saved steps."""
+        index_path = base / "index.json"
+        if index_path.exists():
+            try:
+                with index_path.open("r") as handle:
+                    manifest = json.load(handle)
+            except (json.JSONDecodeError, OSError):
+                manifest = {}
+        else:
+            manifest = {}
+
+        steps: List[Dict[str, Any]] = manifest.get("steps", [])
+        steps = [item for item in steps if item.get("step") != entry.get("step")]
+        steps.append(entry)
+        steps.sort(key=lambda item: item.get("step", 0))
+
+        manifest["steps"] = steps
+        manifest["generated_at"] = datetime.now(timezone.utc).isoformat()
+
+        with index_path.open("w") as handle:
+            json.dump(self._to_builtin(manifest), handle, indent=2)
