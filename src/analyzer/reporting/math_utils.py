@@ -27,9 +27,7 @@ def check_binary_neutral(delta_q: float, theta0: float, theta1: float) -> tuple[
     """Check whether ``ΔQ`` certifies a neutral factor step in the binary case."""
     if delta_q >= theta0:
         return True, 0
-    if delta_q <= -theta1:
-        return True, 1
-    return False, None
+    return (True, 1) if delta_q <= -theta1 else (False, None)
 
 
 def multilabel_gaps(cost: np.ndarray) -> tuple[Dict[int, np.ndarray], Callable[[int], np.ndarray]]:

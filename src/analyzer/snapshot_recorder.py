@@ -94,7 +94,8 @@ class EngineSnapshotRecorder:
         assignments = self._resolve_assignments()
         cost = self._resolve_cost()
 
-        neutral_messages = sum(1 for msg in messages if msg.neutral)
+        neutral_messages = sum(bool(msg.neutral)
+                           for msg in messages)
         step_neutral = bool(messages) and neutral_messages == len(messages)
 
         return {
@@ -135,9 +136,10 @@ class EngineSnapshotRecorder:
         if callable(assignments):  # guard against property returning callable
             assignments = assignments()
 
-        sanitized: Dict[str, Any] = {}
-        for key, value in (assignments or {}).items():
-            sanitized[str(key)] = self._coerce_numeric(value)
+        sanitized: Dict[str, Any] = {
+            str(key): self._coerce_numeric(value)
+            for key, value in (assignments or {}).items()
+        }
         return sanitized
 
     def _resolve_cost(self) -> float | None:
@@ -145,9 +147,8 @@ class EngineSnapshotRecorder:
         if callable(calc):
             try:
                 value = calc()
-                if value is None:
-                    return None
-                return float(value)
+                return None if value is None else float(value)
+
             except Exception:
                 return None
         return None
@@ -166,9 +167,7 @@ class EngineSnapshotRecorder:
         if agent is None:
             return "unknown"
         name = getattr(agent, "name", None)
-        if name is not None:
-            return str(name)
-        return str(agent)
+        return str(name) if name is not None else str(agent)
 
     @staticmethod
     def _to_float_list(values: Any) -> List[float]:
@@ -183,6 +182,7 @@ class EngineSnapshotRecorder:
 
     @staticmethod
     def _argmin(values: Iterable[float]) -> int | None:
+        # sourcery skip: use-next
         values_list = list(values)
         if not values_list:
             return None

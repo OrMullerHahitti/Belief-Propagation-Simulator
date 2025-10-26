@@ -78,7 +78,8 @@ def parse_snapshots(obj: Sequence[Mapping[str, Any]]) -> List[SnapshotRecord]:
         cost = float(cost_value) if cost_value is not None else None
 
         declared_neutral = raw.get("neutral_messages")
-        computed_neutral = sum(1 for msg in messages if msg.neutral)
+        computed_neutral = sum(bool(msg.neutral)
+                           for msg in messages)
         if declared_neutral is None:
             neutral_messages = computed_neutral
         else:
@@ -243,7 +244,8 @@ def _is_neutral(values: List[float], argmin_index: int | None) -> bool:
     if not values or argmin_index is None:
         return False
     min_value = values[argmin_index]
-    matches = sum(1 for value in values if isclose(value, min_value, rel_tol=Tolerance, abs_tol=AbsTolerance))
+    matches = sum(bool(isclose(value, min_value, rel_tol=Tolerance, abs_tol=AbsTolerance))
+              for value in values)
     return matches > 1
 
 

@@ -24,14 +24,10 @@ class DummyEngine:
 
     @property
     def assignments(self):
-        if self._cursor < 0:
-            return {}
-        return self._assignments[self._cursor]
+        return {} if self._cursor < 0 else self._assignments[self._cursor]
 
     def calculate_global_cost(self):
-        if self._cursor < 0:
-            return None
-        return self._costs[self._cursor]
+        return None if self._cursor < 0 else self._costs[self._cursor]
 
 
 @pytest.fixture
@@ -41,7 +37,7 @@ def sample_engine():
     factor_f1 = SimpleNamespace(name="F1", type="factor")
 
     step0 = Step(num=0)
-    step0.q_messages["X1"] = [Message(np.array([1.0, 2.0]), var_x1, factor_f1)]
+    step0.q_messages["X1"] = [Message(np.array([1.0, 2.0]), var_x1, factor_f1)] # type: ignore
     step0.r_messages["F1"] = [Message(np.array([3.0, 3.0]), factor_f1, var_x2)]
 
     step1 = Step(num=1)
