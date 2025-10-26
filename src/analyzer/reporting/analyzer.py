@@ -48,7 +48,7 @@ class SnapshotAnalyzer:
             raise ValueError("SnapshotAnalyzer requires at least one snapshot")
         self._snapshots: List[SnapshotRecord] = sorted(list(snapshots), key=lambda rec: rec.step)
         self._step_index: Dict[int, int] = {rec.step: idx for idx, rec in enumerate(self._snapshots)}
-        self._max_cycle_len = int(max_cycle_len)
+        self._max_cycle_len = max_cycle_len
         self._domain = dict(domain or self._infer_domain(self._snapshots[0]))
         self._factor_costs: Dict[str, np.ndarray] = {}
         self._dag_bound_cache: Dict[int, int | None] = {}

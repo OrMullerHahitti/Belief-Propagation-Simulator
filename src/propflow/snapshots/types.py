@@ -7,6 +7,7 @@ simulation at different points in time.
 """
 from __future__ import annotations
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -59,6 +60,10 @@ class SnapshotData:
         R: A dictionary mapping (factor, variable) pairs to the R-message array.
         cost: A dictionary mapping factor names to their cost function accessors.
         unary: A dictionary mapping variable names to their unary potential arrays.
+        beliefs: Optional dictionary of per-variable beliefs captured at this step.
+        assignments: Optional dictionary of per-variable assignments captured at this step.
+        global_cost: Optional scalar cost associated with the step.
+        metadata: Execution metadata (engine config, convergence/performance summaries, etc.).
     """
     step: int
     lambda_: float
@@ -69,6 +74,10 @@ class SnapshotData:
     R: Dict[Tuple[str, str], np.ndarray]
     cost: Dict[str, Any] = field(default_factory=dict)
     unary: Dict[str, np.ndarray] = field(default_factory=dict)
+    beliefs: Dict[str, float] = field(default_factory=dict)
+    assignments: Dict[str, int] = field(default_factory=dict)
+    global_cost: Optional[float] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -139,3 +148,4 @@ class SnapshotRecord:
     cycles: Optional[CycleMetrics] = None
     winners: Optional[Dict[Tuple[str, str, str], Dict[str, str]]] = None
     min_idx: Optional[Dict[Tuple[str, str], int]] = None
+    captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

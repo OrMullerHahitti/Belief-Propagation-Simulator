@@ -97,6 +97,70 @@ class TestFGBuilder:
             ]
             assert len(connected_factors) == 2
 
+    def test_lemniscate_graph_structure(self, cost_table_config):
+        """Ensure lemniscate graph forms two loops sharing a central variable."""
+        ct_factory, ct_params = cost_table_config
+        num_vars = 7
+        domain_size = 3
+
+        fg = FGBuilder.create_leminscate_graph(
+            num_vars=num_vars,
+            domain_size=domain_size,
+            ct_factory=ct_factory,
+            ct_params=ct_params,
+        )
+
+        assert isinstance(fg, FactorGraph)
+        assert len(fg.variables) == num_vars
+        assert len(fg.factors) == len(fg.edges)
+
+        center = fg.variables[0]
+        adjacency = {var: set() for var in fg.variables}
+        for variables in fg.edges.values():
+            a, b = variables
+            adjacency[a].add(b)
+            adjacency[b].add(a)
+
+        # Central variable should connect to two factors per loop (four total)
+        assert len(adjacency[center]) == 4
+
+        # Removing the center should leave exactly two disjoint chains
+        component_sizes = []
+        visited = set()
+        for var in fg.variables[1:]:
+            if var in visited:
+                continue
+            stack = [var]
+            size = 0
+            while stack:
+                node = stack.pop()
+                if node in visited:
+                    continue
+                visited.add(node)
+                size += 1
+                for neighbor in adjacency[node]:
+                    if neighbor is center or neighbor in visited:
+                        continue
+                    stack.append(neighbor)
+            if size:
+                component_sizes.append(size)
+
+        assert len(component_sizes) == 2
+        assert sum(component_sizes) == num_vars - 1
+        assert all(size >= 2 for size in component_sizes)
+
+    def test_lemniscate_graph_requires_minimum_variables(self, cost_table_config):
+        """Verify lemniscate builder enforces the minimum variable count."""
+        ct_factory, ct_params = cost_table_config
+
+        with pytest.raises(ValueError):
+            FGBuilder.create_leminscate_graph(
+                num_vars=4,
+                domain_size=3,
+                ct_factory=ct_factory,
+                ct_params=ct_params,
+            )
+
     # test_random_graph_density_effect deleted - low density graphs can be disconnected
     # causing AmbiguousSolution errors in NetworkX bipartite checks
 

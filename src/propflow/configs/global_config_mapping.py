@@ -55,7 +55,7 @@ class Dirs(Enum):
 
 # Default parameters for the belief propagation engine.
 ENGINE_DEFAULTS: Dict[str, Any] = {
-    "max_iterations": 2000,
+    "max_iterations": 5000,
     "normalize_messages": True,
     "monitor_performance": False,
     "anytime": False,
@@ -315,7 +315,6 @@ def ct_factory(name: str):
 # ------ all the function creators here:
 #########################################################################
 # TODO : add the rest of the cost table factories which i already made, i think it would be better if theyre al in one place, can still leave the other one for future uses
-# TODO: add docstrings to the functions
 @ct_factory("poisson")
 def create_poisson_table(n: int, domain: int, rate: float = 1.0, strength: float = None):
     """

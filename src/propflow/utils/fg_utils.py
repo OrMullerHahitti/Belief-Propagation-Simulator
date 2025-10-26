@@ -127,6 +127,68 @@ class FGBuilder:
         factors = list(edges.keys())
         return FactorGraph(variables, factors, edges)
 
+    @staticmethod
+    def build_lemniscate_graph(
+        num_vars: int,
+        domain_size: int,
+        ct_factory: Callable | CTFactory | str,
+        ct_params: Dict[str, Any],
+        **kwargs,
+    ) -> FactorGraph:
+        """Builds a factor graph with a lemniscate (∞) topology.
+
+        The structure consists of two cycles that share a single central
+        variable, producing a figure-eight shape. Each loop is guaranteed to
+        contain at least two distinct variables in addition to the central node.
+
+        Args:
+            num_vars: Total number of variables in the graph. Must be >= 5.
+            domain_size: The size of the domain for each variable.
+            ct_factory: Factory used to create cost tables for the factors.
+            ct_params: Parameters forwarded to the cost table factory.
+            **kwargs: Captures unused parameters (e.g., density) for API parity.
+
+        Returns:
+            A `FactorGraph` instance shaped like a lemniscate.
+
+        Raises:
+            ValueError: If fewer than five variables are provided.
+        """
+        if num_vars < 5:
+            raise ValueError("Lemniscate graph requires at least 5 variables to form two loops.")
+
+        variables = [_make_variable(i + 1, domain_size) for i in range(num_vars)]
+        center = variables[0]
+        remaining = variables[1:]
+
+        left_size = max(2, len(remaining) // 2)
+        right_size = len(remaining) - left_size
+        if right_size < 2:
+            shortage = 2 - right_size
+            left_size -= shortage
+            right_size += shortage
+
+        if left_size < 2 or right_size < 2:
+            raise ValueError("Lemniscate graph requires at least 5 variables to form two loops.")
+
+        left_loop_nodes = [center, *remaining[:left_size]]
+        right_loop_nodes = [center, *remaining[left_size:]]
+
+        edge_pairs: List[Tuple[VariableAgent, VariableAgent]] = []
+        for loop in (left_loop_nodes, right_loop_nodes):
+            for idx in range(len(loop) - 1):
+                edge_pairs.append((loop[idx], loop[idx + 1]))
+            edge_pairs.append((loop[-1], loop[0]))
+
+        params = ct_params or {}
+        edges = _build_factor_edge_list(edge_pairs, domain_size, ct_factory, params)
+        factors = list(edges.keys())
+        return FactorGraph(variables, factors, edges)
+
+    # Provide aliases for API compatibility/user preference.
+    create_lemniscate_graph = build_lemniscate_graph
+    create_leminscate_graph = build_lemniscate_graph
+
 
 def get_message_shape(domain_size: int, connections: int = 2) -> tuple[int, ...]:
     """Calculates the shape of a cost table for a factor.

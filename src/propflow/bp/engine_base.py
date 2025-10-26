@@ -137,7 +137,10 @@ class BPEngine:
             var.compute_messages()
             self.post_var_compute(var)
             if var.mailer.outbox:
-                step.add_q(var.name, list(var.mailer.outbox))
+                outbox_copy = list(var.mailer.outbox)
+                step.add_q(var.name, outbox_copy)
+                for message in outbox_copy:
+                    step.add(message.recipient, message)
         for var in self.var_nodes:
             var.mailer.send()
         for var in self.var_nodes:
@@ -150,11 +153,12 @@ class BPEngine:
             factor.compute_messages()
             self.post_factor_compute(factor, i)
             if factor.mailer.outbox:
-                step.add_r(factor.name, list(factor.mailer.outbox))
+                outbox_copy = list(factor.mailer.outbox)
+                step.add_r(factor.name, outbox_copy)
+                for message in outbox_copy:
+                    step.add(message.recipient, message)
         for factor in self.factor_nodes:
             factor.mailer.send()
-            for message in factor.mailer.outbox:
-                step.add(message.recipient, message)
         for factor in self.factor_nodes:
             factor.empty_mailbox()
             factor.mailer.prepare()
