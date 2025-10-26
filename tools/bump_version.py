@@ -18,7 +18,7 @@ def bump_version_in_pyproject(pyproject: Path, part: str) -> str:
     if not match:
         raise SystemExit("version not found in pyproject.toml")
 
-    major, minor, patch = map(int, match.group("version").split("."))
+    major, minor, patch = map(int, match["version"].split("."))
     if part == "patch":
         patch += 1
     elif part == "minor":
@@ -117,3 +117,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
