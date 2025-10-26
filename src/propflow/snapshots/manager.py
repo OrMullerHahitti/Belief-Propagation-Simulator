@@ -6,7 +6,9 @@ attached to a simulation engine to record compact snapshots and optionally
 compute Jacobian matrices and cycle metrics for detailed analysis of the
 algorithm's dynamics.
 """
+
 from __future__ import annotations
+import contextlib
 from typing import Dict, Optional, Tuple, List, Any
 from pathlib import Path
 from datetime import datetime, timezone
@@ -82,10 +84,8 @@ class SnapshotManager:
         self._store(step_index, rec)
 
         if self.config.save_each_step and self.config.save_dir:
-            try:
+            with contextlib.suppress(Exception):
                 self.save_step(step_index, self.config.save_dir, save=True)
-            except Exception:
-                pass
         return rec
 
     def get(self, step_index: int) -> Optional[SnapshotRecord]:
@@ -105,9 +105,7 @@ class SnapshotManager:
         Returns:
             The latest `SnapshotRecord`, or `None` if the buffer is empty.
         """
-        if not self._order:
-            return None
-        return self._buffer.get(self._order[-1])
+        return self._buffer.get(self._order[-1]) if self._order else None
 
     def save_step(self, step_index: int, out_dir: str | Path, *, save: bool = False) -> Path | None:
         """Saves a snapshot record for a specific step to disk.
@@ -488,7 +486,10 @@ class SnapshotManager:
 
     @staticmethod
     def _to_builtin(obj: Any) -> Any:
-        """Convert numpy/scalar objects to JSON-serialisable structures."""
+        """Convert numpy/scalar objects to JSON-serialisable structures.
+
+        For non-serializable objects (e.g., Computator instances), converts to string representation.
+        """
         if isinstance(obj, np.ndarray):
             return obj.tolist()
         if isinstance(obj, (np.integer, np.floating)):
@@ -497,10 +498,10 @@ class SnapshotManager:
             return {str(k): SnapshotManager._to_builtin(v) for k, v in obj.items()}
         if isinstance(obj, (list, tuple)):
             return [SnapshotManager._to_builtin(v) for v in obj]
-        # Fallback: convert non-JSON-serializable objects to their string representation
-        if not isinstance(obj, (str, int, float, bool, type(None))):
-            return repr(obj)
-        return obj
+        # Fallback for non-serializable objects: convert to string representation
+        if isinstance(obj, (str, int, float, bool, type(None))):
+            return obj
+        return str(type(obj).__name__)
 
     def _update_index_manifest(self, base: Path, entry: Dict[str, Any]) -> None:
         """Maintain an index.json manifest summarising saved steps."""
