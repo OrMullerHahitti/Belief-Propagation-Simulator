@@ -30,7 +30,10 @@ def _normalize_min_zero(arr: np.ndarray) -> np.ndarray:
 
 
 def _to_builtin(obj: Any) -> Any:
-    """Recursively convert numpy/scalar types to Python builtins."""
+    """Recursively convert numpy/scalar types to Python builtins.
+
+    For non-serializable objects (e.g., Computator instances), converts to string representation.
+    """
     if isinstance(obj, np.ndarray):
         return obj.tolist()
     if isinstance(obj, (np.integer, np.floating)):
@@ -39,7 +42,10 @@ def _to_builtin(obj: Any) -> Any:
         return {str(k): _to_builtin(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
         return [_to_builtin(v) for v in obj]
-    return obj
+    # Fallback for non-serializable objects: convert to string representation
+    if isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    return str(type(obj).__name__)
 
 
 def _belief_scalar(value: Any) -> float:
