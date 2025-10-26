@@ -175,11 +175,11 @@ class BPEngine:
 
     def run(
         self,
-        max_iter: int = None,
+        max_iter: int|None = None,
         save_json: bool = False,
-        save_csv: bool = True,
+        save_csv: bool =   False,
         filename: str = None,
-        config_name: str = None,
+        config_name: str|None = None,
     ) -> Optional[str]:
         """Runs the simulation until convergence or max iterations is reached.
 
