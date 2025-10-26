@@ -65,11 +65,8 @@ clean: ; rm -rf dist build src/*.egg-info __pycache__ .pytest_cache .mypy_cache 
 
 distclean: clean ; rm -rf $(VENV) ## Remove artifacts and virtualenv
 
+clean-cache: ; find . -type d -name '__pycache__' -exec rm -rf {} + ## Remove all __pycache__ directories
 
-
-start-python: ## Create (if needed) .venv via uv and drop into an activated shell
-	@test -d .venv || $(UV) venv --seed
-	@echo "Launching shell with .venv activated (exit to return)."
 	@$(SHELL) -lc "source .venv/bin/activate && exec $$SHELL"
 
 notebook: ## Launch Jupyter Lab inside the uv-managed environment
