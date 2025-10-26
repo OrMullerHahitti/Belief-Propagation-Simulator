@@ -39,7 +39,7 @@ class SnapshotsConfig:
     compute_numeric_cycle_gain: bool = False
     max_cycle_len: int = 12
     retain_last: Optional[int] = 25
-    save_each_step: bool = False
+    save_each_step: bool = True
     save_dir: Optional[str] = None
 
 
