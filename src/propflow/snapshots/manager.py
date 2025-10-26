@@ -497,6 +497,9 @@ class SnapshotManager:
             return {str(k): SnapshotManager._to_builtin(v) for k, v in obj.items()}
         if isinstance(obj, (list, tuple)):
             return [SnapshotManager._to_builtin(v) for v in obj]
+        # Fallback: convert non-JSON-serializable objects to their string representation
+        if not isinstance(obj, (str, int, float, bool, type(None))):
+            return repr(obj)
         return obj
 
     def _update_index_manifest(self, base: Path, entry: Dict[str, Any]) -> None:
