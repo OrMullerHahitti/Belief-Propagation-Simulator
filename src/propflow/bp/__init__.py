@@ -10,6 +10,7 @@ from .engines import (
     DiscountEngine,
     MessagePruningEngine,
 )
+from .factor_graph import FactorGraph
 
 __all__ = [
     "SplitEngine",
@@ -19,6 +20,8 @@ __all__ = [
     "DampingSCFGEngine",
     "DiscountEngine",
     "MessagePruningEngine",
+    "FactorGraph",
+    "Engine",
 ]
 
 log_level = os.environ.get("BP_LOG_LEVEL", "CRITICAL").upper()
