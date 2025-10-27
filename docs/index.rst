@@ -56,7 +56,10 @@ runtime:
    (``FGBuilder`` → engine → simulator).
 2. :doc:`user_guide` dives into each layer in detail—from agents up through
    analyzer tooling—highlighting when to rely on helpers versus manual wiring.
-3. :doc:`handbook/index` covers operational practices, deployments, and deeper
+3. :doc:`howto_snapshots` provides a comprehensive guide to capturing, analyzing,
+   and visualizing algorithm state at each iteration—essential for debugging and
+   validating convergence.
+4. :doc:`handbook/index` covers operational practices, deployments, and deeper
    troubleshooting once you're running larger studies.
 
 .. toctree::
@@ -66,6 +69,7 @@ runtime:
    installation
    quickstart
    user_guide
+   howto_snapshots
    handbook/index
    api/index
    examples
