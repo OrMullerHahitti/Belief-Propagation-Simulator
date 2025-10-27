@@ -13,6 +13,7 @@ This section contains the complete API documentation for PropFlow.
    utils
    computators
    simulator
+   snapshots
 
 Core Modules
 ------------
@@ -74,6 +75,13 @@ Simulator
 ~~~~~~~~~
 
 .. automodule:: propflow.simulator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Snapshots
+~~~~~~~~~
+.. automodule:: propflow.snapshots
    :members:
    :undoc-members:
    :show-inheritance:
