@@ -1,4 +1,8 @@
-"""Large random snapshot analysis exporting CSV summaries only."""
+"""Large random graph analysis with comprehensive snapshot export.
+
+This example demonstrates snapshot analysis on a larger randomly-generated
+factor graph, computing convergence metrics and exporting analysis results.
+"""
 from __future__ import annotations
 
 import json
@@ -6,67 +10,65 @@ from pathlib import Path
 
 import numpy as np
 
-from analyzer.reporting import AnalysisReport, SnapshotAnalyzer, parse_snapshots
-
-
-def generate_random_snapshot(num_vars: int = 200, degree: int = 3, seed: int = 0) -> list[dict]:
-    rng = np.random.default_rng(seed)
-    messages = []
-    assignments = {}
-    factors = [f"f{i}" for i in range(num_vars)]
-
-    for idx in range(num_vars):
-        var = f"x{idx}"
-        assignments[var] = int(rng.integers(0, 2))
-        attached = set()
-        for offset in range(degree):
-            factor = factors[(idx + offset) % num_vars]
-            attached.add(factor)
-            values_q = rng.random(2)
-            messages.append(
-                {
-                    "flow": "variable_to_factor",
-                    "sender": var,
-                    "recipient": factor,
-                    "values": values_q.tolist(),
-                }
-            )
-        for factor in attached:
-            values_r = rng.random(2)
-            messages.append(
-                {
-                    "flow": "factor_to_variable",
-                    "sender": factor,
-                    "recipient": var,
-                    "values": values_r.tolist(),
-                }
-            )
-
-    snapshot = {
-        "step": 0,
-        "messages": messages,
-        "assignments": assignments,
-        "cost": None,
-        "neutral_messages": 0,
-        "step_neutral": False,
-    }
-    return [snapshot]
+from propflow import BPEngine, FGBuilder
+from propflow.configs import create_random_int_table
+from propflow.snapshots import SnapshotAnalyzer, AnalysisReport, SnapshotsConfig
+from propflow.snapshots.utils import get_snapshot
 
 
 def main() -> None:
-    raw = generate_random_snapshot()
-    records = parse_snapshots(raw)
-    analyzer = SnapshotAnalyzer(records, max_cycle_len=4)
+    # Generate a larger random factor graph
+    np.random.seed(0)
+
+    fg = FGBuilder.build_random_graph(
+        num_vars=200,
+        domain_size=2,
+        ct_factory=create_random_int_table,
+        ct_params={"low": 0, "high": 10},
+        density=0.05,  # 5% factor density for connectivity
+    )
+
+    # Run with snapshot capture
+    snapshot_cfg = SnapshotsConfig(
+        compute_jacobians=True,
+        compute_block_norms=True,
+        compute_cycles=True,
+        max_cycle_len=4,
+        retain_last=None,  # Keep all snapshots
+    )
+
+    engine = BPEngine(factor_graph=fg, snapshots_config=snapshot_cfg)
+    print("Running BP on 200-variable random graph...")
+    engine.run(max_iter=50)
+
+    # Collect snapshots
+    snapshots = [
+        get_snapshot(engine, i)
+        for i in range(len(engine.history.step_costs))
+    ]
+    print(f"✓ Captured {len(snapshots)} snapshots")
+
+    # Analyze
+    analyzer = SnapshotAnalyzer(snapshots)
     report = AnalysisReport(analyzer)
 
     out_dir = Path("results/analysis_random")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    report.to_csv(out_dir, step_idx=0)
-    summary = report.to_json(0, include_cover=False)
+    # Export final step analysis
+    final_step = len(snapshots) - 1
+    summary = report.to_json(step_idx=final_step)
     with (out_dir / "summary.json").open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)
-    print("Random analysis written to", out_dir)
+
+    print("✓ Analysis exported to", out_dir)
+    print(f"  - Nilpotent index: {summary.get('nilpotent_index', None)}")
+    print(f"  - Cycles found: {summary.get('cycle_metrics', {}).get('num_cycles', 0)}")
+
+    # Show belief convergence
+    beliefs = analyzer.beliefs_per_variable()
+    converged_vars = sum(1 for traj in beliefs.values() if len(set(traj[-5:])) == 1)
+    print(f"  - Variables converged: {converged_vars}/{len(beliefs)}")
 
 
 if __name__ == "__main__":  # pragma: no cover
