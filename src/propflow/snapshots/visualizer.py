@@ -3,12 +3,13 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence
+from typing import Dict, Iterable, List, Sequence, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from .types import SnapshotRecord
+from propflow.utils.tools.bct import BCTCreator
 
 
 class SnapshotVisualizer:
@@ -222,6 +223,154 @@ class SnapshotVisualizer:
         for rec in records:
             vars_set.update(str(key) for key in rec.data.assignments.keys())
         return vars_set
+
+    def plot_bct(
+        self,
+        variable_name: str,
+        iteration: int | None = None,
+        *,
+        show: bool = True,
+        savepath: str | None = None,
+    ) -> BCTCreator:
+        """Plot a Backtrack Cost Tree (BCT) for a variable from snapshots.
+
+        Reconstructs BCT data from snapshot Q and R messages, then visualizes
+        how costs and beliefs from earlier iterations contribute to the final
+        belief of the specified variable.
+
+        Args:
+            variable_name: The name of the variable to visualize the BCT for.
+            iteration: The iteration to trace back from. Defaults to None (last step).
+                If None, uses -1 (the last captured iteration).
+            show: Whether to display the plot.
+            savepath: Optional path to save the generated figure.
+
+        Returns:
+            The BCTCreator object for further analysis (e.g., convergence analysis,
+            variable comparisons). Can be used to call methods like
+            analyze_convergence(), compare_variables(), export_analysis(), etc.
+
+        Raises:
+            ValueError: If the variable_name is not found in the snapshots.
+        """
+        if variable_name not in self._variables:
+            raise ValueError(f"Variable {variable_name} not found in snapshots")
+
+        if iteration is None:
+            iteration = -1
+
+        # Reconstruct BCT data from snapshots
+        bct_data = self._reconstruct_bct_data_from_snapshots()
+
+        # Create a mock history object that works with BCTCreator
+        mock_history = _SnapshotBasedHistory(bct_data)
+
+        # Create BCTCreator with the reconstructed data
+        creator = BCTCreator(
+            factor_graph=None,  # Not needed when using snapshot-based data
+            history=mock_history,
+            damping_factor=self._records[0].data.lambda_ if self._records else 0.0,
+        )
+
+        # Visualize the BCT
+        creator.visualize_bct(variable_name, iteration=iteration, save_path=savepath)
+
+        if show:
+            plt.show()
+
+        return creator
+
+    def _reconstruct_bct_data_from_snapshots(self) -> Dict[str, Any]:
+        """Reconstruct BCT data structure from snapshot messages.
+
+        Builds a data structure compatible with BCTCreator that contains:
+        - Belief evolution per variable
+        - Assignment evolution per variable
+        - Message flows between agents
+        - Metadata and costs
+
+        Returns:
+            A dictionary with keys: 'beliefs', 'assignments', 'messages', 'costs', 'metadata'.
+        """
+        bct_data: Dict[str, Any] = {
+            "beliefs": {},
+            "assignments": {},
+            "messages": {},
+            "costs": [],
+            "metadata": {"total_steps": len(self._records)},
+        }
+
+        # Extract belief and assignment trajectories for all variables
+        all_variables = self.variables()
+        for var in all_variables:
+            beliefs = []
+            assignments = []
+            for rec in self._records:
+                data = rec.data
+                # Get belief, fallback to assignment
+                belief = data.beliefs.get(var, data.assignments.get(var, 0.0))
+                beliefs.append(float(belief))
+                assignments.append(data.assignments.get(var))
+
+            bct_data["beliefs"][var] = beliefs
+            bct_data["assignments"][var] = assignments
+
+        # Extract message flows from Q and R messages
+        message_flows: Dict[str, List[float]] = {}
+
+        for rec in self._records:
+            data = rec.data
+
+            # Process Q messages (variable -> factor)
+            for (var, factor), q_msg in data.Q.items():
+                flow_key = f"{var}->{factor}"
+                if flow_key not in message_flows:
+                    message_flows[flow_key] = []
+                # Store the sum of Q-message values
+                q_value = float(np.sum(np.asarray(q_msg, dtype=float)))
+                message_flows[flow_key].append(q_value)
+
+            # Process R messages (factor -> variable)
+            for (factor, var), r_msg in data.R.items():
+                flow_key = f"{factor}->{var}"
+                if flow_key not in message_flows:
+                    message_flows[flow_key] = []
+                # Store the sum of R-message values
+                r_value = float(np.sum(np.asarray(r_msg, dtype=float)))
+                message_flows[flow_key].append(r_value)
+
+            # Extract global cost if available
+            if data.global_cost is not None:
+                bct_data["costs"].append(data.global_cost)
+
+        bct_data["messages"] = message_flows
+
+        return bct_data
+
+
+class _SnapshotBasedHistory:
+    """Mock history object that provides BCTCreator-compatible interface from snapshots.
+
+    This allows BCTCreator to work with snapshot-derived data without requiring
+    the original History object.
+    """
+
+    def __init__(self, bct_data: Dict[str, Any]):
+        """Initialize with pre-constructed BCT data.
+
+        Args:
+            bct_data: Dictionary with keys 'beliefs', 'assignments', 'messages', 'costs', 'metadata'.
+        """
+        self.bct_data = bct_data
+        self.use_bct_history = True
+
+    def get_bct_data(self) -> Dict[str, Any]:
+        """Return the reconstructed BCT data.
+
+        Returns:
+            The BCT data dictionary.
+        """
+        return self.bct_data
 
 
 __all__ = ["SnapshotVisualizer"]

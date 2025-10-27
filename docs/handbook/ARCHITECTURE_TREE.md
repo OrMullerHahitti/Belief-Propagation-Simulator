@@ -161,7 +161,7 @@ src/analyzer                      # Optional deep analysis toolkit
 - `Step`: per-step captured messages
   - `q_messages`: variable→factor; `r_messages`: factor→variable (used by snapshots)
 - `snapshots.SnapshotManager(SnapshotsConfig)`
-  - Builds `SnapshotData` with Q/R, neighborhoods, domains; computes Jacobians `(A,P,B)` and optional cycle metrics and block norms; supports `save_step(dir)`
+  - Builds `SnapshotData` with Q/R, neighborhoods, domains; computes Jacobians `(A,P,B)` and optional cycle metrics and block norms; supports `save_step(dir, save=True)` for explicit persistence
 
 ## Simulator (batch)
 

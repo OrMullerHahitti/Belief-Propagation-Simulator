@@ -7,6 +7,7 @@ a specific variable, making it a powerful tool for debugging and understanding
 the dynamics of belief propagation.
 """
 
+from collections import deque
 import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -171,12 +172,13 @@ class BCTCreator:
         G = nx.DiGraph()
         pos, labels, colors = {}, {}, []
         queue = deque([(root, 0, 0)])
-        node_map = {root: f"{root.name}_{root.iteration}_{id(root)}"}
-        G.add_node(node_map[root])
+        node_map = {id(root): f"{root.name}_{root.iteration}_{id(root)}"}
+        root_id = node_map[id(root)]
+        G.add_node(root_id)
 
         while queue:
             node, x, level = queue.popleft()
-            node_id = node_map[node]
+            node_id = node_map[id(node)]
             pos[node_id] = (x, -level)
             label = f"{node.name}\niter:{node.iteration}\ncost:{node.cost:.3f}"
             if node.coefficient != 1.0: label += f"\ncoeff:{node.coefficient:.3f}"
@@ -187,7 +189,7 @@ class BCTCreator:
             start_x = x - (num_children - 1) / 2
             for i, child in enumerate(node.children):
                 child_id = f"{child.name}_{child.iteration}_{id(child)}"
-                node_map[child] = child_id
+                node_map[id(child)] = child_id
                 G.add_edge(node_id, child_id)
                 queue.append((child, start_x + i, level + 1))
 
