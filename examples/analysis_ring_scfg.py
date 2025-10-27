@@ -1,4 +1,10 @@
-"""Demonstration of the reporting analyzer on a small ring graph."""
+"""Demonstration of snapshot analysis on a small 3-variable ring factor graph.
+
+NOTE: This example demonstrates core analysis features from propflow.snapshots.
+Some specialized features from the legacy analyzer module (like scc_greedy_neutral_cover)
+are no longer available. The new snapshot module focuses on convergence analysis,
+Jacobian computation, and cycle detection.
+"""
 from __future__ import annotations
 
 import json
@@ -6,59 +12,67 @@ from pathlib import Path
 
 import numpy as np
 
-from analyzer.reporting import AnalysisReport, SnapshotAnalyzer, parse_snapshots
+from propflow import BPEngine, FGBuilder
+from propflow.configs import create_random_int_table
+from propflow.snapshots import SnapshotAnalyzer, AnalysisReport, SnapshotsConfig
+from propflow.snapshots.utils import get_snapshot
 
-RAW_RING = [
-    {
-        "step": 0,
-        "messages": [
-            {"flow": "variable_to_factor", "sender": "x1", "recipient": "f12", "values": [0.0, 0.5]},
-            {"flow": "variable_to_factor", "sender": "x2", "recipient": "f12", "values": [0.4, 0.1]},
-            {"flow": "variable_to_factor", "sender": "x2", "recipient": "f23", "values": [0.2, 0.3]},
-            {"flow": "variable_to_factor", "sender": "x3", "recipient": "f23", "values": [0.7, 0.1]},
-            {"flow": "variable_to_factor", "sender": "x3", "recipient": "f31", "values": [0.1, 0.4]},
-            {"flow": "variable_to_factor", "sender": "x1", "recipient": "f31", "values": [0.3, 0.0]},
-            {"flow": "factor_to_variable", "sender": "f12", "recipient": "x1", "values": [0.2, 0.1]},
-            {"flow": "factor_to_variable", "sender": "f12", "recipient": "x2", "values": [0.3, 0.5]},
-            {"flow": "factor_to_variable", "sender": "f23", "recipient": "x2", "values": [0.4, 0.3]},
-            {"flow": "factor_to_variable", "sender": "f23", "recipient": "x3", "values": [0.2, 0.2], "neutral": True},
-            {"flow": "factor_to_variable", "sender": "f31", "recipient": "x3", "values": [0.3, 0.1]},
-            {"flow": "factor_to_variable", "sender": "f31", "recipient": "x1", "values": [0.4, 0.2]},
-        ],
-        "assignments": {"x1": 0, "x2": 1, "x3": 0},
-        "cost": None,
-        "neutral_messages": 1,
-        "step_neutral": False,
-    }
-]
 
-COSTS = {
-    "f12": np.array([[0.0, 1.0], [2.0, 0.4]]),
-    "f23": np.array([[0.0, 0.5], [0.5, 0.0]]),
-    "f31": np.array([[0.0, 0.2], [0.8, 0.1]]),
-}
+def build_ring_3var():
+    """Build a simple 3-variable ring factor graph."""
+    return FGBuilder.build_cycle_graph(
+        num_vars=3,
+        domain_size=2,
+        ct_factory=create_random_int_table,
+        ct_params={"low": 0, "high": 2},
+    )
 
 
 def main() -> None:
-    records = parse_snapshots(RAW_RING)
-    analyzer = SnapshotAnalyzer(records, domain={"x1": 2, "x2": 2, "x3": 2}, max_cycle_len=6)
-    for factor, table in COSTS.items():
-        analyzer.register_factor_cost(factor, table)
+    np.random.seed(42)
 
+    # Build and run engine with snapshots
+    fg = build_ring_3var()
+    snapshot_cfg = SnapshotsConfig(
+        compute_jacobians=True,
+        compute_block_norms=True,
+        compute_cycles=True,
+        max_cycle_len=6,
+    )
+
+    engine = BPEngine(factor_graph=fg, snapshots_config=snapshot_cfg)
+    engine.run(max_iter=20)
+
+    # Collect snapshots
+    snapshots = [
+        get_snapshot(engine, i)
+        for i in range(len(engine.history.step_costs))
+    ]
+
+    # Analyze snapshots
+    analyzer = SnapshotAnalyzer(snapshots)
     report = AnalysisReport(analyzer)
+
     out_dir = Path("results/analysis_ring")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    summary = report.to_json(0)
+    # Export analysis as JSON
+    summary = report.to_json(step_idx=len(snapshots) - 1)
     with (out_dir / "summary.json").open("w", encoding="utf-8") as handle:
         json.dump(summary, handle, indent=2)
 
-    report.to_csv(out_dir, step_idx=0)
-    report.plots(out_dir, step_idx=0, include_graph=True)
+    print("✓ Analysis summary exported to summary.json")
+    print(f"  - Block norms: {summary.get('block_norms', {})}")
+    print(f"  - Cycles found: {summary.get('cycle_metrics', {}).get('num_cycles', 0)}")
+    print(f"  - Nilpotent index: {summary.get('nilpotent_index', None)}")
 
-    cover, _ = analyzer.scc_greedy_neutral_cover(0, alpha={})
-    print("Neutral cover:", cover)
-    print("Nilpotent index:", analyzer.nilpotent_index(0))
+    # Show belief trajectories
+    beliefs = analyzer.beliefs_per_variable()
+    print("\nBelief trajectories (argmin per variable):")
+    for var, trajectory in beliefs.items():
+        print(f"  {var}: {trajectory}")
+
+    print(f"\nResults saved to {out_dir}")
 
 
 if __name__ == "__main__":  # pragma: no cover
