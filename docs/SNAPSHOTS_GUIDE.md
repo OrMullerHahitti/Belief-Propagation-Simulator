@@ -393,6 +393,9 @@ plt.show()
 
 ### Save Individual Snapshots
 
+The engine now exposes the retained in-memory records via `engine.snapshots` and provides
+`engine.save_snapshot` helpers for persisting them without touching the lower-level manager.
+
 ```python
 from pathlib import Path
 
@@ -400,20 +403,18 @@ snap_dir = Path("snapshot_output")
 snap_dir.mkdir(exist_ok=True)
 
 # Save a single snapshot to disk
-manager = engine._snapshot_manager
-step_dir = manager.save_step(
-    step_index=50,
-    out_dir=snap_dir,
-    save=True  # Must explicitly set save=True
-)
-
-print(f"Saved to: {step_dir}")
-# Creates: snapshot_output/step_0050/
-#   ├── meta.json (metadata and analysis)
-#   ├── messages_q.npz (Q message arrays)
-#   ├── messages_r.npz (R message arrays)
-#   ├── unary.npz (unary potentials)
-#   ├── A.npz, P.npz, B.npz (Jacobian matrices, if computed)
+latest = engine.latest_snapshot()
+if latest:
+    json_path = engine.save_snapshot.save_json(
+        snap_dir / f"snapshot_step_{latest.data.step:04d}.json",
+        step=latest.data.step,
+    )
+    csv_path = engine.save_snapshot.save_csv(
+        snap_dir / "snapshot_summary.csv",
+        step=latest.data.step,
+    )
+    print(f"Wrote JSON to {json_path}")
+    print(f"Appended CSV summary to {csv_path}")
 ```
 
 ### Auto-Persist During Simulation

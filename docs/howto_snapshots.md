@@ -186,14 +186,25 @@ print(record.jacobians.block_norms if record.jacobians else "No Jacobians")
   BCT mode is on.
 - `record.cycles` summarises simple cycles and contraction hints if enabled.
 
-Need to persist a subset of steps after a run? Call `save_step` with `save=True`:
+Need to persist a subset of steps after a run? Use the engine’s saver helpers:
 
 ```python
-step_dir = engine._snapshot_manager.save_step(5, Path("results/snapshots_run"), save=True)
-print("Saved to:", step_dir)
+target_dir = Path("results/snapshots_run")
+latest = engine.latest_snapshot()
+if latest:
+    json_file = engine.save_snapshot.save_json(
+        target_dir / f"snapshot_step_{latest.data.step:04d}.json",
+        step=latest.data.step,
+    )
+    csv_file = engine.save_snapshot.save_csv(
+        target_dir / "snapshot_summary.csv",
+        step=latest.data.step,
+    )
+    print("Saved JSON to:", json_file)
+    print("Updated CSV summary:", csv_file)
 ```
 
-Without `save=True`, the helper simply returns `None` and keeps the snapshot in memory.
+The saver works with any retained step (or all of them when `step` is omitted) and keeps the in-memory cache untouched.
 
 ### 3.4 Load Stored Snapshots for Analysis
 
