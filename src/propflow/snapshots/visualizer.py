@@ -21,6 +21,7 @@ class SnapshotVisualizer:
 
     _MAX_AUTO_VARS = 20
     _SMALL_PLOT_THRESHOLD = 8
+    _MAX_AUTO_MESSAGE_PAIRS = 6
 
     def __init__(self, snapshots: Sequence[SnapshotRecord]):
         """Initialize the visualizer with snapshot records.
@@ -102,6 +103,43 @@ class SnapshotVisualizer:
                     result[var].append(data.assignments.get(var))
 
         return result
+
+    def global_cost_series(
+        self,
+        *,
+        include_missing: bool = False,
+        fill_value: float = float("nan"),
+    ) -> Tuple[List[int], List[float]]:
+        """Return the global cost trajectory extracted from the snapshots.
+
+        Args:
+            include_missing: If True, include steps with missing costs using ``fill_value``.
+            fill_value: Value to substitute whenever a snapshot lacks a global cost.
+
+        Returns:
+            A tuple ``(steps, costs)`` with matching lengths.
+
+        Raises:
+            ValueError: If no snapshots contain global cost information.
+        """
+        steps: List[int] = []
+        costs: List[float] = []
+
+        for rec in self._records:
+            step = rec.data.step
+            cost = rec.data.global_cost
+            if cost is None:
+                if include_missing:
+                    steps.append(step)
+                    costs.append(float(fill_value))
+                continue
+            steps.append(step)
+            costs.append(float(cost))
+
+        if not costs:
+            raise ValueError("No global cost data available in snapshots")
+
+        return steps, costs
 
     def factor_cost_matrix(self, factor: FactorLike, step: int) -> np.ndarray:
         """Return a copy of a factor's cost table at a given step."""
@@ -499,6 +537,275 @@ class SnapshotVisualizer:
             plt.close(fig)
 
         return (fig, message_arr, winners_mask) if return_data else fig
+
+    def plot_global_cost(
+        self,
+        *,
+        show: bool = True,
+        savepath: str | None = None,
+        include_missing: bool = False,
+        fill_value: float = float("nan"),
+        rolling_window: int | None = None,
+        return_data: bool = False,
+    ) -> plt.Figure | Tuple[plt.Figure, Dict[str, Any]]:
+        """Plot the evolution of the global cost captured in the snapshots.
+
+        Args:
+            show: Whether to display the plot window.
+            savepath: Optional file path to save the figure.
+            include_missing: If True, include steps without a recorded cost using ``fill_value``.
+            fill_value: Value used when ``include_missing`` is True and a step lacks a cost.
+            rolling_window: Size of a trailing window to compute and overlay a rolling mean.
+            return_data: If True, return the underlying data alongside the figure.
+
+        Returns:
+            The created matplotlib figure, optionally accompanied by the plotted data.
+        """
+        steps, costs = self.global_cost_series(
+            include_missing=include_missing,
+            fill_value=fill_value,
+        )
+        fig, ax = plt.subplots(figsize=(8, 4.5))
+        ax.plot(steps, costs, marker="o", label="Global cost")
+
+        rolling_info: Dict[str, Any] | None = None
+        if rolling_window is not None and rolling_window > 1:
+            if len(costs) >= rolling_window:
+                smooth_steps, smooth_values = self._rolling_window_average(
+                    costs,
+                    steps,
+                    rolling_window,
+                )
+                ax.plot(
+                    smooth_steps,
+                    smooth_values,
+                    linestyle="--",
+                    color="tab:orange",
+                    label=f"{rolling_window}-step rolling mean",
+                )
+                rolling_info = {
+                    "window": rolling_window,
+                    "steps": smooth_steps,
+                    "values": smooth_values,
+                }
+            else:
+                rolling_info = {
+                    "window": rolling_window,
+                    "steps": [],
+                    "values": [],
+                }
+
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Global cost")
+        ax.set_title("Global cost trajectory")
+        ax.grid(True, alpha=0.3)
+        if rolling_info is not None or len(costs) > 1:
+            ax.legend()
+
+        fig.tight_layout()
+
+        if savepath:
+            save_path = Path(savepath)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(save_path, dpi=150)
+
+        if show:
+            fig.show()
+        else:
+            plt.close(fig)
+
+        data = {
+            "steps": steps,
+            "costs": costs,
+            "rolling": rolling_info,
+        }
+        return (fig, data) if return_data else fig
+
+    def plot_message_norms(
+        self,
+        *,
+        message_type: Literal["Q", "R"] = "Q",
+        pairs: Sequence[tuple[str, str]] | None = None,
+        norm: Literal["l2", "l1", "linf"] = "l2",
+        show: bool = True,
+        savepath: str | None = None,
+        return_data: bool = False,
+    ) -> plt.Figure | Tuple[plt.Figure, Dict[str, Any]]:
+        """Plot the per-step norms of Q or R messages.
+
+        Args:
+            message_type: Select ``\"Q\"`` (variable→factor) or ``\"R\"`` (factor→variable``) messages.
+            pairs: Optional explicit list of message pairs to include. Each tuple is ``(sender, recipient)``.
+            norm: Vector norm used to summarise each message. Supported values are ``\"l2\"``, ``\"l1\"``, ``\"linf\"``.
+            show: Whether to display the plot.
+            savepath: Optional path to save the figure.
+            return_data: If True, include the computed series in the return value.
+
+        Returns:
+            The created figure, optionally with the underlying message norm series.
+        """
+        msg_type = message_type.upper()
+        if msg_type not in {"Q", "R"}:
+            raise ValueError("message_type must be 'Q' or 'R'")
+
+        available_pairs = self._collect_message_pairs(msg_type)
+        if not available_pairs:
+            raise ValueError(f"No {msg_type} messages recorded in the snapshots.")
+
+        if pairs is None:
+            target_pairs = available_pairs[: self._MAX_AUTO_MESSAGE_PAIRS]
+        else:
+            target_pairs = [(str(src), str(dst)) for src, dst in pairs]
+            missing = [pair for pair in target_pairs if pair not in available_pairs]
+            if missing:
+                missing_str = ", ".join(f"{a}->{b}" for a, b in missing)
+                raise ValueError(f"Requested message pairs not present: {missing_str}")
+
+        series: Dict[tuple[str, str], List[float]] = {pair: [] for pair in target_pairs}
+
+        for rec in self._records:
+            messages = rec.data.Q if msg_type == "Q" else rec.data.R
+            for pair in target_pairs:
+                payload = messages.get(pair)
+                if payload is None:
+                    series[pair].append(float("nan"))
+                else:
+                    series[pair].append(self._message_norm(payload, norm))
+
+        fig, ax = plt.subplots(figsize=(9, 4.5))
+        for pair, values in series.items():
+            label = f"{pair[0]}→{pair[1]}"
+            ax.plot(self._steps, values, marker="o", label=label)
+
+        direction = "Variable→Factor" if msg_type == "Q" else "Factor→Variable"
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel(f"{norm.upper()}-norm")
+        ax.set_title(f"{msg_type} message norms ({direction})")
+        ax.grid(True, alpha=0.3)
+        ax.legend()
+
+        fig.tight_layout()
+
+        if savepath:
+            save_path = Path(savepath)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(save_path, dpi=150)
+
+        if show:
+            fig.show()
+        else:
+            plt.close(fig)
+
+        data = {
+            "steps": list(self._steps),
+            "series": series,
+            "message_type": msg_type,
+            "norm": norm,
+        }
+        return (fig, data) if return_data else fig
+
+    def plot_assignment_heatmap(
+        self,
+        vars_filter: List[str] | None = None,
+        *,
+        show: bool = True,
+        savepath: str | None = None,
+        cmap: str = "viridis",
+        missing_value: float = float("nan"),
+        annotate: bool = True,
+        return_data: bool = False,
+    ) -> plt.Figure | Tuple[plt.Figure, Dict[str, Any]]:
+        """Plot variable assignments over time as a heatmap.
+
+        Args:
+            vars_filter: Optional subset of variables to include.
+            show: Whether to display the figure window.
+            savepath: Optional path to save the generated figure.
+            cmap: Matplotlib colormap name to use for the heatmap.
+            missing_value: Value inserted when an assignment is missing for a step.
+                Defaults to ``NaN`` so gaps appear as empty cells.
+            annotate: Whether to write assignment values inside each cell.
+            return_data: If True, return the data used for plotting alongside the figure.
+
+        Returns:
+            The heatmap figure, optionally with the underlying matrix.
+        """
+        target_vars = self._select_variables(vars_filter)
+        if not target_vars:
+            raise ValueError("No variables available to plot assignments.")
+
+        steps = self._steps
+        matrix = np.full(
+            (len(target_vars), len(steps)),
+            float(missing_value),
+            dtype=float,
+        )
+
+        for col, rec in enumerate(self._records):
+            assignments = rec.data.assignments
+            for row, var in enumerate(target_vars):
+                value = assignments.get(var)
+                if value is None:
+                    continue
+                matrix[row, col] = float(value)
+
+        if np.all(np.isnan(matrix)):
+            raise ValueError("No assignments recorded for the selected variables.")
+
+        fig_width = max(6.0, 0.6 * len(steps))
+        fig_height = max(4.0, 0.5 * len(target_vars))
+        fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+        im = ax.imshow(matrix, aspect="auto", cmap=cmap, interpolation="nearest")
+        ax.set_xticks(range(len(steps)))
+        ax.set_xticklabels(steps, rotation=45, ha="right")
+        ax.set_yticks(range(len(target_vars)))
+        ax.set_yticklabels(target_vars)
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Variable")
+        ax.set_title("Assignment heatmap")
+
+        color_threshold = np.nanmean(matrix)
+        if np.isnan(color_threshold):
+            color_threshold = 0.0
+
+        if annotate:
+            for row in range(len(target_vars)):
+                for col in range(len(steps)):
+                    value = matrix[row, col]
+                    if np.isnan(value):
+                        continue
+                    ax.text(
+                        col,
+                        row,
+                        f"{int(value)}",
+                        ha="center",
+                        va="center",
+                        color="white" if value > color_threshold else "black",
+                        fontsize=10,
+                        fontweight="bold",
+                    )
+
+        fig.colorbar(im, ax=ax, shrink=0.85, label="Assignment index")
+        fig.tight_layout()
+
+        if savepath:
+            save_path = Path(savepath)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(save_path, dpi=150)
+
+        if show:
+            fig.show()
+        else:
+            plt.close(fig)
+
+        payload = {
+            "variables": target_vars,
+            "steps": steps,
+            "matrix": matrix,
+        }
+        return (fig, payload) if return_data else fig
+
     def plot_argmin_per_variable(
         self,
         vars_filter: List[str] | None = None,
@@ -589,6 +896,26 @@ class SnapshotVisualizer:
             ax.set_yticks(sorted(set(values)))
 
     @staticmethod
+    def _rolling_window_average(
+        values: Sequence[float],
+        steps: Sequence[int],
+        window: int,
+    ) -> Tuple[List[int], List[float]]:
+        """Compute a trailing rolling mean and align it with the corresponding steps."""
+        if window <= 1:
+            return list(steps), [float(v) for v in values]
+
+        arr = np.asarray(values, dtype=float)
+        if len(arr) < window:
+            raise ValueError("window length exceeds number of available points")
+
+        cumulative = np.cumsum(arr, dtype=float)
+        cumulative[window:] = cumulative[window:] - cumulative[:-window]
+        averages = (cumulative[window - 1:] / window).tolist()
+        step_list = list(steps)
+        return step_list[window - 1 :], averages
+
+    @staticmethod
     def _plot_variable_series(
         ax, var: str, steps: Sequence[int], series: Sequence[int | None]
     ) -> None:
@@ -633,6 +960,27 @@ class SnapshotVisualizer:
         for rec in records:
             vars_set.update(str(key) for key in rec.data.assignments.keys())
         return vars_set
+
+    def _collect_message_pairs(self, message_type: Literal["Q", "R"]) -> List[tuple[str, str]]:
+        """Collect all unique sender/recipient pairs for a message type."""
+        pairs: set[tuple[str, str]] = set()
+        for rec in self._records:
+            store = rec.data.Q if message_type == "Q" else rec.data.R
+            for src, dst in store.keys():
+                pairs.add((str(src), str(dst)))
+        return sorted(pairs)
+
+    @staticmethod
+    def _message_norm(values: Any, norm: Literal["l2", "l1", "linf"]) -> float:
+        """Compute a vector norm for a message payload."""
+        arr = np.asarray(values, dtype=float)
+        if norm == "l2":
+            return float(np.linalg.norm(arr))
+        if norm == "l1":
+            return float(np.linalg.norm(arr, ord=1))
+        if norm == "linf":
+            return float(np.linalg.norm(arr, ord=np.inf))
+        raise ValueError(f"Unsupported norm: {norm}")
 
     def plot_bct(
         self,

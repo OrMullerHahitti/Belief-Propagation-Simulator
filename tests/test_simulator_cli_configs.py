@@ -95,3 +95,45 @@ def test_global_logger_and_registries():
     logger.info("hello")
     assert "min-sum" in COMPUTATORS
     assert "BPEngine" in ENGINES
+
+
+def test_run_single_simulation_handles_engine_failure():
+    class FailingEngine:
+        def __init__(self, factor_graph, convergence_config, **_):
+            self.history = type("History", (), {"costs": []})()
+
+        def run(self, max_iter):  # pragma: no cover - intentional failure path
+            raise RuntimeError("boom")
+
+    args = (
+        0,
+        "broken",
+        {"class": FailingEngine},
+        pickle.dumps({"nodes": [1]}),
+        3,
+        20,
+    )
+
+    index, name, costs = Simulator._run_single_simulation(args)
+    assert index == 0 and name == "broken" and costs == []
+
+
+def test_run_single_simulation_handles_unpickle_error():
+    class NoOpEngine:
+        def __init__(self, **_):
+            self.history = type("History", (), {"costs": []})()
+
+        def run(self, max_iter):
+            self.history.costs.append(0.0)
+
+    args = (
+        1,
+        "noop",
+        {"class": NoOpEngine},
+        b"not-a-real-pickle",
+        2,
+        20,
+    )
+
+    index, name, costs = Simulator._run_single_simulation(args)
+    assert index == 1 and name == "noop" and costs == []

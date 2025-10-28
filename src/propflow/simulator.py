@@ -9,7 +9,7 @@ of different engines.
 import logging
 import time
 from multiprocessing import Pool, cpu_count
-from typing import List, Dict, Any, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import colorlog
 import numpy as np
@@ -22,6 +22,27 @@ import traceback
 from .configs import Logger
 from .configs.global_config_mapping import LOG_LEVELS, LOGGING_CONFIG, SIMULATOR_DEFAULTS
 from .policies import ConvergenceConfig
+from .search.algorithms import (
+    a_star_factor_graph,
+    beam_search_factor_graph,
+    greedy_best_first_factor_graph,
+)
+
+
+ENGINE_BUILDERS: Dict[str, Any] = {
+    "search.a_star_fg": a_star_factor_graph,
+    "search.greedy_fg": greedy_best_first_factor_graph,
+    "search.beam_fg": beam_search_factor_graph,
+}
+
+
+def build_engine(engine_key: str, *, factor_graph: Any, **kwargs: Any):
+    """Construct an engine from a registered key."""
+    try:
+        builder = ENGINE_BUILDERS[engine_key]
+    except KeyError as exc:  # pragma: no cover - defensive branch
+        raise KeyError(f"Unknown engine key '{engine_key}'") from exc
+    return builder(factor_graph=factor_graph, **kwargs)
 
 
 def _setup_logger(level: Optional[str] = None) -> Logger:
@@ -165,9 +186,16 @@ class Simulator:
         logger = _setup_logger(str(log_level))
         try:
             fg_copy = pickle.loads(graph_data)
-            engine_class = config["class"]
+            engine_cls_or_key = config["class"]
             engine_params = {k: v for k, v in config.items() if k != "class"}
-            engine = engine_class(factor_graph=fg_copy, convergence_config=ConvergenceConfig(), **engine_params)
+            if isinstance(engine_cls_or_key, str):
+                engine = build_engine(engine_cls_or_key, factor_graph=fg_copy, **engine_params)
+            else:
+                engine = engine_cls_or_key(
+                    factor_graph=fg_copy,
+                    convergence_config=ConvergenceConfig(),
+                    **engine_params,
+                )
             engine.run(max_iter=max_iter)
             costs = engine.history.costs
             logger.info(f"Finished: graph {graph_index}, engine {engine_name}. Final cost: {costs[-1] if costs else 'N/A'}")
