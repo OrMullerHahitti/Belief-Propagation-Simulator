@@ -5,6 +5,9 @@ tasks related to factor graphs, such as building graphs with specific
 topologies (random, cycle), calculating bounds, and safely handling pickled
 graph objects.
 """
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle, Patch
 import pickle
 import sys
 from typing import Callable, Dict, Any, List, Tuple
@@ -68,6 +71,29 @@ def _make_connections_density(
 
 class FGBuilder:
     """A builder class providing static methods to construct factor graphs."""
+    
+    @staticmethod
+    def build_from_edges(
+        variables: List[VariableAgent],
+        factors: List[FactorAgent],
+    edges: Dict[FactorAgent, List[VariableAgent]]
+    ) -> FactorGraph:
+        """Builds a factor graph from the provided variables, factors, and edges.
+
+        Args:
+            variables (List[VariableAgent]): The variable nodes in the graph.
+            factors (List[FactorAgent]): The factor nodes in the graph.
+            edges (Dict[FactorAgent, List[VariableAgent]]): The edges connecting factors to variables.
+
+        Returns:
+            FactorGraph: The constructed factor graph.
+        """
+
+        return FactorGraph(
+            variables,
+            factors,
+            edges
+        )
 
     @staticmethod
     def build_random_graph(
@@ -321,3 +347,191 @@ def get_bound(factor_graph: FactorGraph, reduce_func: Callable = np.min) -> floa
         if hasattr(factor, "cost_table") and factor.cost_table is not None:
             bound += reduce_func(factor.cost_table)
     return bound
+
+
+
+def pretty_print_array(
+    A,
+    *,
+    cmap="Blues",
+    fmt="{:.2g}",
+    annotate=True,
+    auto_min=True,
+    auto_max=True,
+    cell_highlights=None,      # list[(r,c)] or dict[(r,c)]="label"
+    row_highlights=None,       # list[row] or dict[row]="label"
+    label_colors=None,         # dict[label]->color
+    title=None,
+    figsize=(6, 4),
+    cbar=True
+):
+    """
+    Render a NumPy array as a heatmap with optional highlighting.
+
+    Parameters
+    ----------
+    A : array-like (2D)
+        Numeric data.
+    cmap : str
+        Matplotlib colormap name.
+    fmt : str
+        Number format for annotations, e.g. "{:.2g}".
+    annotate : bool
+        If True, draw numbers on each cell.
+    auto_min : bool
+        If True, highlight all global minima (ties included) with label 'min'.
+    auto_max : bool
+        If True, highlight all global maxima (ties included) with label 'max'.
+    cell_highlights : list[(r,c)] | dict[(r,c)] -> str
+        Cells to highlight. If list, uses label 'selected'.
+        If dict, value is the legend label for that cell group.
+    row_highlights : list[int] | dict[int] -> str
+        Rows to highlight. If list, labels become 'row {i}'.
+        If dict, value is the legend label for that row.
+    label_colors : dict[str] -> str
+        Custom colors per label. Unknown labels get auto-assigned.
+    title : str
+        Figure title.
+    figsize : (w,h)
+        Figure size in inches.
+    cbar : bool
+        If True, show colorbar.
+
+    Returns
+    -------
+    fig, ax : Matplotlib figure and axes.
+    """
+    A = np.asarray(A)
+    if A.ndim != 2:
+        raise ValueError("A must be 2D")
+
+    nrows, ncols = A.shape
+    fig, ax = plt.subplots(figsize=figsize)
+
+    im = ax.imshow(A, cmap=cmap, aspect="equal")
+    if cbar:
+        plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+
+    # Grid lines
+    ax.set_xticks(np.arange(ncols))
+    ax.set_yticks(np.arange(nrows))
+    ax.set_xticklabels([str(j) for j in range(ncols)])
+    ax.set_yticklabels([str(i) for i in range(nrows)])
+    ax.set_xticks(np.arange(-0.5, ncols, 1), minor=True)
+    ax.set_yticks(np.arange(-0.5, nrows, 1), minor=True)
+    ax.grid(which="minor", color="white", linewidth=1)
+    ax.tick_params(which="minor", bottom=False, left=False)
+
+    # Normalize inputs
+    used_labels = []
+    default_label_colors = {
+        "selected": "#FFB000",
+        "row": "#FFD166",
+        "min": "#00C2A0",
+        "max": "#E63946",
+    }
+    if label_colors:
+        default_label_colors.update(label_colors)
+
+    # Build highlight maps
+    cell_map = {}
+    if cell_highlights is not None:
+        if isinstance(cell_highlights, dict):
+            for (r, c), lab in cell_highlights.items():
+                cell_map.setdefault(lab, []).append((int(r), int(c)))
+        else:  # assume list of (r,c)
+            cell_map.setdefault("selected", []).extend((int(r), int(c)) for r, c in cell_highlights)
+
+    row_map = {}
+    if row_highlights is not None:
+        if isinstance(row_highlights, dict):
+            for r, lab in row_highlights.items():
+                row_map.setdefault(lab, []).append(int(r))
+        else:  # assume list of rows
+            for r in row_highlights:
+                row_map.setdefault(f"row {int(r)}", []).append(int(r))
+
+    # Auto min/max
+    if auto_min:
+        mn = np.min(A)
+        mins = np.argwhere(A == mn)
+        if len(mins):
+            cell_map.setdefault("min", []).extend((int(r), int(c)) for r, c in mins)
+    if auto_max:
+        mx = np.max(A)
+        maxs = np.argwhere(A == mx)
+        if len(maxs):
+            cell_map.setdefault("max", []).extend((int(r), int(c)) for r, c in maxs)
+
+    # Draw highlights (filled translucent rectangles), then annotate
+    def color_for(label, fallback_cycle=("#FFB000", "#6A4C93", "#2A9D8F", "#E76F51", "#118AB2", "#EF476F")):
+        if label in default_label_colors:
+            return default_label_colors[label]
+        # Assign a stable color based on label hash
+        return fallback_cycle[abs(hash(label)) % len(fallback_cycle)]
+
+    # Row highlights
+    for lab, rows in row_map.items():
+        col = color_for(lab)
+        for r in rows:
+            rect = Rectangle(
+                (-0.5, r - 0.5),
+                ncols, 1,
+                linewidth=2,
+                edgecolor=col,
+                facecolor=col,
+                alpha=0.25
+            )
+            ax.add_patch(rect)
+        used_labels.append((lab, col))
+
+    # Cell highlights
+    for lab, cells in cell_map.items():
+        col = color_for(lab)
+        for (r, c) in cells:
+            rect = Rectangle(
+                (c - 0.5, r - 0.5),
+                1, 1,
+                linewidth=2,
+                edgecolor=col,
+                facecolor=col,
+                alpha=0.35
+            )
+            ax.add_patch(rect)
+        used_labels.append((lab, col))
+
+    # Annotations
+    if annotate:
+        # Pick contrasting text color vs background
+        norm = im.norm
+        for i in range(nrows):
+            for j in range(ncols):
+                val = A[i, j]
+                # heuristic contrast: dark text on light cells, white text on dark cells
+                txt_color = "white" if norm(val) > 0.6 else "black"
+                ax.text(j, i, fmt.format(val), ha="center", va="center", color=txt_color, fontsize=10)
+
+    # Legend describing highlight colors
+    if used_labels:
+        # Deduplicate while preserving order
+        seen = set()
+        handles = []
+        for lab, col in used_labels:
+            if (lab, col) in seen:
+                continue
+            seen.add((lab, col))
+            handles.append(Patch(facecolor=col, edgecolor=col, alpha=0.6, label=lab))
+        ax.legend(
+            handles=handles,
+            title="Highlights",
+            loc="upper left",
+            bbox_to_anchor=(1.02, 1.0),
+            borderaxespad=0.,
+            frameon=False
+        )
+
+    if title:
+        ax.set_title(title)
+
+    plt.tight_layout()
+    return fig, ax

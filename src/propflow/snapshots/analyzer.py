@@ -78,8 +78,7 @@ class SnapshotAnalyzer:
                 grouped.setdefault(v, []).append(np.asarray(r_msg, dtype=float))
 
             for var in variables:
-                vectors = grouped.get(var)
-                if vectors:
+                if vectors := grouped.get(var):
                     combined = np.sum(vectors, axis=0)
                     series[var].append(int(np.argmin(combined)))
                 else:
@@ -139,7 +138,7 @@ class SnapshotAnalyzer:
         # Factor rows
         rec = self._snapshot_by_index(step_idx)
         data = rec.data
-        q_messages = {(u, f): q_arr for (u, f), q_arr in data.Q.items()}
+        q_messages = dict(data.Q.items())
 
         for coord in r_coords:
             row = r_index[coord.key()]

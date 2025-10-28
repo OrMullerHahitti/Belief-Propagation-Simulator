@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import networkx as nx
 import numpy as np
-from typing import List, Dict
+from typing import List, Dict, Any
 import logging
 
 from ..core.dcop_base import Computator
@@ -10,7 +10,8 @@ from ..core.agents import VariableAgent, FactorAgent
 
 logger = logging.getLogger(__name__)
 
-
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 class FactorGraph:
     """Represents a bipartite factor graph for belief propagation.
 
@@ -112,9 +113,11 @@ class FactorGraph:
             if hasattr(factor, 'connection_number'):
                 # Sort variables by their dimension index
                 vars_with_dims = []
-                for var_name, dim in factor.connection_number.items():
-                    if var_name in var_by_name:
-                        vars_with_dims.append((var_by_name[var_name], dim))
+                vars_with_dims.extend(
+                    (var_by_name[var_name], dim)
+                    for var_name, dim in factor.connection_number.items()
+                    if var_name in var_by_name
+                )
                 vars_with_dims.sort(key=lambda x: x[1])
                 edge_dict[factor] = [var for var, _ in vars_with_dims]
         return edge_dict
@@ -140,25 +143,64 @@ class FactorGraph:
                 for message in node.mailer.inbox:
                     message.data -= np.min(message.data)
 
-    def visualize(self) -> None:
+    def visualize(
+        self,
+        layout: str = "bipartite",
+        layout_kwargs: Dict[str, Any] | None = None,
+        plot: bool = True
+    ) -> Figure | None:
         """Visualizes the factor graph using matplotlib.
 
         Variable nodes are drawn as circles, and factor nodes are drawn as squares.
-        """
-        import matplotlib.pyplot as plt
+        If `plot` is True the figure is shown and the function returns None.
+        If `plot` is False the Figure object is returned (and not shown),
+        allowing further programmatic use.
 
-        pos = nx.bipartite_layout(self.G, nodes=self.variables)
+        Args:
+            layout: Layout algorithm to use. Supported values are
+                ``"bipartite"`` (default), ``"spring"``, ``"circular"``, and
+                ``"kamada_kawai"``.
+            layout_kwargs: Optional keyword arguments forwarded to the selected
+                NetworkX layout function.
+            plot: If True, call plt.show() and return None. If False, return
+                the matplotlib.figure.Figure instance without showing it.
+        """
+        layout_kwargs = dict(layout_kwargs or {})
+        layout = layout.lower()
+
+        if layout == "bipartite":
+            layout_kwargs.setdefault("nodes", self.variables)
+            pos = nx.bipartite_layout(self.G, **layout_kwargs)
+        elif layout == "spring":
+            pos = nx.spring_layout(self.G, **layout_kwargs)
+        elif layout == "circular":
+            pos = nx.circular_layout(self.G, **layout_kwargs)
+        elif layout == "kamada_kawai":
+            pos = nx.kamada_kawai_layout(self.G, **layout_kwargs)
+        else:
+            raise ValueError(
+                f"Unsupported layout '{layout}'. "
+                "Choose from 'bipartite', 'spring', 'circular', or 'kamada_kawai'."
+            )
+
+        fig, ax = plt.subplots()
         nx.draw_networkx_nodes(
             self.G, pos, nodelist=self.variables, node_shape="o",
-            node_color="lightblue", node_size=300
+            node_color="lightblue", node_size=300, ax=ax
         )
         nx.draw_networkx_nodes(
             self.G, pos, nodelist=self.factors, node_shape="s",
-            node_color="lightgreen", node_size=300
+            node_color="lightgreen", node_size=300, ax=ax
         )
-        nx.draw_networkx_edges(self.G, pos)
-        nx.draw_networkx_labels(self.G, pos)
-        plt.show()
+        nx.draw_networkx_edges(self.G, pos, ax=ax)
+        nx.draw_networkx_labels(self.G, pos, ax=ax)
+        ax.set_axis_off()
+        plt.tight_layout()
+
+        if plot:
+            plt.show()
+            return None
+        return fig
 
     def _add_edges(self, edges: Dict[FactorAgent, List[VariableAgent]]) -> None:
         """Adds edges and configures factor-variable connections.
@@ -181,8 +223,11 @@ class FactorGraph:
         """Initializes the cost tables for all factor nodes in the graph."""
         for node in list(nx.bipartite.sets(self.G))[1]:
             if isinstance(node, FactorAgent):
-                node.initiate_cost_table()
-                logger.debug("Cost table initialized for factor node: %s", node.name)
+                if getattr(node, "cost_table", None) is None:
+                    node.initiate_cost_table()
+                    logger.debug("Cost table initialized for factor node: %s", node.name)
+                elif getattr(node, "original_cost_table", None) is None:
+                    node.save_original()
 
     def get_variable_agents(self) -> List[VariableAgent]:
         """Returns a list of all variable agents in the graph."""
