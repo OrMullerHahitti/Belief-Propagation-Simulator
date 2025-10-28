@@ -1,5 +1,8 @@
+import csv
+import json
 import typing
-from typing import Dict, Optional, Callable
+from pathlib import Path
+from typing import Callable, Dict, Optional, Sequence
 import numpy as np
 import networkx as nx
 from ..policies.normalize_cost import normalize_inbox
@@ -9,7 +12,7 @@ from .engine_components import History, Step
 from .factor_graph import FactorGraph
 from ..core.dcop_base import Computator
 from ..policies.convergance import ConvergenceMonitor, ConvergenceConfig
-from ..snapshots import SnapshotsConfig, SnapshotManager
+from ..snapshots import SnapshotsConfig, SnapshotManager, SnapshotRecord
 from ..utils.tools.performance import PerformanceMonitor
 
 from ..configs.loggers import Logger
@@ -109,10 +112,15 @@ class BPEngine:
         self._name = name
         init_normalization(self.factor_nodes)
 
-        # Optional snapshots manager
+        # Optional snapshots manager and in-engine snapshot registry
         self._snapshot_manager: SnapshotManager | None = None
+        self._snapshot_limit: int | None = None
+        self._snapshots_buffer: list[SnapshotRecord] = []
+        self._snapshot_lookup: dict[int, SnapshotRecord] = {}
         if snapshots_config is not None:
             self._snapshot_manager = SnapshotManager(snapshots_config)
+            self._snapshot_limit = snapshots_config.retain_last
+        self.save_snapshot = _SnapshotSaver(self)
 
     def step(self, i: int = 0) -> Step:
         """Runs one full step of the synchronous belief propagation algorithm.
@@ -167,7 +175,8 @@ class BPEngine:
         self.history.track_step_data(i, step, self)
 
         if self._snapshot_manager is not None:
-            self._snapshot_manager.capture_step(i, step, self)
+            record = self._snapshot_manager.capture_step(i, step, self)
+            self._register_snapshot(record)
         if self.performance_monitor:
             self.performance_monitor.end_step(start_time, i)
 
@@ -418,9 +427,11 @@ class BPEngine:
         Returns:
             The latest snapshot object, or None if snapshots are disabled.
         """
-        if self._snapshot_manager is None:
-            return None
-        return self._snapshot_manager.latest()
+        if self._snapshots_buffer:
+            return self._snapshots_buffer[-1]
+        if self._snapshot_manager is not None:
+            return self._snapshot_manager.latest()
+        return None
 
     def get_snapshot(self, step_index: int):
         """Returns the snapshot record for a given step index.
@@ -431,6 +442,174 @@ class BPEngine:
         Returns:
             The snapshot object for the given step, or None if not available.
         """
-        if self._snapshot_manager is None:
-            return None
-        return self._snapshot_manager.get(step_index)
+        record = self._snapshot_lookup.get(step_index)
+        if record is not None:
+            return record
+        if self._snapshot_manager is not None:
+            return self._snapshot_manager.get(step_index)
+        return None
+
+    @property
+    def snapshots(self) -> Sequence[SnapshotRecord]:
+        """Ordered snapshots retained by the engine."""
+        return tuple(self._snapshots_buffer)
+
+    def _register_snapshot(self, record: SnapshotRecord) -> None:
+        """Store the captured snapshot and respect retention policy."""
+        self._snapshots_buffer.append(record)
+        self._snapshot_lookup[record.data.step] = record
+        if self._snapshot_limit is not None and len(self._snapshots_buffer) > self._snapshot_limit:
+            oldest = self._snapshots_buffer.pop(0)
+            self._snapshot_lookup.pop(oldest.data.step, None)
+
+
+class _SnapshotSaver:
+    """Utility for exporting snapshots captured by an engine."""
+
+    def __init__(self, engine: "BPEngine") -> None:
+        self._engine = engine
+
+    def save_json(
+        self,
+        path: str | Path | None = None,
+        *,
+        step: int | None = None,
+        indent: int = 2,
+    ) -> Path:
+        """Persist snapshot data to a JSON file.
+
+        Args:
+            path: Destination filepath. Uses a sensible default when omitted.
+            step: Specific step to export. When omitted, all retained snapshots are written.
+            indent: JSON indentation level for readability.
+
+        Returns:
+            The path where the snapshot data was written.
+        """
+        records = self._select_records(step)
+        serialised = [self._record_to_dict(rec) for rec in records]
+        payload: typing.Any
+        if step is not None:
+            payload = serialised[0]
+            default_name = f"snapshot_step_{step:04d}.json"
+        else:
+            payload = serialised
+            default_name = "snapshots.json"
+        target = Path(path) if path else Path(default_name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(payload, indent=indent))
+        return target
+
+    def save_csv(
+        self,
+        path: str | Path | None = None,
+        *,
+        step: int | None = None,
+    ) -> Path:
+        """Persist snapshot summaries to a CSV file.
+
+        Args:
+            path: Destination filepath. Uses a sensible default when omitted.
+            step: Specific step to export. When omitted, all retained snapshots are written.
+
+        Returns:
+            The path where the CSV was written.
+        """
+        records = self._select_records(step)
+        default_name = f"snapshot_step_{records[0].data.step:04d}.csv" if step is not None else "snapshots.csv"
+        target = Path(path) if path else Path(default_name)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        fieldnames = [
+            "step",
+            "lambda",
+            "global_cost",
+            "num_q_messages",
+            "num_r_messages",
+            "num_unary",
+            "has_jacobians",
+            "has_cycles",
+            "captured_at",
+        ]
+        with target.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            for rec in records:
+                data = rec.data
+                writer.writerow(
+                    {
+                        "step": data.step,
+                        "lambda": data.lambda_,
+                        "global_cost": data.global_cost,
+                        "num_q_messages": len(data.Q),
+                        "num_r_messages": len(data.R),
+                        "num_unary": len(data.unary),
+                        "has_jacobians": bool(rec.jacobians),
+                        "has_cycles": bool(rec.cycles),
+                        "captured_at": rec.captured_at.isoformat(),
+                    }
+                )
+        return target
+
+    def _select_records(self, step: int | None) -> list[SnapshotRecord]:
+        records = list(self._engine.snapshots)
+        if not records and self._engine._snapshot_manager is not None:
+            latest = self._engine._snapshot_manager.latest()
+            if latest:
+                self._engine._register_snapshot(latest)
+                records = list(self._engine.snapshots)
+
+        if not records:
+            raise RuntimeError("No snapshots are available; enable snapshots via SnapshotsConfig.")
+
+        if step is None:
+            return records
+
+        for rec in records:
+            if rec.data.step == step:
+                return [rec]
+
+        if self._engine._snapshot_manager is not None:
+            record = self._engine._snapshot_manager.get(step)
+            if record is not None:
+                self._engine._register_snapshot(record)
+                return [record]
+
+        raise ValueError(f"No snapshot available for step {step}.")
+
+    def _record_to_dict(self, record: SnapshotRecord) -> dict:
+        data = record.data
+        payload = {
+            "step": data.step,
+            "lambda": data.lambda_,
+            "global_cost": data.global_cost,
+            "captured_at": record.captured_at.isoformat(),
+            "graph": {
+                "dom": SnapshotManager._to_builtin(data.dom),
+                "N_var": SnapshotManager._to_builtin(data.N_var),
+                "N_fac": SnapshotManager._to_builtin(data.N_fac),
+            },
+            "messages": {
+                "Q": SnapshotManager._to_builtin(data.Q),
+                "R": SnapshotManager._to_builtin(data.R),
+                "unary": SnapshotManager._to_builtin(data.unary),
+            },
+            "beliefs": SnapshotManager._to_builtin(data.beliefs),
+            "assignments": SnapshotManager._to_builtin(data.assignments),
+            "metadata": SnapshotManager._to_builtin(data.metadata),
+        }
+        if data.cost:
+            payload["cost_entries"] = list(data.cost.keys())
+        if record.min_idx is not None:
+            payload["min_idx"] = SnapshotManager._to_builtin(record.min_idx)
+        if record.winners is not None:
+            payload["winners"] = SnapshotManager._to_builtin(record.winners)
+        if record.jacobians is not None:
+            payload["jacobians"] = {
+                "idxQ": SnapshotManager._to_builtin(record.jacobians.idxQ),
+                "idxR": SnapshotManager._to_builtin(record.jacobians.idxR),
+            }
+            if record.jacobians.block_norms is not None:
+                payload["jacobians"]["block_norms"] = SnapshotManager._to_builtin(record.jacobians.block_norms)
+        if record.cycles is not None:
+            payload["cycles"] = record.cycles.to_dict()
+        return payload
