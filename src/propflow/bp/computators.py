@@ -1,5 +1,5 @@
 import numpy as np
-from typing import List
+from typing import List, TypeAlias
 import logging
 import functools
 from functools import lru_cache
@@ -296,7 +296,8 @@ class BPComputator(Computator):
 
         return belief
 
-type Computator = BPComputator
+Computator: TypeAlias = BPComputator
+
 class MinSumComputator(BPComputator):
     """A computator for the Min-Sum belief propagation algorithm.
 
