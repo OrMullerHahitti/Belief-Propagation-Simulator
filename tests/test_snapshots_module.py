@@ -1,3 +1,4 @@
+import csv
 import json
 from types import SimpleNamespace
 import numpy as np
@@ -255,3 +256,42 @@ def test_engine_step_messages_include_all_directions(sample_factor_graph):
         for group in variable_msg_groups
         for msg in group
     )
+
+
+def test_engine_snapshot_sequence_and_saver(tmp_path, sample_factor_graph):
+    config = SnapshotsConfig(
+        compute_jacobians=False,
+        compute_block_norms=False,
+        compute_cycles=False,
+        retain_last=2,
+        save_each_step=False,
+    )
+    engine = BPEngine(
+        factor_graph=sample_factor_graph,
+        snapshots_config=config,
+        use_bct_history=True,
+    )
+    engine.run(max_iter=3)
+
+    snapshots = engine.snapshots
+    assert len(snapshots) == 2
+    assert snapshots[-1] is engine.latest_snapshot()
+    steps = [rec.data.step for rec in snapshots]
+    assert steps == sorted(steps)
+
+    latest_step = steps[-1]
+    json_path = engine.save_snapshot.save_json(
+        tmp_path / "latest_snapshot.json",
+        step=latest_step,
+    )
+    payload = json.loads(json_path.read_text())
+    assert payload["step"] == latest_step
+    assert payload["graph"]["dom"]
+    assert payload["messages"]["Q"]
+
+    csv_path = engine.save_snapshot.save_csv(tmp_path / "snapshots.csv")
+    with csv_path.open() as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+    assert len(rows) == len(snapshots)
+    assert int(rows[-1]["step"]) == latest_step
