@@ -325,6 +325,41 @@ def multiple_test_graphs():
     return graphs
 
 
+@pytest.fixture
+def simple_fg():
+    """Two-variable factor graph with a unique MAP assignment (0, 0)."""
+    var_x = VariableAgent("x1", domain=2)
+    var_y = VariableAgent("x2", domain=2)
+
+    cost_table = np.array([[0.0, 2.0], [2.0, 4.0]], dtype=float)
+    factor = FactorAgent.create_from_cost_table("f_xy", cost_table)
+
+    edges = {factor: [var_x, var_y]}
+    return FactorGraph(variable_li=[var_x, var_y], factor_li=[factor], edges=edges)
+
+
+@pytest.fixture
+def tree_fg():
+    """Three-variable chain factor graph used for MAP consistency tests."""
+    vars_list = [
+        VariableAgent("x1", domain=2),
+        VariableAgent("x2", domain=2),
+        VariableAgent("x3", domain=2),
+    ]
+
+    cost_xy = np.array([[0.0, 1.5], [1.5, 3.0]], dtype=float)
+    cost_yz = np.array([[0.0, 1.0], [1.0, 2.5]], dtype=float)
+
+    factor_xy = FactorAgent.create_from_cost_table("f_xy", cost_xy)
+    factor_yz = FactorAgent.create_from_cost_table("f_yz", cost_yz)
+
+    edges = {
+        factor_xy: [vars_list[0], vars_list[1]],
+        factor_yz: [vars_list[1], vars_list[2]],
+    }
+    return FactorGraph(variable_li=vars_list, factor_li=[factor_xy, factor_yz], edges=edges)
+
+
 # ========================================================================================
 # Engine and Computator Fixtures
 # ========================================================================================

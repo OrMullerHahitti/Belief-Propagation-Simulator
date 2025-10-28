@@ -1,35 +1,76 @@
-"""
-Search module for implementing search-based algorithms like DSA and MGM.
-This module extends the belief propagation framework to support search algorithms.
-"""
+"""High-level search module exposing both legacy local search and new runtimes."""
 
-# Import computators first (they have fewer dependencies)
 from .search_computator import (
-    SearchComputator,
     DSAComputator,
-    MGMComputator,
     MGM2Computator,
+    MGMComputator,
+    SearchComputator,
 )
+from .search_engine import (
+    EngineHistory,
+    EngineHooks,
+    LegacySearchEngine,
+    SearchEngine,
+    DSAEngine,
+    MGM2Engine,
+    MGMEngine,
+)
+from .algorithms import (
+    a_star_factor_graph,
+    beam_search_factor_graph,
+    greedy_best_first_factor_graph,
+    iddfs_factor_graph,
+)
+from .policies import (
+    ClosedList,
+    DefaultCostAcc,
+    DefaultHeuristic,
+    DefaultStateKey,
+)
+from .adapters.factor_graph import (
+    Assignment,
+    FGCost,
+    FGDuplicate,
+    FGExpansion,
+    FGGoal,
+    FGHeuristic,
+    FGStateKey,
+    FactorGraphView,
+)
+from .search_agents import SearchVariableAgent, extend_variable_agent_for_search
 
-# Conditionally import bp and agents (which need more dependencies)
-try:
-    from .search_engine import SearchEngine, DSAEngine, MGMEngine, MGM2Engine
-    from .search_agents import (
-        SearchVariableAgent,
-        extend_variable_agent_for_search,
-    )
-
-    __all__ = [
-        "SearchComputator",
-        "DSAComputator",
-        "MGMComputator",
-        "SearchEngine",
-        "DSAEngine",
-        "MGMEngine",
-        "MGM2Engine",
-        "SearchVariableAgent",
-        "extend_variable_agent_for_search",
-    ]
-except ImportError:
-    # If dependencies aren't available, just provide computators
-    __all__ = ["SearchComputator", "DSAComputator", "MGMComputator", "MGM2Computator"]
+__all__ = [
+    # Runtime engine
+    "SearchEngine",
+    "EngineHooks",
+    "EngineHistory",
+    # Convenience policies & adapters
+    "DefaultStateKey",
+    "DefaultHeuristic",
+    "DefaultCostAcc",
+    "ClosedList",
+    "FGStateKey",
+    "FGExpansion",
+    "FGHeuristic",
+    "FGGoal",
+    "FGCost",
+    "FGDuplicate",
+    "FactorGraphView",
+    "Assignment",
+    # Algorithms
+    "a_star_factor_graph",
+    "beam_search_factor_graph",
+    "greedy_best_first_factor_graph",
+    "iddfs_factor_graph",
+    # Legacy local-search support
+    "LegacySearchEngine",
+    "DSAEngine",
+    "MGMEngine",
+    "MGM2Engine",
+    "SearchComputator",
+    "DSAComputator",
+    "MGMComputator",
+    "MGM2Computator",
+    "SearchVariableAgent",
+    "extend_variable_agent_for_search",
+]
