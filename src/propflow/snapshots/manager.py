@@ -195,6 +195,8 @@ class SnapshotManager:
             "context": context,
             "graph": graph_info,
             "messages": messages_info,
+            "cost_tables": SnapshotManager._to_builtin(data.cost_tables),
+            "cost_labels": SnapshotManager._to_builtin(data.cost_labels),
             "runtime": runtime_info,
             "analysis": analysis_info,
             "metadata": metadata,

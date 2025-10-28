@@ -117,19 +117,18 @@ class BPComputator(Computator):
         """
         if self._combine_inverse is not None:
             return self._combine_inverse(agg, message_to_remove)
+        # Fallback: recompute aggregate without this message
+        if cost_table is not None:
+            temp_agg = cost_table.astype(agg.dtype, copy=True)
+            for i, msg in enumerate(all_messages):
+                if i != axis:
+                    self.combine_func(temp_agg, msg, out=temp_agg)
         else:
-            # Fallback: recompute aggregate without this message
-            if cost_table is not None:
-                temp_agg = cost_table.astype(agg.dtype, copy=True)
-                for i, msg in enumerate(all_messages):
-                    if i != axis:
-                        self.combine_func(temp_agg, msg, out=temp_agg)
-            else:
-                temp_agg = self._belief_identity(agg.shape).astype(agg.dtype)
-                for i, msg in enumerate(all_messages):
-                    if i != axis:
-                        temp_agg = self.combine_func(temp_agg, msg)
-            return temp_agg
+            temp_agg = self._belief_identity(agg.shape).astype(agg.dtype)
+            for i, msg in enumerate(all_messages):
+                if i != axis:
+                    temp_agg = self.combine_func(temp_agg, msg)
+        return temp_agg
 
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """Computes outgoing messages from a variable node to factor nodes (Q messages).
@@ -297,7 +296,7 @@ class BPComputator(Computator):
 
         return belief
 
-
+type Computator = BPComputator
 class MinSumComputator(BPComputator):
     """A computator for the Min-Sum belief propagation algorithm.
 
