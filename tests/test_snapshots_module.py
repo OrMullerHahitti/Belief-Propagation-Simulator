@@ -187,6 +187,28 @@ def test_snapshot_manager_helpers():
     assert winners[("f", "x2", "1")]["x1"] == "1"
 
 
+def test_snapshot_manager_save_missing_step_raises(tmp_path):
+    manager = SnapshotManager(
+        SnapshotsConfig(compute_jacobians=False, compute_block_norms=False, compute_cycles=False)
+    )
+
+    with pytest.raises(ValueError):
+        manager.save_step(99, tmp_path, save=True)
+
+
+def test_snapshot_manager_save_bad_directory(tmp_path, sample_engine, sample_step):
+    manager = SnapshotManager(
+        SnapshotsConfig(compute_jacobians=False, compute_block_norms=False, compute_cycles=False)
+    )
+    manager.capture_step(0, sample_step, sample_engine)
+
+    bad_target = tmp_path / "not_a_directory"
+    bad_target.write_text("file")
+
+    with pytest.raises(FileExistsError):
+        manager.save_step(0, bad_target, save=True)
+
+
 def test_snapshot_builder_includes_history_context(sample_factor_graph):
     class BCTEngine:
         def __init__(self, graph):

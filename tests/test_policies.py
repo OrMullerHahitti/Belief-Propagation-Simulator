@@ -1,14 +1,20 @@
-import pytest
 import numpy as np
-from propflow.utils import FGBuilder
-from propflow.configs import create_random_int_table
+import pytest
+
+from propflow.bp.engines import DampingEngine, SplitEngine
 from propflow.policies.bp_policies import (
-    DampingPolicy,
     CostReductionPolicy,
+    DampingPolicy,
     SplittingPolicy,
 )
 from propflow.policies.convergance import ConvergenceConfig
-from propflow.bp.engines import DampingEngine, SplitEngine
+from propflow.utils import FGBuilder
+
+
+def _deterministic_cost_table(num_vars: int, domain_size: int, offset: float = 0.0, **_kwargs) -> np.ndarray:
+    size = max(1, num_vars)
+    values = np.arange(offset, offset + domain_size ** size, dtype=float)
+    return values.reshape((domain_size,) * size)
 
 
 class TestBasicPolicies:
@@ -20,15 +26,15 @@ class TestBasicPolicies:
         return FGBuilder.build_cycle_graph(
             num_vars=4,
             domain_size=3,
-            ct_factory=create_random_int_table,
-            ct_params={"low": 1, "high": 10},
+            ct_factory=_deterministic_cost_table,
+            ct_params={"offset": 1.0},
         )
 
     def test_damping_policy_creation(self):
         """Test damping policy creation via DampingEngine."""
         # DampingPolicy is abstract, test via engine
         engine = DampingEngine(factor_graph=FGBuilder.build_cycle_graph(
-            num_vars=3, domain_size=2, ct_factory=create_random_int_table, ct_params={"low": 1, "high": 10}
+            num_vars=3, domain_size=2, ct_factory=_deterministic_cost_table, ct_params={"offset": 2.0}
         ), damping_factor=0.5)
         assert engine.damping_factor == 0.5
 
@@ -36,14 +42,14 @@ class TestBasicPolicies:
         """Test cost reduction policy creation via CostReductionOnceEngine."""
         from propflow.bp.engines import CostReductionOnceEngine
         engine = CostReductionOnceEngine(factor_graph=FGBuilder.build_cycle_graph(
-            num_vars=3, domain_size=2, ct_factory=create_random_int_table, ct_params={"low": 1, "high": 10}
+            num_vars=3, domain_size=2, ct_factory=_deterministic_cost_table, ct_params={"offset": 3.0}
         ), reduction_factor=0.3)
         assert engine.reduction_factor == 0.3
 
     def test_splitting_policy_creation(self):
         """Test splitting policy creation via SplitEngine."""
         engine = SplitEngine(factor_graph=FGBuilder.build_cycle_graph(
-            num_vars=3, domain_size=2, ct_factory=create_random_int_table, ct_params={"low": 1, "high": 10}
+            num_vars=3, domain_size=2, ct_factory=_deterministic_cost_table, ct_params={"offset": 4.0}
         ), split_factor=0.7)
         assert engine.split_factor == 0.7
 
@@ -79,6 +85,12 @@ class TestBasicPolicies:
         # Check that engine completed without errors
         assert len(engine.history.costs) > 0
         assert len(engine.history.costs) <= 3
+
+    def test_split_engine_rejects_invalid_ratio(self, sample_factor_graph):
+        """Splitting policy should reject degenerate ratios."""
+
+        with pytest.raises(AssertionError):
+            SplitEngine(factor_graph=sample_factor_graph, split_factor=0.0)
 
     @pytest.mark.parametrize("damping_factor", [0.1, 0.5, 0.9])
     def test_damping_policy_with_different_factors(
@@ -134,8 +146,8 @@ class TestPolicyIntegration:
         return FGBuilder.build_cycle_graph(
             num_vars=4,
             domain_size=3,
-            ct_factory=create_random_int_table,
-            ct_params={"low": 1, "high": 10},
+            ct_factory=_deterministic_cost_table,
+            ct_params={"offset": 1.0},
         )
 
     def test_engine_with_convergence_config(self, sample_factor_graph):

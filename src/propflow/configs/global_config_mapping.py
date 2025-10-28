@@ -298,6 +298,12 @@ COMPUTATORS: Dict[str, str] = {  # str -> dotted‑path to BPComputator subclass
     "sum-product": "my_bp.computators.SumProductComputator",
 }
 
+ENGINE_MAPPING: Dict[str, str] = {
+    "engine.search.a_star_fg": "propflow.search.algorithms:a_star_factor_graph",
+    "engine.search.greedy_fg": "propflow.search.algorithms:greedy_best_first_factor_graph",
+    "engine.search.beam_fg": "propflow.search.algorithms:beam_search_factor_graph",
+}
+
 CT_FACTORIES: Dict[str, Callable] = {}  # filled in by decorator below
 
 

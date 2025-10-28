@@ -1,10 +1,14 @@
-import pytest
+import functools
+
+import networkx as nx
 import numpy as np
-from propflow.bp.factor_graph import FactorGraph
+import pytest
+
 from propflow.bp.engines import BPEngine
-from propflow.utils import FGBuilder
-from propflow.configs import create_random_int_table
+from propflow.bp.factor_graph import FactorGraph
+from propflow.core.agents import FactorAgent, VariableAgent
 from propflow.policies import ConvergenceConfig
+from propflow.utils import FGBuilder
 
 
 # Flag to enable verbose output during tests
@@ -15,6 +19,12 @@ def verbose_print(*args, **kwargs):
     """Print only if verbose mode is enabled."""
     if VERBOSE:
         print(*args, **kwargs)
+
+
+def _fixed_cost_table(num_vars: int, domain_size: int, offset: float = 0.0, **_kwargs) -> np.ndarray:
+    size = max(1, num_vars)
+    values = np.arange(offset, offset + domain_size ** size, dtype=float)
+    return values.reshape((domain_size,) * size)
 
 
 class TestBPEngine:
@@ -45,9 +55,9 @@ class TestBPEngine:
         # Add domain size to params
         params["domain_size"] = domain_size
 
-        # Add cost table factory
-        params["ct_factory"] = create_random_int_table
-        params["ct_params"] = {"low": 1, "high": 10}
+        # Add deterministic cost table factory for stability
+        params["ct_factory"] = _fixed_cost_table
+        params["ct_params"] = {"offset": 1.0}
 
         # Build the graph - FGBuilder methods return FactorGraph directly
         fg = builder_func(**params)
@@ -59,15 +69,18 @@ class TestBPEngine:
 
     @pytest.fixture(
         params=[
-            create_random_int_table,
+            _fixed_cost_table,
+            functools.partial(_fixed_cost_table, offset=5.0),
         ]
     )
     def factor_graph_with_different_tables(self, request, domain_size):
         """Create factor graphs with different types of cost tables."""
         ct_factory = request.param
-        ct_params = (
-            {"low": 1, "high": 10} if ct_factory in [create_random_int_table] else {}
-        )
+        ct_params = {"offset": 1.0}
+        factory_name = getattr(ct_factory, "__name__", repr(ct_factory))
+        if isinstance(ct_factory, functools.partial):
+            ct_params = {"offset": ct_factory.keywords.get("offset", 1.0)}
+            ct_factory = ct_factory.func
 
         fg = FGBuilder.build_cycle_graph(
             num_vars=4,
@@ -77,7 +90,7 @@ class TestBPEngine:
             density=1.0,
         )
 
-        verbose_print(f"Created factor graph with {ct_factory.__name__} cost tables")
+        verbose_print(f"Created factor graph with {factory_name} cost tables")
         return fg
 
     def convergence_is_valid(self, engine):
@@ -226,6 +239,23 @@ class TestBPEngine:
         assert self.bp_engine_produces_reasonable_results(
             engine
         ), "Energy minimization failed"
+
+    def test_bp_engine_disconnected_graph_raises(self, convergence_config):
+        """Disconnected graphs should be rejected during setup."""
+
+        var_a = VariableAgent("x1", domain=2)
+        var_b = VariableAgent("x2", domain=2)
+
+        def zero_cost(num_vars, domain_size, **_):
+            return np.zeros((domain_size,) * max(1, num_vars))
+
+        factor = FactorAgent("f1", domain=2, ct_creation_func=zero_cost)
+        with pytest.raises(nx.AmbiguousSolution):
+            FactorGraph(
+                variable_li=[var_a, var_b],
+                factor_li=[factor],
+                edges={factor: [var_a]},
+            )
 
     # Tests deleted due to incompatible API usage:
     # - test_bp_engine_early_convergence (uses engine.converged, wrong ConvergenceConfig params)
