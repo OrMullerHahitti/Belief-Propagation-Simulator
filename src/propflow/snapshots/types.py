@@ -73,6 +73,8 @@ class SnapshotData:
     Q: Dict[Tuple[str, str], np.ndarray]
     R: Dict[Tuple[str, str], np.ndarray]
     cost: Dict[str, Any] = field(default_factory=dict)
+    cost_tables: Dict[str, np.ndarray] = field(default_factory=dict)
+    cost_labels: Dict[str, List[str]] = field(default_factory=dict)
     unary: Dict[str, np.ndarray] = field(default_factory=dict)
     beliefs: Dict[str, float] = field(default_factory=dict)
     assignments: Dict[str, int] = field(default_factory=dict)

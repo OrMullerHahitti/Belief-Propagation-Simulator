@@ -255,7 +255,7 @@ class FactorAgent(FGAgent):
             ValueError: If the cost table already exists or if no connections are set.
         """
         if self.cost_table is not None:
-            raise ValueError("Cost table already exists. Cannot create a new one.")
+            return  # Cost table already exists
 
         if not self.connection_number:
             raise ValueError("No connections set. Cannot create cost table.")

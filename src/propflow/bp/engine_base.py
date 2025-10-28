@@ -1,13 +1,14 @@
 import csv
 import json
 import typing
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Callable, Dict, Optional, Sequence
+from typing import Callable, Dict, Optional
 import numpy as np
 import networkx as nx
 from ..policies.normalize_cost import normalize_inbox
 from ..core.agents import VariableAgent, FactorAgent
-from .computators import MinSumComputator
+from .computators import BPComputator, MinSumComputator
 from .engine_components import History, Step
 from .factor_graph import FactorGraph
 from ..core.dcop_base import Computator
@@ -49,7 +50,7 @@ class BPEngine:
     def __init__(
         self,
         factor_graph: FactorGraph,
-        computator: Computator = MinSumComputator(),
+        computator: Computator|BPComputator = MinSumComputator(),
         init_normalization: Callable = dummy_func,
         name: str = "BPEngine",
         convergence_config: ConvergenceConfig | None = None,
@@ -114,12 +115,13 @@ class BPEngine:
 
         # Optional snapshots manager and in-engine snapshot registry
         self._snapshot_manager: SnapshotManager | None = None
-        self._snapshot_limit: int | None = None
-        self._snapshots_buffer: list[SnapshotRecord] = []
+        self._snapshot_buffer = _SnapshotBuffer()
         self._snapshot_lookup: dict[int, SnapshotRecord] = {}
         if snapshots_config is not None:
             self._snapshot_manager = SnapshotManager(snapshots_config)
-            self._snapshot_limit = snapshots_config.retain_last
+            evicted = self._snapshot_buffer.set_limit(snapshots_config.retain_last)
+            for old in evicted:
+                self._snapshot_lookup.pop(old.data.step, None)
         self.save_snapshot = _SnapshotSaver(self)
 
     def step(self, i: int = 0) -> Step:
@@ -427,8 +429,9 @@ class BPEngine:
         Returns:
             The latest snapshot object, or None if snapshots are disabled.
         """
-        if self._snapshots_buffer:
-            return self._snapshots_buffer[-1]
+        latest = self._snapshot_buffer.latest()
+        if latest is not None:
+            return latest
         if self._snapshot_manager is not None:
             return self._snapshot_manager.latest()
         return None
@@ -452,15 +455,54 @@ class BPEngine:
     @property
     def snapshots(self) -> Sequence[SnapshotRecord]:
         """Ordered snapshots retained by the engine."""
-        return tuple(self._snapshots_buffer)
+        return self._snapshot_buffer
 
     def _register_snapshot(self, record: SnapshotRecord) -> None:
         """Store the captured snapshot and respect retention policy."""
-        self._snapshots_buffer.append(record)
+        evicted = self._snapshot_buffer.append(record)
         self._snapshot_lookup[record.data.step] = record
-        if self._snapshot_limit is not None and len(self._snapshots_buffer) > self._snapshot_limit:
-            oldest = self._snapshots_buffer.pop(0)
-            self._snapshot_lookup.pop(oldest.data.step, None)
+        for old in evicted:
+            self._snapshot_lookup.pop(old.data.step, None)
+
+
+class _SnapshotBuffer(Sequence[SnapshotRecord]):
+    """Ring buffer keeping recently captured snapshots."""
+
+    def __init__(self, limit: int | None = None) -> None:
+        self._limit = limit if (limit is None or limit >= 0) else None
+        self._items: list[SnapshotRecord] = []
+
+    def set_limit(self, limit: int | None) -> list[SnapshotRecord]:
+        """Adjust retention and return any evicted records."""
+        self._limit = limit if (limit is None or limit >= 0) else None
+        return self._enforce_limit()
+
+    def append(self, record: SnapshotRecord) -> list[SnapshotRecord]:
+        self._items.append(record)
+        return self._enforce_limit()
+
+    def latest(self) -> SnapshotRecord | None:
+        return self._items[-1] if self._items else None
+
+    def steps(self) -> list[int]:
+        return [rec.data.step for rec in self._items]
+
+    def __len__(self) -> int:
+        return len(self._items)
+
+    def __getitem__(self, index):
+        return self._items[index]
+
+    def __iter__(self):
+        return iter(self._items)
+
+    def _enforce_limit(self) -> list[SnapshotRecord]:
+        if self._limit is None:
+            return []
+        removed: list[SnapshotRecord] = []
+        while len(self._items) > self._limit:
+            removed.append(self._items.pop(0))
+        return removed
 
 
 class _SnapshotSaver:

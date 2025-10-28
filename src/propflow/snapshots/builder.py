@@ -144,16 +144,22 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> Snapsh
         v.name: np.zeros(int(getattr(v, "domain", 0))) for v in variables
     }
 
-    # Create callable accessors for factor cost tables
+    # Create callable accessors for factor cost tables and persist arrays
     cost: Dict[str, Any] = {}
+    cost_tables: Dict[str, np.ndarray] = {}
+    cost_labels: Dict[str, List[str]] = {}
     for f in factors:
         table = getattr(f, "cost_table", None)
         conn = getattr(f, "connection_number", {})
         if table is None or not conn:
             continue
 
+        arr = np.asarray(table, dtype=float).copy()
         var_by_dim = sorted(conn.items(), key=lambda kv: kv[1])
         var_order = [name for name, _ in var_by_dim]
+
+        cost_tables[f.name] = arr
+        cost_labels[f.name] = var_order
 
         def make_cost_fn(ct: np.ndarray, order: List[str]):
             def _cost(assign: Dict[str, str]) -> float:
@@ -164,7 +170,7 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> Snapsh
                     return 0.0
             return _cost
 
-        cost[f.name] = make_cost_fn(np.asarray(table), var_order)
+        cost[f.name] = make_cost_fn(arr, var_order)
 
     # Runtime beliefs/assignments/cost sourced from history when available.
     beliefs: Dict[str, float] = {}
@@ -177,6 +183,8 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> Snapsh
         "num_factors": len(factors),
         "captured_at": datetime.now(timezone.utc).isoformat(),
     }
+    computator = getattr(engine, "computator", None)
+    metadata["computator"] = getattr(computator, "__class__.__name__", None)
 
     history = getattr(engine, "history", None)
     if history is not None:
@@ -254,6 +262,8 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> Snapsh
         Q=Q,
         R=R,
         cost=cost,
+        cost_tables=cost_tables,
+        cost_labels=cost_labels,
         unary=unary,
         beliefs=beliefs,
         assignments=assignments,

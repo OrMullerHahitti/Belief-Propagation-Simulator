@@ -172,7 +172,7 @@ class SnapshotVisualizer:
         row_name: str,
         col_name: str,
         cmap: str,
-    ) -> plt.Axes:
+    ) -> plt.Axes: # type: ignore
         im = ax.imshow(matrix, aspect="equal", cmap=cmap)
         ax.set_xticks(np.arange(len(col_labels)))
         ax.set_yticks(np.arange(len(row_labels)))
@@ -185,7 +185,7 @@ class SnapshotVisualizer:
         ax.set_xticks(np.arange(-0.5, len(col_labels), 1), minor=True)
         ax.set_yticks(np.arange(-0.5, len(row_labels), 1), minor=True)
         ax.grid(which="minor", color="w", linestyle="-", linewidth=1.0, alpha=0.6)
-        return im
+        return im # type: ignore
 
     def _infer_message_mode(self) -> Literal["min", "max"]:
         """Infer whether to highlight minima or maxima from snapshot metadata."""
@@ -193,13 +193,11 @@ class SnapshotVisualizer:
             return "min"
         metadata = getattr(self._records[0].data, "metadata", {}) or {}
         name = str(metadata.get("computator", "")).lower()
-        if "max" in name:
-            return "max"
-        return "min"
+        return "max" if "max" in name else "min"
 
     def _render_factor_panel(
         self,
-        ax: plt.Axes,
+        ax: plt.Axes, # pyright: ignore[reportPrivateImportUsage]
         from_variable: str,
         factor: FactorLike,
         step: int,
@@ -209,7 +207,8 @@ class SnapshotVisualizer:
         highlight_color: str,
         text_color: str,
         fmt: str,
-    ) -> Tuple[np.ndarray, np.ndarray, plt.AxesImage]:
+    ) -> Tuple[np.ndarray, np.ndarray, plt.AxesImage]: # pyright: ignore[reportPrivateImportUsage]
+        # sourcery skip: low-code-quality
         factor_name = self._factor_name(factor)
         record = self._snapshot_by_step(step)
         neighbours = record.data.N_fac.get(factor_name, [])
@@ -499,9 +498,7 @@ class SnapshotVisualizer:
         else:  # pragma: no cover - interactive branch
             plt.close(fig)
 
-        if return_data:
-            return fig, message_arr, winners_mask
-        return fig
+        return (fig, message_arr, winners_mask) if return_data else fig
     def plot_argmin_per_variable(
         self,
         vars_filter: List[str] | None = None,
@@ -536,7 +533,7 @@ class SnapshotVisualizer:
         if layout_choice == "combined" or len(target_vars) > self._SMALL_PLOT_THRESHOLD:
             fig, ax = plt.subplots(figsize=figsize or (12, 6))
             for var in target_vars:
-                ax.plot(steps, series[var], marker="o", label=var)
+                ax.plot(steps, series[var], marker="o", label=var) # type: ignore
             ax.set_xlabel("Iteration")
             ax.set_ylabel("Argmin index")
             ax.set_title("Belief argmin trajectories")
