@@ -475,6 +475,63 @@ Extract and manually plot belief trajectories:
     plt.legend()
     plt.show()
 
+4. Factor Cost Visualization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Visualize how factor cost tables contribute to message computation. This shows the original
+cost table with highlighting to indicate which cells produce the R (factor-to-variable) message values:
+
+.. code-block:: python
+
+    # Visualize factor costs from x1's perspective to f12
+    # Shows which cells in the cost table produce the R message to x2
+    fig = visualizer.plot_factor_costs(
+        from_variable="x1",
+        factor_name="f12",
+        step=0,           # Snapshot step to visualize (default: -1 for last)
+        show=True,        # Display immediately
+        savepath=None     # Optional: save to file
+    )
+
+    # The visualization displays:
+    # - Original cost table values (not effective costs with Q messages)
+    # - Red borders: cells that produce any R message value
+    # - Gold/orange borders: cells that produce the best (minimum/maximum) R value
+    # - Bold text: all winning cells
+
+**Understanding the Visualization:**
+
+The plot shows the message computation from ``from_variable`` → ``factor`` → other variable:
+
+1. **Effective cost**: Original cost + Q message from ``from_variable``
+2. **Reduction**: Reduce over the OTHER variable's dimension (not from_variable's dimension)
+3. **Highlighting**: Shows which cells produce each R message value
+
+For example, with a 2×2 cost table where x1 is rows and x2 is columns:
+
+.. code-block:: python
+
+    # Cost table for f12:
+    # [[4, 1],   x1=0
+    #  [3, 2]]   x1=1
+    #   x2=0 x2=1
+
+    # When visualizing x1 → f12:
+    # - Use only Q message from x1 (not x2)
+    # - Reduce over x1's dimension (rows) to compute R message to x2
+    # - R[0] = min(4, 3) = 3  → highlight cell (0, 0) for x2=0
+    # - R[1] = min(1, 2) = 1  → highlight cell (0, 1) for x2=1
+
+    visualizer.plot_factor_costs("x1", "f12", step=0)
+
+**Key Features:**
+
+- Displays original cost values (not effective costs) for clarity
+- Two-level highlighting distinguishes all minimizers from the best minimizer
+- Understands variable connection numbers (which dimension each variable maps to)
+- Works with both min-sum and max-sum computators
+- Shows actual message computation logic used by the belief propagation engine
+
 Exporting and Persisting
 ------------------------
 
