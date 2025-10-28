@@ -6,6 +6,9 @@ can be used across multiple test modules to reduce code duplication and
 ensure consistent test data.
 """
 
+import sys
+from pathlib import Path
+
 import pytest
 import numpy as np
 import tempfile
@@ -14,6 +17,21 @@ import shutil
 from unittest.mock import Mock, patch, MagicMock
 from typing import Dict, List, Any, Callable
 import pickle
+
+# ---------------------------------------------------------------------------
+# Ensure optional analyzer package is importable during tests.
+# The published wheel ships the analyzer namespace (analyzer.*). When running
+# the suite from source, add the local dist/ wheel to Python's path so imports
+# like ``from analyzer.reporting import ...`` resolve without requiring an
+# external install.
+# ---------------------------------------------------------------------------
+_DIST_DIR = Path(__file__).resolve().parents[1] / "dist"
+if _DIST_DIR.exists():
+    for wheel_path in sorted(_DIST_DIR.glob("propflow-*.whl"), reverse=True):
+        wheel_str = str(wheel_path)
+        if wheel_path.is_file() and wheel_str not in sys.path:
+            sys.path.append(wheel_str)
+            break
 
 # Import main modules for creating fixtures
 from propflow.core.agents import VariableAgent, FactorAgent, FGAgent
