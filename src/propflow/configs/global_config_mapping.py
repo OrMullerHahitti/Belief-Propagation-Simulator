@@ -18,6 +18,7 @@ from socket import timeout
 from typing import Dict, Callable, Any, Optional
 from enum import Enum
 import logging
+from functools import wraps
 
 import numpy as np
 
@@ -392,33 +393,32 @@ def create_uniform_float_table(
 ########################################################################
 
 
-class FactoryRef:
-    """Reference to a cost table factory with parameter documentation.
+def _create_factory_ref(func: Callable, params_doc: str) -> Callable:
+    """Create a factory reference with enhanced parameter documentation.
 
-    This wrapper preserves the original function while providing enhanced
-    documentation that appears on IDE hover. It remains fully callable.
+    This wraps a factory function while preserving its signature for IDE
+    introspection. The enhanced docstring appears on IDE hover.
+
+    Args:
+        func: The factory function to wrap.
+        params_doc: Human-readable description of ct_params.
+
+    Returns:
+        The wrapped function with preserved signature and enhanced docstring.
     """
 
-    def __init__(self, func: Callable, params_doc: str):
-        """
-        Args:
-            func: The factory function to wrap.
-            params_doc: Human-readable description of parameters.
-        """
-        self.func = func
-        self.__wrapped__ = func
-        # Build enhanced docstring that IDEs will display on hover
-        self.__doc__ = f"""{func.__doc__}
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> np.ndarray:
+        """Call the factory function."""
+        return func(*args, **kwargs)
 
-Parameters Quick Reference:
+    # Build enhanced docstring that IDEs will display on hover
+    wrapper.__doc__ = f"""{func.__doc__}
+
+Parameters for ct_params:
 {params_doc}"""
 
-    def __call__(self, *args: Any, **kwargs: Any) -> np.ndarray:
-        """Call the wrapped factory function."""
-        return self.func(*args, **kwargs)
-
-    def __repr__(self) -> str:
-        return f"FactoryRef({self.func.__name__})"
+    return wrapper
 
 
 class CTFactories:
@@ -448,24 +448,21 @@ class CTFactories:
         fn = get_ct_factory("random_int")
     """
 
-    UNIFORM: Callable = FactoryRef(
+    UNIFORM: Callable = _create_factory_ref(
         create_uniform_float_table,
-        """For ct_params when using FGBuilder:
-  • low: float = 0.0 - Lower bound of uniform distribution (inclusive)
+        """  • low: float = 0.0 - Lower bound of uniform distribution (inclusive)
   • high: float = 1.0 - Upper bound of uniform distribution (exclusive)""",
     )
 
-    RANDOM_INT: Callable = FactoryRef(
+    RANDOM_INT: Callable = _create_factory_ref(
         create_random_int_table,
-        """For ct_params when using FGBuilder:
-  • low: int = 0 - Lower bound for random integers (inclusive)
+        """  • low: int = 0 - Lower bound for random integers (inclusive)
   • high: int = 10 - Upper bound for random integers (exclusive)""",
     )
 
-    POISSON: Callable = FactoryRef(
+    POISSON: Callable = _create_factory_ref(
         create_poisson_table,
-        """For ct_params when using FGBuilder:
-  • rate: float = 1.0 - Rate parameter (λ) for Poisson distribution
+        """  • rate: float = 1.0 - Rate parameter (λ) for Poisson distribution
   • strength: float = None - Alias for rate (for backward compatibility)""",
     )
 
