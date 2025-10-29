@@ -401,47 +401,11 @@ def create_uniform_float_table(
 ########################################################################
 
 
-class FactoryInfo:
-    """Metadata and callable wrapper for a cost table factory function.
-
-    This class holds both the factory function and its parameter metadata,
-    allowing IDEs to display parameter information on hover.
-    """
-
-    def __init__(
-        self,
-        func: Callable,
-        name: str,
-        params: Dict[str, str],
-    ):
-        """Initialize factory info with metadata.
-
-        Args:
-            func: The factory function to wrap.
-            name: Human-readable name of the factory.
-            params: Dictionary mapping parameter names to descriptions.
-        """
-        self.func = func
-        self.name = name
-        self.params = params
-        self.__doc__ = func.__doc__
-        self.__name__ = func.__name__
-
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        """Call the wrapped factory function."""
-        return self.func(*args, **kwargs)
-
-    def __repr__(self) -> str:
-        return f"FactoryInfo({self.name}, params={list(self.params.keys())})"
-
-
 class CTFactories:
     """Namespace for available cost table factory functions.
 
-    Each factory has a `.params` attribute showing required ct_params.
-    Hover over any factory constant to see its metadata and documentation.
-
-    Access factory functions directly via class attributes:
+    Access factory functions directly via class attributes.
+    Hover to see each function's docstring with full documentation.
 
     Examples:
         # Pass to graph builders
@@ -452,46 +416,17 @@ class CTFactories:
             ct_params={"low": 0, "high": 10},
         )
 
-        # View parameter metadata
-        print(CTFactories.RANDOM_INT.params)
-        # Output: {'low': 'int = 0 - Lower bound for random integers (inclusive)',
-        #          'high': 'int = 10 - Upper bound for random integers (exclusive)'}
+        # Direct access
+        cost_table = CTFactories.RANDOM_INT(n=2, domain=3, low=0, high=10)
 
-        # Direct access if needed
-        ct_fn = CTFactories.RANDOM_INT
-        cost_table = ct_fn(n=2, domain=3, low=0, high=10)
-
-        # Still works with get_ct_factory
+        # Works with get_ct_factory for backward compatibility
         fn = get_ct_factory(CTFactories.RANDOM_INT)
         fn = get_ct_factory("random_int")
     """
 
-    UNIFORM: FactoryInfo = FactoryInfo(
-        create_uniform_float_table,
-        "UNIFORM",
-        {
-            "low": "float = 0.0 - Lower bound of uniform distribution (inclusive)",
-            "high": "float = 1.0 - Upper bound of uniform distribution (exclusive)",
-        },
-    )
-
-    RANDOM_INT: FactoryInfo = FactoryInfo(
-        create_random_int_table,
-        "RANDOM_INT",
-        {
-            "low": "int = 0 - Lower bound for random integers (inclusive)",
-            "high": "int = 10 - Upper bound for random integers (exclusive)",
-        },
-    )
-
-    POISSON: FactoryInfo = FactoryInfo(
-        create_poisson_table,
-        "POISSON",
-        {
-            "rate": "float = 1.0 - Rate parameter (λ) for Poisson distribution",
-            "strength": "float = None - Alias for rate (for backward compatibility)",
-        },
-    )
+    UNIFORM: Callable = create_uniform_float_table
+    RANDOM_INT: Callable = create_random_int_table
+    POISSON: Callable = create_poisson_table
 
 
 def get_ct_factory(factory: Callable | str) -> Callable:
