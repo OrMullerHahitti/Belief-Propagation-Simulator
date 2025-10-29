@@ -13,13 +13,12 @@ from ..core.agents import FGAgent
 from ..core.components import Message
 from ..core.protocols import PolicyType
 from ..configs.global_config_mapping import POLICY_DEFAULTS
-from .bp_policies import Policy
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class MessagePruningPolicy(Policy):
+class MessagePruningPolicy:
     """A policy that prunes messages that have not changed significantly.
 
     This policy helps to optimize belief propagation by avoiding the processing
@@ -27,14 +26,15 @@ class MessagePruningPolicy(Policy):
     between a new message and the previous message from the same sender.
 
     Attributes:
-        prune_threshold (float): The threshold for pruning.
-        min_iterations (int): The number of initial iterations during which
+        policy_type: The type of the policy (PolicyType.MESSAGE).
+        prune_threshold: The threshold for pruning.
+        min_iterations: The number of initial iterations during which
             no pruning will occur.
-        adaptive_threshold (bool): If True, the threshold is scaled by the
+        adaptive_threshold: If True, the threshold is scaled by the
             magnitude of the message.
-        iteration_count (int): The current iteration number.
-        pruned_count (int): The total number of pruned messages.
-        total_count (int): The total number of messages considered for pruning.
+        iteration_count: The current iteration number.
+        pruned_count: The total number of pruned messages.
+        total_count: The total number of messages considered for pruning.
     """
 
     def __init__(
@@ -54,7 +54,7 @@ class MessagePruningPolicy(Policy):
             adaptive_threshold: Whether to use an adaptive threshold that
                 scales with the message magnitude. Defaults to True.
         """
-        super().__init__(PolicyType.MESSAGE)
+        self.policy_type = PolicyType.MESSAGE
         self.prune_threshold = (
             prune_threshold
             if prune_threshold is not None
