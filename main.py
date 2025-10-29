@@ -13,9 +13,9 @@ if SRC_DIR.is_dir() and str(SRC_DIR) not in sys.path:
 
 from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
-from propflow.utils import CTFactory
+from propflow.configs import CTFactories
 from propflow.configs.global_config_mapping import (
-    
+
     get_ct_factory,
     SIMULATOR_DEFAULTS,
     POLICY_DEFAULTS,
@@ -71,14 +71,14 @@ if __name__ == "__main__":
     }
     # --- Graph Creation ---
     print(f"[{time.strftime('%H:%M:%S')}] Creating {NUM_GRAPHS} factor graphs...")
-    ct_factory_fn = CTFactory.random_int.fn  # or: get_ct_factory(CTFactory.random_int)
+    ct_factory_fn = CTFactories.RANDOM_INT.value  # or: get_ct_factory(CTFactories.RANDOM_INT)
     random_fg = [
         FGBuilder.build_random_graph(
             num_vars=50,
             domain_size=10,
             ct_factory=ct_factory_fn,
             ct_params={"low": 100, "high": 200},
-            density=0.25,
+            density=0.2,
         )
         for _ in range(NUM_GRAPHS)
     ]

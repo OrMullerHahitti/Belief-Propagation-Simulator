@@ -19,7 +19,7 @@ import numpy as np
 
 from .path_utils import find_project_root
 from ..bp.factor_graph import FactorGraph
-from ..configs.global_config_mapping import get_ct_factory, CTFactory
+from ..configs.global_config_mapping import get_ct_factory, CTFactories
 from ..core.agents import VariableAgent, FactorAgent
 
 project_root = find_project_root()
@@ -32,7 +32,7 @@ def _make_variable(idx: int, domain: int) -> VariableAgent:
 
 
 def _make_factor(
-    name: str, domain: int, ct_factory: Callable | CTFactory | str, ct_params: dict
+    name: str, domain: int, ct_factory: Callable | CTFactories | str, ct_params: dict
 ) -> FactorAgent:
     """Creates a single `FactorAgent`, deferring cost table creation."""
     ct_fn = get_ct_factory(ct_factory)
@@ -99,7 +99,7 @@ class FGBuilder:
     def build_random_graph(
         num_vars: int,
         domain_size: int,
-        ct_factory: Callable | CTFactory | str,
+        ct_factory: Callable | CTFactories | str,
         ct_params: Dict[str, Any],
         density: float,
     ) -> FactorGraph:
@@ -125,7 +125,7 @@ class FGBuilder:
     def build_cycle_graph(
         num_vars: int,
         domain_size: int,
-        ct_factory: Callable | CTFactory | str,
+        ct_factory: Callable | CTFactories | str,
         ct_params: Dict[str, Any],
         **kwargs,
     ) -> FactorGraph:
@@ -157,7 +157,7 @@ class FGBuilder:
     def build_lemniscate_graph(
         num_vars: int,
         domain_size: int,
-        ct_factory: Callable | CTFactory | str,
+        ct_factory: Callable | CTFactories | str,
         ct_params: Dict[str, Any],
         **kwargs,
     ) -> FactorGraph:
