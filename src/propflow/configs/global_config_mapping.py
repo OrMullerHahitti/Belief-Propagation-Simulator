@@ -14,13 +14,9 @@ Key Sections:
 - Registries and Factories: Mappings for dynamically loading graph builders,
   computators, and cost table factories.
 """
-from socket import timeout
 from typing import Dict, Callable, Any, Optional
 from enum import Enum
 import logging
-from functools import wraps
-
-import numpy as np
 
 from ..bp.computators import MinSumComputator
 from ..utils.path_utils import find_project_root
@@ -337,6 +333,10 @@ def create_poisson_table(n: int, domain: int, rate: float = 1.0, strength: float
 
     Returns:
         A numpy ndarray representing the cost table with shape (domain,) * n.
+
+    Parameters for ct_params when using FGBuilder:
+        • rate: float = 1.0 - Rate parameter (λ) for Poisson distribution
+        • strength: float = None - Alias for rate (for backward compatibility)
     """
     import numpy as np
 
@@ -359,6 +359,10 @@ def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
 
     Returns:
         A numpy ndarray representing the cost table with shape (domain,) * n.
+
+    Parameters for ct_params when using FGBuilder:
+        • low: int = 0 - Lower bound for random integers (inclusive)
+        • high: int = 10 - Upper bound for random integers (exclusive)
     """
     import numpy as np
 
@@ -381,6 +385,10 @@ def create_uniform_float_table(
 
     Returns:
         A numpy ndarray representing the cost table with shape (domain,) * n.
+
+    Parameters for ct_params when using FGBuilder:
+        • low: float = 0.0 - Lower bound of uniform distribution (inclusive)
+        • high: float = 1.0 - Upper bound of uniform distribution (exclusive)
     """
     import numpy as np
 
@@ -391,34 +399,6 @@ def create_uniform_float_table(
 ########################################################################
 # ---- CT Factory Namespace + helpers ---------------------------------
 ########################################################################
-
-
-def _create_factory_ref(func: Callable, params_doc: str) -> Callable:
-    """Create a factory reference with enhanced parameter documentation.
-
-    This wraps a factory function while preserving its signature for IDE
-    introspection. The enhanced docstring appears on IDE hover.
-
-    Args:
-        func: The factory function to wrap.
-        params_doc: Human-readable description of ct_params.
-
-    Returns:
-        The wrapped function with preserved signature and enhanced docstring.
-    """
-
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> np.ndarray:
-        """Call the factory function."""
-        return func(*args, **kwargs)
-
-    # Build enhanced docstring that IDEs will display on hover
-    wrapper.__doc__ = f"""{func.__doc__}
-
-Parameters for ct_params:
-{params_doc}"""
-
-    return wrapper
 
 
 class CTFactories:
@@ -448,23 +428,9 @@ class CTFactories:
         fn = get_ct_factory("random_int")
     """
 
-    UNIFORM: Callable = _create_factory_ref(
-        create_uniform_float_table,
-        """  • low: float = 0.0 - Lower bound of uniform distribution (inclusive)
-  • high: float = 1.0 - Upper bound of uniform distribution (exclusive)""",
-    )
-
-    RANDOM_INT: Callable = _create_factory_ref(
-        create_random_int_table,
-        """  • low: int = 0 - Lower bound for random integers (inclusive)
-  • high: int = 10 - Upper bound for random integers (exclusive)""",
-    )
-
-    POISSON: Callable = _create_factory_ref(
-        create_poisson_table,
-        """  • rate: float = 1.0 - Rate parameter (λ) for Poisson distribution
-  • strength: float = None - Alias for rate (for backward compatibility)""",
-    )
+    UNIFORM: Callable = create_uniform_float_table
+    RANDOM_INT: Callable = create_random_int_table
+    POISSON: Callable = create_poisson_table
 
 
 def get_ct_factory(factory: Callable | str) -> Callable:
