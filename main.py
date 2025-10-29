@@ -15,8 +15,6 @@ from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
 from propflow.configs import CTFactories
 from propflow.configs.global_config_mapping import (
-
-    get_ct_factory,
     SIMULATOR_DEFAULTS,
     POLICY_DEFAULTS,
     ENGINE_DEFAULTS,
