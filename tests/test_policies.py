@@ -2,11 +2,6 @@ import numpy as np
 import pytest
 
 from propflow.bp.engines import DampingEngine, SplitEngine
-from propflow.policies.bp_policies import (
-    CostReductionPolicy,
-    DampingPolicy,
-    SplittingPolicy,
-)
 from propflow.policies.convergance import ConvergenceConfig
 from propflow.utils import FGBuilder
 
