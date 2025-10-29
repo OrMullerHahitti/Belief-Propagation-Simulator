@@ -18,6 +18,8 @@ from typing import Dict, Callable, Any, Optional
 from enum import Enum
 import logging
 
+from narwhals import Field
+
 from ..bp.computators import MinSumComputator
 from ..utils.path_utils import find_project_root
 
@@ -303,25 +305,12 @@ ENGINE_MAPPING: Dict[str, str] = {
     "engine.search.beam_fg": "propflow.search.algorithms:beam_search_factor_graph",
 }
 
-CT_FACTORIES: Dict[str, Callable] = {}  # filled in by decorator below
-
-
-def ct_factory(name: str):
-    """Decorator to register a cost‑table factory under a short name."""
-
-    def decorator(fn: Callable):
-        CT_FACTORIES[name] = fn
-        return fn
-
-    return decorator
-
-
 ########################################################################
-# ------ all the function creators here:
-#########################################################################
-# TODO : add the rest of the cost table factories which i already made, i think it would be better if theyre al in one place, can still leave the other one for future uses
-@ct_factory("poisson")
-def create_poisson_table(n: int, domain: int, rate: float = 1.0, strength: float = None):
+# ---- Cost Table Factory Functions -----------------------------------
+########################################################################
+
+
+def create_poisson_table(n: int, domain: int, rate: float = 1.0, strength: float | None = None):
     """
     Creates a cost table with Poisson-distributed values.
 
@@ -346,7 +335,6 @@ def create_poisson_table(n: int, domain: int, rate: float = 1.0, strength: float
     return np.random.poisson(lam=lam, size=shape)
 
 
-@ct_factory("random_int")
 def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
     """
     Creates a cost table with random integer values.
@@ -370,7 +358,6 @@ def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
     return np.random.randint(low=low, high=high, size=shape)
 
 
-@ct_factory("uniform_float")
 def create_uniform_float_table(
     n: int, domain: int, low: float = 0.0, high: float = 1.0
 ):
@@ -394,6 +381,14 @@ def create_uniform_float_table(
 
     shape = (domain,) * n
     return np.random.uniform(low=low, high=high, size=shape)
+
+
+# Registry of factory functions for string-based lookups and config file support
+CT_FACTORIES: Dict[str, Callable] = {
+    "poisson": create_poisson_table,
+    "random_int": create_random_int_table,
+    "uniform_float": create_uniform_float_table,
+}
 
 
 ########################################################################
@@ -425,7 +420,7 @@ class CTFactories:
     """
 
     UNIFORM: Callable = create_uniform_float_table
-    RANDOM_INT: Callable = create_random_int_table
+    RANDOM_INT:  Callable = create_random_int_table
     POISSON: Callable = create_poisson_table
 
 
