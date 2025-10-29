@@ -25,13 +25,18 @@ def create_uniform_float_table(
     high: float = 1.0
 ) -> NDArray: ...
 
-# CTFactories namespace - assign functions so IDE sees their signatures
+# CTFactories namespace - declare as static methods for proper IDE support
 class CTFactories:
     """Cost table factory namespace. Use: CTFactories.RANDOM_INT"""
 
-    UNIFORM = create_uniform_float_table
-    RANDOM_INT = create_random_int_table
-    POISSON = create_poisson_table
+    @staticmethod
+    def UNIFORM(n: int, domain: int, low: float = 0.0, high: float = 1.0) -> NDArray: ...
+
+    @staticmethod
+    def RANDOM_INT(n: int, domain: int, low: int = 0, high: int = 10) -> NDArray: ...
+
+    @staticmethod
+    def POISSON(n: int, domain: int, rate: float = 1.0, strength: float | None = None) -> NDArray: ...
 
 # Helper functions
 def get_ct_factory(factory: Callable | str) -> Callable: ...
