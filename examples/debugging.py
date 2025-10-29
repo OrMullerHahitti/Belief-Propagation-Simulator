@@ -22,7 +22,7 @@ from propflow.policies import ConvergenceConfig
 # Module-level constants (safe for child processes)
 PROJECT_ROOT = find_project_root()
 SEED = 42
-ct_factory_fn = CTFactories.RANDOM_INT.value
+ct_factory_fn = CTFactories.RANDOM_INT
 
 
 def profiling(func):
