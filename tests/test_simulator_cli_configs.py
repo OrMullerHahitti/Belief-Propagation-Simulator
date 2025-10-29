@@ -6,7 +6,7 @@ import pytest
 from propflow.cli import main as cli_main
 from propflow.computators import COMPUTATORS
 from propflow.configs import (
-    CTFactory,
+    CTFactories,
     ENGINE_DEFAULTS,
     LOG_LEVELS,
     Logger,
@@ -85,7 +85,7 @@ def test_config_validators_and_factories():
     assert validate_engine_config(config)
     policy = {"damping_factor": 0.5, "split_factor": 0.4, "pruning_threshold": 0.1}
     assert validate_policy_config(policy)
-    factory_fn = get_ct_factory(CTFactory.random_int)
+    factory_fn = get_ct_factory(CTFactories.RANDOM_INT)
     arr = factory_fn(2, 3, low=0, high=2)
     assert arr.shape == (3, 3)
 

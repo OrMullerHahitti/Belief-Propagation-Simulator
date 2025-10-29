@@ -3,7 +3,7 @@ import pytest
 
 from propflow.configs.global_config_mapping import (
     CT_FACTORIES,
-    CTFactory,
+    CTFactories,
     ENGINE_DEFAULTS,
     get_ct_factory,
     get_validated_config,
@@ -14,7 +14,7 @@ from propflow.configs.global_config_mapping import (
 
 
 def test_get_ct_factory_returns_callable():
-    factory_fn = get_ct_factory(CTFactory.random_int)
+    factory_fn = get_ct_factory(CTFactories.RANDOM_INT)
     table = factory_fn(2, 3, low=0, high=2)
     assert isinstance(table, np.ndarray)
     assert table.shape == (3, 3)

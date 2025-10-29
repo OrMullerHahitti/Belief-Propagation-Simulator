@@ -55,7 +55,7 @@ class Dirs(Enum):
 
 # Default parameters for the belief propagation engine.
 ENGINE_DEFAULTS: Dict[str, Any] = {
-    "max_iterations": 5000,
+    "max_iterations": 2000,
     "normalize_messages": True,
     "monitor_performance": False,
     "anytime": False,
@@ -389,44 +389,52 @@ def create_uniform_float_table(
 # ---- CT Factory Enum + helpers --------------------------------------
 ########################################################################
 
-# Build an Enum from the registered factory names to enable IDE completion
-# (e.g., CTFactory.random_int)
-CTFactory = Enum("CTFactory", {name: name for name in CT_FACTORIES.keys()})
+
+class CTFactories(Enum):
+    """Enum of available cost table factory functions with dot notation access.
+
+    Usage:
+        - CTFactories.RANDOM_INT.value -> function
+        - CTFactories.UNIFORM.value -> function
+        - CTFactories.POISSON.value -> function
+    """
+    UNIFORM = create_uniform_float_table
+    RANDOM_INT = create_random_int_table
+    POISSON = create_poisson_table
 
 
-def get_ct_factory(factory: "CTFactory | str | Callable") -> Callable:
+def get_ct_factory(factory: "CTFactories | str | Callable") -> Callable:
     """
     Resolve a factory identifier (Enum, str, or callable) into a callable.
 
-    - CTFactory.random_int -> corresponding function
-    - "random_int" -> function
-    - callable -> returned as-is
+    Args:
+        factory: One of:
+            - CTFactories enum member (e.g., CTFactories.RANDOM_INT)
+            - String name (e.g., "random_int")
+            - Callable function
+
+    Returns:
+        The resolved callable cost table factory function.
+
+    Raises:
+        TypeError: If factory type is not supported.
     """
     # Already a callable (backward compatible)
     if callable(factory):
         return factory  # type: ignore[return-value]
 
     # Enum member
-    if isinstance(factory, CTFactory):
-        key = factory.value  # type: ignore[attr-defined]
-        return CT_FACTORIES[key]
+    if isinstance(factory, CTFactories):
+        return factory.value  # type: ignore[return-value]
 
-    # String key
+    # String key (legacy support)
     if isinstance(factory, str):
         return CT_FACTORIES[factory]
 
     raise TypeError(
         f"Unsupported ct_factory type: {type(factory).__name__}. "
-        f"Use CTFactory enum, a registered name, or a callable."
+        f"Use CTFactories enum, a registered name, or a callable."
     )
-
-
-# Convenience: attach `.fn` attribute to enum members for quick access
-for _m in CTFactory:  # type: ignore[not-an-iterable]
-    try:
-        setattr(_m, "fn", CT_FACTORIES[_m.value])  # e.g., CTFactory.random_int.fn
-    except Exception:
-        pass
 
 
 ########################################################################
