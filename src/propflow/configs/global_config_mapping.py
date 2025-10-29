@@ -496,20 +496,36 @@ class CTFactories:
 
 def get_ct_factory(factory: Callable | str) -> Callable:
     """
-    Resolve a factory identifier (function or string) into a callable.
+    Resolve a factory identifier into a callable function.
+
+    Supports multiple input types for flexibility:
+    - FactoryInfo objects from CTFactories (e.g., CTFactories.RANDOM_INT)
+    - String names for legacy support (e.g., "random_int")
+    - Raw callable functions (returned as-is)
 
     Args:
-        factory: One of:
-            - Callable function (e.g., CTFactories.RANDOM_INT, create_random_int_table)
-            - String name (e.g., "random_int")
+        factory: A factory identifier - one of:
+            - FactoryInfo instance (e.g., CTFactories.RANDOM_INT)
+            - String name (e.g., "random_int", "uniform_float", "poisson")
+            - Callable function (e.g., create_random_int_table)
 
     Returns:
-        The resolved callable cost table factory function.
+        The underlying callable cost table factory function.
 
     Raises:
         TypeError: If factory type is not supported.
+
+    Examples:
+        # From FactoryInfo (CTFactories.RANDOM_INT is callable)
+        fn = get_ct_factory(CTFactories.RANDOM_INT)
+
+        # From string name (legacy)
+        fn = get_ct_factory("random_int")
+
+        # Already callable - returned as-is
+        fn = get_ct_factory(create_random_int_table)
     """
-    # Already a callable (covers CTFactories.RANDOM_INT which is a function)
+    # FactoryInfo objects and raw functions are callable
     if callable(factory):
         return factory  # type: ignore[return-value]
 
@@ -519,7 +535,7 @@ def get_ct_factory(factory: Callable | str) -> Callable:
 
     raise TypeError(
         f"Unsupported ct_factory type: {type(factory).__name__}. "
-        f"Use CTFactories.RANDOM_INT, a registered name, or a callable."
+        f"Use CTFactories.RANDOM_INT, a registered string name, or a callable."
     )
 
 
