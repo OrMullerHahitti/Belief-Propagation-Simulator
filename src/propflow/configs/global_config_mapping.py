@@ -184,7 +184,17 @@ def validate_policy_config(config: Dict[str, Any]) -> bool:
 
 
 def validate_convergence_config(config: Dict[str, Any]) -> bool:
-    """Validate convergence configuration. Raises ValueError if invalid."""
+    """Validates convergence configuration parameters.
+
+    Args:
+        config: A dictionary containing convergence configuration.
+
+    Returns:
+        True if the configuration is valid.
+
+    Raises:
+        ValueError: If a value is invalid or outside its expected range.
+    """
     if "belief_threshold" in config and (
         not isinstance(config["belief_threshold"], (int, float))
         or config["belief_threshold"] <= 0
@@ -204,7 +214,18 @@ def validate_convergence_config(config: Dict[str, Any]) -> bool:
 def get_validated_config(
     config_type: str, user_config: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
-    """Merge user config with defaults and validate. Raises ValueError if invalid."""
+    """Merges a user configuration with defaults and validates it.
+
+    Args:
+        config_type: The type of configuration to retrieve (e.g., 'engine', 'policy').
+        user_config: An optional dictionary of user-provided overrides.
+
+    Returns:
+        A dictionary containing the final, validated configuration.
+
+    Raises:
+        ValueError: If the config_type is unknown or validation fails.
+    """
     base_configs = {
         "engine": ENGINE_DEFAULTS,
         "policy": POLICY_DEFAULTS,
@@ -237,7 +258,7 @@ try:
     validate_policy_config(POLICY_DEFAULTS)
     validate_convergence_config(CONVERGENCE_DEFAULTS)
 except ValueError as e:
-    raise RuntimeError(f"Invalid default configuration: {e}") from e
+    raise RuntimeError(f"Invalid default configuration: {e}")
 
 ########################################################################
 # ---- Registry and Factory Mappings ----------------------------------
@@ -319,9 +340,9 @@ CT_FACTORIES: Dict[str, Callable] = {
 class CTFactories:
     """Cost table factory namespace. Use: CTFactories.RANDOM_INT"""
 
-    UNIFORM: Callable = create_uniform_float_table
-    RANDOM_INT: Callable = create_random_int_table
-    POISSON: Callable = create_poisson_table
+    UNIFORM = create_uniform_float_table
+    RANDOM_INT = create_random_int_table
+    POISSON = create_poisson_table
 
 
 def get_ct_factory(factory: Callable | str) -> Callable:
