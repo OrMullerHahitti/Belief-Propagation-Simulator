@@ -237,7 +237,7 @@ try:
     validate_policy_config(POLICY_DEFAULTS)
     validate_convergence_config(CONVERGENCE_DEFAULTS)
 except ValueError as e:
-    raise RuntimeError(f"Invalid default configuration: {e}")
+    raise RuntimeError(f"Invalid default configuration: {e}") from e
 
 ########################################################################
 # ---- Registry and Factory Mappings ----------------------------------
