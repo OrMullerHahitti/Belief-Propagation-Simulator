@@ -20,7 +20,7 @@ def build_ring(num_vars: int = 4, domain_size: int = 3):
     return FGBuilder.build_cycle_graph(
         num_vars=num_vars,
         domain_size=domain_size,
-        ct_factory=CTFactories.RANDOM_INT.value,
+        ct_factory=CTFactories.RANDOM_INT,
         ct_params={"low": 0, "high": 5},
     )
 

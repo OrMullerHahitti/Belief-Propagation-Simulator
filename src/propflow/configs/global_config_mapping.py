@@ -386,32 +386,46 @@ def create_uniform_float_table(
 
 
 ########################################################################
-# ---- CT Factory Enum + helpers --------------------------------------
+# ---- CT Factory Namespace + helpers ---------------------------------
 ########################################################################
 
 
-class CTFactories(Enum):
-    """Enum of available cost table factory functions with dot notation access.
+class CTFactories:
+    """Namespace for available cost table factory functions.
 
-    Usage:
-        - CTFactories.RANDOM_INT.value -> function
-        - CTFactories.UNIFORM.value -> function
-        - CTFactories.POISSON.value -> function
+    Access factory functions directly via class attributes:
+
+    Examples:
+        # Direct access to functions (no .value needed!)
+        ct_fn = CTFactories.RANDOM_INT
+        cost_table = ct_fn(n=2, domain=3, low=0, high=10)
+
+        # Pass to graph builders
+        FGBuilder.build_random_graph(
+            num_vars=50,
+            domain_size=10,
+            ct_factory=CTFactories.RANDOM_INT,
+            ct_params={"low": 0, "high": 10},
+        )
+
+        # Still works with get_ct_factory
+        fn = get_ct_factory(CTFactories.RANDOM_INT)
+        fn = get_ct_factory("random_int")
     """
-    UNIFORM = create_uniform_float_table
-    RANDOM_INT = create_random_int_table
-    POISSON = create_poisson_table
+
+    UNIFORM: Callable = create_uniform_float_table
+    RANDOM_INT: Callable = create_random_int_table
+    POISSON: Callable = create_poisson_table
 
 
-def get_ct_factory(factory: "CTFactories | str | Callable") -> Callable:
+def get_ct_factory(factory: Callable | str) -> Callable:
     """
-    Resolve a factory identifier (Enum, str, or callable) into a callable.
+    Resolve a factory identifier (function or string) into a callable.
 
     Args:
         factory: One of:
-            - CTFactories enum member (e.g., CTFactories.RANDOM_INT)
+            - Callable function (e.g., CTFactories.RANDOM_INT, create_random_int_table)
             - String name (e.g., "random_int")
-            - Callable function
 
     Returns:
         The resolved callable cost table factory function.
@@ -419,13 +433,9 @@ def get_ct_factory(factory: "CTFactories | str | Callable") -> Callable:
     Raises:
         TypeError: If factory type is not supported.
     """
-    # Already a callable (backward compatible)
+    # Already a callable (covers CTFactories.RANDOM_INT which is a function)
     if callable(factory):
         return factory  # type: ignore[return-value]
-
-    # Enum member
-    if isinstance(factory, CTFactories):
-        return factory.value  # type: ignore[return-value]
 
     # String key (legacy support)
     if isinstance(factory, str):
@@ -433,7 +443,7 @@ def get_ct_factory(factory: "CTFactories | str | Callable") -> Callable:
 
     raise TypeError(
         f"Unsupported ct_factory type: {type(factory).__name__}. "
-        f"Use CTFactories enum, a registered name, or a callable."
+        f"Use CTFactories.RANDOM_INT, a registered name, or a callable."
     )
 
 
