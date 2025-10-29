@@ -69,7 +69,8 @@ if __name__ == "__main__":
     }
     # --- Graph Creation ---
     print(f"[{time.strftime('%H:%M:%S')}] Creating {NUM_GRAPHS} factor graphs...")
-    ct_factory_fn = CTFactories.RANDOM_INT  # or: get_ct_factory(CTFactories.RANDOM_INT)
+    ct_factory_fn = CTFactories.RANDOM_INT  
+    # or: get_ct_factory(CTFactories.RANDOM_INT)
     random_fg = [
         FGBuilder.build_random_graph(
             num_vars=50,
