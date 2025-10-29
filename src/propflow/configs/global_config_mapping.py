@@ -156,17 +156,7 @@ VERBOSE_LOGGING = LOGGING_CONFIG["verbose_logging"]
 
 
 def validate_engine_config(config: Dict[str, Any]) -> bool:
-    """Validates engine configuration parameters.
-
-    Args:
-        config: A dictionary containing engine configuration.
-
-    Returns:
-        True if the configuration is valid.
-
-    Raises:
-        ValueError: If a required key is missing or a value is invalid.
-    """
+    """Validate engine configuration. Raises ValueError if invalid."""
     required_keys = [
         "max_iterations", "normalize_messages", "monitor_performance",
         "anytime", "use_bct_history",
@@ -180,17 +170,7 @@ def validate_engine_config(config: Dict[str, Any]) -> bool:
 
 
 def validate_policy_config(config: Dict[str, Any]) -> bool:
-    """Validates policy configuration parameters.
-
-    Args:
-        config: A dictionary containing policy configuration.
-
-    Returns:
-        True if the configuration is valid.
-
-    Raises:
-        ValueError: If a value is outside its expected range.
-    """
+    """Validate policy configuration. Raises ValueError if invalid."""
     if "damping_factor" in config and not 0.0 < config["damping_factor"] <= 1.0:
         raise ValueError("damping_factor must be in range (0, 1]")
     if "split_factor" in config and not 0.0 < config["split_factor"] < 1.0:
@@ -204,17 +184,7 @@ def validate_policy_config(config: Dict[str, Any]) -> bool:
 
 
 def validate_convergence_config(config: Dict[str, Any]) -> bool:
-    """Validates convergence configuration parameters.
-
-    Args:
-        config: A dictionary containing convergence configuration.
-
-    Returns:
-        True if the configuration is valid.
-
-    Raises:
-        ValueError: If a value is invalid or outside its expected range.
-    """
+    """Validate convergence configuration. Raises ValueError if invalid."""
     if "belief_threshold" in config and (
         not isinstance(config["belief_threshold"], (int, float))
         or config["belief_threshold"] <= 0
@@ -234,18 +204,7 @@ def validate_convergence_config(config: Dict[str, Any]) -> bool:
 def get_validated_config(
     config_type: str, user_config: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
-    """Merges a user configuration with defaults and validates it.
-
-    Args:
-        config_type: The type of configuration to retrieve (e.g., 'engine', 'policy').
-        user_config: An optional dictionary of user-provided overrides.
-
-    Returns:
-        A dictionary containing the final, validated configuration.
-
-    Raises:
-        ValueError: If the config_type is unknown or validation fails.
-    """
+    """Merge user config with defaults and validate. Raises ValueError if invalid."""
     base_configs = {
         "engine": ENGINE_DEFAULTS,
         "policy": POLICY_DEFAULTS,
@@ -311,46 +270,21 @@ ENGINE_MAPPING: Dict[str, str] = {
 
 
 def create_poisson_table(n: int, domain: int, rate: float = 1.0, strength: float | None = None):
-    """
-    Creates a cost table with Poisson-distributed values.
+    """Generate cost table with Poisson-distributed values.
 
-    Args:
-        n: Number of dimensions for the cost table (number of connected variables).
-        domain: Size of the domain for each variable/dimension.
-        rate: The rate parameter for the Poisson distribution.
-        strength: Alias for rate parameter (for backward compatibility).
-
-    Returns:
-        A numpy ndarray representing the cost table with shape (domain,) * n.
-
-    Parameters for ct_params when using FGBuilder:
-        • rate: float = 1.0 - Rate parameter (λ) for Poisson distribution
-        • strength: float = None - Alias for rate (for backward compatibility)
+    When using FGBuilder, pass `rate` or `strength` via ct_params.
     """
     import numpy as np
 
-    # Use strength if provided, otherwise use rate
     lam = strength if strength is not None else rate
     shape = (domain,) * n
     return np.random.poisson(lam=lam, size=shape)
 
 
 def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
-    """
-    Creates a cost table with random integer values.
+    """Generate cost table with random integer values.
 
-    Args:
-        n: Number of dimensions for the cost table (number of connected variables).
-        domain: Size of the domain for each variable/dimension.
-        low: The lower bound for random integer generation (inclusive).
-        high: The upper bound for random integer generation (exclusive).
-
-    Returns:
-        A numpy ndarray representing the cost table with shape (domain,) * n.
-
-    Parameters for ct_params when using FGBuilder:
-        • low: int = 0 - Lower bound for random integers (inclusive)
-        • high: int = 10 - Upper bound for random integers (exclusive)
+    When using FGBuilder, pass `low` and `high` via ct_params.
     """
     import numpy as np
 
@@ -358,24 +292,10 @@ def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
     return np.random.randint(low=low, high=high, size=shape)
 
 
-def create_uniform_float_table(
-    n: int, domain: int, low: float = 0.0, high: float = 1.0
-):
-    """
-    Creates a cost table with random float values from a uniform distribution.
+def create_uniform_float_table(n: int, domain: int, low: float = 0.0, high: float = 1.0):
+    """Generate cost table with uniform float values.
 
-    Args:
-        n: Number of dimensions for the cost table (number of connected variables).
-        domain: Size of the domain for each variable/dimension.
-        low: The lower bound for the uniform distribution (inclusive).
-        high: The upper bound for the uniform distribution (exclusive).
-
-    Returns:
-        A numpy ndarray representing the cost table with shape (domain,) * n.
-
-    Parameters for ct_params when using FGBuilder:
-        • low: float = 0.0 - Lower bound of uniform distribution (inclusive)
-        • high: float = 1.0 - Upper bound of uniform distribution (exclusive)
+    When using FGBuilder, pass `low` and `high` via ct_params.
     """
     import numpy as np
 
@@ -397,76 +317,23 @@ CT_FACTORIES: Dict[str, Callable] = {
 
 
 class CTFactories:
-    """Namespace for available cost table factory functions.
-
-    Access factory functions directly via class attributes.
-    Hover to see each function's docstring with full documentation.
-
-    Examples:
-        # Pass to graph builders
-        FGBuilder.build_random_graph(
-            num_vars=50,
-            domain_size=10,
-            ct_factory=CTFactories.RANDOM_INT,
-            ct_params={"low": 0, "high": 10},
-        )
-
-        # Direct access
-        cost_table = CTFactories.RANDOM_INT(n=2, domain=3, low=0, high=10)
-
-        # Works with get_ct_factory for backward compatibility
-        fn = get_ct_factory(CTFactories.RANDOM_INT)
-        fn = get_ct_factory("random_int")
-    """
+    """Cost table factory namespace. Use: CTFactories.RANDOM_INT"""
 
     UNIFORM: Callable = create_uniform_float_table
-    RANDOM_INT:  Callable = create_random_int_table
+    RANDOM_INT: Callable = create_random_int_table
     POISSON: Callable = create_poisson_table
 
 
 def get_ct_factory(factory: Callable | str) -> Callable:
+    """Resolve factory identifier to callable.
+
+    Accepts CTFactories.RANDOM_INT, "random_int", or raw function.
     """
-    Resolve a factory identifier into a callable function.
-
-    Supports multiple input types for flexibility:
-    - FactoryInfo objects from CTFactories (e.g., CTFactories.RANDOM_INT)
-    - String names for legacy support (e.g., "random_int")
-    - Raw callable functions (returned as-is)
-
-    Args:
-        factory: A factory identifier - one of:
-            - FactoryInfo instance (e.g., CTFactories.RANDOM_INT)
-            - String name (e.g., "random_int", "uniform_float", "poisson")
-            - Callable function (e.g., create_random_int_table)
-
-    Returns:
-        The underlying callable cost table factory function.
-
-    Raises:
-        TypeError: If factory type is not supported.
-
-    Examples:
-        # From FactoryInfo (CTFactories.RANDOM_INT is callable)
-        fn = get_ct_factory(CTFactories.RANDOM_INT)
-
-        # From string name (legacy)
-        fn = get_ct_factory("random_int")
-
-        # Already callable - returned as-is
-        fn = get_ct_factory(create_random_int_table)
-    """
-    # FactoryInfo objects and raw functions are callable
     if callable(factory):
         return factory  # type: ignore[return-value]
-
-    # String key (legacy support)
     if isinstance(factory, str):
         return CT_FACTORIES[factory]
-
-    raise TypeError(
-        f"Unsupported ct_factory type: {type(factory).__name__}. "
-        f"Use CTFactories.RANDOM_INT, a registered string name, or a callable."
-    )
+    raise TypeError(f"Unsupported ct_factory type: {type(factory).__name__}")
 
 
 ########################################################################
