@@ -425,14 +425,12 @@ class CTFactories:
     """Namespace for available cost table factory functions.
 
     Hover over any factory constant to see its parameters and documentation.
+    Parameters shown are for ct_params when using FGBuilder
+    (n and domain are handled automatically by the builder).
 
     Access factory functions directly via class attributes:
 
     Examples:
-        # Direct access to functions (no .value needed!)
-        ct_fn = CTFactories.RANDOM_INT
-        cost_table = ct_fn(n=2, domain=3, low=0, high=10)
-
         # Pass to graph builders
         FGBuilder.build_random_graph(
             num_vars=50,
@@ -441,6 +439,10 @@ class CTFactories:
             ct_params={"low": 0, "high": 10},
         )
 
+        # Direct access if needed
+        ct_fn = CTFactories.RANDOM_INT
+        cost_table = ct_fn(n=2, domain=3, low=0, high=10)
+
         # Still works with get_ct_factory
         fn = get_ct_factory(CTFactories.RANDOM_INT)
         fn = get_ct_factory("random_int")
@@ -448,24 +450,21 @@ class CTFactories:
 
     UNIFORM: Callable = FactoryRef(
         create_uniform_float_table,
-        """  • n: int - Number of dimensions (number of connected variables)
-  • domain: int - Size of domain for each variable
+        """For ct_params when using FGBuilder:
   • low: float = 0.0 - Lower bound of uniform distribution (inclusive)
   • high: float = 1.0 - Upper bound of uniform distribution (exclusive)""",
     )
 
     RANDOM_INT: Callable = FactoryRef(
         create_random_int_table,
-        """  • n: int - Number of dimensions (number of connected variables)
-  • domain: int - Size of domain for each variable
+        """For ct_params when using FGBuilder:
   • low: int = 0 - Lower bound for random integers (inclusive)
   • high: int = 10 - Upper bound for random integers (exclusive)""",
     )
 
     POISSON: Callable = FactoryRef(
         create_poisson_table,
-        """  • n: int - Number of dimensions (number of connected variables)
-  • domain: int - Size of domain for each variable
+        """For ct_params when using FGBuilder:
   • rate: float = 1.0 - Rate parameter (λ) for Poisson distribution
   • strength: float = None - Alias for rate (for backward compatibility)""",
     )
