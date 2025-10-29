@@ -32,7 +32,7 @@ def run_random_engine(
     factor_graph = FGBuilder.build_random_graph(
         num_vars=num_vars,
         domain_size=domain_size,
-        ct_factory=CTFactories.RANDOM_INT.value,
+        ct_factory=CTFactories.RANDOM_INT,
         ct_params={"low": 0, "high": 7},
         density=density,
     )

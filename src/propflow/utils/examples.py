@@ -36,7 +36,7 @@ def create_factor_graph(
     graph_type: str = "cycle",
     num_vars: int = 5,
     domain_size: int = 3,
-    ct_factory: str | CTFactories | Callable = "random_int",
+    ct_factory: str | Callable = "random_int",
     ct_params: Optional[Dict[str, Any]] = None,
     density: float = 0.5,
 ) -> FactorGraph:
@@ -51,8 +51,9 @@ def create_factor_graph(
         num_vars: The number of variable nodes in the graph. Defaults to 5.
         domain_size: The size of the domain for each variable. Defaults to 3.
         ct_factory: The factory used to generate cost tables for the factors.
-            Can be a registered string name, a `CTFactories` enum member, or a
-            callable. Defaults to "random_int".
+            Can be a registered string name (e.g., "random_int"), a callable function
+            (e.g., create_random_int_table), or a CTFactories constant (e.g., CTFactories.RANDOM_INT).
+            Defaults to "random_int".
         ct_params: A dictionary of parameters to pass to the `ct_factory`.
             Defaults to `{"low": 1, "high": 100}`.
         density: The density of the graph, used for the "random" graph type.

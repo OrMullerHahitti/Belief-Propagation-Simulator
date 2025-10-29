@@ -7,7 +7,7 @@ if __name__ == "__main__":
     fg = FGBuilder.build_cycle_graph(
         num_vars=5,
         domain_size=3,
-        ct_factory=CTFactories.RANDOM_INT.value,
+        ct_factory=CTFactories.RANDOM_INT,
         ct_params={"low": 1, "high": 20},
     )
 
