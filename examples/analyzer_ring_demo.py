@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 
 from propflow import BPEngine, FGBuilder, SnapshotVisualizer
-from propflow.configs import CTFactory
+from propflow.configs import CTFactories
 from propflow.snapshots import SnapshotsConfig
 from propflow.snapshots.utils import get_snapshot
 
@@ -20,7 +20,7 @@ def build_ring(num_vars: int = 4, domain_size: int = 3):
     return FGBuilder.build_cycle_graph(
         num_vars=num_vars,
         domain_size=domain_size,
-        ct_factory=CTFactory.random_int.fn,
+        ct_factory=CTFactories.RANDOM_INT.value,
         ct_params={"low": 0, "high": 5},
     )
 

@@ -8,7 +8,7 @@ from typing import Callable, Optional, Dict, Any
 import os
 import sys
 
-from ..configs.global_config_mapping import CTFactory, get_ct_factory
+from ..configs.global_config_mapping import CTFactories, get_ct_factory
 from .create.create_factor_graphs_from_config import FactorGraphBuilder
 from .fg_utils import FGBuilder
 from .path_utils import find_project_root
@@ -36,7 +36,7 @@ def create_factor_graph(
     graph_type: str = "cycle",
     num_vars: int = 5,
     domain_size: int = 3,
-    ct_factory: str | CTFactory | Callable = "random_int",
+    ct_factory: str | CTFactories | Callable = "random_int",
     ct_params: Optional[Dict[str, Any]] = None,
     density: float = 0.5,
 ) -> FactorGraph:
@@ -51,7 +51,7 @@ def create_factor_graph(
         num_vars: The number of variable nodes in the graph. Defaults to 5.
         domain_size: The size of the domain for each variable. Defaults to 3.
         ct_factory: The factory used to generate cost tables for the factors.
-            Can be a registered string name, a `CTFactory` enum member, or a
+            Can be a registered string name, a `CTFactories` enum member, or a
             callable. Defaults to "random_int".
         ct_params: A dictionary of parameters to pass to the `ct_factory`.
             Defaults to `{"low": 1, "high": 100}`.

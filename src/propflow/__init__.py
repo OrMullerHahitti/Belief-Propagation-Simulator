@@ -7,7 +7,7 @@ from .core import VariableAgent, FactorAgent
 
 # Graph builders and simulation
 from .utils import FGBuilder
-from propflow.configs.global_config_mapping import CTFactory
+from propflow.configs.global_config_mapping import CTFactories
 from .simulator import Simulator
 
 # Engine variants
@@ -31,7 +31,7 @@ from .bp.computators import (
 
 # Commonly used configs and utilities
 from .configs import (
-    CTFactory,
+    CTFactories,
     create_random_int_table,
     create_uniform_float_table,
     create_poisson_table,
@@ -70,7 +70,7 @@ __all__ = [
     # Builders & Simulation
     "FGBuilder",
     "Simulator",
-    "CTFactory",
+    "CTFactories",
     # Configs
     "create_random_int_table",
     "create_uniform_float_table",

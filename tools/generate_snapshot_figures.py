@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 from propflow import BPEngine, FGBuilder
-from propflow.configs import CTFactory
+from propflow.configs import CTFactories
 from propflow.snapshots import SnapshotsConfig
 from propflow.snapshots.visualizer import SnapshotVisualizer
 
@@ -32,7 +32,7 @@ def run_random_engine(
     factor_graph = FGBuilder.build_random_graph(
         num_vars=num_vars,
         domain_size=domain_size,
-        ct_factory=CTFactory.random_int.fn,
+        ct_factory=CTFactories.RANDOM_INT.value,
         ct_params={"low": 0, "high": 7},
         density=density,
     )
