@@ -19,6 +19,8 @@ from typing import Dict, Callable, Any, Optional
 from enum import Enum
 import logging
 
+import numpy as np
+
 from ..bp.computators import MinSumComputator
 from ..utils.path_utils import find_project_root
 
@@ -390,8 +392,39 @@ def create_uniform_float_table(
 ########################################################################
 
 
+class FactoryRef:
+    """Reference to a cost table factory with parameter documentation.
+
+    This wrapper preserves the original function while providing enhanced
+    documentation that appears on IDE hover. It remains fully callable.
+    """
+
+    def __init__(self, func: Callable, params_doc: str):
+        """
+        Args:
+            func: The factory function to wrap.
+            params_doc: Human-readable description of parameters.
+        """
+        self.func = func
+        self.__wrapped__ = func
+        # Build enhanced docstring that IDEs will display on hover
+        self.__doc__ = f"""{func.__doc__}
+
+Parameters Quick Reference:
+{params_doc}"""
+
+    def __call__(self, *args: Any, **kwargs: Any) -> np.ndarray:
+        """Call the wrapped factory function."""
+        return self.func(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        return f"FactoryRef({self.func.__name__})"
+
+
 class CTFactories:
     """Namespace for available cost table factory functions.
+
+    Hover over any factory constant to see its parameters and documentation.
 
     Access factory functions directly via class attributes:
 
@@ -413,9 +446,29 @@ class CTFactories:
         fn = get_ct_factory("random_int")
     """
 
-    UNIFORM: Callable = create_uniform_float_table
-    RANDOM_INT: Callable = create_random_int_table
-    POISSON: Callable = create_poisson_table
+    UNIFORM: Callable = FactoryRef(
+        create_uniform_float_table,
+        """  • n: int - Number of dimensions (number of connected variables)
+  • domain: int - Size of domain for each variable
+  • low: float = 0.0 - Lower bound of uniform distribution (inclusive)
+  • high: float = 1.0 - Upper bound of uniform distribution (exclusive)""",
+    )
+
+    RANDOM_INT: Callable = FactoryRef(
+        create_random_int_table,
+        """  • n: int - Number of dimensions (number of connected variables)
+  • domain: int - Size of domain for each variable
+  • low: int = 0 - Lower bound for random integers (inclusive)
+  • high: int = 10 - Upper bound for random integers (exclusive)""",
+    )
+
+    POISSON: Callable = FactoryRef(
+        create_poisson_table,
+        """  • n: int - Number of dimensions (number of connected variables)
+  • domain: int - Size of domain for each variable
+  • rate: float = 1.0 - Rate parameter (λ) for Poisson distribution
+  • strength: float = None - Alias for rate (for backward compatibility)""",
+    )
 
 
 def get_ct_factory(factory: Callable | str) -> Callable:
