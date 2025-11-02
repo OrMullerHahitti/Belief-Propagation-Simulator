@@ -409,21 +409,29 @@ The simulator produces:
 For deep analysis, record every iteration:
 
 ```python
-from analyzer.snapshot_recorder import EngineSnapshotRecorder
-from analyzer.snapshot_visualizer import SnapshotVisualizer
+import json
+from pathlib import Path
 
-# Wrap engine with recorder
-engine = BPEngine(factor_graph=graph)
-recorder = EngineSnapshotRecorder(engine)
+from propflow.snapshots import SnapshotVisualizer
 
-# Record execution
-snapshots = recorder.record_run(max_steps=50)
+engine = BPEngine(factor_graph=graph, use_bct_history=True)
+engine.run(max_iter=50)
 
-# Save to disk
-recorder.to_json("results/my_run.json")
+snapshots = list(engine.snapshots)
 
-# Visualize belief trajectories
-viz = SnapshotVisualizer.from_object(snapshots)
+payload = [
+    {
+        "step": snap.step,
+        "assignments": snap.assignments,
+        "global_cost": snap.global_cost,
+    }
+    for snap in snapshots
+]
+out_path = Path("results/my_run.json")
+out_path.parent.mkdir(parents=True, exist_ok=True)
+out_path.write_text(json.dumps(payload, indent=2))
+
+viz = SnapshotVisualizer(snapshots)
 viz.plot_argmin_per_variable(show=True)
 ```
 
@@ -439,34 +447,25 @@ Each snapshot contains:
 ### Snapshot Analyzer & Reporting
 
 ```python
-from analyzer.reporting import SnapshotAnalyzer, AnalysisReport, parse_snapshots
+from propflow.snapshots import SnapshotAnalyzer, AnalysisReport
 
-# Convert JSON payloads collected by EngineSnapshotRecorder
-records = parse_snapshots(snapshots)
-
-# Build the analyzer (optionally registering factor cost tables for neutrality checks)
-analyzer = SnapshotAnalyzer(records, max_cycle_len=6)
-analyzer.register_factor_cost("f12", cost_table)
-
-# Derive neutral covers and export reporting artefacts
-cover, _ = analyzer.scc_greedy_neutral_cover(step_idx=0, alpha={})
+analyzer = SnapshotAnalyzer(snapshots)
 report = AnalysisReport(analyzer)
-summary = report.to_json(step_idx=0)
-report.to_csv("results/analysis", step_idx=0)
-report.plots("results/analysis", step_idx=0, include_graph=True)
+summary = report.to_json(step_idx=len(snapshots) - 1)
+report.to_csv("results/analysis", step_idx=len(snapshots) - 1)
 ```
 
 The CLI wrapper mirrors the same flow:
 
 ```
-bp-analyze --snapshots results/my_run.json --out results/analysis --plot --cover
+bp-analyze --snapshots results/my_run.json --out results/analysis
 ```
 
 ### Analysis Workflows
 
-1. **Convergence diagnosis**: Plot cost + neutral message ratio over time
+1. **Convergence diagnosis**: Plot cost trajectories and Jacobian norms
 2. **Belief tracking**: Visualize how argmins change per variable
-3. **Message flow analysis**: Identify bottlenecks or oscillations
+3. **Message flow analysis**: Inspect Q/R message norms across iterations
 4. **Comparative dynamics**: Compare how different engines explore the solution space
 
 ---
@@ -596,8 +595,9 @@ from propflow import (
     Simulator,
 )
 from propflow.configs import CTFactory
-from analyzer.snapshot_recorder import EngineSnapshotRecorder
-from analyzer.snapshot_visualizer import SnapshotVisualizer
+import json
+from pathlib import Path
+from propflow.snapshots import SnapshotVisualizer
 ```
 
 ### Minimal Example

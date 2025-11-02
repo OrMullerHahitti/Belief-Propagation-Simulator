@@ -1,6 +1,6 @@
-# Analyzer Complete Tutorial Notebook
+# Snapshot Analysis Tutorial Notebook
 
-This Jupyter notebook provides a comprehensive, hands-on guide to using PropFlow's analyzer module.
+This Jupyter notebook provides a comprehensive, hands-on guide to using PropFlow's snapshot analysis module.
 
 ## Quick Start
 
@@ -37,7 +37,7 @@ The notebook covers:
 1. **Basic Setup** - Imports and environment configuration
 2. **Simple Examples** - 2-variable constraint problems
 3. **Factor Graphs** - Building cycle graphs with FGBuilder
-4. **Snapshot Recording** - Using `EngineSnapshotRecorder`
+4. **Snapshot Capture** - Using the built-in `SnapshotManager`
 5. **Data Analysis** - Cost trajectories, message statistics
 6. **Visualization** - Argmin plots with `SnapshotVisualizer`
 7. **Message Flow** - Deep dive into message passing

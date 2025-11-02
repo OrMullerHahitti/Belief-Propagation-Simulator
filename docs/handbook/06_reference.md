@@ -9,8 +9,8 @@
 | `propflow.bp.engines` | Concrete engine variants (`BPEngine`, `DampingEngine`, `SplitEngine`, etc.). | Mix of damping, cost reduction, splitting strategies. |
 | `propflow.utils.fg_utils.FGBuilder` | Helper for constructing factor graphs. | Supports random graph generation and deterministic setups. |
 | `propflow.configs.global_config_mapping` | Centralised defaults and registries. | Contains `ENGINE_DEFAULTS`, `POLICY_DEFAULTS`, `SIMULATOR_DEFAULTS`, CT factories. |
-| `analyzer.snapshot_recorder.EngineSnapshotRecorder` | External per-step recorder. | No engine modifications; outputs JSON-friendly data. |
-| `analyzer.snapshot_visualizer.SnapshotVisualizer` | Plots argmin trajectories. | Accepts JSON or in-memory snapshot lists. |
+| `propflow.snapshots` | Snapshot analyzer and reporting helpers. | Provides `SnapshotAnalyzer` and `AnalysisReport`. |
+| `propflow.snapshots.SnapshotVisualizer` | Plots argmin trajectories and message norms. | Accepts in-memory snapshot lists. |
 
 ## 2. Configuration Defaults (`global_config_mapping.py`)
 
@@ -36,7 +36,6 @@
 | `uv run bp-sim --version` | Prints CLI version. |
 | `uv run python main.py` | Runs bundled random-graph simulation demo. |
 | `uv run python examples/minsum_basic.py` | Demonstrates Min-Sum on a small graph. |
-| `uv run python src/analyzer/snapshot_visualizer.py <json>` | Plots argmin trajectories from snapshot JSON. |
 
 ## 4. Environment Variables
 - `PYTHONPATH` should include `src/` if you are not using editable installs.

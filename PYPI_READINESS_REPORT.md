@@ -13,7 +13,7 @@
 
 ### Package Structure
 - ✅ Proper `src/` layout following modern best practices
-- ✅ Clear separation: `propflow` (core) + `analyzer` (utilities)
+- ✅ Clear separation: `propflow` (core runtime) + `propflow.snapshots` (analysis utilities)
 - ✅ Comprehensive test suite in `tests/`
 - ✅ Examples directory with working code and Jupyter notebook
 

@@ -12,7 +12,7 @@ This section outlines practical strategies for running PropFlow beyond local exp
 5. **Automate** with cron or task schedulers if you need recurring jobs.
 
 ### Tips
-- Use `EngineSnapshotRecorder` for reproducible records.
+- Persist snapshots by serialising `engine.snapshots` to JSON for reproducibility.
 - Capture environment metadata (`python --version`, `pip freeze`) alongside results.
 
 ## 2. Containerised Deployment (Docker)

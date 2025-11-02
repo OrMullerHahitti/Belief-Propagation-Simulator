@@ -12,8 +12,8 @@ PropFlow is a belief propagation (BP) experimentation platform. It builds factor
 | **Engine** | Implementation of the BP update loop (`src/propflow/bp/engine_base.py` and concrete classes in `src/propflow/bp/engines.py`). Engines orchestrate the six-phase synchronous schedule: variable compute, send, factor compute, send, pruning, and convergence evaluation. |
 | **Policy** | Optional behaviours applied during message computation: damping, splitting, cost reduction, pruning. Policies live under `src/propflow/policies`. |
 | **Simulator** | High-level runner (`src/propflow/simulator.py`) that executes batches of engine configurations over a set of factor graphs, collects cost trajectories, and handles multiprocessing. |
-| **History & Snapshots** | Built-in engine history stores assignments, costs, and optional BCT artefacts. External snapshot tooling (`src/analyzer/snapshot_recorder.py`) captures per-iteration state for analysis or visualisation. |
-| **Analyzer Utilities** | Lightweight visual tools such as the `SnapshotVisualizer` (`src/analyzer/snapshot_visualizer.py`) for interpreting minimisers over time. |
+| **History & Snapshots** | Built-in engine history stores coarse metrics; detailed per-step data lives in `engine.snapshots` and can be serialised to JSON for later analysis. |
+| **Analyzer Utilities** | Use `propflow.snapshots.SnapshotAnalyzer` and `propflow.snapshots.SnapshotVisualizer` to interpret minimisers over time. |
 
 ## 3. Creation Pipeline (Top-Down)
 
@@ -30,8 +30,8 @@ PropFlow’s runtime mirrors the documentation flow:
 4. **Simulator** — `Simulator` (`src/propflow/simulator.py`) executes batches of
    engine configurations over one or many graphs, typically for benchmarks or
    parameter sweeps.
-5. **Analyzer** — Modules under `src/analyzer/` capture snapshots and visualise
-   results, letting you inspect or report on specific runs.
+5. **Analyzer** — Modules under `src/propflow/snapshots/` capture snapshots and
+   visualise results, letting you inspect or report on specific runs.
 
 The quickest path for an end user is thus:
 ``FGBuilder → BPEngine (or variant) → Simulator (optional) → Analyzer tooling``.
@@ -51,10 +51,11 @@ src/
     utils/         # Graph builders, tooling (FGBuilder, etc.)
     simulator.py   # High-level simulation orchestrator
     cli.py         # Placeholder CLI entrypoint
-  analyzer/
-    snapshot_recorder.py     # External recorder for per-step data capture
-    snapshot_visualizer.py   # Visualiser for argmin trajectories
-    README.md                # Snapshot tooling guide
+  propflow/snapshots/   # Snapshot capture, analysis, visualisation
+    builder.py          # Construct EngineSnapshot from engine state
+    manager.py          # Minimal SnapshotManager used by engines
+    analyzer.py         # Jacobian, cycle analysis, reporting tools
+    visualizer.py       # Standalone snapshot visualiser
 
 examples/          # Demonstrations (e.g. min-sum walkthrough)
 tests/             # Pytest suite covering engines, policies, utilities
@@ -77,7 +78,7 @@ This loop repeats for each iteration until convergence or the configured maximum
 - **Custom Engines**: Subclass `BPEngine` and override hooks (`post_var_compute`, `pre_factor_compute`, etc.). Register the class in simulation configs for reuse.
 - **Policies**: Implement new policies under `src/propflow/policies` and wire them into engines or simulator configs.
 - **Cost Table Factories**: Extend `CTFactory` registries in `src/propflow/configs/global_config_mapping.py` to generate domain-specific cost tables.
-- **Analysis**: Use `EngineSnapshotRecorder` to capture structured outputs suitable for dashboards, machine learning pipelines, or audits.
+- **Analysis**: Use `propflow.snapshots` utilities to capture structured outputs suitable for dashboards, machine learning pipelines, or audits.
 
 ## 7. Operational Roles
 - **Simulation Engineer**: Configures factor graphs, chooses engine variants, evaluates convergence metrics.

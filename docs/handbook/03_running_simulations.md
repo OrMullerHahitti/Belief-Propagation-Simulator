@@ -2,7 +2,7 @@
 
 This chapter assumes you already know how to assemble graphs and engines (see
 the :doc:`../user_guide`). Here we focus on operationalising the flow:
-``FGBuilder → engine → Simulator → analyzer``.
+``FGBuilder → engine → Simulator → snapshots``.
 
 ## 1. Quick Smoke Test (`main.py`)
 The repository root includes `main.py`, which generates random factor graphs and runs multiple engine variants.
@@ -56,39 +56,39 @@ uv run bp-sim --version
 
 ## 4. Snapshot Capture & Analysis
 
-### 4.1 EngineSnapshotRecorder
-`src/analyzer/snapshot_recorder.py` provides an external recorder that keeps engine internals untouched. Snapshots are already captured in-memory; call `recorder.save(engine)` to persist them when needed.
+Snapshots are always available via :attr:`engine.snapshots`. Persist them by
+serialising to JSON and leverage the visualiser/analyzer utilities inside
+``propflow.snapshots``.
 
 ```python
-from analyzer.snapshot_recorder import EngineSnapshotRecorder
+import json
+from pathlib import Path
 
-recorder = EngineSnapshotRecorder(engine)
-recorder.record_run(max_steps=100, break_on_convergence=True)
-recorder.to_json("results/run_001_snapshots.json")
-```
+from propflow.snapshots import SnapshotAnalyzer, AnalysisReport
+from propflow.snapshots import SnapshotVisualizer
 
-Captured fields per iteration include:
-- Message flows (sender, recipient, values, argmin index, neutrality flag)
-- Variable assignments and global cost
-- Counts of neutral messages / step neutrality
+engine = BPEngine(factor_graph=fg, use_bct_history=True)
+engine.run(max_iter=100)
 
-### 4.2 SnapshotVisualizer
-`src/analyzer/snapshot_visualizer.py` helps interpret argmin trajectories per variable.
+snapshots = list(engine.snapshots)
 
-```python
-from analyzer.snapshot_visualizer import SnapshotVisualizer
+Path("results").mkdir(exist_ok=True)
+with open("results/run_001_snapshots.json", "w", encoding="utf-8") as handle:
+    json.dump([
+        {
+            "step": snap.step,
+            "assignments": snap.assignments,
+            "global_cost": snap.global_cost,
+        }
+        for snap in snapshots
+    ], handle, indent=2)
 
-viz = SnapshotVisualizer.from_json("results/run_001_snapshots.json")
-series = viz.argmin_series(vars_filter=["X1", "X5"])
-print(series)
-# {'X1': [0, 0, 1, ...], 'X5': [2, 1, 1, ...]}
+viz = SnapshotVisualizer(snapshots)
+viz.plot_argmin_per_variable(show=True)
 
-viz.plot_argmin_per_variable(vars_filter=["X1", "X5"], savepath="plots/X15.png")
-```
-
-CLI usage:
-```bash
-uv run python src/analyzer/snapshot_visualizer.py results/run_001_snapshots.json --vars X1 X5 --save plots/X15.png
+analyzer = SnapshotAnalyzer(snapshots)
+report = AnalysisReport(analyzer)
+summary = report.to_json(step_idx=len(snapshots) - 1)
 ```
 
 ## 5. Examples Directory

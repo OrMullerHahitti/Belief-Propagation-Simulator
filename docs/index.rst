@@ -55,7 +55,7 @@ runtime:
 1. :doc:`quickstart` gives you runnable snippets using the recommended flow
    (``FGBuilder`` → engine → simulator).
 2. :doc:`user_guide` dives into each layer in detail—from agents up through
-   analyzer tooling—highlighting when to rely on helpers versus manual wiring.
+   snapshot tooling—highlighting when to rely on helpers versus manual wiring.
 3. :doc:`howto_snapshots` provides a comprehensive guide to capturing, analyzing,
    and visualizing algorithm state at each iteration—essential for debugging and
    validating convergence.

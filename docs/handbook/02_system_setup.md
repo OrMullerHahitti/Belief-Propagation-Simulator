@@ -51,7 +51,7 @@ pip install -e .[dev]
 4. Optionally run `pytest -q` to validate the suite (expect some longer runtimes for heavy graph tests).
 
 ## 5. External Services & Data
-No external services are required. Factor graphs are generated on the fly or loaded from pickled artefacts. For reproducibility, ensure deterministic seeds are configured in configs or snapshot recorders.
+No external services are required. Factor graphs are generated on the fly or loaded from pickled artefacts. For reproducibility, ensure deterministic seeds are configured in configs or via the snapshot tooling.
 
 ## 6. File System Expectations
 - Write access to `configs/logs/` (default log directory) and optional `results/` directories for export.
