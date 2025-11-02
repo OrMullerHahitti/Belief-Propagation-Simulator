@@ -197,7 +197,7 @@ class Simulator:
                     **engine_params,
                 )
             engine.run(max_iter=max_iter)
-            costs = engine.history.costs
+            costs = [float(s.global_cost) for s in engine.snapshots if s.global_cost is not None]
             logger.info(f"Finished: graph {graph_index}, engine {engine_name}. Final cost: {costs[-1] if costs else 'N/A'}")
             return (graph_index, engine_name, costs)
         except Exception as e:

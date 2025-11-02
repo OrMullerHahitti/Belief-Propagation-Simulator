@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import itertools
 from dataclasses import dataclass
 from typing import Any, Dict, Hashable, Iterable, Mapping, Optional, Sequence, Tuple

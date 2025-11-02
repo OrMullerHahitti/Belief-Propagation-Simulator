@@ -12,8 +12,7 @@ import numpy as np
 
 from propflow import BPEngine, FGBuilder
 from propflow.configs import create_random_int_table
-from propflow.snapshots import SnapshotAnalyzer, AnalysisReport, SnapshotsConfig
-from propflow.snapshots.utils import get_snapshot
+from propflow.snapshots import SnapshotAnalyzer, AnalysisReport
 
 
 def main() -> None:
@@ -28,24 +27,12 @@ def main() -> None:
         density=0.05,  # 5% factor density for connectivity
     )
 
-    # Run with snapshot capture
-    snapshot_cfg = SnapshotsConfig(
-        compute_jacobians=True,
-        compute_block_norms=True,
-        compute_cycles=True,
-        max_cycle_len=4,
-        retain_last=None,  # Keep all snapshots
-    )
-
-    engine = BPEngine(factor_graph=fg, snapshots_config=snapshot_cfg)
+    engine = BPEngine(factor_graph=fg, use_bct_history=True)
     print("Running BP on 200-variable random graph...")
     engine.run(max_iter=50)
 
     # Collect snapshots
-    snapshots = [
-        get_snapshot(engine, i)
-        for i in range(len(engine.history.step_costs))
-    ]
+    snapshots = list(engine.snapshots)
     print(f"✓ Captured {len(snapshots)} snapshots")
 
     # Analyze

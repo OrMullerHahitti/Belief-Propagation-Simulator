@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, Tuple
 import networkx as nx
 
 from ..bp.engine_base import BPEngine
-from ..bp.engine_components import Cycle, Step
+from ..bp.engine_components import Cycle, Step, History
 from ..bp.factor_graph import FactorGraph
 from ..core.agents import VariableAgent
 from .search_agents import SearchVariableAgent, extend_variable_agent_for_search
@@ -35,6 +35,12 @@ class SearchEngine(BPEngine):
         **kwargs: Any,
     ) -> None:
         super().__init__(factor_graph=factor_graph, computator=computator, name=name, **kwargs)
+        self.history = History(
+            engine_type=self.__class__.__name__,
+            computator=computator,
+            factor_graph=factor_graph,
+            use_bct_history=self._use_bct_history,
+        )
         self.max_iterations = max_iterations
         self.best_assignment: Dict[str, Any] | None = None
         self.best_cost: float = float("inf")

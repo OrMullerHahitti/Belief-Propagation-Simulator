@@ -1,11 +1,15 @@
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Mapping
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 import numpy as np
 from ..core.dcop_base import Agent
 from ..core.components import Message
 
+if TYPE_CHECKING:  # pragma: no cover
+    from .engine_base import BPEngine
 
 @dataclass
 class Step:
@@ -54,6 +58,19 @@ class Step:
             messages: A list of R messages.
         """
         self.r_messages[factor_name] = messages
+
+
+@dataclass
+class EngineSnapshot:
+    """Lightweight runtime snapshot captured after each BP step."""
+
+    step: int
+    global_cost: float
+    beliefs: Dict[str, np.ndarray]
+    assignments: Dict[str, Union[int, float]]
+    q_messages: Dict[str, List[Dict[str, Any]]]
+    r_messages: Dict[str, List[Dict[str, Any]]]
+    captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
@@ -444,3 +461,175 @@ class History:
             An empty string (not implemented).
         """
         return ""
+
+
+class SnapshotHistoryView:
+    """Read-only compatibility layer exposing snapshot data via the history API."""
+
+    def __init__(
+        self,
+        engine: "BPEngine",
+        *,
+        engine_type: str,
+        config: Optional[Dict[str, Any]] = None,
+        use_bct_history: bool = False,
+    ) -> None:
+        self._engine = engine
+        self.engine_type = engine_type
+        self.config = dict(config or {})
+        self.use_bct_history = use_bct_history
+        self.name = self.config.get("name", engine_type)
+
+    def __bool__(self) -> bool:
+        return bool(self._engine.snapshots)
+
+    def _snapshots(self) -> List["EngineSnapshot"]:
+        return list(self._engine.snapshots)
+
+    @property
+    def costs(self) -> List[float]:
+        series: List[float] = []
+        carry: float = 0.0
+        has_cost = False
+        for snapshot in self._snapshots():
+            if snapshot.global_cost is not None:
+                carry = float(snapshot.global_cost)
+                has_cost = True
+            series.append(carry if has_cost else 0.0)
+        return series
+
+    @property
+    def beliefs(self) -> Mapping[int, Dict[str, np.ndarray]]:
+        timeline: Dict[int, Dict[str, np.ndarray]] = {}
+        for snapshot in self._snapshots():
+            timeline[snapshot.step] = {
+                var: np.asarray(belief, dtype=float)
+                for var, belief in snapshot.beliefs.items()
+            }
+        return timeline
+
+    @property
+    def assignments(self) -> Mapping[int, Dict[str, int]]:
+        timeline: Dict[int, Dict[str, int]] = {}
+        for snapshot in self._snapshots():
+            timeline[snapshot.step] = {var: int(val) for var, val in snapshot.assignments.items()}
+        return timeline
+
+    @property
+    def step_costs(self) -> List[float]:
+        return self.costs
+
+    @property
+    def step_beliefs(self) -> Mapping[int, Dict[str, np.ndarray]]:
+        data: Dict[int, Dict[str, np.ndarray]] = {}
+        for snapshot in self._snapshots():
+            data[snapshot.step] = {
+                var: np.asarray(belief, dtype=float)
+                for var, belief in snapshot.beliefs.items()
+            }
+        return data
+
+    @property
+    def step_assignments(self) -> Mapping[int, Dict[str, int]]:
+        data: Dict[int, Dict[str, int]] = {}
+        for snapshot in self._snapshots():
+            data[snapshot.step] = {var: int(val) for var, val in snapshot.assignments.items()}
+        return data
+
+    @property
+    def step_messages(self) -> Mapping[int, List[MessageData]]:
+        if not self.use_bct_history:
+            return {}
+        timeline: Dict[int, List[MessageData]] = {}
+        for snapshot in self._snapshots():
+            entries: List[MessageData] = []
+            for (sender, recipient), array in snapshot.Q.items():
+                arr = np.asarray(array, dtype=float).ravel()
+                entries.append(
+                    MessageData(
+                        sender=sender,
+                        recipient=recipient,
+                        data=arr.tolist(),
+                        step=snapshot.step,
+                    )
+                )
+            for (sender, recipient), array in snapshot.R.items():
+                arr = np.asarray(array, dtype=float).ravel()
+                entries.append(
+                    MessageData(
+                        sender=sender,
+                        recipient=recipient,
+                        data=arr.tolist(),
+                        step=snapshot.step,
+                    )
+                )
+            timeline[snapshot.step] = entries
+        return timeline
+
+    @property
+    def current_step(self) -> int:
+        snapshots = self._snapshots()
+        if not snapshots:
+            return 0
+        return snapshots[-1].step
+
+    def initialize_cost(self, _: Union[int, float]) -> None:
+        return
+
+    def track_step_data(self, *_, **__) -> None:
+        return
+
+    def compare_last_two_cycles(self) -> bool:
+        snapshots = self._snapshots()
+        if len(snapshots) < 2:
+            return False
+        last = snapshots[-1].assignments
+        prev = snapshots[-2].assignments
+        return last == prev
+
+    def get_bct_data(self) -> Dict[str, Any]:
+        return {
+            "beliefs": self._format_step_beliefs(),
+            "messages": self._format_step_messages(),
+            "assignments": self._format_step_assignments(),
+            "costs": self.step_costs.copy(),
+            "metadata": {
+                "engine_type": self.engine_type,
+                "use_bct_history": self.use_bct_history,
+                "total_steps": len(self._snapshots()),
+                "has_step_data": bool(self._snapshots()),
+            },
+        }
+
+    def _format_step_beliefs(self) -> Dict[str, List[float]]:
+        beliefs_by_var: Dict[str, List[float]] = {}
+        for snapshot in self._snapshots():
+            for var_name, belief in snapshot.beliefs.items():
+                arr = np.asarray(belief, dtype=float)
+                beliefs_by_var.setdefault(var_name, []).append(float(np.min(arr)) if arr.size else 0.0)
+        return beliefs_by_var
+
+    def _format_step_assignments(self) -> Dict[str, List[int]]:
+        assignments_by_var: Dict[str, List[int]] = {}
+        for snapshot in self._snapshots():
+            for var_name, assignment in snapshot.assignments.items():
+                assignments_by_var.setdefault(var_name, []).append(int(assignment))
+        return assignments_by_var
+
+    def _format_step_messages(self) -> Dict[str, List[float]]:
+        messages_by_flow: Dict[str, List[float]] = {}
+        for step, entries in self.step_messages.items():
+            for msg in entries:
+                key = f"{msg.sender}->{msg.recipient}"
+                value = msg.data[0] if msg.data else 0.0
+                messages_by_flow.setdefault(key, []).append(float(value))
+        return messages_by_flow
+
+    def save_results(self, filename: Optional[str] = None) -> str:
+        raise NotImplementedError("Snapshot history view does not support saving results.")
+
+    def save_csv(self, config_name: Optional[str] = None) -> str:
+        raise NotImplementedError("Snapshot history view does not support saving results.")
+
+    def to_json(self, filepath: str) -> str:
+        raise NotImplementedError("Snapshot history view does not support saving results.")

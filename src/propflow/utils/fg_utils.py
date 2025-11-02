@@ -202,8 +202,7 @@ class FGBuilder:
 
         edge_pairs: List[Tuple[VariableAgent, VariableAgent]] = []
         for loop in (left_loop_nodes, right_loop_nodes):
-            for idx in range(len(loop) - 1):
-                edge_pairs.append((loop[idx], loop[idx + 1]))
+            edge_pairs.extend((loop[idx], loop[idx + 1]) for idx in range(len(loop) - 1))
             edge_pairs.append((loop[-1], loop[0]))
 
         params = ct_params or {}
@@ -317,13 +316,12 @@ def repair_factor_graph(fg: FactorGraph) -> FactorGraph:
     for node in fg.G.nodes():
         if not hasattr(node, "mailbox"):
             node.mailbox = []
-        if hasattr(node, "type") and node.type == "factor":
-            if not hasattr(node, "cost_table") or node.cost_table is None:
-                try:
-                    if hasattr(node, "initiate_cost_table"):
-                        node.initiate_cost_table()
-                except Exception as e:
-                    print(f"Could not initialize cost table for {node}: {e}")
+        if hasattr(node, "type") and node.type == "factor" and (not hasattr(node, "cost_table") or node.cost_table is None):
+            try:
+                if hasattr(node, "initiate_cost_table"):
+                    node.initiate_cost_table()
+            except Exception as e:
+                print(f"Could not initialize cost table for {node}: {e}")
     return fg
 
 

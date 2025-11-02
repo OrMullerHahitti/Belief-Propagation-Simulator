@@ -8,7 +8,7 @@ This document models every step needed to turn the PropFlow codebase into a dist
 
 PropFlow follows the modern `src/` layout. All package modules live beneath `src/propflow`, and every subpackage exported on PyPI must include an `__init__.py` so `setuptools` discovers it.
 
-```
+```bash
 src/
   propflow/
     __init__.py
@@ -20,6 +20,7 @@ src/
 ```
 
 ### 1.1 Public API (`__init__.py`)
+
 `src/propflow/__init__.py` re-exports the public surface, including the version string. Keep this file ASCII and annotate with brief comments only when behavior is non-obvious.
 
 ```python
@@ -34,7 +35,7 @@ from .configs import (
     create_uniform_float_table,
     create_poisson_table,
 )
-from .snapshots import SnapshotsConfig, SnapshotManager
+from .snapshots import EngineSnapshot, SnapshotManager
 
 __all__ = [
     "__version__",
@@ -47,12 +48,13 @@ __all__ = [
     "create_random_int_table",
     "create_uniform_float_table",
     "create_poisson_table",
-    "SnapshotsConfig",
+    "EngineSnapshot",
     "SnapshotManager",
 ]
 ```
 
 ### 1.2 Single Source of Version Truth
+
 `src/propflow/_version.py` stores the release identifier. Update this file and `pyproject.toml` together for every release increment.
 
 ```python
@@ -134,6 +136,7 @@ bp-sim = "propflow.cli:main"
 ```
 
 Key practices:
+
 - Keep runtime dependencies minimal and exact (PropFlow pins via compatible release `~=`).
 - Provide a `dev` extra that mirrors pre-commit hooks and developer tooling.
 - Set `bp-sim` CLI entry point for packaging the console script.
@@ -164,28 +167,37 @@ Confirm referenced files exist at the repository root. Update the manifest whene
 ## 4. Environment Preparation & Quality Gates
 
 1. **Bootstrap environment**
+
    ```bash
    python -m venv .venv
    source .venv/bin/activate
    pip install -e ".[dev]"
    ```
+
 2. **Static checks**
+
    ```bash
    flake8
    mypy src
    black . --check
    ```
+
 3. **Test suite & coverage**
+
    ```bash
    pytest -q
    pytest --cov=src --cov-report=term-missing
    ```
+
 4. **Smoke CLI & examples**
+
    ```bash
    bp-sim --help
    python examples/minsum_basic.py
    ```
+
 5. **Ensure clean tree**
+
    ```bash
    git status
    git diff
@@ -265,8 +277,10 @@ uv run twine upload --repository testpypi dist/*
 - Password: TestPyPI API token (`pypi-...`)
 
 Verify the staging release:
+
 1. Visit <https://test.pypi.org/project/propflow/> and confirm version, description, and metadata.
 2. Test installation from a clean environment:
+
    ```bash
    python3 -m venv test_env
    source test_env/bin/activate
@@ -306,15 +320,18 @@ Remember: PyPI rejects duplicate version uploads. Increment both `_version.py` a
 ## 8. Post-Release Activities
 
 1. **Git tagging**
+
    ```bash
    git tag -a v0.1.0 -m "Release version 0.1.0"
    git push origin v0.1.0
    ```
+
 2. **GitHub release**
    - Title: `PropFlow v0.1.0`
    - Body: summarize changes from `CHANGELOG.md`
    - Attach release artifacts if desired (already available on PyPI).
 3. **README updates**
+
    ```markdown
    [![PyPI version](https://badge.fury.io/py/propflow.svg)](https://badge.fury.io/py/propflow)
    [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -323,6 +340,7 @@ Remember: PyPI rejects duplicate version uploads. Increment both `_version.py` a
    ```bash
    pip install propflow
    ```
+
    ```
 4. **Announcement**
    Share the release on GitHub Discussions, social channels, mailing lists, or research groups.
@@ -332,11 +350,13 @@ Remember: PyPI rejects duplicate version uploads. Increment both `_version.py` a
 ## 9. Change Control & Future Versions
 
 Follow semantic versioning:
+
 - **Patch**: bug fixes (`0.1.0 → 0.1.1`)
 - **Minor**: backwards-compatible features (`0.1.0 → 0.2.0`)
 - **Major**: breaking changes (`0.1.0 → 1.0.0`)
 
 Before starting a new release cycle:
+
 1. Update `src/propflow/_version.py`
 2. Update `pyproject.toml` version
 3. Amend `CHANGELOG.md`
