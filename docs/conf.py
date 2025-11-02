@@ -14,8 +14,8 @@ project = 'PropFlow'
 copyright = '2025, Or Muller'
 author = 'Or Muller'
 
-version = '1.0.1'
-release = '1.0.1'
+version = '1.1.1'
+release = '1.1.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

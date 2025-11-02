@@ -4,8 +4,10 @@ VENV ?= .venv
 PYTHON := $(VENV)/bin/python
 PIP := $(PYTHON) -m pip
 UV ?= uv
+VERSION_FILE := src/propflow/_version.py
+VERSION := $(shell sed -n 's/__version__ = "\(.*\)"/\1/p' $(VERSION_FILE))
 
-.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example start-python notebook repl bump bump-patch bump-minor bump-major
+.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example start-python notebook repl bump bump-patch bump-minor bump-major tag
 
 help: ; @grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS=":.*## "} {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}' ## Show this help
 
@@ -46,6 +48,9 @@ publish-test: check-dist ; $(UV) run twine upload --repository testpypi dist/* #
 publish: check-dist ; $(UV) run twine upload dist/* ## Upload to PyPI
 
 release: check-dist publish ## Convenience alias for PyPI release
+
+tag: ## Create annotated git tag for current project version
+	@git tag -a v$(VERSION) -m "Release v$(VERSION)"
 
 # Version bumping targets
 bump: bump-patch ## Bump patch version (default)
