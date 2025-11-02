@@ -22,19 +22,29 @@ A = TypeVar("A")
 class EngineHooks:
     """No-op hook container. Users can subclass to intercept events."""
 
-    def on_start(self, engine: "SearchEngine[S, A]") -> None:  # pragma: no cover - trivial
+    def on_start(
+        self, engine: "SearchEngine[S, A]"
+    ) -> None:  # pragma: no cover - trivial
         return
 
-    def on_expand(self, engine: "SearchEngine[S, A]", node: Node[S, A]) -> None:  # pragma: no cover - trivial
+    def on_expand(
+        self, engine: "SearchEngine[S, A]", node: Node[S, A]
+    ) -> None:  # pragma: no cover - trivial
         return
 
-    def on_generate(self, engine: "SearchEngine[S, A]", node: Node[S, A]) -> None:  # pragma: no cover - trivial
+    def on_generate(
+        self, engine: "SearchEngine[S, A]", node: Node[S, A]
+    ) -> None:  # pragma: no cover - trivial
         return
 
-    def on_goal(self, engine: "SearchEngine[S, A]", node: Node[S, A]) -> None:  # pragma: no cover - trivial
+    def on_goal(
+        self, engine: "SearchEngine[S, A]", node: Node[S, A]
+    ) -> None:  # pragma: no cover - trivial
         return
 
-    def on_finish(self, engine: "SearchEngine[S, A]") -> None:  # pragma: no cover - trivial
+    def on_finish(
+        self, engine: "SearchEngine[S, A]"
+    ) -> None:  # pragma: no cover - trivial
         return
 
 
@@ -118,7 +128,14 @@ class SearchEngine(Generic[S, A]):
             if self.goal.is_goal(current.state):
                 best_goal = current
                 self.hooks.on_goal(self, current)
-                self._snapshot({"event": "goal", "key": current_key, "g": current.g, "f": current.f})
+                self._snapshot(
+                    {
+                        "event": "goal",
+                        "key": current_key,
+                        "g": current.g,
+                        "f": current.f,
+                    }
+                )
                 break
 
             for action, next_state, step_cost in self.expander.expand(current.state):
@@ -224,4 +241,3 @@ try:  # pragma: no cover - exercised indirectly
     ]
 except Exception:  # pragma: no cover - optional legacy support
     __all__ = ["SearchEngine", "EngineHooks", "EngineHistory"]
-

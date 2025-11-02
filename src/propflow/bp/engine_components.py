@@ -11,6 +11,7 @@ from ..core.components import Message
 if TYPE_CHECKING:  # pragma: no cover
     from .engine_base import BPEngine
 
+
 @dataclass
 class Step:
     """Represents a single step in the simulation.
@@ -233,13 +234,17 @@ class History:
                 if isinstance(belief_array, np.ndarray):
                     belief_value = float(np.min(belief_array))
                 else:
-                    belief_value = float(belief_array) if belief_array is not None else 0.0
+                    belief_value = (
+                        float(belief_array) if belief_array is not None else 0.0
+                    )
                 step_beliefs[var_name] = belief_value
             self.step_beliefs[step_num] = step_beliefs
 
         if hasattr(engine, "assignments"):
             current_assignments = engine.assignments
-            self.step_assignments[step_num] = {k: int(v) for k, v in current_assignments.items()}
+            self.step_assignments[step_num] = {
+                k: int(v) for k, v in current_assignments.items()
+            }
 
         if hasattr(step_result, "messages"):
             step_messages = []
@@ -329,7 +334,9 @@ class History:
                 value = (
                     float(np.min(belief_array))
                     if isinstance(belief_array, np.ndarray)
-                    else float(belief_array) if belief_array is not None else 0.0
+                    else float(belief_array)
+                    if belief_array is not None
+                    else 0.0
                 )
                 beliefs_by_var.setdefault(var_name, []).append(value)
 
@@ -362,15 +369,24 @@ class History:
         Returns:
             The filepath where the history was saved.
         """
-        data = self.get_bct_data() if self.use_bct_history else self._get_legacy_json_data()
+        data = (
+            self.get_bct_data()
+            if self.use_bct_history
+            else self._get_legacy_json_data()
+        )
         Path(filepath).parent.mkdir(parents=True, exist_ok=True)
 
         def convert_numpy(obj):
-            if isinstance(obj, np.ndarray): return obj.tolist()
-            if isinstance(obj, np.integer): return int(obj)
-            if isinstance(obj, np.floating): return float(obj)
-            if isinstance(obj, dict): return {str(k): convert_numpy(v) for k, v in obj.items()}
-            if isinstance(obj, (list, tuple)): return [convert_numpy(item) for item in obj]
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            if isinstance(obj, np.integer):
+                return int(obj)
+            if isinstance(obj, np.floating):
+                return float(obj)
+            if isinstance(obj, dict):
+                return {str(k): convert_numpy(v) for k, v in obj.items()}
+            if isinstance(obj, (list, tuple)):
+                return [convert_numpy(item) for item in obj]
             return obj
 
         with open(filepath, "w") as f:
@@ -415,7 +431,9 @@ class History:
                 {
                     "sender": getattr(msg.sender, "name", "unknown"),
                     "recipient": getattr(msg.recipient, "name", "unknown"),
-                    "data": msg.data.tolist() if isinstance(msg.data, np.ndarray) else [float(msg.data)],
+                    "data": msg.data.tolist()
+                    if isinstance(msg.data, np.ndarray)
+                    else [float(msg.data)],
                 }
                 for msg in agent_messages
             ]
@@ -426,7 +444,9 @@ class History:
         serialized = {}
         for cycle_num, beliefs in self.beliefs.items():
             serialized[str(cycle_num)] = {
-                var_name: belief_array.tolist() if isinstance(belief_array, np.ndarray) else belief_array
+                var_name: belief_array.tolist()
+                if isinstance(belief_array, np.ndarray)
+                else belief_array
                 for var_name, belief_array in beliefs.items()
             }
         return serialized
@@ -434,7 +454,10 @@ class History:
     def _serialize_assignments(self) -> Dict:
         """Serializes assignment dictionaries for JSON output."""
         return {
-            str(cycle_num): {var_name: int(assignment) for var_name, assignment in assignments.items()}
+            str(cycle_num): {
+                var_name: int(assignment)
+                for var_name, assignment in assignments.items()
+            }
             for cycle_num, assignments in self.assignments.items()
         }
 
@@ -512,7 +535,9 @@ class SnapshotHistoryView:
     def assignments(self) -> Mapping[int, Dict[str, int]]:
         timeline: Dict[int, Dict[str, int]] = {}
         for snapshot in self._snapshots():
-            timeline[snapshot.step] = {var: int(val) for var, val in snapshot.assignments.items()}
+            timeline[snapshot.step] = {
+                var: int(val) for var, val in snapshot.assignments.items()
+            }
         return timeline
 
     @property
@@ -533,7 +558,9 @@ class SnapshotHistoryView:
     def step_assignments(self) -> Mapping[int, Dict[str, int]]:
         data: Dict[int, Dict[str, int]] = {}
         for snapshot in self._snapshots():
-            data[snapshot.step] = {var: int(val) for var, val in snapshot.assignments.items()}
+            data[snapshot.step] = {
+                var: int(val) for var, val in snapshot.assignments.items()
+            }
         return data
 
     @property
@@ -606,7 +633,9 @@ class SnapshotHistoryView:
         for snapshot in self._snapshots():
             for var_name, belief in snapshot.beliefs.items():
                 arr = np.asarray(belief, dtype=float)
-                beliefs_by_var.setdefault(var_name, []).append(float(np.min(arr)) if arr.size else 0.0)
+                beliefs_by_var.setdefault(var_name, []).append(
+                    float(np.min(arr)) if arr.size else 0.0
+                )
         return beliefs_by_var
 
     def _format_step_assignments(self) -> Dict[str, List[int]]:
@@ -626,10 +655,16 @@ class SnapshotHistoryView:
         return messages_by_flow
 
     def save_results(self, filename: Optional[str] = None) -> str:
-        raise NotImplementedError("Snapshot history view does not support saving results.")
+        raise NotImplementedError(
+            "Snapshot history view does not support saving results."
+        )
 
     def save_csv(self, config_name: Optional[str] = None) -> str:
-        raise NotImplementedError("Snapshot history view does not support saving results.")
+        raise NotImplementedError(
+            "Snapshot history view does not support saving results."
+        )
 
     def to_json(self, filepath: str) -> str:
-        raise NotImplementedError("Snapshot history view does not support saving results.")
+        raise NotImplementedError(
+            "Snapshot history view does not support saving results."
+        )

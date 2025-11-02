@@ -41,6 +41,7 @@ def profiling(func: Callable) -> Callable:
     Returns:
         The wrapped function with profiling enabled.
     """
+
     @wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         import cProfile

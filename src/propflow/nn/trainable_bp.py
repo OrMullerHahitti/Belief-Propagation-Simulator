@@ -1,8 +1,8 @@
-'''
+"""
 This module is still in development and may change in future releases.
 its only purpose is to provide a differentiable BP implementation
 with learnable cost tables for end-to-end training. IT DOESNT WORK YET
-'''
+"""
 
 from __future__ import annotations
 
@@ -61,15 +61,15 @@ class TrainableBPModule(nn.Module):
 
         self.fg = factor_graph
         self.tau = tau
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu") # type: ignore
-        self.dtype = dtype or torch.float32 # type: ignore
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")  # type: ignore
+        self.dtype = dtype or torch.float32  # type: ignore
 
         # Create learnable cost tables as nn.Parameters
         self.cost_tables = nn.ParameterDict()
         for factor in self.fg.factors:
             # Initialize from current cost table
-            ct_np = factor.cost_table.costs # type: ignore
-            ct_tensor = torch.tensor(ct_np, device=self.device, dtype=self.dtype) # type: ignore
+            ct_np = factor.cost_table.costs  # type: ignore
+            ct_tensor = torch.tensor(ct_np, device=self.device, dtype=self.dtype)  # type: ignore
             self.cost_tables[factor.name] = nn.Parameter(ct_tensor)
 
         # Store variable info
@@ -82,7 +82,7 @@ class TrainableBPModule(nn.Module):
             neighbors = list(self.fg.G.neighbors(factor))
             self.factor_to_vars[factor.name] = [v.name for v in neighbors]
 
-    def forward(self, max_iter: int = 20) -> Tuple["torch.Tensor", Dict[str, int]]: # type: ignore
+    def forward(self, max_iter: int = 20) -> Tuple["torch.Tensor", Dict[str, int]]:  # type: ignore
         """
         Run BP iterations and return final beliefs + assignments.
 
@@ -94,18 +94,18 @@ class TrainableBPModule(nn.Module):
             assignments: Dict mapping variable names to their argmin assignments
         """
         # Initialize messages: {(sender, recipient): tensor}
-        messages: Dict[Tuple[str, str], "torch.Tensor"] = {} # type: ignore
+        messages: Dict[Tuple[str, str], "torch.Tensor"] = {}  # type: ignore
 
         # Initialize all messages to zeros
         for factor_name, var_names in self.factor_to_vars.items():
             for var_name in var_names:
                 domain = self.var_domains[var_name]
                 # Q: var -> factor
-                messages[(var_name, factor_name)] = torch.zeros( # type: ignore
+                messages[(var_name, factor_name)] = torch.zeros(  # type: ignore
                     domain, device=self.device, dtype=self.dtype
                 )
                 # R: factor -> var
-                messages[(factor_name, var_name)] = torch.zeros(# type: ignore
+                messages[(factor_name, var_name)] = torch.zeros(  # type: ignore
                     domain, device=self.device, dtype=self.dtype
                 )
 
@@ -120,7 +120,9 @@ class TrainableBPModule(nn.Module):
                 incoming_R = []
                 for factor_name in self.factor_to_vars.keys():
                     if var_name in self.factor_to_vars[factor_name]:
-                        incoming_R.append((factor_name, messages[(factor_name, var_name)]))
+                        incoming_R.append(
+                            (factor_name, messages[(factor_name, var_name)])
+                        )
 
                 if not incoming_R:
                     continue
@@ -142,8 +144,10 @@ class TrainableBPModule(nn.Module):
                     continue
 
                 # Gather incoming Q messages
-                q_msgs = [new_messages.get((vn, factor_name), messages[(vn, factor_name)])
-                          for vn in var_names]
+                q_msgs = [
+                    new_messages.get((vn, factor_name), messages[(vn, factor_name)])
+                    for vn in var_names
+                ]
 
                 # Build broadcasted Q tensors
                 shape = [self.var_domains[vn] for vn in var_names]
@@ -162,7 +166,9 @@ class TrainableBPModule(nn.Module):
                 # Compute soft-min R messages
                 for axis, (var_name, br) in enumerate(zip(var_names, b_msgs)):
                     temp = agg - br
-                    r_vec = -self.tau * torch.logsumexp(-temp / self.tau, dim=axes_cache[axis])
+                    r_vec = -self.tau * torch.logsumexp(
+                        -temp / self.tau, dim=axes_cache[axis]
+                    )
                     new_messages[(factor_name, var_name)] = r_vec
 
             # Update messages
@@ -185,22 +191,28 @@ class TrainableBPModule(nn.Module):
             b = beliefs_dict[var_name]
             if len(b) < max_domain:
                 # Pad with large positive values (so argmin ignores them)
-                padding = torch.full((max_domain - len(b),), 1e9, device=self.device, dtype=self.dtype)
+                padding = torch.full(
+                    (max_domain - len(b),), 1e9, device=self.device, dtype=self.dtype
+                )
                 b = torch.cat([b, padding])
             beliefs_list.append(b)
 
         beliefs = torch.stack(beliefs_list)  # (n_vars, max_domain)
 
         # Get assignments
-        assignments = {var_name: int(beliefs_dict[var_name].argmin())
-                      for var_name in self.var_names}
+        assignments = {
+            var_name: int(beliefs_dict[var_name].argmin())
+            for var_name in self.var_names
+        }
 
         return beliefs, assignments
 
     def get_cost_tables_numpy(self) -> Dict[str, np.ndarray]:
         """Extract learned cost tables as numpy arrays."""
-        return {name: param.detach().cpu().numpy()
-                for name, param in self.cost_tables.items()}
+        return {
+            name: param.detach().cpu().numpy()
+            for name, param in self.cost_tables.items()
+        }
 
 
 class BPTrainer:
@@ -215,7 +227,12 @@ class BPTrainer:
         device: Torch device
     """
 
-    def __init__(self, model: TrainableBPModule, learning_rate: float = 0.01, device: str | None = None):
+    def __init__(
+        self,
+        model: TrainableBPModule,
+        learning_rate: float = 0.01,
+        device: str | None = None,
+    ):
         _require_torch()
         self.model = model
         self.device = device or model.device

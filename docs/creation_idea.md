@@ -12,7 +12,7 @@ Configs will include:
     - [ ] Number of Factors - will also be set from the config type
     - [ ] Number of Edges - will also be set from the config type
   - [ ] Domain - size of the message domain and subsequent domain of the factors shape
-  - [ ] Cost table creator function: 
+  - [ ] Cost table creator function:
     - Random function from NumPy - e.g., np.random.rand/randint/uniform/normal
     - Parameters for this function (for example: normal - (mean, std), uniform - (low, high))
     - n - number of connections which are set after creating the graph

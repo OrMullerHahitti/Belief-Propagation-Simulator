@@ -26,7 +26,9 @@ class TestFGBuilder:
         """Parameterize tests with different numbers of variables."""
         return request.param
 
-    @pytest.fixture(params=[0.7, 0.8])  # Reduced from [0.3,0.5,0.8] - removed low density to avoid disconnected graphs
+    @pytest.fixture(
+        params=[0.7, 0.8]
+    )  # Reduced from [0.3,0.5,0.8] - removed low density to avoid disconnected graphs
     def density(self, request):
         """Parameterize tests with different graph densities."""
         return request.param

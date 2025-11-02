@@ -6,7 +6,11 @@ from propflow.utils import experiments
 def test_run_baseline_comparison(monkeypatch):
     class DummyPerformanceMonitor:
         def __init__(self):
-            self.summary = {"total_messages": 10, "total_time": 1.0, "avg_memory_mb": 0.1}
+            self.summary = {
+                "total_messages": 10,
+                "total_time": 1.0,
+                "avg_memory_mb": 0.1,
+            }
 
         def get_summary(self):
             return self.summary
@@ -16,7 +20,9 @@ def test_run_baseline_comparison(monkeypatch):
             return {"pruned_messages": 2, "pruning_rate": 0.2}
 
     class DummyEngine:
-        def __init__(self, factor_graph, computator, monitor_performance=True, **kwargs):
+        def __init__(
+            self, factor_graph, computator, monitor_performance=True, **kwargs
+        ):
             self.factor_graph = factor_graph
             self.computator = computator
             self.monitor_performance = monitor_performance

@@ -6,9 +6,11 @@ from propflow.policies.convergance import ConvergenceConfig
 from propflow.utils import FGBuilder
 
 
-def _deterministic_cost_table(num_vars: int, domain_size: int, offset: float = 0.0, **_kwargs) -> np.ndarray:
+def _deterministic_cost_table(
+    num_vars: int, domain_size: int, offset: float = 0.0, **_kwargs
+) -> np.ndarray:
     size = max(1, num_vars)
-    values = np.arange(offset, offset + domain_size ** size, dtype=float)
+    values = np.arange(offset, offset + domain_size**size, dtype=float)
     return values.reshape((domain_size,) * size)
 
 
@@ -28,24 +30,43 @@ class TestBasicPolicies:
     def test_damping_policy_creation(self):
         """Test damping policy creation via DampingEngine."""
         # DampingPolicy is abstract, test via engine
-        engine = DampingEngine(factor_graph=FGBuilder.build_cycle_graph(
-            num_vars=3, domain_size=2, ct_factory=_deterministic_cost_table, ct_params={"offset": 2.0}
-        ), damping_factor=0.5)
+        engine = DampingEngine(
+            factor_graph=FGBuilder.build_cycle_graph(
+                num_vars=3,
+                domain_size=2,
+                ct_factory=_deterministic_cost_table,
+                ct_params={"offset": 2.0},
+            ),
+            damping_factor=0.5,
+        )
         assert engine.damping_factor == 0.5
 
     def test_cost_reduction_policy_creation(self):
         """Test cost reduction policy creation via CostReductionOnceEngine."""
         from propflow.bp.engines import CostReductionOnceEngine
-        engine = CostReductionOnceEngine(factor_graph=FGBuilder.build_cycle_graph(
-            num_vars=3, domain_size=2, ct_factory=_deterministic_cost_table, ct_params={"offset": 3.0}
-        ), reduction_factor=0.3)
+
+        engine = CostReductionOnceEngine(
+            factor_graph=FGBuilder.build_cycle_graph(
+                num_vars=3,
+                domain_size=2,
+                ct_factory=_deterministic_cost_table,
+                ct_params={"offset": 3.0},
+            ),
+            reduction_factor=0.3,
+        )
         assert engine.reduction_factor == 0.3
 
     def test_splitting_policy_creation(self):
         """Test splitting policy creation via SplitEngine."""
-        engine = SplitEngine(factor_graph=FGBuilder.build_cycle_graph(
-            num_vars=3, domain_size=2, ct_factory=_deterministic_cost_table, ct_params={"offset": 4.0}
-        ), split_factor=0.7)
+        engine = SplitEngine(
+            factor_graph=FGBuilder.build_cycle_graph(
+                num_vars=3,
+                domain_size=2,
+                ct_factory=_deterministic_cost_table,
+                ct_params={"offset": 4.0},
+            ),
+            split_factor=0.7,
+        )
         assert engine.split_factor == 0.7
 
     def test_convergence_config_creation(self):
@@ -127,7 +148,9 @@ class TestBasicPolicies:
         """Test that policies validate their parameters correctly via engines."""
         # Engines accept parameters without validation - this test is not applicable
         # as DampingPolicy and SplittingPolicy are abstract base classes
-        pytest.skip("Policy classes are abstract - parameter validation not implemented")
+        pytest.skip(
+            "Policy classes are abstract - parameter validation not implemented"
+        )
 
     def test_convergence_config_validation(self):
         """Test convergence configuration validation."""
@@ -186,8 +209,14 @@ class TestPolicyIntegration:
         damping_engine.run(max_iter=3)
         splitting_engine.run(max_iter=3)
 
-        damping_costs = [s.global_cost for s in damping_engine.snapshots if s.global_cost is not None]
-        splitting_costs = [s.global_cost for s in splitting_engine.snapshots if s.global_cost is not None]
+        damping_costs = [
+            s.global_cost for s in damping_engine.snapshots if s.global_cost is not None
+        ]
+        splitting_costs = [
+            s.global_cost
+            for s in splitting_engine.snapshots
+            if s.global_cost is not None
+        ]
         assert damping_costs
         assert splitting_costs
 

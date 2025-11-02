@@ -30,7 +30,7 @@ def _install_message_sequence(agent, neighbor, payloads, record=None):
 def deterministic_cycle_graph():
     def fixed_cost_table(num_vars, domain_size, **_):
         size = max(1, num_vars)
-        values = np.arange(domain_size ** size, dtype=float)
+        values = np.arange(domain_size**size, dtype=float)
         return values.reshape((domain_size,) * size)
 
     return FGBuilder.build_cycle_graph(
@@ -43,9 +43,7 @@ def deterministic_cycle_graph():
 
 def test_damp_function():
     variable = VariableAgent("test_var", 2)
-    factor = FactorAgent(
-        "test_factor", 2, lambda *_args, **_kwargs: np.zeros((2, 2))
-    )
+    factor = FactorAgent("test_factor", 2, lambda *_args, **_kwargs: np.zeros((2, 2)))
 
     current = Message(np.array([1.0, 2.0]), variable, factor)
     variable.mailer.stage_sending([current])
@@ -109,7 +107,9 @@ def test_damping_engine_with_multiple_iterations(deterministic_cycle_graph):
     )
 
     first_step = engine.step(0)
-    np.testing.assert_allclose(first_step.q_messages[variable.name][0].data, raw_messages[0])
+    np.testing.assert_allclose(
+        first_step.q_messages[variable.name][0].data, raw_messages[0]
+    )
     np.testing.assert_allclose(variable._history[-1][0].data, raw_messages[0])
 
     second_step = engine.step(1)

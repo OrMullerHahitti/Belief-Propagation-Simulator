@@ -55,7 +55,9 @@ def _next_index(base: Path, stem: str) -> int:
 class FactorGraphBuilder:
     """Builds and saves `FactorGraph` instances from configuration files."""
 
-    def __init__(self, output_dir: str | Path = find_project_root() / "configs/factor_graphs"):
+    def __init__(
+        self, output_dir: str | Path = find_project_root() / "configs/factor_graphs"
+    ):
         """Initializes the FactorGraphBuilder.
 
         Args:

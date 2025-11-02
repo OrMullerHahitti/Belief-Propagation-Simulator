@@ -40,7 +40,9 @@ def extract_qr_from_step(
     return Q, R
 
 
-def _extract_cost_tables(factors: List[FactorAgent]) -> Tuple[Dict[str, np.ndarray], Dict[str, List[str]]]:
+def _extract_cost_tables(
+    factors: List[FactorAgent],
+) -> Tuple[Dict[str, np.ndarray], Dict[str, List[str]]]:
     tables: Dict[str, np.ndarray] = {}
     labels: Dict[str, List[str]] = {}
     for factor in factors:
@@ -55,7 +57,9 @@ def _extract_cost_tables(factors: List[FactorAgent]) -> Tuple[Dict[str, np.ndarr
     return tables, labels
 
 
-def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> EngineSnapshot:
+def build_snapshot_from_engine(
+    step_idx: int, step: Step, engine: Any
+) -> EngineSnapshot:
     variables: List[VariableAgent] = list(engine.var_nodes)
     factors: List[FactorAgent] = list(engine.factor_nodes)
 
@@ -71,7 +75,8 @@ def build_snapshot_from_engine(step_idx: int, step: Step, engine: Any) -> Engine
         return [getattr(neighbour, "name", str(neighbour)) for neighbour in neighbours]
 
     dom: Dict[str, List[str]] = {
-        var.name: _labels_for_domain(int(getattr(var, "domain", 0))) for var in variables
+        var.name: _labels_for_domain(int(getattr(var, "domain", 0)))
+        for var in variables
     }
     N_var: Dict[str, List[str]] = {var.name: _neighbour_names(var) for var in variables}
     N_fac: Dict[str, List[str]] = {fac.name: _neighbour_names(fac) for fac in factors}

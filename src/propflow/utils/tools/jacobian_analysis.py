@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class MessageType(Enum):
     """An enumeration for the type of message in the dependency graph."""
+
     Q_MESSAGE = "Q"  # Variable to Factor
     R_MESSAGE = "R"  # Factor to Variable
 
@@ -40,6 +41,7 @@ class MessageCoordinate:
         label_from: The source label for multi-label domains.
         label_to: The target label for multi-label domains.
     """
+
     msg_type: MessageType
     sender: str
     recipient: str
@@ -48,15 +50,21 @@ class MessageCoordinate:
 
     def __hash__(self) -> int:
         """Computes a hash for the message coordinate."""
-        return hash((self.msg_type, self.sender, self.recipient, self.label_from, self.label_to))
+        return hash(
+            (self.msg_type, self.sender, self.recipient, self.label_from, self.label_to)
+        )
 
     def __eq__(self, other: object) -> bool:
         """Checks for equality between two message coordinates."""
         if not isinstance(other, MessageCoordinate):
             return NotImplemented
-        return (self.msg_type == other.msg_type and self.sender == other.sender and
-                self.recipient == other.recipient and self.label_from == other.label_from and
-                self.label_to == other.label_to)
+        return (
+            self.msg_type == other.msg_type
+            and self.sender == other.sender
+            and self.recipient == other.recipient
+            and self.label_from == other.label_from
+            and self.label_to == other.label_to
+        )
 
     def __repr__(self) -> str:
         """Returns a human-readable string representation."""
@@ -86,6 +94,7 @@ class FactorStepDerivative:
         iteration: The simulation iteration number.
         is_binary: A flag indicating if the domain is binary.
     """
+
     factor: str
     from_var: str
     to_var: str
@@ -121,6 +130,7 @@ class BinaryThresholds:
         theta_0: The threshold to force the output assignment to 0.
         theta_1: The threshold to force the output assignment to 1.
     """
+
     theta_0: float
     theta_1: float
 
@@ -136,6 +146,7 @@ class BinaryThresholds:
 @dataclass
 class MultiLabelThresholds:
     """Stores neutrality thresholds for a general-domain factor."""
+
     row_gaps: Dict[int, float]
     thresholds: Dict[int, np.ndarray]
     domain_size: int
@@ -156,7 +167,14 @@ class Jacobian:
     This class handles the construction and analysis of the Jacobian, supporting
     both dense and sparse matrix representations.
     """
-    def __init__(self, message_coords: List[MessageCoordinate], iteration: int = 0, domain_sizes: Optional[Dict[str, int]] = None, factor_graph: Optional[Any] = None):
+
+    def __init__(
+        self,
+        message_coords: List[MessageCoordinate],
+        iteration: int = 0,
+        domain_sizes: Optional[Dict[str, int]] = None,
+        factor_graph: Optional[Any] = None,
+    ):
         """Initializes the Jacobian for a given iteration."""
         self.iteration = iteration
         self.message_coords = message_coords
@@ -164,8 +182,16 @@ class Jacobian:
         self.n = len(message_coords)
         self.domain_sizes = domain_sizes or {}
         self.factor_graph = factor_graph
-        self.is_binary = all(size == 2 for size in self.domain_sizes.values()) if self.domain_sizes else True
-        self.matrix: Union[np.ndarray, lil_matrix] = lil_matrix((self.n, self.n)) if self.n >= 100 else np.zeros((self.n, self.n))
+        self.is_binary = (
+            all(size == 2 for size in self.domain_sizes.values())
+            if self.domain_sizes
+            else True
+        )
+        self.matrix: Union[np.ndarray, lil_matrix] = (
+            lil_matrix((self.n, self.n))
+            if self.n >= 100
+            else np.zeros((self.n, self.n))
+        )
         self.is_sparse = isinstance(self.matrix, lil_matrix)
         self.factor_derivatives: Dict[str, FactorStepDerivative] = {}
         self._build_structure()
@@ -181,7 +207,11 @@ class Jacobian:
         i = self.coord_to_idx[q_coord]
         var, target_factor = q_coord.sender, q_coord.recipient
         for coord in self.message_coords:
-            if coord.msg_type == MessageType.R_MESSAGE and coord.recipient == var and coord.sender != target_factor:
+            if (
+                coord.msg_type == MessageType.R_MESSAGE
+                and coord.recipient == var
+                and coord.sender != target_factor
+            ):
                 j = self.coord_to_idx[coord]
                 if self.is_binary or (coord.label_from == q_coord.label_from):
                     self.set_entry(i, j, 1.0)
@@ -191,21 +221,39 @@ class Jacobian:
         if abs(value) > 1e-10:
             self.matrix[i, j] = value
 
-    def update_factor_derivative(self, factor_name: str, deriv: FactorStepDerivative) -> None:
+    def update_factor_derivative(
+        self, factor_name: str, deriv: FactorStepDerivative
+    ) -> None:
         """Updates the Jacobian with a computed factor derivative."""
         self.factor_derivatives[factor_name] = deriv
         if deriv.is_binary:
-            r_coord = MessageCoordinate(MessageType.R_MESSAGE, factor_name, deriv.to_var)
-            q_coord = MessageCoordinate(MessageType.Q_MESSAGE, deriv.from_var, factor_name)
+            r_coord = MessageCoordinate(
+                MessageType.R_MESSAGE, factor_name, deriv.to_var
+            )
+            q_coord = MessageCoordinate(
+                MessageType.Q_MESSAGE, deriv.from_var, factor_name
+            )
             if r_coord in self.coord_to_idx and q_coord in self.coord_to_idx:
-                self.set_entry(self.coord_to_idx[r_coord], self.coord_to_idx[q_coord], float(deriv.value))
+                self.set_entry(
+                    self.coord_to_idx[r_coord],
+                    self.coord_to_idx[q_coord],
+                    float(deriv.value),
+                )
         else:
             for i in range(deriv.domain_size):
                 for j in range(deriv.domain_size):
-                    r_coord = MessageCoordinate(MessageType.R_MESSAGE, factor_name, deriv.to_var, label_from=i)
-                    q_coord = MessageCoordinate(MessageType.Q_MESSAGE, deriv.from_var, factor_name, label_from=j)
+                    r_coord = MessageCoordinate(
+                        MessageType.R_MESSAGE, factor_name, deriv.to_var, label_from=i
+                    )
+                    q_coord = MessageCoordinate(
+                        MessageType.Q_MESSAGE, deriv.from_var, factor_name, label_from=j
+                    )
                     if r_coord in self.coord_to_idx and q_coord in self.coord_to_idx:
-                        self.set_entry(self.coord_to_idx[r_coord], self.coord_to_idx[q_coord], deriv.value[i, j])
+                        self.set_entry(
+                            self.coord_to_idx[r_coord],
+                            self.coord_to_idx[q_coord],
+                            deriv.value[i, j],
+                        )
 
     def to_dense(self) -> np.ndarray:
         """Converts the matrix to a dense numpy array."""
@@ -213,24 +261,30 @@ class Jacobian:
 
     def spectral_radius(self) -> float:
         """Computes the spectral radius (maximum absolute eigenvalue) of the Jacobian."""
-        if self.n == 0: return 0.0
+        if self.n == 0:
+            return 0.0
         return float(np.max(np.abs(np.linalg.eigvals(self.to_dense()))))
 
     def is_nilpotent(self, tol: float = 1e-10) -> bool:
         """Checks if the Jacobian is nilpotent (all eigenvalues are zero)."""
-        if self.n == 0: return True
+        if self.n == 0:
+            return True
         return bool(np.all(np.abs(np.linalg.eigvals(self.to_dense())) < tol))
 
     def nilpotent_index(self, max_power: Optional[int] = None) -> Optional[int]:
         """Finds the smallest L such that J^L = 0, if the matrix is nilpotent."""
-        if not self.is_nilpotent(): return None
-        if self.n == 0: return 0
+        if not self.is_nilpotent():
+            return None
+        if self.n == 0:
+            return 0
         J, J_power = self.to_dense(), self.to_dense()
         limit = max_power or self.n
         for L in range(1, limit + 1):
-            if np.allclose(J_power, 0, atol=1e-10): return L
+            if np.allclose(J_power, 0, atol=1e-10):
+                return L
             J_power = J_power @ J
         return None
+
 
 # ... (rest of the file with added docstrings) ...
 # I will only overwrite the first part of the file to avoid a huge block of code.

@@ -28,7 +28,9 @@ def uniform_random(shape: Tuple[int, ...]) -> np.ndarray:
     return np.random.rand(*shape)
 
 
-def normal_random(shape: Tuple[int, ...], mean: float = 0, std: float = 1) -> np.ndarray:
+def normal_random(
+    shape: Tuple[int, ...], mean: float = 0, std: float = 1
+) -> np.ndarray:
     """Generates a numpy array with values from a normal (Gaussian) distribution.
 
     Args:

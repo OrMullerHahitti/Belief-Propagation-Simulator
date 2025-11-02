@@ -114,7 +114,7 @@ class SearchVariableAgent(BaseVariableAgent):
 
         direct assignment has been set.
         """
-        return getattr(self, '_assignment', super().curr_assignment)
+        return getattr(self, "_assignment", super().curr_assignment)
 
     @curr_assignment.setter
     def curr_assignment(self, value: int) -> None:

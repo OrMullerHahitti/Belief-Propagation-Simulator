@@ -86,7 +86,9 @@ def main():
     final_cost = float(trainer.compute_cost(final_assignments))
     print(f"Final assignments: {final_assignments}")
     print(f"Final total cost: {final_cost:.2f}")
-    print(f"Cost reduction: {initial_cost - final_cost:.2f} ({100 * (initial_cost - final_cost) / initial_cost:.1f}%)")
+    print(
+        f"Cost reduction: {initial_cost - final_cost:.2f} ({100 * (initial_cost - final_cost) / initial_cost:.1f}%)"
+    )
 
     # Show learned cost tables
     print("\n" + "-" * 70)

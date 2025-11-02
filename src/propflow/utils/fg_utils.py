@@ -36,11 +36,16 @@ def _make_factor(
 ) -> FactorAgent:
     """Creates a single `FactorAgent`, deferring cost table creation."""
     ct_fn = get_ct_factory(ct_factory)
-    return FactorAgent(name=name, domain=domain, ct_creation_func=ct_fn, param=ct_params)
+    return FactorAgent(
+        name=name, domain=domain, ct_creation_func=ct_fn, param=ct_params
+    )
 
 
 def _build_factor_edge_list(
-    edges: List[Tuple[VariableAgent, VariableAgent]], domain_size: int, ct_factory: Any, ct_params: dict
+    edges: List[Tuple[VariableAgent, VariableAgent]],
+    domain_size: int,
+    ct_factory: Any,
+    ct_params: dict,
 ) -> Dict[FactorAgent, List[VariableAgent]]:
     """Creates factor nodes for binary constraints and maps them to variables."""
     edge_dict = {}
@@ -71,12 +76,12 @@ def _make_connections_density(
 
 class FGBuilder:
     """A builder class providing static methods to construct factor graphs."""
-    
+
     @staticmethod
     def build_from_edges(
         variables: List[VariableAgent],
         factors: List[FactorAgent],
-    edges: Dict[FactorAgent, List[VariableAgent]]
+        edges: Dict[FactorAgent, List[VariableAgent]],
     ) -> FactorGraph:
         """Builds a factor graph from the provided variables, factors, and edges.
 
@@ -89,11 +94,7 @@ class FGBuilder:
             FactorGraph: The constructed factor graph.
         """
 
-        return FactorGraph(
-            variables,
-            factors,
-            edges
-        )
+        return FactorGraph(variables, factors, edges)
 
     @staticmethod
     def build_random_graph(
@@ -181,7 +182,9 @@ class FGBuilder:
             ValueError: If fewer than five variables are provided.
         """
         if num_vars < 5:
-            raise ValueError("Lemniscate graph requires at least 5 variables to form two loops.")
+            raise ValueError(
+                "Lemniscate graph requires at least 5 variables to form two loops."
+            )
 
         variables = [_make_variable(i + 1, domain_size) for i in range(num_vars)]
         center = variables[0]
@@ -195,14 +198,18 @@ class FGBuilder:
             right_size += shortage
 
         if left_size < 2 or right_size < 2:
-            raise ValueError("Lemniscate graph requires at least 5 variables to form two loops.")
+            raise ValueError(
+                "Lemniscate graph requires at least 5 variables to form two loops."
+            )
 
         left_loop_nodes = [center, *remaining[:left_size]]
         right_loop_nodes = [center, *remaining[left_size:]]
 
         edge_pairs: List[Tuple[VariableAgent, VariableAgent]] = []
         for loop in (left_loop_nodes, right_loop_nodes):
-            edge_pairs.extend((loop[idx], loop[idx + 1]) for idx in range(len(loop) - 1))
+            edge_pairs.extend(
+                (loop[idx], loop[idx + 1]) for idx in range(len(loop) - 1)
+            )
             edge_pairs.append((loop[-1], loop[0]))
 
         params = ct_params or {}
@@ -247,7 +254,9 @@ def generate_random_cost(fg: FactorGraph) -> float:
     """
     cost = 0.0
     for fact in fg.factors:
-        random_index = tuple(np.random.randint(0, fact.domain, size=fact.cost_table.ndim))
+        random_index = tuple(
+            np.random.randint(0, fact.domain, size=fact.cost_table.ndim)
+        )
         cost += fact.cost_table[random_index]
     return cost
 
@@ -259,6 +268,7 @@ class SafeUnpickler(pickle.Unpickler):
     that may have changed between the time of pickling and unpickling,
     preventing `ImportError` or `AttributeError`.
     """
+
     def find_class(self, module: str, name: str) -> Any:
         """Finds a class, handling potential module path changes."""
         module_mapping = {
@@ -316,7 +326,11 @@ def repair_factor_graph(fg: FactorGraph) -> FactorGraph:
     for node in fg.G.nodes():
         if not hasattr(node, "mailbox"):
             node.mailbox = []
-        if hasattr(node, "type") and node.type == "factor" and (not hasattr(node, "cost_table") or node.cost_table is None):
+        if (
+            hasattr(node, "type")
+            and node.type == "factor"
+            and (not hasattr(node, "cost_table") or node.cost_table is None)
+        ):
             try:
                 if hasattr(node, "initiate_cost_table"):
                     node.initiate_cost_table()
@@ -347,7 +361,6 @@ def get_bound(factor_graph: FactorGraph, reduce_func: Callable = np.min) -> floa
     return bound
 
 
-
 def pretty_print_array(
     A,
     *,
@@ -356,12 +369,12 @@ def pretty_print_array(
     annotate=True,
     auto_min=True,
     auto_max=True,
-    cell_highlights=None,      # list[(r,c)] or dict[(r,c)]="label"
-    row_highlights=None,       # list[row] or dict[row]="label"
-    label_colors=None,         # dict[label]->color
+    cell_highlights=None,  # list[(r,c)] or dict[(r,c)]="label"
+    row_highlights=None,  # list[row] or dict[row]="label"
+    label_colors=None,  # dict[label]->color
     title=None,
     figsize=(6, 4),
-    cbar=True
+    cbar=True,
 ):
     """
     Render a NumPy array as a heatmap with optional highlighting.
@@ -438,7 +451,9 @@ def pretty_print_array(
             for (r, c), lab in cell_highlights.items():
                 cell_map.setdefault(lab, []).append((int(r), int(c)))
         else:  # assume list of (r,c)
-            cell_map.setdefault("selected", []).extend((int(r), int(c)) for r, c in cell_highlights)
+            cell_map.setdefault("selected", []).extend(
+                (int(r), int(c)) for r, c in cell_highlights
+            )
 
     row_map = {}
     if row_highlights is not None:
@@ -462,7 +477,17 @@ def pretty_print_array(
             cell_map.setdefault("max", []).extend((int(r), int(c)) for r, c in maxs)
 
     # Draw highlights (filled translucent rectangles), then annotate
-    def color_for(label, fallback_cycle=("#FFB000", "#6A4C93", "#2A9D8F", "#E76F51", "#118AB2", "#EF476F")):
+    def color_for(
+        label,
+        fallback_cycle=(
+            "#FFB000",
+            "#6A4C93",
+            "#2A9D8F",
+            "#E76F51",
+            "#118AB2",
+            "#EF476F",
+        ),
+    ):
         if label in default_label_colors:
             return default_label_colors[label]
         # Assign a stable color based on label hash
@@ -474,11 +499,12 @@ def pretty_print_array(
         for r in rows:
             rect = Rectangle(
                 (-0.5, r - 0.5),
-                ncols, 1,
+                ncols,
+                1,
                 linewidth=2,
                 edgecolor=col,
                 facecolor=col,
-                alpha=0.25
+                alpha=0.25,
             )
             ax.add_patch(rect)
         used_labels.append((lab, col))
@@ -486,14 +512,15 @@ def pretty_print_array(
     # Cell highlights
     for lab, cells in cell_map.items():
         col = color_for(lab)
-        for (r, c) in cells:
+        for r, c in cells:
             rect = Rectangle(
                 (c - 0.5, r - 0.5),
-                1, 1,
+                1,
+                1,
                 linewidth=2,
                 edgecolor=col,
                 facecolor=col,
-                alpha=0.35
+                alpha=0.35,
             )
             ax.add_patch(rect)
         used_labels.append((lab, col))
@@ -507,7 +534,15 @@ def pretty_print_array(
                 val = A[i, j]
                 # heuristic contrast: dark text on light cells, white text on dark cells
                 txt_color = "white" if norm(val) > 0.6 else "black"
-                ax.text(j, i, fmt.format(val), ha="center", va="center", color=txt_color, fontsize=10)
+                ax.text(
+                    j,
+                    i,
+                    fmt.format(val),
+                    ha="center",
+                    va="center",
+                    color=txt_color,
+                    fontsize=10,
+                )
 
     # Legend describing highlight colors
     if used_labels:
@@ -524,8 +559,8 @@ def pretty_print_array(
             title="Highlights",
             loc="upper left",
             bbox_to_anchor=(1.02, 1.0),
-            borderaxespad=0.,
-            frameon=False
+            borderaxespad=0.0,
+            frameon=False,
         )
 
     if title:

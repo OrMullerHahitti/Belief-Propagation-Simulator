@@ -13,7 +13,9 @@ def test_beam_fg_monotone_with_width(simple_fg):
 
     assert wide_goal is not None, "Beam search with wider beam should find a solution."
     narrow_cost = (
-        view.assignment_cost(narrow_goal.state) if narrow_goal is not None else float("inf")
+        view.assignment_cost(narrow_goal.state)
+        if narrow_goal is not None
+        else float("inf")
     )
     wide_cost = view.assignment_cost(wide_goal.state)
 

@@ -123,4 +123,3 @@ __all__ = [
     "beam_search_factor_graph",
     "iddfs_factor_graph",
 ]
-

@@ -11,7 +11,10 @@ from scipy.special import logsumexp
 
 
 def _create_cost_table(
-    connections: int, domain: int, policy: Callable[..., np.ndarray], **policy_params: Any
+    connections: int,
+    domain: int,
+    policy: Callable[..., np.ndarray],
+    **policy_params: Any,
 ) -> CostTable:
     """A generic factory for creating a cost table of a given shape and distribution.
 
@@ -31,7 +34,9 @@ def _create_cost_table(
     return policy(**policy_params, size=shape)
 
 
-def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10) -> CostTable:
+def create_random_int_table(
+    n: int, domain: int, low: int = 0, high: int = 10
+) -> CostTable:
     """Creates a cost table with random integer values from a uniform distribution.
 
     Args:
@@ -46,7 +51,9 @@ def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10) -
     return _create_cost_table(n, domain, np.random.randint, low=low, high=high)
 
 
-def create_uniform_table(n: int, domain: int, low: float = 0.0, high: float = 1.0) -> CostTable:
+def create_uniform_table(
+    n: int, domain: int, low: float = 0.0, high: float = 1.0
+) -> CostTable:
     """Creates a cost table with random float values from a uniform distribution.
 
     Args:
@@ -61,7 +68,9 @@ def create_uniform_table(n: int, domain: int, low: float = 0.0, high: float = 1.
     return _create_cost_table(n, domain, np.random.uniform, low=low, high=high)
 
 
-def create_normal_table(n: int, domain: int, loc: float = 0.0, scale: float = 1.0) -> CostTable:
+def create_normal_table(
+    n: int, domain: int, loc: float = 0.0, scale: float = 1.0
+) -> CostTable:
     """Creates a cost table with values from a normal (Gaussian) distribution.
 
     Args:

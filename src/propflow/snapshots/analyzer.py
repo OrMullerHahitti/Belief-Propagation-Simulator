@@ -58,8 +58,12 @@ class SnapshotAnalyzer:
         """
         if not snapshots:
             raise ValueError("SnapshotAnalyzer requires at least one snapshot")
-        self._snapshots: List[SnapshotRecord] = sorted(list(snapshots), key=lambda rec: rec.data.step)
-        self._step_index: Dict[int, int] = {rec.data.step: idx for idx, rec in enumerate(self._snapshots)}
+        self._snapshots: List[SnapshotRecord] = sorted(
+            list(snapshots), key=lambda rec: rec.data.step
+        )
+        self._step_index: Dict[int, int] = {
+            rec.data.step: idx for idx, rec in enumerate(self._snapshots)
+        }
         self._max_cycle_len = max_cycle_len
         self._domain = dict(domain or self._infer_domain(self._snapshots[0]))
         self._dag_bound_cache: Dict[int, int | None] = {}
@@ -88,7 +92,10 @@ class SnapshotAnalyzer:
 
     def difference_coordinates(
         self, step_idx: int
-    ) -> tuple[Dict[tuple[str, str], float | np.ndarray], Dict[tuple[str, str], float | np.ndarray]]:
+    ) -> tuple[
+        Dict[tuple[str, str], float | np.ndarray],
+        Dict[tuple[str, str], float | np.ndarray],
+    ]:
         """Compute ΔQ and ΔR (difference coordinates) for a snapshot."""
         rec = self._snapshot_by_index(step_idx)
         data = rec.data
@@ -120,7 +127,9 @@ class SnapshotAnalyzer:
             matrix = sparse.lil_matrix((total_dim, total_dim), dtype=float)
 
         q_index = {coord.key(): idx for idx, coord in enumerate(q_coords)}
-        r_index = {coord.key(): len(q_coords) + idx for idx, coord in enumerate(r_coords)}
+        r_index = {
+            coord.key(): len(q_coords) + idx for idx, coord in enumerate(r_coords)
+        }
 
         # Variable rows
         for coord in q_coords:
@@ -154,13 +163,13 @@ class SnapshotAnalyzer:
                 if array.size == 1:
                     delta = float(array[0])
                     value = 0.0 if abs(delta) < _ZERO_TOL else -float(np.sign(delta))
-                    col = q_index[('Q', u, f, 0)]
+                    col = q_index[("Q", u, f, 0)]
                     _set_entry(matrix, row, col, value)
                 else:
                     winner = int(np.argmin(q_arr))
                     # Simplified: use identity projection
                     for label in range(array.size):
-                        col = q_index[('Q', u, f, label)]
+                        col = q_index[("Q", u, f, label)]
                         _set_entry(matrix, row, col, 1.0 if label == winner else 0.0)
 
         return matrix
@@ -184,12 +193,16 @@ class SnapshotAnalyzer:
         if sparse.issparse(matrix):
             # Convert to COO format for safe iteration
             coo_matrix = matrix.tocoo()
-            for r_idx, c_idx, value in zip(coo_matrix.row, coo_matrix.col, coo_matrix.data):
+            for r_idx, c_idx, value in zip(
+                coo_matrix.row, coo_matrix.col, coo_matrix.data
+            ):
                 graph.add_edge(int(c_idx), int(r_idx), weight=float(value))
         else:
             nz_rows, nz_cols = np.nonzero(matrix)
             for r_idx, c_idx in zip(nz_rows, nz_cols):
-                graph.add_edge(int(c_idx), int(r_idx), weight=float(matrix[r_idx, c_idx]))
+                graph.add_edge(
+                    int(c_idx), int(r_idx), weight=float(matrix[r_idx, c_idx])
+                )
 
         return graph
 
@@ -214,7 +227,11 @@ class SnapshotAnalyzer:
             return self._nilpotent_cache[step_idx]
 
         matrix = self.jacobian(step_idx)
-        dense = matrix.toarray() if sparse.issparse(matrix) else np.asarray(matrix, dtype=float)
+        dense = (
+            matrix.toarray()
+            if sparse.issparse(matrix)
+            else np.asarray(matrix, dtype=float)
+        )
 
         if dense.size == 0:
             self._nilpotent_cache[step_idx] = 0
@@ -233,7 +250,11 @@ class SnapshotAnalyzer:
     def block_norms(self, step_idx: int) -> Dict[str, float]:
         """Compute infinity norms of Jacobian blocks."""
         matrix = self.jacobian(step_idx)
-        dense = matrix.toarray() if sparse.issparse(matrix) else np.asarray(matrix, dtype=float)
+        dense = (
+            matrix.toarray()
+            if sparse.issparse(matrix)
+            else np.asarray(matrix, dtype=float)
+        )
         q_arrays, r_arrays, _, _ = self._coordinate_arrays(step_idx)
 
         q_dim = sum(arr.size for arr in q_arrays.values())
@@ -247,9 +268,9 @@ class SnapshotAnalyzer:
                 return 0.0
             return float(np.max(np.sum(np.abs(block), axis=1)))
 
-        A_block = dense[:q_dim, q_dim: q_dim + r_dim]
-        B_block = dense[q_dim: q_dim + r_dim, :q_dim]
-        P_block = dense[q_dim: q_dim + r_dim, q_dim: q_dim + r_dim]
+        A_block = dense[:q_dim, q_dim : q_dim + r_dim]
+        B_block = dense[q_dim : q_dim + r_dim, :q_dim]
+        P_block = dense[q_dim : q_dim + r_dim, q_dim : q_dim + r_dim]
 
         return {
             "A": _inf_norm(A_block),
@@ -365,7 +386,11 @@ class AnalysisReport:
         spectral_radius = None
         try:
             matrix = analyzer.jacobian(step_idx)
-            dense = matrix.toarray() if sparse.issparse(matrix) else np.asarray(matrix, dtype=float)
+            dense = (
+                matrix.toarray()
+                if sparse.issparse(matrix)
+                else np.asarray(matrix, dtype=float)
+            )
             if dense.size:
                 spectral_radius = float(np.max(np.abs(np.linalg.eigvals(dense))))
         except Exception:
@@ -407,10 +432,13 @@ class AnalysisReport:
         summary = self.to_json(step_idx)
         with (base / "metrics.json").open("w", encoding="utf-8") as handle:
             import json
+
             json.dump(summary, handle, indent=2)
 
 
-def _set_entry(matrix: np.ndarray | sparse.lil_matrix, row: int, col: int, value: float) -> None:
+def _set_entry(
+    matrix: np.ndarray | sparse.lil_matrix, row: int, col: int, value: float
+) -> None:
     """Set matrix entry, handling both dense and sparse matrices."""
     matrix[row, col] = value
 

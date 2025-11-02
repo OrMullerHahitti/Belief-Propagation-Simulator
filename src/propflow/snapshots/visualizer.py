@@ -55,7 +55,9 @@ class SnapshotVisualizer:
             idx = self._steps.index(step)
         except ValueError as exc:  # pragma: no cover - defensive
             available = ", ".join(str(s) for s in self._steps)
-            raise ValueError(f"No snapshot recorded for step {step}. Available steps: {available}") from exc
+            raise ValueError(
+                f"No snapshot recorded for step {step}. Available steps: {available}"
+            ) from exc
         return self._records[idx]
 
     @staticmethod
@@ -66,7 +68,9 @@ class SnapshotVisualizer:
             return factor
         name = getattr(factor, "name", None)
         if not name:
-            raise ValueError("Factor reference must be a name or an object with a 'name' attribute")
+            raise ValueError(
+                "Factor reference must be a name or an object with a 'name' attribute"
+            )
         return str(name)
 
     def argmin_series(
@@ -154,12 +158,16 @@ class SnapshotVisualizer:
             )
         return np.asarray(tables[factor_name], dtype=float).copy()
 
-    def factor_cost_labels(self, factor: FactorLike, step: int) -> Tuple[List[str], List[str]]:
+    def factor_cost_labels(
+        self, factor: FactorLike, step: int
+    ) -> Tuple[List[str], List[str]]:
         factor_name = self._factor_name(factor)
         record = self._snapshot_by_step(step)
         labels = getattr(record.data, "cost_labels", {}).get(factor_name)
         if not labels:
-            raise ValueError(f"No variable ordering stored for factor '{factor_name}' at step {step}.")
+            raise ValueError(
+                f"No variable ordering stored for factor '{factor_name}' at step {step}."
+            )
         if len(labels) != 2:
             raise ValueError(
                 f"Cost visualisation currently supports binary factors only."
@@ -167,8 +175,12 @@ class SnapshotVisualizer:
             )
         row_var, col_var = labels
         dom = record.data.dom
-        row_labels = dom.get(row_var) or [f"{row_var}:{i}" for i in range(self._infer_domain_size(row_var, record))]
-        col_labels = dom.get(col_var) or [f"{col_var}:{i}" for i in range(self._infer_domain_size(col_var, record))]
+        row_labels = dom.get(row_var) or [
+            f"{row_var}:{i}" for i in range(self._infer_domain_size(row_var, record))
+        ]
+        col_labels = dom.get(col_var) or [
+            f"{col_var}:{i}" for i in range(self._infer_domain_size(col_var, record))
+        ]
         return row_labels, col_labels
 
     @staticmethod
@@ -196,7 +208,9 @@ class SnapshotVisualizer:
                 f"matrix={matrix.shape}, rows={len(row_labels)}, cols={len(col_labels)}"
             )
         record = self._snapshot_by_step(step)
-        row_var, col_var = getattr(record.data, "cost_labels", {}).get(factor, ["rows", "cols"])
+        row_var, col_var = getattr(record.data, "cost_labels", {}).get(
+            factor, ["rows", "cols"]
+        )
         return matrix, row_labels, col_labels, row_var, col_var
 
     def _draw_cost_heatmap(
@@ -210,7 +224,7 @@ class SnapshotVisualizer:
         row_name: str,
         col_name: str,
         cmap: str,
-    ) -> plt.Axes: # type: ignore
+    ) -> plt.Axes:  # type: ignore
         im = ax.imshow(matrix, aspect="equal", cmap=cmap)
         ax.set_xticks(np.arange(len(col_labels)))
         ax.set_yticks(np.arange(len(row_labels)))
@@ -223,7 +237,7 @@ class SnapshotVisualizer:
         ax.set_xticks(np.arange(-0.5, len(col_labels), 1), minor=True)
         ax.set_yticks(np.arange(-0.5, len(row_labels), 1), minor=True)
         ax.grid(which="minor", color="w", linestyle="-", linewidth=1.0, alpha=0.6)
-        return im # type: ignore
+        return im  # type: ignore
 
     def _infer_message_mode(self) -> Literal["min", "max"]:
         """Infer whether to highlight minima or maxima from snapshot metadata."""
@@ -235,7 +249,7 @@ class SnapshotVisualizer:
 
     def _render_factor_panel(
         self,
-        ax: plt.Axes, # pyright: ignore[reportPrivateImportUsage]
+        ax: plt.Axes,  # pyright: ignore[reportPrivateImportUsage]
         from_variable: str,
         factor: FactorLike,
         step: int,
@@ -245,7 +259,9 @@ class SnapshotVisualizer:
         highlight_color: str,
         text_color: str,
         fmt: str,
-    ) -> Tuple[np.ndarray, np.ndarray, plt.AxesImage]: # pyright: ignore[reportPrivateImportUsage]
+    ) -> Tuple[
+        np.ndarray, np.ndarray, plt.AxesImage
+    ]:  # pyright: ignore[reportPrivateImportUsage]
         # sourcery skip: low-code-quality
         factor_name = self._factor_name(factor)
         record = self._snapshot_by_step(step)
@@ -290,7 +306,11 @@ class SnapshotVisualizer:
 
         # Get Q message from from_variable only (not both variables)
         from_q_message = record.data.Q.get((from_variable, factor_name))
-        from_msg = np.zeros(len(row_labels)) if from_q_message is None else np.asarray(from_q_message, dtype=float)
+        from_msg = (
+            np.zeros(len(row_labels))
+            if from_q_message is None
+            else np.asarray(from_q_message, dtype=float)
+        )
 
         # Compute effective cost by adding Q message to from_variable's dimension only
         if target_index == 0:  # from_variable is rows
@@ -301,14 +321,20 @@ class SnapshotVisualizer:
         # Compute R message by reducing over the OTHER variable's dimension
         # This mimics what compute_R does: remove target's Q, reduce over target's dimension
         reduce_axis = 1 - target_index  # Opposite of from_variable's axis!
-        r_message = np.min(effective, axis=reduce_axis) if mode == "min" else np.max(effective, axis=reduce_axis)
+        r_message = (
+            np.min(effective, axis=reduce_axis)
+            if mode == "min"
+            else np.max(effective, axis=reduce_axis)
+        )
 
         # Determine tolerance for comparisons
         tol = 1e-12 + 1e-9 * max(1.0, np.ptp(effective))
 
         # Find cells that produce each R message value (primary highlighting)
         winners = np.zeros_like(effective, dtype=bool)
-        if target_index == 0:  # from_var is rows → reduce over cols (axis 1) → R is per row
+        if (
+            target_index == 0
+        ):  # from_var is rows → reduce over cols (axis 1) → R is per row
             for i in range(len(row_labels)):
                 winners[i, :] = np.abs(effective[i, :] - r_message[i]) <= tol
         else:  # from_var is cols → reduce over rows (axis 0) → R is per column
@@ -352,10 +378,10 @@ class SnapshotVisualizer:
                         0.9,
                         0.9,
                         fill=True,
-                        facecolor='red',
+                        facecolor="red",
                         alpha=0.15,
                         linewidth=3.5,
-                        edgecolor='red',
+                        edgecolor="red",
                     )
                     ax.add_patch(rect)
 
@@ -366,29 +392,34 @@ class SnapshotVisualizer:
                         0.9,
                         0.9,
                         fill=True,
-                        facecolor='gold',
+                        facecolor="gold",
                         alpha=0.4,
                         linewidth=4,
-                        edgecolor='darkorange',
+                        edgecolor="darkorange",
                     )
                     ax.add_patch(rect)
 
                 if annotate:
                     ax.text(
-                        j, i,
+                        j,
+                        i,
                         fmt.format(aligned[i, j]),
-                        ha='center',
-                        va='center',
+                        ha="center",
+                        va="center",
                         color=text_color,
                         fontsize=10,
-                        fontweight='bold' if winners[i, j] else 'normal'
+                        fontweight="bold" if winners[i, j] else "normal",
                     )
 
         ax.set_xlim(-0.5, len(col_labels) - 0.5)
 
         # Compute message for return compatibility (sum of incoming R messages)
         message = record.data.R.get((factor_name, from_variable))
-        message_arr = np.zeros(len(row_labels)) if message is None else np.asarray(message, dtype=float)
+        message_arr = (
+            np.zeros(len(row_labels))
+            if message is None
+            else np.asarray(message, dtype=float)
+        )
         winners_mask = np.any(winners, axis=1)  # At least one winner per row
 
         return message_arr, winners_mask, im
@@ -431,11 +462,11 @@ class SnapshotVisualizer:
             )
             ims.append(im)
 
-        for ax in flat_axes[len(pairs):]:
+        for ax in flat_axes[len(pairs) :]:
             ax.axis("off")
 
         if ims:
-            fig.colorbar(ims[0], ax=flat_axes[:len(pairs)], shrink=0.85)
+            fig.colorbar(ims[0], ax=flat_axes[: len(pairs)], shrink=0.85)
 
         fig.tight_layout()
 
@@ -450,9 +481,6 @@ class SnapshotVisualizer:
             plt.close(fig)
 
         return fig
-
-
-
 
     def plot_factor_costs(
         self,
@@ -471,13 +499,21 @@ class SnapshotVisualizer:
         fmt: str = "{:.3g}",
     ) -> plt.Figure | Tuple[plt.Figure, np.ndarray, np.ndarray]:
         """Visualise factor cost tables induced by factor→variable messages."""
-        if isinstance(from_variable, (list, tuple)) and not isinstance(from_variable, str):
+        if isinstance(from_variable, (list, tuple)) and not isinstance(
+            from_variable, str
+        ):
             if to_factor is not None:
-                raise ValueError("When providing multiple factor pairs, omit the 'to_factor' argument.")
+                raise ValueError(
+                    "When providing multiple factor pairs, omit the 'to_factor' argument."
+                )
             if step is None:
-                raise ValueError("Step must be provided when plotting multiple factor panels.")
+                raise ValueError(
+                    "Step must be provided when plotting multiple factor panels."
+                )
             if return_data:
-                raise ValueError("return_data is only supported for single factor visualisations.")
+                raise ValueError(
+                    "return_data is only supported for single factor visualisations."
+                )
             pairs: List[tuple[str, FactorLike]] = []
             for item in from_variable:
                 if not isinstance(item, (list, tuple)) or len(item) != 2:
@@ -499,7 +535,9 @@ class SnapshotVisualizer:
             )
 
         if to_factor is None:
-            raise ValueError("to_factor must be provided when plotting a single factor panel.")
+            raise ValueError(
+                "to_factor must be provided when plotting a single factor panel."
+            )
         if step is None:
             raise ValueError("step must be provided.")
 
@@ -840,7 +878,7 @@ class SnapshotVisualizer:
         if layout_choice == "combined" or len(target_vars) > self._SMALL_PLOT_THRESHOLD:
             fig, ax = plt.subplots(figsize=figsize or (12, 6))
             for var in target_vars:
-                ax.plot(steps, series[var], marker="o", label=var) # type: ignore
+                ax.plot(steps, series[var], marker="o", label=var)  # type: ignore
             ax.set_xlabel("Iteration")
             ax.set_ylabel("Argmin index")
             ax.set_title("Belief argmin trajectories")
@@ -911,7 +949,7 @@ class SnapshotVisualizer:
 
         cumulative = np.cumsum(arr, dtype=float)
         cumulative[window:] = cumulative[window:] - cumulative[:-window]
-        averages = (cumulative[window - 1:] / window).tolist()
+        averages = (cumulative[window - 1 :] / window).tolist()
         step_list = list(steps)
         return step_list[window - 1 :], averages
 
@@ -941,9 +979,7 @@ class SnapshotVisualizer:
             List of selected variable names.
         """
         if vars_filter:
-            if unknown := [
-                var for var in vars_filter if var not in self._variables
-            ]:
+            if unknown := [var for var in vars_filter if var not in self._variables]:
                 raise ValueError(f"Unknown variables requested: {', '.join(unknown)}")
             return list(dict.fromkeys(vars_filter))
 
@@ -961,7 +997,9 @@ class SnapshotVisualizer:
             vars_set.update(str(key) for key in rec.data.assignments.keys())
         return vars_set
 
-    def _collect_message_pairs(self, message_type: Literal["Q", "R"]) -> List[tuple[str, str]]:
+    def _collect_message_pairs(
+        self, message_type: Literal["Q", "R"]
+    ) -> List[tuple[str, str]]:
         """Collect all unique sender/recipient pairs for a message type."""
         pairs: set[tuple[str, str]] = set()
         for rec in self._records:
@@ -1106,7 +1144,6 @@ class SnapshotVisualizer:
         return bct_data
 
     __all__ = ["SnapshotVisualizer"]
-
 
 
 class _SnapshotBasedHistory:

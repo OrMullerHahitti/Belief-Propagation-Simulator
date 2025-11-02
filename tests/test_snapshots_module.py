@@ -55,8 +55,12 @@ def sample_step(sample_engine):
     step = Step(num=0)
     variable = graph.variables[0]
     factor = graph.factors[0]
-    q_message = Message(data=np.array([1.0, 3.0, 2.0]), sender=variable, recipient=factor)
-    r_message = Message(data=np.array([0.5, 0.2, 1.1]), sender=factor, recipient=variable)
+    q_message = Message(
+        data=np.array([1.0, 3.0, 2.0]), sender=variable, recipient=factor
+    )
+    r_message = Message(
+        data=np.array([0.5, 0.2, 1.1]), sender=factor, recipient=variable
+    )
     step.add_q(variable.name, [q_message])
     step.add_r(factor.name, [r_message])
     return step

@@ -15,16 +15,16 @@ This Jupyter notebook provides a comprehensive, hands-on guide to using PropFlow
    ```
 
 3. **Open the notebook:**
-   
+
    **Option A - VS Code:**
    - Open `analyzer_complete_tutorial.ipynb` in VS Code
    - Select kernel: "Python 3 (PropFlow)" from the kernel picker (top-right)
-   
+
    **Option B - Jupyter Notebook:**
    ```bash
    uv run jupyter notebook analyzer_complete_tutorial.ipynb
    ```
-   
+
    **Option C - JupyterLab:**
    ```bash
    uv run jupyter lab analyzer_complete_tutorial.ipynb

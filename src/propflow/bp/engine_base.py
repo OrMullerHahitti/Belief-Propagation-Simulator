@@ -43,7 +43,7 @@ class BPEngine:
     def __init__(
         self,
         factor_graph: FactorGraph,
-        computator: Computator|BPComputator = MinSumComputator(),
+        computator: Computator | BPComputator = MinSumComputator(),
         init_normalization: Callable = dummy_func,
         name: str = "BPEngine",
         convergence_config: ConvergenceConfig | None = None,
@@ -173,11 +173,11 @@ class BPEngine:
 
     def run(
         self,
-        max_iter: int|None = None,
+        max_iter: int | None = None,
         save_json: bool = False,
-        save_csv: bool =   False,
+        save_csv: bool = False,
         filename: str = None,
-        config_name: str|None = None,
+        config_name: str | None = None,
     ) -> Optional[str]:
         """Runs the simulation until convergence or max iterations is reached.
 
@@ -203,7 +203,9 @@ class BPEngine:
                 break
 
         if save_json or save_csv:
-            logger.warning("Snapshot persistence is not implemented in the simplified snapshot manager.")
+            logger.warning(
+                "Snapshot persistence is not implemented in the simplified snapshot manager."
+            )
 
         if self.performance_monitor:
             summary = self.performance_monitor.get_summary()
@@ -256,7 +258,9 @@ class BPEngine:
         if not beliefs_dict or not assignments_dict:
             return False
 
-        return self.convergence_monitor.check_convergence(beliefs_dict, assignments_dict)
+        return self.convergence_monitor.check_convergence(
+            beliefs_dict, assignments_dict
+        )
 
     @property
     def assignments(self) -> Dict[str, int | float]:
@@ -290,7 +294,11 @@ class BPEngine:
                 if None not in indices and len(indices) == len(
                     factor.connection_number
                 ):
-                    cost_table = factor.original_cost_table if factor.original_cost_table is not None else factor.cost_table
+                    cost_table = (
+                        factor.original_cost_table
+                        if factor.original_cost_table is not None
+                        else factor.cost_table
+                    )
                     total_cost += cost_table[tuple(indices)]
         return total_cost
 

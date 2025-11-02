@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+
+
 class FactorGraph:
     """Represents a bipartite factor graph for belief propagation.
 
@@ -95,7 +97,11 @@ class FactorGraph:
                         valid_lookup = False
                         break
                 if valid_lookup and None not in indices:
-                    cost_table = factor.original_cost_table if factor.original_cost_table is not None else factor.cost_table
+                    cost_table = (
+                        factor.original_cost_table
+                        if factor.original_cost_table is not None
+                        else factor.cost_table
+                    )
                     total_cost += cost_table[tuple(indices)]
         return total_cost
 
@@ -110,7 +116,7 @@ class FactorGraph:
         edge_dict = {}
         var_by_name = {v.name: v for v in self.variables}
         for factor in self.factors:
-            if hasattr(factor, 'connection_number'):
+            if hasattr(factor, "connection_number"):
                 # Sort variables by their dimension index
                 vars_with_dims = []
                 vars_with_dims.extend(
@@ -147,7 +153,7 @@ class FactorGraph:
         self,
         layout: str = "bipartite",
         layout_kwargs: Dict[str, Any] | None = None,
-        plot: bool = True
+        plot: bool = True,
     ) -> Figure | None:
         """Visualizes the factor graph using matplotlib.
 
@@ -185,12 +191,22 @@ class FactorGraph:
 
         fig, ax = plt.subplots()
         nx.draw_networkx_nodes(
-            self.G, pos, nodelist=self.variables, node_shape="o",
-            node_color="lightblue", node_size=300, ax=ax
+            self.G,
+            pos,
+            nodelist=self.variables,
+            node_shape="o",
+            node_color="lightblue",
+            node_size=300,
+            ax=ax,
         )
         nx.draw_networkx_nodes(
-            self.G, pos, nodelist=self.factors, node_shape="s",
-            node_color="lightgreen", node_size=300, ax=ax
+            self.G,
+            pos,
+            nodelist=self.factors,
+            node_shape="s",
+            node_color="lightgreen",
+            node_size=300,
+            ax=ax,
         )
         nx.draw_networkx_edges(self.G, pos, ax=ax)
         nx.draw_networkx_labels(self.G, pos, ax=ax)
@@ -212,8 +228,10 @@ class FactorGraph:
             if not hasattr(factor, "connection_number"):
                 factor.connection_number = {}
             for i, var in enumerate(variables):
-                if not ((factor in self.factors and var in self.variables) or
-                        (factor in self.variables and var in self.factors)):
+                if not (
+                    (factor in self.factors and var in self.variables)
+                    or (factor in self.variables and var in self.factors)
+                ):
                     raise ValueError("Edges must connect a factor to a variable.")
                 self.G.add_edge(factor, var, dim=i)
                 factor.connection_number[var.name] = i
@@ -225,7 +243,9 @@ class FactorGraph:
             if isinstance(node, FactorAgent):
                 if getattr(node, "cost_table", None) is None:
                     node.initiate_cost_table()
-                    logger.debug("Cost table initialized for factor node: %s", node.name)
+                    logger.debug(
+                        "Cost table initialized for factor node: %s", node.name
+                    )
                 elif getattr(node, "original_cost_table", None) is None:
                     node.save_original()
 

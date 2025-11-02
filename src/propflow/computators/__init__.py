@@ -35,6 +35,7 @@ __all__ = [
 # Optional registry entry for the PyTorch soft-min computator
 try:
     from ..nn.torch_computators import SoftMinTorchComputator  # type: ignore
+
     COMPUTATORS["softmin-torch"] = SoftMinTorchComputator
     __all__.append("SoftMinTorchComputator")
 except Exception:

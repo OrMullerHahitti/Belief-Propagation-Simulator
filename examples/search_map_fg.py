@@ -28,7 +28,9 @@ def build_demo_factor_graph() -> FactorGraph:
         factor_xy: [vars_list[0], vars_list[1]],
         factor_yz: [vars_list[1], vars_list[2]],
     }
-    return FactorGraph(variable_li=vars_list, factor_li=[factor_xy, factor_yz], edges=edges)
+    return FactorGraph(
+        variable_li=vars_list, factor_li=[factor_xy, factor_yz], edges=edges
+    )
 
 
 def main() -> None:
@@ -47,4 +49,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

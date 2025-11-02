@@ -23,7 +23,9 @@ class SnapshotManager:
             self.capture_bct_data(snapshot, engine)
         return snapshot
 
-    def capture_bct_data(self, snapshot: EngineSnapshot, engine: Any) -> None:  # pragma: no cover - hook
+    def capture_bct_data(
+        self, snapshot: EngineSnapshot, engine: Any
+    ) -> None:  # pragma: no cover - hook
         """Optional hook to enrich a snapshot with BCT-specific data."""
         return None
 

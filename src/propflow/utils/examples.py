@@ -88,4 +88,6 @@ def create_factor_graph(
             density=density,
         )
     else:
-        raise ValueError(f"Unknown graph type: '{graph_type}'. Supported types are 'cycle' and 'random'.")
+        raise ValueError(
+            f"Unknown graph type: '{graph_type}'. Supported types are 'cycle' and 'random'."
+        )

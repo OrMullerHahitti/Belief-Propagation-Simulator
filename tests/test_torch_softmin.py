@@ -24,9 +24,7 @@ def test_softmin_r_approximates_min_sum_pairwise():
     var_b = VariableAgent("x2", domain=D)
     factor = _make_factor("f", domain=D)
     factor.cost_table = np.array(
-        [[0.0, 1.0, 2.0],
-         [1.5, 0.1, 0.9],
-         [1.1, 0.7, 0.3]],
+        [[0.0, 1.0, 2.0], [1.5, 0.1, 0.9], [1.1, 0.7, 0.3]],
         dtype=float,
     )
     factor.connection_number = {var_a.name: 0, var_b.name: 1}
@@ -59,4 +57,3 @@ def test_compute_q_matches_additive_exclusion():
     total = incoming[0].data + incoming[1].data
     np.testing.assert_allclose(out[0].data, total - incoming[0].data)
     np.testing.assert_allclose(out[1].data, total - incoming[1].data)
-

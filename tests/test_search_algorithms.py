@@ -55,7 +55,9 @@ def _build_pair_only_graph() -> FactorGraph:
 def test_dsa_engine_finds_optimum_assignment():
     factor_graph = _build_two_variable_graph()
     computator = DSAComputator(probability=1.0, seed=0)
-    engine = DSAEngine(factor_graph=factor_graph, computator=computator, max_iterations=5)
+    engine = DSAEngine(
+        factor_graph=factor_graph, computator=computator, max_iterations=5
+    )
 
     result = engine.run(max_iter=3, save_csv=False, save_json=False)
 
@@ -67,7 +69,9 @@ def test_dsa_engine_finds_optimum_assignment():
 def test_mgm_engine_coordinates_single_winner_per_iteration():
     factor_graph = _build_two_variable_graph()
     computator = MGMComputator(seed=0)
-    engine = MGMEngine(factor_graph=factor_graph, computator=computator, max_iterations=5)
+    engine = MGMEngine(
+        factor_graph=factor_graph, computator=computator, max_iterations=5
+    )
 
     result = engine.run(max_iter=4, save_json=False, save_csv=False)
 
@@ -79,7 +83,9 @@ def test_mgm_engine_coordinates_single_winner_per_iteration():
 def test_mgm2_engine_executes_pair_move_when_needed():
     factor_graph = _build_pair_only_graph()
     computator = MGM2Computator(seed=0)
-    engine = MGM2Engine(factor_graph=factor_graph, computator=computator, max_iterations=5)
+    engine = MGM2Engine(
+        factor_graph=factor_graph, computator=computator, max_iterations=5
+    )
 
     result = engine.run(max_iter=3, save_json=False, save_csv=False)
 

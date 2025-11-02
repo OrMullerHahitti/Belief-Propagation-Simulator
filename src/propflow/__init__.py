@@ -87,6 +87,7 @@ __all__ = [
 try:
     # Importing directly avoids failing when __all__ is empty in propflow.nn
     from .nn.torch_computators import SoftMinTorchComputator  # type: ignore
+
     __all__.append("SoftMinTorchComputator")
 except Exception:
     # PyTorch not installed; keep base API intact

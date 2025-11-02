@@ -106,4 +106,3 @@ class FactorGraphProtocol(Protocol):
 
     def assignment_cost(self, assignment: Mapping[Hashable, Any]) -> float:
         ...
-
