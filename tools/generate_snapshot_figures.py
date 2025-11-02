@@ -15,7 +15,6 @@ matplotlib.use("Agg")
 
 from propflow import BPEngine, FGBuilder
 from propflow.configs import CTFactories
-from propflow.snapshots import SnapshotsConfig
 from propflow.snapshots.visualizer import SnapshotVisualizer
 
 
@@ -37,15 +36,7 @@ def run_random_engine(
         density=density,
     )
 
-    snapshots_config = SnapshotsConfig(
-        compute_jacobians=False,
-        compute_block_norms=False,
-        compute_cycles=False,
-        retain_last=None,
-        save_each_step=False,
-    )
-
-    engine = BPEngine(factor_graph=factor_graph, snapshots_config=snapshots_config)
+    engine = BPEngine(factor_graph=factor_graph, use_bct_history=True)
     engine.run(max_iter=max_iter)
 
     records = list(engine.snapshots)
@@ -94,4 +85,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

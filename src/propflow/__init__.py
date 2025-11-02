@@ -39,7 +39,7 @@ from .configs import (
 
 # Snapshot configuration and analysis
 from .snapshots import (
-    SnapshotsConfig,
+    EngineSnapshot,
     SnapshotManager,
     SnapshotAnalyzer,
     AnalysisReport,
@@ -76,7 +76,7 @@ __all__ = [
     "create_uniform_float_table",
     "create_poisson_table",
     # Snapshots
-    "SnapshotsConfig",
+    "EngineSnapshot",
     "SnapshotManager",
     "SnapshotAnalyzer",
     "AnalysisReport",
