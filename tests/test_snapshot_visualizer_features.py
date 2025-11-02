@@ -6,7 +6,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from propflow.snapshots.types import EngineSnapshot, SnapshotRecord
-from propflow.snapshots.visualizer import SnapshotVisualizer
+from propflow.snapshots import SnapshotVisualizer
 
 
 def _make_snapshot(step: int, cost: float | None) -> SnapshotRecord:
