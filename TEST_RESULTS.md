@@ -13,7 +13,7 @@ Successfully improved test suite from 0% to **100% pass rate** (148/150 tests pa
 
 ### Phase 1: Critical Import Errors
 - Fixed `examples.py` to import from correct `FGBuilder` location
-- Stubbed missing `analyzer.reporting` modules
+- Snapshot analyzer now lives under `propflow.snapshots`
 - Added `edges` property to `FactorGraph`
 - Added `iteration_count` property to `BPEngine`
 - Added `strength` parameter alias to `create_poisson_table`
@@ -116,7 +116,6 @@ Successfully improved test suite from 0% to **100% pass rate** (148/150 tests pa
 - ✅ **test_utils_experiments.py**: 1/1 tests
 - ✅ **test_utils_path_random.py**: 5/5 tests
 - ✅ **test_utils_tools.py**: 5/5 tests
-- ✅ **analyzer/test_snapshot_recorder.py**: 2/2 tests
 
 ### Notes
 - Core BP engine functionality is fully tested and passing

@@ -154,9 +154,11 @@ recorder.
 
 .. code-block:: python
 
+   import json
+   from pathlib import Path
+
    from propflow import BPEngine, FGBuilder
    from propflow.configs import create_random_int_table
-   from analyzer.snapshot_recorder import EngineSnapshotRecorder
 
    fg = FGBuilder.build_cycle_graph(
        num_vars=8,
@@ -168,8 +170,10 @@ recorder.
    engine = BPEngine(fg, use_bct_history=True)
    engine.run(max_iter=80)
 
-   recorder = EngineSnapshotRecorder(engine)
-   recorder.to_json("results/demo/run.json")
+   payload = [snap.to_dict() for snap in engine.snapshots]  # type: ignore[attr-defined]
+   out_path = Path("results/demo/run.json")
+   out_path.parent.mkdir(parents=True, exist_ok=True)
+   out_path.write_text(json.dumps(payload, indent=2))
 
    latest = engine.latest_snapshot()
 

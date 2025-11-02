@@ -34,14 +34,8 @@ Use the built-in recorder helper or serialise manually:
 
 .. code-block:: python
 
-   from propflow.analyzer.snapshot_recorder import SnapshotRecorder
-
-   recorder = SnapshotRecorder(path="results/snapshots")
-   recorder.save(engine)
-
-or
-
-.. code-block:: python
+   import json
+from pathlib import Path
 
    import json
    from pathlib import Path
@@ -62,7 +56,7 @@ Analysis and Visualisation
 .. code-block:: python
 
    from propflow.snapshots import SnapshotAnalyzer
-   from propflow.snapshots.visualizer import SnapshotVisualizer
+   from propflow.snapshots import SnapshotVisualizer
 
    analyzer = SnapshotAnalyzer(engine.snapshots)
    norms = analyzer.block_norms(engine.latest_snapshot().step)

@@ -18,7 +18,7 @@
 ## 3. Coding Guidelines
 - Python 3.10+ features are encouraged (pattern matching, dataclasses).
 - Use type hints throughout; prefer dataclasses for structured data.
-- Keep modules within `src/propflow` or `src/analyzer` to avoid circular imports.
+- Keep modules within `src/propflow` (snapshot utilities live in `src/propflow/snapshots`) to avoid circular imports.
 - Document public interfaces with docstrings and include inline comments only when necessary for clarity.
 - Maintain ASCII encoding unless the file already contains Unicode and there is a compelling reason.
 
@@ -30,7 +30,7 @@
 
 ## 5. Adding New Features
 1. Discuss or document the approach (issues, TODO comments).
-2. Implement feature in `src/propflow/...` or `src/analyzer/...`.
+2. Implement features under `src/propflow/...` (including `src/propflow/snapshots/...` for analysis helpers).
 3. Add unit tests or update existing ones.
 4. Update documentation (this handbook, README, or module docstrings) as needed.
 5. Run the quality gates (formatters, linters, tests).

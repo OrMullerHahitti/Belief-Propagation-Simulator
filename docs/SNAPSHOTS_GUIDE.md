@@ -46,33 +46,32 @@ A **snapshot** is a frozen view of the belief propagation algorithm's state at a
 ### Types of Information Captured
 
 ```
-SnapshotRecord
-├── SnapshotData (raw simulation state)
-│   ├── Messages: Q and R arrays
-│   ├── Beliefs/Assignments: Current variable values
-│   ├── Graph topology: Variable/factor neighborhoods
-│   ├── Costs: Global cost and factor cost functions
-│   └── Metadata: Engine config, timestamps, etc.
-├── Jacobians (optional, if enabled)
-│   ├── Matrices A, P, B: Linearized message dependencies
+EngineSnapshot
+├── Core state
+│   ├── Messages: Q (variable→factor) and R (factor→variable) arrays
+│   ├── Beliefs/Assignments: Current variable marginals and argmins
+│   ├── Graph topology: Variable/factor neighbourhoods and domains
+│   ├── Costs: Global cost plus optional factor cost tables and labels
+│   └── Metadata: Engine configuration hints, timestamps, damping factor
+├── Jacobians (optional)
+│   ├── Matrices A, P, B: Linearised message dependencies
 │   └── Block norms: Convergence certification metrics
-├── CycleMetrics (optional, if enabled)
+├── CycleMetrics (optional)
 │   ├── Cycle count: Total number of feedback loops
 │   ├── Aligned hops: Cycles amenable to contraction analysis
-│   └── Details: Per-cycle properties (if detailed analysis enabled)
+│   └── Details: Per-cycle properties when deeper analysis is enabled
 ├── Winners (optional)
 │   └── Factor-variable assignment preferences
-└── Min indices
+└── Min indices (optional)
     └── Argmin for each Q message
 ```
 
 ---
 
-## Snapshot Data Structure
+## EngineSnapshot Structure
 
-### SnapshotData Fields
-
-The core snapshot data (captured at each step):
+Each :class:`~propflow.snapshots.EngineSnapshot` holds the complete state captured
+after a single belief propagation iteration. Key fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -83,27 +82,18 @@ The core snapshot data (captured at each step):
 | `N_fac` | `Dict[str, List[str]]` | Factor neighborhoods: `{factor: [variable_neighbors]}` |
 | `Q` | `Dict[(str, str), ndarray]` | Variable→factor messages: `{(var, factor): [msg_values]}` |
 | `R` | `Dict[(str, str), ndarray]` | Factor→variable messages: `{(factor, var): [msg_values]}` |
-| `cost` | `Dict[str, callable]` | Factor cost functions: `{factor: lambda assignment: cost_value}` |
+| `cost_tables` | `Dict[str, ndarray]` | Optional factor cost tensors used for diagnostics |
+| `cost_labels` | `Dict[str, List[str]]` | Variable ordering for each stored cost table |
 | `unary` | `Dict[str, ndarray]` | Unary potential per variable (usually zeros) |
-| `beliefs` | `Dict[str, float]` | Current belief (min-sum value) per variable |
+| `beliefs` | `Dict[str, ndarray]` | Current belief vectors per variable |
 | `assignments` | `Dict[str, int]` | Current assignment (argmin) per variable |
 | `global_cost` | `float` (optional) | Total cost across all factors |
 | `metadata` | `Dict[str, Any]` | Additional info: engine type, convergence status, etc. |
+| `jacobians` | `Jacobians` or `None` | Optional A/P/B matrices with index maps and block norms |
+| `cycles` | `CycleMetrics` or `None` | Optional cycle counts and contraction metadata |
+| `min_idx` | `Dict[(str, str), int]` or `None` | Optional argmin indices per Q message |
+| `captured_at` | `datetime` | Timestamp (UTC) when the snapshot was created |
 
-### SnapshotRecord Fields
-
-Wraps `SnapshotData` with optional analysis results:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `data` | `SnapshotData` | The raw captured state |
-| `jacobians` | `Jacobians` (optional) | Linearized message dependencies (A, P, B matrices) |
-| `cycles` | `CycleMetrics` (optional) | Cycle analysis results |
-| `winners` | `Dict` (optional) | Winning assignments for factor-to-variable edges |
-| `min_idx` | `Dict` (optional) | Argmin indices for Q messages |
-| `captured_at` | `datetime` | When this snapshot was recorded |
-
----
 
 ## Engine Integration
 
@@ -140,7 +130,7 @@ trajectories for Backtrack Cost Tree analysis or external tooling.
 Snapshots are automatically captured at each iteration when configured:
 
 ```python
-engine = BPEngine(factor_graph=graph, snapshots_config=snapshot_cfg)
+engine = BPEngine(factor_graph=graph)
 engine.run(max_iter=100)
 
 # At this point, engine has captured up to 100 snapshots (or retain_last worth)
@@ -159,13 +149,13 @@ from propflow.snapshots.utils import (
 
 # Get a specific step's snapshot
 snapshot_at_step_5 = get_snapshot(engine, 5)
-print(snapshot_at_step_5.data.step)        # 5
-print(snapshot_at_step_5.data.assignments) # {"x1": 0, "x2": 1, ...}
-print(snapshot_at_step_5.data.global_cost) # 42.5
+print(snapshot_at_step_5.step)        # 5
+print(snapshot_at_step_5.assignments) # {"x1": 0, "x2": 1, ...}
+print(snapshot_at_step_5.global_cost) # 42.5
 
 # Get the most recent snapshot
 latest = latest_snapshot(engine)
-print(latest.data.step)
+print(latest.step)
 
 # Get analysis artifacts from the latest snapshot
 jac = latest_jacobians(engine)
@@ -177,11 +167,7 @@ winners = latest_winners(engine)
 
 ```python
 # Gather all snapshots captured during the run
-all_snapshots = [
-    get_snapshot(engine, i)
-    for i in range(len(engine.history.step_costs))
-]
-
+all_snapshots = list(engine.snapshots)
 print(f"Total snapshots: {len(all_snapshots)}")
 ```
 
@@ -207,7 +193,7 @@ print(beliefs["x1"])  # [0, 0, 1, 1, 2, 2, ...] - assignment over time
 beliefs_manual = {}
 for var in ["x1", "x2"]:
     beliefs_manual[var] = [
-        snap.data.assignments.get(var)
+        snap.assignments.get(var)
         for snap in all_snapshots
     ]
 ```
@@ -369,7 +355,7 @@ plt.show()
 ### Save Individual Snapshots
 
 Snapshots live in memory under ``engine.snapshots``; serialise them manually or
-use :class:`propflow.analyzer.snapshot_recorder.SnapshotRecorder` for a
+persist snapshots by serialising ``engine.snapshots`` to JSON for reproducibility
 turn-key, disk-backed workflow.
 
 ```python
@@ -391,15 +377,8 @@ for snapshot in engine.snapshots:
 
 ### Snapshot Recorder Helper
 
-```python
-from propflow.analyzer.snapshot_recorder import SnapshotRecorder
-
-engine = BPEngine(factor_graph=graph, use_bct_history=True)
-engine.run(max_iter=100)
-
-recorder = SnapshotRecorder(path="results/snapshots")
-recorder.save(engine)
-```
+Manual serialisation is sufficient in most cases; store snapshots as JSON if you
+need to revisit them later.
 
 ### Example Figures
 
@@ -595,7 +574,7 @@ for var, analysis in sorted_vars:
 ```python
 # Analyze message magnitudes
 latest = latest_snapshot(engine)
-data = latest.data
+data = latest
 
 # Factor-to-variable message magnitudes
 r_magnitudes = {}

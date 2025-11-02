@@ -26,7 +26,7 @@ one, and you can exit early if you only need part of the stack:
    belief propagation, manage convergence policies, and capture history.
 4. **Simulations** (:class:`propflow.simulator.Simulator`) execute batches of
    engine configurations across many graphs for fair comparisons.
-5. **Analysis tooling** (:mod:`propflow.analyzer`) records data and reports
+5. **Analysis tooling** (:mod:`propflow.snapshots`) records data and reports
    metrics for offline inspection.
 
 
@@ -325,28 +325,44 @@ Analysis Layer
 --------------
 
 Advanced studies often require visibility into per-iteration behaviour. The
-:mod:`propflow.analyzer` package contains tooling for that.
+:mod:`propflow.snapshots` package provides the core tooling:
 
-* :mod:`propflow.analyzer.snapshot_recorder` captures snapshots from running
-  engines and stores them on disk. Runtime snapshots are always available via
-  :attr:`engine.snapshots`; opt into ``use_bct_history`` if message flows are
-  required for the analyst.
-* :mod:`propflow.analyzer.snapshot_visualizer` renders saved snapshots.
-* :mod:`propflow.analyzer.reporting` aggregates metrics and produces summaries.
+* :class:`propflow.snapshots.SnapshotAnalyzer` and :class:`propflow.snapshots.AnalysisReport`
+  derive metrics, block norms, and summaries directly from ``engine.snapshots``.
+* :class:`propflow.snapshots.SnapshotVisualizer` renders belief argmin trajectories and message norms.
 
 Example workflow:
 
 .. code-block:: python
 
-   from propflow.analyzer.snapshot_recorder import SnapshotRecorder
-   from propflow import BPEngine
+   import json
+   from pathlib import Path
 
-   recorder = SnapshotRecorder(path="results/run_001")
+   from propflow.snapshots import SnapshotAnalyzer, AnalysisReport
+   from propflow.snapshots import SnapshotVisualizer
+
    engine = BPEngine(fg, use_bct_history=True)
    engine.run(max_iter=75)
-   recorder.save(engine)
 
-   # Later: use recorder.load() or snapshot_visualizer utilities for inspection.
+   snapshots = list(engine.snapshots)
+
+   out_path = Path("results/run_001.json")
+   out_path.parent.mkdir(parents=True, exist_ok=True)
+   out_path.write_text(json.dumps([
+       {
+           "step": snap.step,
+           "assignments": snap.assignments,
+           "global_cost": snap.global_cost,
+       }
+       for snap in snapshots
+   ], indent=2))
+
+   viz = SnapshotVisualizer(snapshots)
+   viz.plot_argmin_per_variable(show=True)
+
+   analyzer = SnapshotAnalyzer(snapshots)
+   report = AnalysisReport(analyzer)
+   summary = report.to_json(step_idx=len(snapshots) - 1)
 
 
 Chain of Creation
@@ -373,8 +389,8 @@ Use this checklist when building your own experiments:
    - Use :class:`Simulator` to fan out across many graphs/configurations.
 5. **Analyse results**
 
-   - Inspect :attr:`engine.history` for costs, beliefs, and assignments.
-   - Persist and revisit runs with :mod:`propflow.analyzer`.
+   - Inspect :attr:`engine.snapshots` for per-step assignments, messages, and costs.
+   - Use :mod:`propflow.snapshots` for visualisation and metric reporting.
 
 
 Custom Graph Checklist

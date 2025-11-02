@@ -32,16 +32,7 @@ metadata, and placeholders for Jacobians/cycle metrics.
 
 ## 3. Persist Snapshots
 
-Use the analyzer's recorder helper or manual serialisation:
-
-```python
-from propflow.analyzer.snapshot_recorder import SnapshotRecorder
-
-recorder = SnapshotRecorder(path="results/snapshots")
-recorder.save(engine)
-```
-
-or
+Serialise snapshots manually:
 
 ```python
 import json
@@ -70,7 +61,7 @@ block_norms = analyzer.block_norms(engine.latest_snapshot().step)
 ## 5. Visualise
 
 ```python
-from propflow.snapshots.visualizer import SnapshotVisualizer
+from propflow.snapshots import SnapshotVisualizer
 
 viz = SnapshotVisualizer(engine.snapshots)
 fig, payload = viz.plot_global_cost(show=False, return_data=True)
@@ -84,5 +75,5 @@ Backtrack Cost Trees. The snapshots will include enough information for
 
 ---
 
-Keep an eye on the release notes for future additions (automatic Jacobians,
-cycle metrics, etc.) once the post-processing pipeline is rebuilt.
+Snapshot analysis already exposes Jacobians, block norms, and cycle metrics;
+future releases will extend the visual tooling further.

@@ -61,7 +61,7 @@ src/propflow
 │   └── tools/ (perf, jacobian viz, figures, etc.)
 └── ... egg-info/ (packaging)
 
-src/analyzer                      # Optional deep analysis toolkit
+src/propflow/snapshots            # Snapshot capture and analysis toolkit
 ├── __init__.py                   # Analysis decorator & helpers exports
 ├── snapshot.py, matrices.py, ... # Cycle analysis, invariants, margins, winners
 ```

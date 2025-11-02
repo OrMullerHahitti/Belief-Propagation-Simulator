@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Optional **SoftMinTorchComputator** (PyTorch-based soft-min for factor→variable messages).
 - Docs & example for Torch integration.
-- Comprehensive Jupyter notebook tutorial for analyzer module
+- Comprehensive Jupyter notebook tutorial for snapshot analysis module
 - PyPI readiness improvements
 - Enhanced README with badges and better structure
 - User guide with top-down conceptual approach
@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Policy system: damping, splitting, cost reduction, message pruning
 - Factor graph construction utilities (FGBuilder)
 - Parallel simulator for comparative experiments
-- Snapshot recording and visualization (analyzer module)
+- Snapshot recording and visualization (snapshot module)
 - Local search algorithms: DSA, MGM, K-Opt MGM
 - Comprehensive test suite
 - Deployment handbook with 7 focused guides
