@@ -7,8 +7,6 @@ import numpy as np
 
 from propflow import BPEngine, FGBuilder, SnapshotVisualizer
 from propflow.configs import CTFactories
-from propflow.snapshots import SnapshotsConfig
-from propflow.snapshots.utils import get_snapshot
 
 RESULTS_DIR = Path("results")
 PLOT_PATH = RESULTS_DIR / "ring_argmin.png"
@@ -31,24 +29,11 @@ def run_engine(max_steps: int = 12):
 
     fg = build_ring()
 
-    # Configure snapshot capture
-    snapshot_cfg = SnapshotsConfig(
-        compute_jacobians=False,
-        compute_block_norms=False,
-        compute_cycles=False,
-        retain_last=None,  # Keep all snapshots
-        save_each_step=False,  # Don't auto-save to disk
-    )
-
-    engine = BPEngine(factor_graph=fg, snapshots_config=snapshot_cfg)
+    engine = BPEngine(factor_graph=fg, use_bct_history=True)
     engine.run(max_iter=max_steps)
 
     # Collect all snapshots
-    snapshots = [
-        get_snapshot(engine, i)
-        for i in range(len(engine.history.step_costs))
-    ]
-    return snapshots
+    return list(engine.snapshots)
 
 
 def generate_plot(snapshots: list, *, show: bool = False) -> None:

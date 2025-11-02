@@ -1,3 +1,4 @@
+import contextlib
 from pathlib import Path
 import sys
 
@@ -32,11 +33,8 @@ SEED = 42
 
 if __name__ == "__main__":
     # Set multiprocessing start method for clean process spawning
-    try:
+    with contextlib.suppress(RuntimeError):
         mp.set_start_method("spawn", force=True)
-    except RuntimeError:
-        pass
-
     # Initialize random seeds
     np.random.seed(SEED)
     random.seed(SEED)
@@ -69,7 +67,7 @@ if __name__ == "__main__":
     }
     # --- Graph Creation ---
     print(f"[{time.strftime('%H:%M:%S')}] Creating {NUM_GRAPHS} factor graphs...")
-    ct_factory_fn = CTFactories.RANDOM_INT  
+    ct_factory_fn = CTFactories.RANDOM_INT
     # or: get_ct_factory(CTFactories.RANDOM_INT)
     random_fg = [
         FGBuilder.build_random_graph(

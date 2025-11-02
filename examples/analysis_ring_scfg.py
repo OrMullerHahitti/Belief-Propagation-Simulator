@@ -14,8 +14,7 @@ import numpy as np
 
 from propflow import BPEngine, FGBuilder
 from propflow.configs import create_random_int_table
-from propflow.snapshots import SnapshotAnalyzer, AnalysisReport, SnapshotsConfig
-from propflow.snapshots.utils import get_snapshot
+from propflow.snapshots import SnapshotAnalyzer, AnalysisReport
 
 
 def build_ring_3var():
@@ -33,21 +32,11 @@ def main() -> None:
 
     # Build and run engine with snapshots
     fg = build_ring_3var()
-    snapshot_cfg = SnapshotsConfig(
-        compute_jacobians=True,
-        compute_block_norms=True,
-        compute_cycles=True,
-        max_cycle_len=6,
-    )
-
-    engine = BPEngine(factor_graph=fg, snapshots_config=snapshot_cfg)
+    engine = BPEngine(factor_graph=fg, use_bct_history=True)
     engine.run(max_iter=20)
 
     # Collect snapshots
-    snapshots = [
-        get_snapshot(engine, i)
-        for i in range(len(engine.history.step_costs))
-    ]
+    snapshots = list(engine.snapshots)
 
     # Analyze snapshots
     analyzer = SnapshotAnalyzer(snapshots)
