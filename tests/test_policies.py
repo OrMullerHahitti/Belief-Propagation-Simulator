@@ -67,8 +67,9 @@ class TestBasicPolicies:
         engine.run(max_iter=3)
 
         # Check that engine completed without errors
-        assert len(engine.history.costs) > 0
-        assert len(engine.history.costs) <= 3
+        costs = [s.global_cost for s in engine.snapshots if s.global_cost is not None]
+        assert len(costs) > 0
+        assert len(costs) <= 3
 
     def test_splitting_engine_with_policy(self, sample_factor_graph):
         """Test splitting engine with splitting policy."""
@@ -78,8 +79,9 @@ class TestBasicPolicies:
         engine.run(max_iter=3)
 
         # Check that engine completed without errors
-        assert len(engine.history.costs) > 0
-        assert len(engine.history.costs) <= 3
+        costs = [s.global_cost for s in engine.snapshots if s.global_cost is not None]
+        assert len(costs) > 0
+        assert len(costs) <= 3
 
     def test_split_engine_rejects_invalid_ratio(self, sample_factor_graph):
         """Splitting policy should reject degenerate ratios."""
@@ -100,8 +102,9 @@ class TestBasicPolicies:
         engine.run(max_iter=5)
 
         # Check that engine completed successfully
-        assert len(engine.history.costs) > 0
-        assert len(engine.history.costs) <= 5
+        costs = [s.global_cost for s in engine.snapshots if s.global_cost is not None]
+        assert len(costs) > 0
+        assert len(costs) <= 5
 
     @pytest.mark.parametrize("split_factor", [0.3, 0.5, 0.7])
     def test_splitting_policy_with_different_ratios(
@@ -116,8 +119,9 @@ class TestBasicPolicies:
         engine.run(max_iter=5)
 
         # Check that engine completed successfully
-        assert len(engine.history.costs) > 0
-        assert len(engine.history.costs) <= 5
+        costs = [s.global_cost for s in engine.snapshots if s.global_cost is not None]
+        assert len(costs) > 0
+        assert len(costs) <= 5
 
     def test_policy_parameter_validation(self):
         """Test that policies validate their parameters correctly via engines."""
@@ -162,9 +166,9 @@ class TestPolicyIntegration:
         # Run engine
         engine.run(max_iter=20)
 
-        # Check that engine respects convergence config
-        assert len(engine.history.costs) > 0
-        assert len(engine.history.costs) <= 20
+        costs = [s.global_cost for s in engine.snapshots if s.global_cost is not None]
+        assert len(costs) > 0
+        assert len(costs) <= 20
 
     def test_different_engines_same_graph(self, sample_factor_graph):
         """Test different bp on the same graph."""
@@ -182,8 +186,10 @@ class TestPolicyIntegration:
         damping_engine.run(max_iter=3)
         splitting_engine.run(max_iter=3)
 
-        assert len(damping_engine.history.costs) > 0
-        assert len(splitting_engine.history.costs) > 0
+        damping_costs = [s.global_cost for s in damping_engine.snapshots if s.global_cost is not None]
+        splitting_costs = [s.global_cost for s in splitting_engine.snapshots if s.global_cost is not None]
+        assert damping_costs
+        assert splitting_costs
 
     def test_engine_performance_basic(self, sample_factor_graph):
         """Test basic engine performance characteristics."""
@@ -197,5 +203,6 @@ class TestPolicyIntegration:
 
         # Engine should complete in reasonable time
         assert end_time - start_time < 10.0  # Should take less than 10 seconds
-        assert len(engine.history.costs) > 0
-        assert len(engine.history.costs) <= 10
+        costs = [s.global_cost for s in engine.snapshots if s.global_cost is not None]
+        assert len(costs) > 0
+        assert len(costs) <= 10

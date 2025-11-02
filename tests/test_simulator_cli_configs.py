@@ -1,5 +1,6 @@
 import pickle
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -21,7 +22,10 @@ from propflow.simulator import Simulator, _setup_logger
 class StubEngine:
     def __init__(self, factor_graph, convergence_config, **kwargs):
         self.factor_graph = factor_graph
-        self.history = type("History", (), {"costs": [10.0, 5.0]})()
+        self.snapshots = [
+            SimpleNamespace(global_cost=10.0),
+            SimpleNamespace(global_cost=5.0),
+        ]
 
     def run(self, max_iter):
         return None
@@ -100,7 +104,7 @@ def test_global_logger_and_registries():
 def test_run_single_simulation_handles_engine_failure():
     class FailingEngine:
         def __init__(self, factor_graph, convergence_config, **_):
-            self.history = type("History", (), {"costs": []})()
+            self.snapshots = []
 
         def run(self, max_iter):  # pragma: no cover - intentional failure path
             raise RuntimeError("boom")
@@ -121,10 +125,10 @@ def test_run_single_simulation_handles_engine_failure():
 def test_run_single_simulation_handles_unpickle_error():
     class NoOpEngine:
         def __init__(self, **_):
-            self.history = type("History", (), {"costs": []})()
+            self.snapshots = []
 
         def run(self, max_iter):
-            self.history.costs.append(0.0)
+            self.snapshots.append(SimpleNamespace(global_cost=0.0))
 
     args = (
         1,

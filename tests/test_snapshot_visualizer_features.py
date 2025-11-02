@@ -5,12 +5,12 @@ matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
 
-from propflow.snapshots.types import SnapshotData, SnapshotRecord
+from propflow.snapshots.types import EngineSnapshot, SnapshotRecord
 from propflow.snapshots.visualizer import SnapshotVisualizer
 
 
 def _make_snapshot(step: int, cost: float | None) -> SnapshotRecord:
-    data = SnapshotData(
+    return EngineSnapshot(
         step=step,
         lambda_=0.0,
         dom={"x1": ["0", "1"]},
@@ -18,16 +18,12 @@ def _make_snapshot(step: int, cost: float | None) -> SnapshotRecord:
         N_fac={"f1": ["x1"]},
         Q={("x1", "f1"): np.array([0.0, 0.1])},
         R={("f1", "x1"): np.array([0.0, 0.2])},
-        cost={},
-        cost_tables={},
-        cost_labels={},
         unary={"x1": np.array([0.0, 0.1])},
         beliefs={"x1": float(step)},
         assignments={"x1": step % 2},
         global_cost=cost,
         metadata={},
     )
-    return SnapshotRecord(data=data)
 
 
 def _make_message_snapshot(
@@ -35,7 +31,7 @@ def _make_message_snapshot(
     q_messages: dict[tuple[str, str], np.ndarray],
     r_messages: dict[tuple[str, str], np.ndarray],
 ) -> SnapshotRecord:
-    data = SnapshotData(
+    return EngineSnapshot(
         step=step,
         lambda_=0.0,
         dom={"x1": ["0", "1"], "x2": ["0", "1"]},
@@ -43,16 +39,9 @@ def _make_message_snapshot(
         N_fac={"f": ["x1", "x2"]},
         Q=q_messages,
         R=r_messages,
-        cost={},
-        cost_tables={},
-        cost_labels={},
-        unary={},
-        beliefs={},
         assignments={"x1": step % 2, "x2": (step + 1) % 2},
-        global_cost=None,
         metadata={},
     )
-    return SnapshotRecord(data=data)
 
 
 def test_plot_global_cost_returns_expected_series(tmp_path) -> None:
@@ -149,24 +138,20 @@ def test_plot_assignment_heatmap_builds_matrix(tmp_path) -> None:
 
     snapshots = []
     for step, assigns in enumerate(assignments_per_step):
-        data = SnapshotData(
-            step=step,
-            lambda_=0.0,
-            dom={"x1": ["0", "1", "2"], "x2": ["0", "1", "2"]},
-            N_var={"x1": [], "x2": []},
-            N_fac={},
-            Q={},
-            R={},
-            cost={},
-            cost_tables={},
-            cost_labels={},
-            unary={},
-            beliefs={},
-            assignments=assigns,
-            global_cost=None,
-            metadata={},
+        snapshots.append(
+            EngineSnapshot(
+                step=step,
+                lambda_=0.0,
+                dom={"x1": ["0", "1", "2"], "x2": ["0", "1", "2"]},
+                N_var={"x1": [], "x2": []},
+                N_fac={},
+                Q={},
+                R={},
+                beliefs={},
+                assignments=assigns,
+                metadata={},
+            )
         )
-        snapshots.append(SnapshotRecord(data=data))
 
     visualizer = SnapshotVisualizer(snapshots)
 
