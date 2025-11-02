@@ -43,7 +43,7 @@ src/propflow
 │   └── convergance.py            # ConvergenceConfig, ConvergenceMonitor
 ├── snapshots/                    # Per-step capture + Jacobian/cycle analysis
 │   ├── __init__.py
-│   ├── types.py                  # SnapshotsConfig, SnapshotData/Jacobians
+│   ├── types.py                  # EngineSnapshot + Jacobian metadata
 │   ├── manager.py                # SnapshotManager (A,P,B, cycles, norms, winners)
 │   └── builder.py                # Extract Q/R, neighborhoods, domains from step
 ├── search/                       # Local search engines (DSA, MGM, K-Opt MGM)
@@ -160,7 +160,7 @@ src/analyzer                      # Optional deep analysis toolkit
   - `save_results(filename)` / `to_json(path)`
 - `Step`: per-step captured messages
   - `q_messages`: variable→factor; `r_messages`: factor→variable (used by snapshots)
-- `snapshots.SnapshotManager(SnapshotsConfig)`
+- `snapshots.SnapshotManager`
   - Builds `SnapshotData` with Q/R, neighborhoods, domains; computes Jacobians `(A,P,B)` and optional cycle metrics and block norms; supports `save_step(dir, save=True)` for explicit persistence
 
 ## Simulator (batch)
@@ -250,19 +250,17 @@ results = sim.run_simulations(graphs, max_iter=5000)
 sim.plot_results(verbose=True)
 ```
 
-3) Enable snapshots (Jacobian/cycle analysis)
+3) Inspect snapshots post-run
 ```python
-from propflow.snapshots import SnapshotsConfig
 from propflow import DampingEngine
+from propflow.snapshots import SnapshotAnalyzer
 
-snap_cfg = SnapshotsConfig(
-  compute_jacobians=True, compute_cycles=True, compute_block_norms=True,
-  retain_last=25, save_each_step=False,
-)
-engine = DampingEngine(factor_graph=fg, damping_factor=0.9, snapshots_config=snap_cfg)
+engine = DampingEngine(factor_graph=fg, damping_factor=0.9, use_bct_history=True)
 engine.run(max_iter=50)
-snap = engine.latest_snapshot()
-print(snap.jacobians.block_norms if snap and snap.jacobians else None)
+
+analyzer = SnapshotAnalyzer(engine.snapshots)
+block_norms = analyzer.block_norms(engine.latest_snapshot().step)
+print(block_norms)
 ```
 
 ## Inputs/Outputs Summary (engines)
@@ -270,7 +268,7 @@ print(snap.jacobians.block_norms if snap and snap.jacobians else None)
 - Common engine inputs
   - `factor_graph`: `FactorGraph`
   - `computator`: one of `MinSumComputator` (default), `MaxSumComputator`, `SumProductComputator`, `MaxProductComputator`
-  - Optional: `ConvergenceConfig`, performance monitoring, normalization flags, `SnapshotsConfig`
+  - Optional: `ConvergenceConfig`, performance monitoring, normalization flags, `use_bct_history`
 - Common outputs
   - `history.costs`: list[float]
   - `history.beliefs[cycle]`: dict[var -> np.ndarray]

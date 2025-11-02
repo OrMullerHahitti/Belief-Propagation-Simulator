@@ -57,7 +57,7 @@ uv run bp-sim --version
 ## 4. Snapshot Capture & Analysis
 
 ### 4.1 EngineSnapshotRecorder
-`src/analyzer/snapshot_recorder.py` provides an external recorder that keeps engine internals untouched. Pair it with :class:`propflow.snapshots.SnapshotsConfig` when you need deterministic capture.
+`src/analyzer/snapshot_recorder.py` provides an external recorder that keeps engine internals untouched. Snapshots are already captured in-memory; call `recorder.save(engine)` to persist them when needed.
 
 ```python
 from analyzer.snapshot_recorder import EngineSnapshotRecorder

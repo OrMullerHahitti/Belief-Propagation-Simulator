@@ -253,8 +253,9 @@ Complement engines with policies and utilities:
   iterations, tolerance, and patience.
 * :func:`propflow.policies.normalize_cost.normalize_inbox` to shift messages and
   avoid numerical blow-ups.
-* :class:`propflow.snapshots.SnapshotsConfig` to capture detailed per-iteration
-  state.
+* Built-in snapshot capture (``engine.snapshots``) to inspect per-step state;
+  set ``use_bct_history=True`` on the engine if you need message traces for BCT
+  tooling.
 
 
 Running a Single Engine
@@ -262,21 +263,21 @@ Running a Single Engine
 
 .. code-block:: python
 
-   from propflow import BPEngine, MinSumComputator, SnapshotsConfig
+   from propflow import BPEngine, MinSumComputator
 
-   snapshots = SnapshotsConfig(compute_cycles=True, retain_last=5)
    engine = BPEngine(
        factor_graph=fg,
        computator=MinSumComputator(),
-       snapshots_config=snapshots,
+       use_bct_history=True,  # optional: retain message traces for BCT tools
    )
 
    engine.run(max_iter=100)
-   final_cost = engine.history.costs[-1]
+   final_cost = engine.snapshots[-1].global_cost
    beliefs = engine.get_beliefs()
 
-Inspect :attr:`engine.assignments` or :attr:`engine.history` for detailed
-outputs, and call :meth:`engine.latest_snapshot` when snapshots are enabled.
+Inspect :attr:`engine.assignments` or iterate over :attr:`engine.snapshots`
+for detailed per-step data. :meth:`engine.latest_snapshot` returns the most
+recent snapshot object.
 
 
 Simulation Layer
@@ -327,8 +328,9 @@ Advanced studies often require visibility into per-iteration behaviour. The
 :mod:`propflow.analyzer` package contains tooling for that.
 
 * :mod:`propflow.analyzer.snapshot_recorder` captures snapshots from running
-  engines and stores them on disk. Pair it with
-  :class:`propflow.snapshots.SnapshotsConfig` to decide what to record.
+  engines and stores them on disk. Runtime snapshots are always available via
+  :attr:`engine.snapshots`; opt into ``use_bct_history`` if message flows are
+  required for the analyst.
 * :mod:`propflow.analyzer.snapshot_visualizer` renders saved snapshots.
 * :mod:`propflow.analyzer.reporting` aggregates metrics and produces summaries.
 
@@ -337,11 +339,10 @@ Example workflow:
 .. code-block:: python
 
    from propflow.analyzer.snapshot_recorder import SnapshotRecorder
-   from propflow import BPEngine, SnapshotsConfig
+   from propflow import BPEngine
 
    recorder = SnapshotRecorder(path="results/run_001")
-   snapshots = SnapshotsConfig(compute_cycles=True, retain_last=20)
-   engine = BPEngine(fg, snapshots_config=snapshots)
+   engine = BPEngine(fg, use_bct_history=True)
    engine.run(max_iter=75)
    recorder.save(engine)
 

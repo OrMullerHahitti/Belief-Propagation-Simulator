@@ -154,7 +154,7 @@ recorder.
 
 .. code-block:: python
 
-   from propflow import BPEngine, FGBuilder, SnapshotsConfig
+   from propflow import BPEngine, FGBuilder
    from propflow.configs import create_random_int_table
    from analyzer.snapshot_recorder import EngineSnapshotRecorder
 
@@ -165,15 +165,13 @@ recorder.
        ct_params={"low": 1, "high": 20},
    )
 
-   snapshots = SnapshotsConfig(compute_cycles=True, retain_last=40)
-   instrumented = BPEngine(fg, snapshots_config=snapshots)
+   engine = BPEngine(fg, use_bct_history=True)
+   engine.run(max_iter=80)
 
-   recorder = EngineSnapshotRecorder(instrumented)
-   recorder.record_run(max_steps=80, break_on_convergence=True)
+   recorder = EngineSnapshotRecorder(engine)
    recorder.to_json("results/demo/run.json")
 
-   # Inspect latest built-in snapshot (if needed)
-   latest = instrumented.latest_snapshot()
+   latest = engine.latest_snapshot()
 
 Where to Go Next
 ----------------

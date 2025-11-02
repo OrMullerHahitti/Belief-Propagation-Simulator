@@ -105,56 +105,31 @@ Wraps `SnapshotData` with optional analysis results:
 
 ---
 
-## Configuration
+## Engine Integration
 
-### Enabling Snapshots
-
-To capture snapshots, pass a `SnapshotsConfig` to your engine:
+Snapshots are captured automatically by :class:`propflow.bp.engine_base.BPEngine`.
+Every call to :meth:`engine.step` appends an :class:`EngineSnapshot` to
+``engine.snapshots``; no additional configuration object is required. The
+engine exposes convenience helpers such as :meth:`engine.latest_snapshot` and
+the ``engine.snapshot_map`` dictionary for step-based lookups.
 
 ```python
 from propflow import BPEngine, DampingEngine
-from propflow.snapshots import SnapshotsConfig
 
-# Configure what to capture
-snapshot_cfg = SnapshotsConfig(
-    compute_jacobians=True,        # Compute Jacobian matrices A, P, B
-    compute_block_norms=True,      # Compute infinity norms for convergence bounds
-    compute_cycles=True,           # Analyze feedback cycles
-    include_detailed_cycles=False, # Include per-cycle metrics (slower)
-    compute_numeric_cycle_gain=False, # Estimate numeric gain per cycle (slower)
-    max_cycle_len=12,              # Only find cycles up to length 12
-    retain_last=25,                # Keep only the last 25 snapshots in memory
-    save_each_step=False,          # Auto-save each snapshot to disk
-    save_dir=None,                 # Directory for auto-save (required if save_each_step=True)
-)
-
-# Create engine with snapshot support
 engine = DampingEngine(
     factor_graph=graph,
     damping_factor=0.9,
-    snapshots_config=snapshot_cfg,
-    use_bct_history=True,  # Also enables belief/assignment tracking
+    use_bct_history=True,  # Optional: retain per-step message traces for BCT tools
 )
 
-# Run normally
 engine.run(max_iter=100)
+
+latest = engine.latest_snapshot()
+print(len(engine.snapshots))
 ```
 
-### Configuration Options
-
-| Option | Type | Default | Purpose |
-|--------|------|---------|---------|
-| `compute_jacobians` | `bool` | `True` | Enable Jacobian matrix computation |
-| `compute_block_norms` | `bool` | `True` | Compute convergence bound norms |
-| `compute_cycles` | `bool` | `True` | Analyze feedback cycles |
-| `include_detailed_cycles` | `bool` | `False` | Store per-cycle metrics (memory-intensive) |
-| `compute_numeric_cycle_gain` | `bool` | `False` | Estimate numeric gain (slow) |
-| `max_cycle_len` | `int` | `12` | Maximum cycle length to enumerate |
-| `retain_last` | `int` or `None` | `25` | Keep N snapshots in memory; `None` = unlimited |
-| `save_each_step` | `bool` | `True` | Auto-persist snapshots to disk |
-| `save_dir` | `str` or `Path` or `None` | `None` | Directory for disk persistence |
-
-**Performance Tip**: If you only care about messages and beliefs (not analysis), disable `compute_jacobians`, `compute_block_norms`, and `compute_cycles` to speed up snapshot capture.
+Set ``use_bct_history=True`` when constructing an engine if you need message
+trajectories for Backtrack Cost Tree analysis or external tooling.
 
 ---
 
@@ -393,48 +368,64 @@ plt.show()
 
 ### Save Individual Snapshots
 
-The engine now exposes the retained in-memory records via `engine.snapshots` and provides
-`engine.save_snapshot` helpers for persisting them without touching the lower-level manager.
+Snapshots live in memory under ``engine.snapshots``; serialise them manually or
+use :class:`propflow.analyzer.snapshot_recorder.SnapshotRecorder` for a
+turn-key, disk-backed workflow.
 
 ```python
 from pathlib import Path
+import json
 
-snap_dir = Path("snapshot_output")
-snap_dir.mkdir(exist_ok=True)
+out_dir = Path("snapshot_output")
+out_dir.mkdir(exist_ok=True)
 
-# Save a single snapshot to disk
-latest = engine.latest_snapshot()
-if latest:
-    json_path = engine.save_snapshot.save_json(
-        snap_dir / f"snapshot_step_{latest.data.step:04d}.json",
-        step=latest.data.step,
-    )
-    csv_path = engine.save_snapshot.save_csv(
-        snap_dir / "snapshot_summary.csv",
-        step=latest.data.step,
-    )
-    print(f"Wrote JSON to {json_path}")
-    print(f"Appended CSV summary to {csv_path}")
+for snapshot in engine.snapshots:
+    payload = {
+        "step": snapshot.step,
+        "global_cost": snapshot.global_cost,
+        "assignments": snapshot.assignments,
+        "metadata": snapshot.metadata,
+    }
+    (out_dir / f"snapshot_step_{snapshot.step:04d}.json").write_text(json.dumps(payload, indent=2))
 ```
 
-### Auto-Persist During Simulation
+### Snapshot Recorder Helper
 
 ```python
-# Configure automatic saving during run
-snapshot_cfg = SnapshotsConfig(
-    compute_jacobians=True,
-    save_each_step=True,
-    save_dir="results/snapshots",  # Created automatically
-)
+from propflow.analyzer.snapshot_recorder import SnapshotRecorder
 
-engine = BPEngine(
-    factor_graph=graph,
-    snapshots_config=snapshot_cfg,
-)
+engine = BPEngine(factor_graph=graph, use_bct_history=True)
 engine.run(max_iter=100)
 
-# Now all snapshots are persisted
+recorder = SnapshotRecorder(path="results/snapshots")
+recorder.save(engine)
 ```
+
+### Example Figures
+
+.. figure:: figures/global_cost.png
+   :alt: Global cost trajectory example
+   :width: 65%
+
+   Example global cost trajectory produced by ``tools/generate_snapshot_figures.py``.
+
+.. figure:: figures/message_norms_q.png
+   :alt: Q message norms example
+   :width: 65%
+
+   L2 norms of selected Q messages across iterations.
+
+.. figure:: figures/message_norms_r.png
+   :alt: R message norms example
+   :width: 65%
+
+   L∞ norms of selected R messages across iterations.
+
+.. figure:: figures/assignment_heatmap.png
+   :alt: Assignment heatmap example
+   :width: 65%
+
+   Assignment heatmap highlighting per-variable argmin trajectories.
 
 ### Snapshot Directory Structure
 
@@ -526,21 +517,15 @@ for damp in configs:
     engine = DampingEngine(
         factor_graph=graph,
         damping_factor=damp,
-        snapshots_config=SnapshotsConfig(),
     )
     engine.run(max_iter=100)
 
-    snaps = [
-        get_snapshot(engine, i)
-        for i in range(len(engine.history.step_costs))
-    ]
-
-    results[damp] = snaps
+    results[damp] = list(engine.snapshots)
 
 # Compare cost trajectories
 fig, ax = plt.subplots()
 for damp, snaps in results.items():
-    costs = [s.data.global_cost for s in snaps if s.data.global_cost]
+    costs = [s.global_cost for s in snaps if s.global_cost is not None]
     ax.plot(range(len(costs)), costs, label=f"damp={damp}")
 
 ax.set_xlabel("Iteration")
@@ -557,24 +542,17 @@ plt.show()
 **Solution**:
 
 ```python
-from propflow.snapshots.utils import latest_jacobians
+from propflow.snapshots import SnapshotAnalyzer
 
-engine = BPEngine(
-    factor_graph=graph,
-    snapshots_config=SnapshotsConfig(
-        compute_jacobians=True,
-        compute_block_norms=True,
-        compute_cycles=True,
-    )
-)
+engine = BPEngine(factor_graph=graph)
 engine.run(max_iter=100)
 
-latest = latest_snapshot(engine)
-jac = latest.jacobians
+analyzer = SnapshotAnalyzer(engine.snapshots)
+latest_step = engine.latest_snapshot().step
+block_norms = analyzer.block_norms(latest_step)
 
-if jac and jac.block_norms:
-    M_upper = jac.block_norms["||M||_inf_upper"]
-
+if block_norms:
+    M_upper = block_norms["||M||_inf_upper"]
     if M_upper < 1.0:
         print(f"✓ Convergence proven! ||M||_inf_upper = {M_upper:.4f} < 1.0")
     else:

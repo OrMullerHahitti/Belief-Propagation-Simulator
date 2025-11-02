@@ -523,21 +523,17 @@ factor = FactorAgent("F", domain=3, ct_creation_func=my_custom_costs)
 ### Pattern 4: Convergence Monitoring
 
 ```python
-from propflow.snapshots import SnapshotsConfig
-
-snap_config = SnapshotsConfig(
-    compute_jacobians=True,
-    compute_cycles=True,
-    retain_last=10
-)
-
-engine = BPEngine(factor_graph=graph, snapshots_config=snap_config)
+engine = BPEngine(factor_graph=graph, use_bct_history=True)
 engine.run(max_iter=100)
 
-# Check for cycles in message flow
+# Inspect the latest snapshot
 latest = engine.latest_snapshot()
-if latest.cycles:
-    print("Warning: Detected message cycles!")
+if latest and latest.global_cost is not None:
+    print(f"Latest global cost: {latest.global_cost:.2f}")
+
+# Iterate over all captured steps if needed
+for snapshot in engine.snapshots:
+    print(snapshot.step, snapshot.assignments)
 ```
 
 ---
