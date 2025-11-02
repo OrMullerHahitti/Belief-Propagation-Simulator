@@ -50,3 +50,4 @@ AGENT.md
 .dockerignore
 Dockerfile
 compose.yaml
+/tmp_out
