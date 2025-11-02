@@ -19,7 +19,9 @@ Assignment = Mapping[Hashable, Any]
 MutableAssignment = Dict[Hashable, Any]
 
 
-def _normalise_order(order: Optional[Sequence[Hashable]], variables: Sequence[Hashable]) -> Sequence[Hashable]:
+def _normalise_order(
+    order: Optional[Sequence[Hashable]], variables: Sequence[Hashable]
+) -> Sequence[Hashable]:
     if order is None:
         return list(variables)
     normalised: list[Hashable] = []
@@ -82,7 +84,9 @@ class FactorGraphView(FactorGraphProtocol):
         return all(var in assignment for var in self.variables())
 
     def assignment_cost(self, assignment: Assignment) -> float:
-        return sum(self.factor_cost(factor, assignment) for factor in self.factor_graph.factors)
+        return sum(
+            self.factor_cost(factor, assignment) for factor in self.factor_graph.factors
+        )
 
 
 def _coerce_view(
@@ -115,16 +119,23 @@ class FGExpansion(ExpansionPolicy[Assignment, Tuple[Hashable, Any], float]):
         self.view = _coerce_view(factor_graph)
         self.order = _normalise_order(var_order, self.view.variables())
 
-    def expand(self, state: Assignment) -> Iterable[Tuple[Tuple[Hashable, Any], Assignment, float]]:
+    def expand(
+        self, state: Assignment
+    ) -> Iterable[Tuple[Tuple[Hashable, Any], Assignment, float]]:
         current = dict(state)
         for var in self.order:
             if var not in current:
                 neighbours = self.view.factors_for(var)
-                base_cost = sum(self.view.factor_cost(factor, current) for factor in neighbours)
+                base_cost = sum(
+                    self.view.factor_cost(factor, current) for factor in neighbours
+                )
                 for value in self.view.domain(var):
                     candidate: MutableAssignment = dict(current)
                     candidate[var] = value
-                    new_cost = sum(self.view.factor_cost(factor, candidate) for factor in neighbours)
+                    new_cost = sum(
+                        self.view.factor_cost(factor, candidate)
+                        for factor in neighbours
+                    )
                     yield (var, value), candidate, float(new_cost - base_cost)
                 return
         return []
@@ -196,7 +207,9 @@ class FGDuplicate(DuplicateDetectionPolicy[Assignment]):
     def __init__(self) -> None:
         self.best: Dict[Tuple[Tuple[Hashable, Any], ...], float] = {}
 
-    def better_path(self, state_key: Tuple[Tuple[Hashable, Any], ...], g: float) -> bool:
+    def better_path(
+        self, state_key: Tuple[Tuple[Hashable, Any], ...], g: float
+    ) -> bool:
         prev = self.best.get(state_key)
         return prev is None or g < prev - 1e-12
 

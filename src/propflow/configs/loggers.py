@@ -36,6 +36,7 @@ root_logger.addHandler(file_handler)
 
 class Verbose(Enum):
     """Represents different verbosity levels for logging."""
+
     VERBOSE = 40
     MILD = 30
     INFORMATIVE = 20
@@ -81,7 +82,9 @@ class Logger(logging.Logger):
                 logging.Formatter(LOGGING_CONFIG["file_format"])
             )
             self.addHandler(self.file_handler)
-            self.propagate = False  # Prevent logs from reaching the root logger's handlers
+            self.propagate = (
+                False  # Prevent logs from reaching the root logger's handlers
+            )
 
         self.console = colorlog.StreamHandler(sys.stdout)
         self.console.setFormatter(

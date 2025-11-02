@@ -52,7 +52,7 @@ class Agent(ABC):
         self.mailer = None           # Message handling system
 ```
 
-#### `BPAgent` (agents.py) 
+#### `BPAgent` (agents.py)
 Abstract base class for belief propagation nodes with message passing capabilities.
 
 ```python
@@ -79,15 +79,15 @@ Represents decision variables in the optimization problem. Each variable:
 class VariableAgent(BPAgent):
     def __init__(self, name: str, domain: int):
         super().__init__(name, "variable", domain)
-    
+
     @property
     def belief(self) -> np.ndarray:
         """Current belief distribution over domain values"""
-        
+
     @property
     def curr_assignment(self) -> int:
         """Current optimal assignment (argmin of beliefs)"""
-        
+
     def compute_messages(self) -> None:
         """Compute Q-messages to factor neighbors"""
 ```
@@ -108,15 +108,15 @@ Represents constraints or factors in the optimization problem. Each factor:
 
 ```python
 class FactorAgent(BPAgent):
-    def __init__(self, name: str, domain: int, ct_creation_func: Callable, 
+    def __init__(self, name: str, domain: int, ct_creation_func: Callable,
                  param: Dict[str, Any] = None, cost_table: CostTable = None):
         super().__init__(name, "factor", domain)
         self.cost_table = cost_table
         self.connection_number = {}  # Maps variable names to dimensions
-        
+
     def compute_messages(self) -> None:
         """Compute R-messages to variable neighbors"""
-        
+
     def initiate_cost_table(self) -> None:
         """Create cost table based on specified distribution"""
 ```
@@ -148,10 +148,10 @@ class MailHandler:
     def __init__(self, domain_size: int):
         self._incoming = {}       # Sender -> Message mapping
         self._outgoing = []       # Messages to send
-        
+
     def receive_messages(self, message: Message):
         """Accept incoming message with optional pruning"""
-        
+
     def send(self):
         """Deliver all outgoing messages"""
 ```
@@ -182,10 +182,10 @@ class BPComputator:
     def __init__(self, reduce_func, combine_func):
         self.reduce_func = reduce_func    # np.min, np.max, etc.
         self.combine_func = combine_func  # np.add, np.multiply, etc.
-    
+
     def compute_Q(self, messages: List[Message]) -> List[Message]:
         """Compute variable-to-factor messages"""
-        
+
     def compute_R(self, cost_table, incoming_messages: List[Message]) -> List[Message]:
         """Compute factor-to-variable messages"""
 ```
@@ -238,6 +238,6 @@ class CustomVariableAgent(VariableAgent):
     def __init__(self, name: str, domain: int, special_param: float):
         super().__init__(name, domain)
         self.special_param = special_param
-    
+
     def compute_messages(self) -> None:
         # Custom message computati

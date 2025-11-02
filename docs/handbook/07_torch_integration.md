@@ -22,4 +22,3 @@ engine.run(max_iter=50)
 - Soft-min uses `-τ·logsumexp(-x/τ)` as a smooth approximation of `min(x)`.
 - When `τ → 0`, behaviour approaches Min-Sum. Larger `τ` increases smoothing.
 - Requires `torch`; install via `pip install 'propflow[torch]'`.
-

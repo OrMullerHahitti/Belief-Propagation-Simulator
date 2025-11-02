@@ -2,6 +2,7 @@
 
 # Import numpy to build deterministic cost tables that mimic the example graph.
 import numpy as np
+
 # Import pytest so we can gracefully skip when torch is unavailable.
 import pytest
 
@@ -10,8 +11,10 @@ torch = pytest.importorskip("torch")
 
 # Import the public engine and graph builder exactly as the example does.
 from propflow import BPEngine, FGBuilder
+
 # Import the reference Min-Sum computator to compare against the soft-min variant.
 from propflow.bp.computators import MinSumComputator
+
 # Import the torch-powered soft-min computator that the example showcases.
 from propflow.nn.torch_computators import SoftMinTorchComputator
 

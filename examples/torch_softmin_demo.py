@@ -15,4 +15,3 @@ if __name__ == "__main__":
     engine.run(max_iter=30)
     print("Assignments:", engine.assignments)
     print("Global cost:", engine.graph.global_cost)
-

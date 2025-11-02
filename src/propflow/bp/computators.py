@@ -37,6 +37,7 @@ class BPComputator(Computator):
         reduce_func (Callable): The function used for message reduction (e.g., `np.min`).
         combine_func (Callable): The function used for message combination (e.g., `np.add`).
     """
+
     # Function dispatch tables for zero-overhead lookups
     _REDUCE_DISPATCH = {
         np.min: (np.ndarray.min, np.ndarray.argmin),
@@ -165,7 +166,9 @@ class BPComputator(Computator):
             )
         return outgoing_messages
 
-    def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]) -> List[Message]:
+    def compute_R(
+        self, cost_table: np.ndarray, incoming_messages: List[Message]
+    ) -> List[Message]:
         """Computes outgoing messages from a factor node to variable nodes (R messages).
 
         This is an optimized, vectorized implementation that involves three main steps:
@@ -296,7 +299,9 @@ class BPComputator(Computator):
 
         return belief
 
+
 Computator: TypeAlias = BPComputator
+
 
 class MinSumComputator(BPComputator):
     """A computator for the Min-Sum belief propagation algorithm.

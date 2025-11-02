@@ -21,9 +21,11 @@ def verbose_print(*args, **kwargs):
         print(*args, **kwargs)
 
 
-def _fixed_cost_table(num_vars: int, domain_size: int, offset: float = 0.0, **_kwargs) -> np.ndarray:
+def _fixed_cost_table(
+    num_vars: int, domain_size: int, offset: float = 0.0, **_kwargs
+) -> np.ndarray:
     size = max(1, num_vars)
-    values = np.arange(offset, offset + domain_size ** size, dtype=float)
+    values = np.arange(offset, offset + domain_size**size, dtype=float)
     return values.reshape((domain_size,) * size)
 
 
@@ -103,9 +105,7 @@ class TestBPEngine:
         # Should have values for all variables
         assignments = engine.assignments
         for var in engine.graph.variables:
-            assert (
-                var.name in assignments
-            ), f"Missing assignment for {var.name}"
+            assert var.name in assignments, f"Missing assignment for {var.name}"
 
         # Check that beliefs exist (not necessarily normalized)
         # Note: BPEngine may not normalize beliefs to sum to 1
@@ -129,15 +129,11 @@ class TestBPEngine:
         # Check that we have assignments for all variables
         variable_names = [v.name for v in bp_engine.graph.variables]
         for var_name in variable_names:
-            assert (
-                var_name in assignments
-            ), f"Variable {var_name} not in assignment"
+            assert var_name in assignments, f"Variable {var_name} not in assignment"
 
         # Check that assignments are within domain
         for var_name, value in assignments.items():
-            var = next(
-                v for v in bp_engine.graph.variables if v.name == var_name
-            )
+            var = next(v for v in bp_engine.graph.variables if v.name == var_name)
             assert (
                 0 <= value < var.domain
             ), f"Assignment {value} for {var_name} outside domain {var.domain}"

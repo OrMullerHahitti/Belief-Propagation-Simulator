@@ -65,12 +65,14 @@ class SoftMinTorchComputator(Computator):
         return out
 
     # ----- Factor → Variable (R) : soft-min via torch -----
-    def compute_R(self, cost_table: np.ndarray, incoming_messages: List[Message]) -> List[Message]:
+    def compute_R(
+        self, cost_table: np.ndarray, incoming_messages: List[Message]
+    ) -> List[Message]:
         if not incoming_messages:
             return []
 
         _require_torch()
-        device = self._device or ("cuda" if torch.cuda.is_available() else "cpu") # type: ignore
+        device = self._device or ("cuda" if torch.cuda.is_available() else "cpu")  # type: ignore
         dtype = self._dtype or torch.float32  # type: ignore
 
         k = cost_table.ndim
@@ -100,8 +102,8 @@ class SoftMinTorchComputator(Computator):
             outs.append(
                 Message(
                     data=r_vec.detach().cpu().numpy(),
-                    sender=incoming_messages[axis].recipient,   # factor
-                    recipient=incoming_messages[axis].sender,   # variable
+                    sender=incoming_messages[axis].recipient,  # factor
+                    recipient=incoming_messages[axis].sender,  # variable
                 )
             )
         return outs
@@ -138,12 +140,17 @@ class SoftMaxSumPairwise(nn.Module):
         self.var_lin = nn.Linear(D, D, bias=False)
         self.fac_lin = nn.Linear(D, D, bias=False)
 
-    def forward(self, x_beliefs: "torch.Tensor", f_costs: "torch.Tensor", edges: "torch.LongTensor"):
+    def forward(
+        self,
+        x_beliefs: "torch.Tensor",
+        f_costs: "torch.Tensor",
+        edges: "torch.LongTensor",
+    ):
         i_idx, j_idx = edges[:, 0], edges[:, 1]
         v2f_i = self.var_lin(x_beliefs[i_idx])
         v2f_j = self.var_lin(x_beliefs[j_idx])
 
-        scores_i = -f_costs + v2f_j.unsqueeze(1)              # (m, D, D)
+        scores_i = -f_costs + v2f_j.unsqueeze(1)  # (m, D, D)
         scores_j = -f_costs.transpose(1, 2) + v2f_i.unsqueeze(1)
         r_i = self.tau * torch.logsumexp(scores_i / self.tau, dim=-1)  # (m, D)
         r_j = self.tau * torch.logsumexp(scores_j / self.tau, dim=-1)
@@ -157,4 +164,3 @@ class SoftMaxSumPairwise(nn.Module):
         new_beliefs = (1 - self.damp) * x_beliefs + self.damp * (x_beliefs + accum)
         new_beliefs = new_beliefs - torch.logsumexp(new_beliefs, dim=-1, keepdim=True)
         return new_beliefs
-

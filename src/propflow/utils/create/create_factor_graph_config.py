@@ -30,6 +30,7 @@ class EngineConfig:
         message_policies: A list of message-level policies to apply.
         factor_policies: A list of factor-level policies to apply.
     """
+
     computator: str
     factor_graph: Path | str
     message_policies: List[str]
@@ -38,7 +39,9 @@ class EngineConfig:
     def filename(self) -> str:
         """Generates a descriptive filename for the engine configuration."""
         # Note: This method is incomplete and references attributes not in the dataclass.
-        param_str = ",".join(f"{k}{v}" for k, v in getattr(self, "damping_params", {}).items())
+        param_str = ",".join(
+            f"{k}{v}" for k, v in getattr(self, "damping_params", {}).items()
+        )
         return f"{self.computator}-{self.factor_graph}-{getattr(self, 'damping_type', '')}{param_str}.pkl"
 
 
@@ -57,6 +60,7 @@ class GraphConfig:
         ct_factory_params: A dictionary of parameters for the cost table factory.
         density: The density of the graph (for random graphs).
     """
+
     graph_type: str
     num_variables: int
     domain_size: int
@@ -86,7 +90,8 @@ class ConfigCreator:
         self.base_dir = Path(base_dir).expanduser().resolve()
 
     def create_graph_config(
-        self, *,
+        self,
+        *,
         graph_type: str,
         num_variables: int,
         domain_size: int,
@@ -111,8 +116,12 @@ class ConfigCreator:
         self._validate(graph_type, num_variables, domain_size, ct_factory, ct_params)
 
         cfg = GraphConfig(
-            graph_type=graph_type, num_variables=num_variables, domain_size=domain_size,
-            ct_factory_name=ct_factory, ct_factory_params=ct_params, density=density,
+            graph_type=graph_type,
+            num_variables=num_variables,
+            domain_size=domain_size,
+            ct_factory_name=ct_factory,
+            ct_factory_params=ct_params,
+            density=density,
         )
 
         os.makedirs(self.base_dir, exist_ok=True)
@@ -146,20 +155,29 @@ class ConfigCreator:
 
     @staticmethod
     def _validate(
-        graph_type: str, num_variables: int, domain_size: int,
-        ct_factory: str, ct_params: Dict[str, Any]
+        graph_type: str,
+        num_variables: int,
+        domain_size: int,
+        ct_factory: str,
+        ct_params: Dict[str, Any],
     ) -> None:
         """Validates the parameters for creating a graph configuration."""
         if graph_type not in GRAPH_TYPES:
-            raise ValueError(f"Unknown graph_type '{graph_type}'. Allowed: {list(GRAPH_TYPES)}")
+            raise ValueError(
+                f"Unknown graph_type '{graph_type}'. Allowed: {list(GRAPH_TYPES)}"
+            )
         if not isinstance(num_variables, int) or num_variables <= 0:
             raise ValueError("num_variables must be a positive int")
         if not isinstance(domain_size, int) or domain_size <= 0:
             raise ValueError("domain_size must be a positive int")
         if ct_factory not in CT_FACTORIES:
-            raise ValueError(f"Unknown ct_factory '{ct_factory}'. Allowed: {list(CT_FACTORIES)}")
+            raise ValueError(
+                f"Unknown ct_factory '{ct_factory}'. Allowed: {list(CT_FACTORIES)}"
+            )
 
         sig = inspect.signature(CT_FACTORIES[ct_factory])
         for name in ct_params:
             if name not in sig.parameters:
-                raise ValueError(f"Parameter '{name}' not accepted by CT factory '{ct_factory}'")
+                raise ValueError(
+                    f"Parameter '{name}' not accepted by CT factory '{ct_factory}'"
+                )

@@ -34,7 +34,9 @@ class SearchEngine(BPEngine):
         max_iterations: int = 100,
         **kwargs: Any,
     ) -> None:
-        super().__init__(factor_graph=factor_graph, computator=computator, name=name, **kwargs)
+        super().__init__(
+            factor_graph=factor_graph, computator=computator, name=name, **kwargs
+        )
         self.history = History(
             engine_type=self.__class__.__name__,
             computator=computator,
@@ -80,7 +82,10 @@ class SearchEngine(BPEngine):
             if getattr(factor, "type", None) != "factor":
                 continue
             for neighbour in self.graph.G.neighbors(factor):
-                if neighbour is variable or getattr(neighbour, "type", None) != "variable":
+                if (
+                    neighbour is variable
+                    or getattr(neighbour, "type", None) != "variable"
+                ):
                     continue
                 assignments.setdefault(neighbour.name, neighbour.curr_assignment)
         return assignments
@@ -124,7 +129,12 @@ class SearchEngine(BPEngine):
         config_name: Optional[str] = None,
     ) -> Dict[str, Any]:
         iterations = max_iter if max_iter is not None else self.max_iterations
-        self.stats = {"iterations": 0, "improvements": 0, "changes": 0, "final_cost": None}
+        self.stats = {
+            "iterations": 0,
+            "improvements": 0,
+            "changes": 0,
+            "final_cost": None,
+        }
         self.history.costs = []
         self.history.beliefs = {}
         self.history.assignments = {}
@@ -313,13 +323,17 @@ class MGM2Engine(SearchEngine):
         for name, info in computator.single_gains.items():
             gain = float(info["gain"])
             if gain > best_single_gain or (
-                gain == best_single_gain and best_single_agent and name < best_single_agent
+                gain == best_single_gain
+                and best_single_agent
+                and name < best_single_agent
             ):
                 best_single_gain = gain
                 best_single_agent = name
 
         best_pair_gain = 0.0
-        best_pair_data: Optional[Tuple[SearchVariableAgent, SearchVariableAgent, Tuple[int, int]]] = None
+        best_pair_data: Optional[
+            Tuple[SearchVariableAgent, SearchVariableAgent, Tuple[int, int]]
+        ] = None
         best_pair_names: Optional[Tuple[str, str]] = None
         seen_pairs: set[Tuple[str, str]] = set()
 
@@ -328,7 +342,10 @@ class MGM2Engine(SearchEngine):
                 if getattr(factor, "type", None) != "factor":
                     continue
                 for neighbour in self.graph.G.neighbors(factor):
-                    if neighbour is var or getattr(neighbour, "type", None) != "variable":
+                    if (
+                        neighbour is var
+                        or getattr(neighbour, "type", None) != "variable"
+                    ):
                         continue
                     if not isinstance(neighbour, SearchVariableAgent):
                         continue
@@ -339,10 +356,16 @@ class MGM2Engine(SearchEngine):
                     seen_pairs.add(key)
                     gain = float(pair_info["gain"])
                     if gain > best_pair_gain or (
-                        gain == best_pair_gain and best_pair_names and key < best_pair_names
+                        gain == best_pair_gain
+                        and best_pair_names
+                        and key < best_pair_names
                     ):
                         best_pair_gain = gain
-                        best_pair_data = (var, neighbour, tuple(int(v) for v in pair_info["values"]))
+                        best_pair_data = (
+                            var,
+                            neighbour,
+                            tuple(int(v) for v in pair_info["values"]),
+                        )
                         best_pair_names = key
 
         changes = 0

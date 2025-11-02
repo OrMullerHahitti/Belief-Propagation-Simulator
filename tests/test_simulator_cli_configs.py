@@ -52,14 +52,25 @@ def test_simulator_run_simulations(monkeypatch):
 
 def test_run_single_simulation_success():
     graph = {"nodes": [1]}
-    args = (0, "engineA", {"class": StubEngine}, pickle.dumps(graph), 3, LOG_LEVELS["INFORMATIVE"])
+    args = (
+        0,
+        "engineA",
+        {"class": StubEngine},
+        pickle.dumps(graph),
+        3,
+        LOG_LEVELS["INFORMATIVE"],
+    )
     index, name, costs = Simulator._run_single_simulation(args)
     assert index == 0 and name == "engineA" and costs[-1] == 5.0
 
 
 def test_sequential_fallback(monkeypatch):
     sim = Simulator({"engineA": {"class": StubEngine}})
-    monkeypatch.setattr(Simulator, "_run_single_simulation", staticmethod(lambda args: (args[0], args[1], [42])))
+    monkeypatch.setattr(
+        Simulator,
+        "_run_single_simulation",
+        staticmethod(lambda args: (args[0], args[1], [42])),
+    )
     results = sim._sequential_fallback([(0, "engineA", {}, b"", 1, 0)])
     assert results[0][2] == [42]
 

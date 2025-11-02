@@ -23,7 +23,10 @@ def find_project_root() -> Path:
     """
     current_dir = Path.cwd()
     while True:
-        if any((current_dir / marker).exists() for marker in [".git", "pyproject.toml", "setup.py"]):
+        if any(
+            (current_dir / marker).exists()
+            for marker in [".git", "pyproject.toml", "setup.py"]
+        ):
             return current_dir
         if current_dir == current_dir.parent:
             # When installed as a package, no project root exists - use cwd
@@ -91,11 +94,14 @@ def generate_unique_name(base_name: str, extension: str = "") -> str:
         A unique string in the format `base_name_YYYYMMDDHHMMSS.extension`.
     """
     from datetime import datetime
+
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     return f"{base_name}_{timestamp}{extension}"
 
 
-def list_files_in_directory(directory: str, extension_filter: Optional[str] = None) -> List[str]:
+def list_files_in_directory(
+    directory: str, extension_filter: Optional[str] = None
+) -> List[str]:
     """Lists all files in a directory, with an optional filter for file extension.
 
     Args:

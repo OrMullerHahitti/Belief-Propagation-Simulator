@@ -243,8 +243,7 @@ class FactorAgent(FGAgent):
         """
         if self.computator and self.cost_table is not None and self.inbox:
             messages = self.computator.compute_R(
-                cost_table=self.cost_table, 
-                incoming_messages=self.inbox
+                cost_table=self.cost_table, incoming_messages=self.inbox
             )
             self.mailer.stage_sending(messages)
 

@@ -20,7 +20,11 @@ import pickle
 import traceback
 
 from .configs import Logger
-from .configs.global_config_mapping import LOG_LEVELS, LOGGING_CONFIG, SIMULATOR_DEFAULTS
+from .configs.global_config_mapping import (
+    LOG_LEVELS,
+    LOGGING_CONFIG,
+    SIMULATOR_DEFAULTS,
+)
 from .policies import ConvergenceConfig
 from .search.algorithms import (
     a_star_factor_graph,
@@ -47,7 +51,9 @@ def build_engine(engine_key: str, *, factor_graph: Any, **kwargs: Any):
 
 def _setup_logger(level: Optional[str] = None) -> Logger:
     """Configures and returns a logger for the simulator."""
-    safe_level = level if isinstance(level, str) else SIMULATOR_DEFAULTS["default_log_level"]
+    safe_level = (
+        level if isinstance(level, str) else SIMULATOR_DEFAULTS["default_log_level"]
+    )
     log_level = LOG_LEVELS.get(safe_level.upper(), LOGGING_CONFIG["default_level"])
     logger = Logger("Simulator")
     logger.setLevel(log_level)
@@ -55,7 +61,10 @@ def _setup_logger(level: Optional[str] = None) -> Logger:
     if not logger.handlers:
         console = colorlog.StreamHandler(sys.stdout)
         console.setFormatter(
-            colorlog.ColoredFormatter(LOGGING_CONFIG["console_format"], log_colors=LOGGING_CONFIG["console_colors"])
+            colorlog.ColoredFormatter(
+                LOGGING_CONFIG["console_format"],
+                log_colors=LOGGING_CONFIG["console_colors"],
+            )
         )
         logger.addHandler(console)
     return logger
@@ -74,6 +83,7 @@ class Simulator:
         results (dict): A dictionary to store the results of the simulations.
         timeout (int): The timeout in seconds for multiprocessing tasks.
     """
+
     def __init__(self, engine_configs: Dict[str, Any], log_level: Optional[str] = None):
         """Initializes the Simulator.
 
@@ -84,10 +94,14 @@ class Simulator:
         """
         self.engine_configs = engine_configs
         self.logger = _setup_logger(log_level)
-        self.results: Dict[str, List[List[float]]] = {name: [] for name in engine_configs}
+        self.results: Dict[str, List[List[float]]] = {
+            name: [] for name in engine_configs
+        }
         self.timeout = SIMULATOR_DEFAULTS["timeout"]
 
-    def run_simulations(self, graphs: List[Any], max_iter: Optional[int] = None) -> Dict[str, List[List[float]]]:
+    def run_simulations(
+        self, graphs: List[Any], max_iter: Optional[int] = None
+    ) -> Dict[str, List[List[float]]]:
         """Runs all engine configurations on all provided graphs in parallel.
 
         Args:
@@ -99,18 +113,23 @@ class Simulator:
             names and values are lists of cost histories for each run.
         """
         max_iter = max_iter or SIMULATOR_DEFAULTS["default_max_iter"]
-        self.logger.warning(f"Preparing {len(graphs) * len(self.engine_configs)} total simulations.")
+        self.logger.warning(
+            f"Preparing {len(graphs) * len(self.engine_configs)} total simulations."
+        )
 
         simulation_args = [
             (i, name, config, pickle.dumps(graph), max_iter, self.logger.level)
-            for i, graph in enumerate(graphs) for name, config in self.engine_configs.items()
+            for i, graph in enumerate(graphs)
+            for name, config in self.engine_configs.items()
         ]
 
         start_time = time.time()
         try:
             all_results = self._run_batch_safe(simulation_args, max_workers=cpu_count())
         except Exception as e:
-            self.logger.error(f"CRITICAL ERROR - All multiprocessing strategies failed: {e}")
+            self.logger.error(
+                f"CRITICAL ERROR - All multiprocessing strategies failed: {e}"
+            )
             self.logger.error(traceback.format_exc())
             self.logger.warning("Falling back to sequential processing...")
             all_results = self._sequential_fallback(simulation_args)
@@ -119,7 +138,9 @@ class Simulator:
         self.logger.warning(f"All simulations completed in {total_time:.2f} seconds.")
 
         if len(all_results) != len(simulation_args):
-            self.logger.error(f"Expected {len(simulation_args)} results, but got {len(all_results)}")
+            self.logger.error(
+                f"Expected {len(simulation_args)} results, but got {len(all_results)}"
+            )
 
         for _, engine_name, costs in all_results:
             self.results[engine_name].append(costs)
@@ -128,7 +149,9 @@ class Simulator:
             self.logger.warning(f"{engine_name}: {len(costs_list)} runs completed.")
         return self.results
 
-    def plot_results(self, max_iter: Optional[int] = None, verbose: bool = False) -> None:
+    def plot_results(
+        self, max_iter: Optional[int] = None, verbose: bool = False
+    ) -> None:
         """Plots the average cost convergence for each engine configuration.
 
         Args:
@@ -148,7 +171,9 @@ class Simulator:
                 continue
 
             max_len = max(max_iter, max(len(c) for c in valid_costs_list))
-            padded_costs = np.array([c + [c[-1]] * (max_len - len(c)) for c in valid_costs_list])
+            padded_costs = np.array(
+                [c + [c[-1]] * (max_len - len(c)) for c in valid_costs_list]
+            )
             avg_costs = np.mean(padded_costs, axis=0)
             color = colors[idx]
 
@@ -156,14 +181,29 @@ class Simulator:
                 for i in range(padded_costs.shape[0]):
                     plt.plot(padded_costs[i, :], color=color, alpha=0.2, linewidth=0.5)
                 std_costs = np.std(padded_costs, axis=0)
-                plt.fill_between(range(max_len), avg_costs - std_costs, avg_costs + std_costs, color=color, alpha=0.1)
+                plt.fill_between(
+                    range(max_len),
+                    avg_costs - std_costs,
+                    avg_costs + std_costs,
+                    color=color,
+                    alpha=0.1,
+                )
 
             plt.plot(avg_costs, label=f"{engine_name} (Avg)", color=color, linewidth=2)
-            self.logger.warning(f"Plotted {engine_name}: avg final cost = {avg_costs[-1]:.2f}")
+            self.logger.warning(
+                f"Plotted {engine_name}: avg final cost = {avg_costs[-1]:.2f}"
+            )
 
-        plt.title(f"Average Costs over {len(self.results.get(list(self.results.keys())[0], []))} Runs", fontsize=14)
-        plt.xlabel("Iteration", fontsize=12); plt.ylabel("Average Cost", fontsize=12)
-        plt.legend(fontsize=10); plt.grid(True, alpha=0.3); plt.tight_layout(); plt.show()
+        plt.title(
+            f"Average Costs over {len(self.results.get(list(self.results.keys())[0], []))} Runs",
+            fontsize=14,
+        )
+        plt.xlabel("Iteration", fontsize=12)
+        plt.ylabel("Average Cost", fontsize=12)
+        plt.legend(fontsize=10)
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.show()
         self.logger.warning("Displaying plot.")
 
     def set_log_level(self, level: str) -> None:
@@ -189,7 +229,9 @@ class Simulator:
             engine_cls_or_key = config["class"]
             engine_params = {k: v for k, v in config.items() if k != "class"}
             if isinstance(engine_cls_or_key, str):
-                engine = build_engine(engine_cls_or_key, factor_graph=fg_copy, **engine_params)
+                engine = build_engine(
+                    engine_cls_or_key, factor_graph=fg_copy, **engine_params
+                )
             else:
                 engine = engine_cls_or_key(
                     factor_graph=fg_copy,
@@ -197,16 +239,28 @@ class Simulator:
                     **engine_params,
                 )
             engine.run(max_iter=max_iter)
-            costs = [float(s.global_cost) for s in engine.snapshots if s.global_cost is not None]
-            logger.info(f"Finished: graph {graph_index}, engine {engine_name}. Final cost: {costs[-1] if costs else 'N/A'}")
+            costs = [
+                float(s.global_cost)
+                for s in engine.snapshots
+                if s.global_cost is not None
+            ]
+            logger.info(
+                f"Finished: graph {graph_index}, engine {engine_name}. Final cost: {costs[-1] if costs else 'N/A'}"
+            )
             return (graph_index, engine_name, costs)
         except Exception as e:
-            logger.error(f"Exception in child process for graph {graph_index}, engine {engine_name}: {e}\n{traceback.format_exc()}")
+            logger.error(
+                f"Exception in child process for graph {graph_index}, engine {engine_name}: {e}\n{traceback.format_exc()}"
+            )
             return (graph_index, engine_name, [])
 
-    def _run_batch_safe(self, simulation_args: List[Tuple], max_workers: int) -> List[Tuple]:
+    def _run_batch_safe(
+        self, simulation_args: List[Tuple], max_workers: int
+    ) -> List[Tuple]:
         """Runs simulations in parallel with a timeout, falling back to batching."""
-        self.logger.warning(f"Attempting full multiprocessing with {max_workers} processes...")
+        self.logger.warning(
+            f"Attempting full multiprocessing with {max_workers} processes..."
+        )
         try:
             with Pool(processes=max_workers) as pool:
                 result = pool.map_async(self._run_single_simulation, simulation_args)
@@ -214,20 +268,30 @@ class Simulator:
         except Exception as e:
             self.logger.error(f"Full multiprocessing failed: {e}")
             self.logger.warning("Trying batch processing...")
-            return self._run_in_batches(simulation_args, max_workers=max(1, max_workers // 2))
+            return self._run_in_batches(
+                simulation_args, max_workers=max(1, max_workers // 2)
+            )
 
-    def _run_in_batches(self, simulation_args: List[Tuple], batch_size: int = 8, max_workers: int = 4) -> List[Tuple]:
+    def _run_in_batches(
+        self, simulation_args: List[Tuple], batch_size: int = 8, max_workers: int = 4
+    ) -> List[Tuple]:
         """Runs simulations in smaller parallel batches as a fallback."""
-        self.logger.warning(f"Starting batch processing with batch_size={batch_size} and max_workers={max_workers}")
+        self.logger.warning(
+            f"Starting batch processing with batch_size={batch_size} and max_workers={max_workers}"
+        )
         all_results = []
         for i in range(0, len(simulation_args), batch_size):
-            batch = simulation_args[i:i + batch_size]
-            self.logger.warning(f"Running batch {i // batch_size + 1}/{len(simulation_args) // batch_size + 1}...")
+            batch = simulation_args[i : i + batch_size]
+            self.logger.warning(
+                f"Running batch {i // batch_size + 1}/{len(simulation_args) // batch_size + 1}..."
+            )
             try:
                 with Pool(processes=min(max_workers, len(batch))) as pool:
                     all_results.extend(pool.map(self._run_single_simulation, batch))
             except Exception as e:
-                self.logger.error(f"Batch failed: {e}. Running sequentially as fallback.")
+                self.logger.error(
+                    f"Batch failed: {e}. Running sequentially as fallback."
+                )
                 all_results.extend(self._sequential_fallback(batch))
         return all_results
 

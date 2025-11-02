@@ -1,4 +1,3 @@
-
 from typing import (
     Any,
     Dict,
@@ -33,6 +32,7 @@ class FGAgent(Protocol):
     This protocol outlines the essential attributes and methods that any agent
     in the factor graph (either a variable or a factor) must implement.
     """
+
     name: str
     domain: int
     mailbox: dict
@@ -88,6 +88,7 @@ CostTable: TypeAlias = np.ndarray
 @runtime_checkable
 class Message(Protocol):
     """A protocol defining the interface for a Message."""
+
     data: np.ndarray
     sender: Any
     recipient: Any
@@ -99,6 +100,7 @@ class Message(Protocol):
 @runtime_checkable
 class MailHandler(Protocol):
     """A protocol defining the interface for a MailHandler."""
+
     inbox: List["Message"]
     outbox: List["Message"]
 
@@ -127,6 +129,7 @@ class MailHandler(Protocol):
 @runtime_checkable
 class Computator(Protocol):
     """A protocol defining the interface for a Computator object."""
+
     def compute_Q(self, messages: List["Message"]) -> List["Message"]:
         ...
 
@@ -145,6 +148,7 @@ class Computator(Protocol):
 @runtime_checkable
 class Policy(Protocol):
     """A protocol defining the interface for a generic Policy."""
+
     type: PolicyType
 
     def __call__(self, *args, **kwargs):
@@ -154,6 +158,7 @@ class Policy(Protocol):
 @runtime_checkable
 class Step(Protocol):
     """A protocol defining a single step in a simulation's history."""
+
     num: int
     messages: Dict[str, List["Message"]]
 
@@ -164,6 +169,7 @@ class Step(Protocol):
 @runtime_checkable
 class Cycle(Protocol):
     """A protocol defining a cycle of steps in a simulation's history."""
+
     number: int
     steps: List[Step]
 
@@ -181,6 +187,7 @@ class HistoryProtocol(Protocol):
     This includes configuration, cycles, beliefs, assignments, costs, and
     methods for saving results.
     """
+
     config: dict
     cycles: Dict[int, Cycle]
     beliefs: Dict[int, Dict[str, np.ndarray]]

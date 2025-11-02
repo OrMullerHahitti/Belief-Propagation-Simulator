@@ -64,4 +64,3 @@ class BeamFrontier(Generic[S, A]):
 
     def __len__(self) -> int:  # pragma: no cover - trivial
         return len(self._buffer)
-

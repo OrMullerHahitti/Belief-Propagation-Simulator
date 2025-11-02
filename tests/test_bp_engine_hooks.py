@@ -18,7 +18,9 @@ def _make_cost_table(num_vars: int, domain_size: int, **_: int) -> np.ndarray:
     return data.reshape(shape)
 
 
-def build_single_factor_graph(domain: int = 3) -> tuple[FactorGraph, VariableAgent, FactorAgent]:
+def build_single_factor_graph(
+    domain: int = 3,
+) -> tuple[FactorGraph, VariableAgent, FactorAgent]:
     var = VariableAgent("x1", domain=domain)
     factor = FactorAgent("f1", domain=domain, ct_creation_func=_make_cost_table)
     edges = {factor: [var]}
@@ -56,25 +58,33 @@ def test_bp_engine_step_records_messages():
     graph, var, factor = build_single_factor_graph(domain=3)
     engine = BPEngine(graph)
 
-    var_sequence = deque([
-        np.array([1.0, 2.0, 3.0]),
-        np.array([4.0, 5.0, 6.0]),
-    ])
-    factor_sequence = deque([
-        np.array([0.1, 0.2, 0.3]),
-        np.array([0.3, 0.2, 0.1]),
-    ])
+    var_sequence = deque(
+        [
+            np.array([1.0, 2.0, 3.0]),
+            np.array([4.0, 5.0, 6.0]),
+        ]
+    )
+    factor_sequence = deque(
+        [
+            np.array([0.1, 0.2, 0.3]),
+            np.array([0.3, 0.2, 0.1]),
+        ]
+    )
 
     var.compute_messages = _bind_sequence_stub(var, factor, var_sequence)
     factor.compute_messages = _bind_sequence_stub(factor, var, factor_sequence)
 
     first_step = engine.step(0)
     np.testing.assert_allclose(first_step.q_messages[var.name][0].data, [1.0, 2.0, 3.0])
-    np.testing.assert_allclose(first_step.r_messages[factor.name][0].data, [0.1, 0.2, 0.3])
+    np.testing.assert_allclose(
+        first_step.r_messages[factor.name][0].data, [0.1, 0.2, 0.3]
+    )
     np.testing.assert_allclose(first_step.messages[var.name][0].data, [0.1, 0.2, 0.3])
 
     second_step = engine.step(1)
-    np.testing.assert_allclose(second_step.q_messages[var.name][0].data, [4.0, 5.0, 6.0])
+    np.testing.assert_allclose(
+        second_step.q_messages[var.name][0].data, [4.0, 5.0, 6.0]
+    )
     assert second_step.num == 1
     assert not var_sequence
     assert not factor_sequence
@@ -85,16 +95,22 @@ def test_damping_engine_reuses_previous_messages():
     engine = DampingEngine(graph, damping_factor=0.5)
 
     raw_sent: list[np.ndarray] = []
-    var_sequence = deque([
-        np.array([2.0, 4.0]),
-        np.array([6.0, 8.0]),
-    ])
-    factor_sequence = deque([
-        np.zeros(2),
-        np.zeros(2),
-    ])
+    var_sequence = deque(
+        [
+            np.array([2.0, 4.0]),
+            np.array([6.0, 8.0]),
+        ]
+    )
+    factor_sequence = deque(
+        [
+            np.zeros(2),
+            np.zeros(2),
+        ]
+    )
 
-    var.compute_messages = _bind_sequence_stub(var, factor, var_sequence, record=raw_sent)
+    var.compute_messages = _bind_sequence_stub(
+        var, factor, var_sequence, record=raw_sent
+    )
     factor.compute_messages = _bind_sequence_stub(factor, var, factor_sequence)
 
     first_step = engine.step(0)
@@ -136,8 +152,12 @@ def test_mailhandler_keys_include_agent_type():
     )
     same_name_variable = VariableAgent("shared", domain=2)
 
-    handler.receive_messages(Message(np.zeros(2), sender=same_name_factor, recipient=owner))
-    handler.receive_messages(Message(np.ones(2), sender=same_name_variable, recipient=owner))
+    handler.receive_messages(
+        Message(np.zeros(2), sender=same_name_factor, recipient=owner)
+    )
+    handler.receive_messages(
+        Message(np.ones(2), sender=same_name_variable, recipient=owner)
+    )
 
     inbox = handler.inbox
     assert len(inbox) == 2

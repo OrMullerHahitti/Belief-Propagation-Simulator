@@ -39,6 +39,7 @@ PROJECT_ROOT: str = find_project_root()
 
 class Dirs(Enum):
     """Standardized names for common project directories."""
+
     LOGS = "logs"
     TEST_LOGS = "test_logs"
     TEST_DATA = "test_data"
@@ -61,7 +62,7 @@ ENGINE_DEFAULTS: Dict[str, Any] = {
     "monitor_performance": False,
     "anytime": False,
     "use_bct_history": False,
-    'timeout': 600,  # seconds
+    "timeout": 600,  # seconds
 }
 
 ########################################################################
@@ -158,8 +159,11 @@ VERBOSE_LOGGING = LOGGING_CONFIG["verbose_logging"]
 def validate_engine_config(config: Dict[str, Any]) -> bool:
     """Validate engine configuration. Raises ValueError if invalid."""
     required_keys = [
-        "max_iterations", "normalize_messages", "monitor_performance",
-        "anytime", "use_bct_history",
+        "max_iterations",
+        "normalize_messages",
+        "monitor_performance",
+        "anytime",
+        "use_bct_history",
     ]
     for key in required_keys:
         if key not in config:
@@ -290,7 +294,9 @@ ENGINE_MAPPING: Dict[str, str] = {
 ########################################################################
 
 
-def create_poisson_table(n: int, domain: int, rate: float = 1.0, strength: float | None = None):
+def create_poisson_table(
+    n: int, domain: int, rate: float = 1.0, strength: float | None = None
+):
     """Generate cost table with Poisson-distributed values.
 
     When using FGBuilder, pass `rate` or `strength` via ct_params.
@@ -313,7 +319,9 @@ def create_random_int_table(n: int, domain: int, low: int = 0, high: int = 10):
     return np.random.randint(low=low, high=high, size=shape)
 
 
-def create_uniform_float_table(n: int, domain: int, low: float = 0.0, high: float = 1.0):
+def create_uniform_float_table(
+    n: int, domain: int, low: float = 0.0, high: float = 1.0
+):
     """Generate cost table with uniform float values.
 
     When using FGBuilder, pass `low` and `high` via ct_params.

@@ -90,7 +90,9 @@ class MessagePruningPolicy:
         threshold = self.prune_threshold
         if self.adaptive_threshold:
             msg_magnitude = np.linalg.norm(new_message.data)
-            threshold *= max(1.0, msg_magnitude * POLICY_DEFAULTS["pruning_magnitude_factor"])
+            threshold *= max(
+                1.0, msg_magnitude * POLICY_DEFAULTS["pruning_magnitude_factor"]
+            )
 
         if diff_norm < threshold:
             self.pruned_count += 1

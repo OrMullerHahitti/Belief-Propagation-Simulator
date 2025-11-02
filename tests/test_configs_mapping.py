@@ -35,7 +35,11 @@ def test_validation_helpers_enforce_constraints():
     with pytest.raises(ValueError):
         validate_engine_config(invalid_engine)
 
-    valid_policy = {"damping_factor": 0.5, "split_factor": 0.4, "pruning_threshold": 0.1}
+    valid_policy = {
+        "damping_factor": 0.5,
+        "split_factor": 0.4,
+        "pruning_threshold": 0.1,
+    }
     assert validate_policy_config(valid_policy)
 
     with pytest.raises(ValueError):

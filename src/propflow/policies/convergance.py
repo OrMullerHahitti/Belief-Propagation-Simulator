@@ -31,6 +31,7 @@ class ConvergenceConfig:
         use_relative_change: If True, uses the relative change in belief norm
             for the threshold check; otherwise, uses the absolute change.
     """
+
     belief_threshold: float = CONVERGENCE_DEFAULTS["belief_threshold"]
     assignment_threshold: int = CONVERGENCE_DEFAULTS["assignment_threshold"]
     min_iterations: int = CONVERGENCE_DEFAULTS["min_iterations"]
@@ -90,8 +91,10 @@ class ConvergenceMonitor:
                 if self.config.use_relative_change:
                     prev_norm = np.linalg.norm(self.prev_beliefs[var])
                     change = (
-                        np.linalg.norm(beliefs[var] - self.prev_beliefs[var]) / prev_norm
-                        if prev_norm > 0 else np.linalg.norm(beliefs[var])
+                        np.linalg.norm(beliefs[var] - self.prev_beliefs[var])
+                        / prev_norm
+                        if prev_norm > 0
+                        else np.linalg.norm(beliefs[var])
                     )
                 else:
                     change = np.linalg.norm(beliefs[var] - self.prev_beliefs[var])
@@ -100,19 +103,22 @@ class ConvergenceMonitor:
         max_belief_change = max(belief_changes) if belief_changes else 0
         belief_converged = max_belief_change < self.config.belief_threshold
         assignment_converged = all(
-            assignments.get(var) == self.prev_assignments.get(var) for var in assignments
+            assignments.get(var) == self.prev_assignments.get(var)
+            for var in assignments
         )
 
         logger.debug(
             f"Iteration {self.iteration}: max_belief_change={max_belief_change:.6f}, "
             f"belief_converged={belief_converged}, assignment_converged={assignment_converged}"
         )
-        self.convergence_history.append({
-            "iteration": self.iteration,
-            "max_belief_change": max_belief_change,
-            "belief_converged": belief_converged,
-            "assignment_converged": assignment_converged,
-        })
+        self.convergence_history.append(
+            {
+                "iteration": self.iteration,
+                "max_belief_change": max_belief_change,
+                "belief_converged": belief_converged,
+                "assignment_converged": assignment_converged,
+            }
+        )
 
         self._update_state(beliefs, assignments)
 
@@ -155,6 +161,8 @@ class ConvergenceMonitor:
         return {
             "total_iterations": self.iteration,
             "converged": self.stable_count >= self.config.patience,
-            "final_max_belief_change": self.convergence_history[-1]["max_belief_change"],
+            "final_max_belief_change": self.convergence_history[-1][
+                "max_belief_change"
+            ],
             "history": self.convergence_history,
         }

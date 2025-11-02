@@ -18,4 +18,3 @@ class Node(Generic[S, A]):
     h: float
     f: float
     depth: int
-

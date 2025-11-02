@@ -16,6 +16,7 @@ class Engine(BPEngine):
     This is a direct alias for `BPEngine` and provides the standard,
     unmodified belief propagation behavior.
     """
+
     ...
 
 
@@ -26,6 +27,7 @@ class SplitEngine(BPEngine):
     distributing the original cost between them. This can sometimes help with
     convergence.
     """
+
     def __init__(self, *args, split_factor: float = 0.6, **kwargs):
         """Initializes the SplitEngine.
 
@@ -51,6 +53,7 @@ class CostReductionOnceEngine(BPEngine):
     This engine reduces the costs in the factor tables at the beginning of the
     simulation and then applies a discount to outgoing messages from factors.
     """
+
     def __init__(self, *args, reduction_factor: float = 0.5, **kwargs):
         """Initializes the CostReductionOnceEngine.
 
@@ -78,6 +81,7 @@ class DampingEngine(BPEngine):
     Damping averages the message from the previous iteration with the newly
     computed message. This can help prevent oscillations and improve convergence.
     """
+
     def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
         """Initializes the DampingEngine.
 
@@ -189,6 +193,7 @@ class MessagePruningEngine(BPEngine):
 
 class DiscountEngine(BPEngine):
     """A BP engine that applies a discount factor to messages over time."""
+
     def __init__(self, *args, **kwargs):
         """Initializes the DiscountEngine.
 

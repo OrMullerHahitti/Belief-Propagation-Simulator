@@ -39,12 +39,20 @@ def draw_factor_graph(
     pos = nx.bipartite_layout(fg.G, var_nodes)
 
     nx.draw_networkx_nodes(
-        fg.G, pos, nodelist=var_nodes, node_shape="o",
-        node_color=var_color, node_size=node_size
+        fg.G,
+        pos,
+        nodelist=var_nodes,
+        node_shape="o",
+        node_color=var_color,
+        node_size=node_size,
     )
     nx.draw_networkx_nodes(
-        fg.G, pos, nodelist=factor_nodes, node_shape="s",
-        node_color=factor_color, node_size=node_size
+        fg.G,
+        pos,
+        nodelist=factor_nodes,
+        node_shape="s",
+        node_color=factor_color,
+        node_size=node_size,
     )
 
     nx.draw_networkx_edges(fg.G, pos)

@@ -53,4 +53,3 @@ class ClosedList(DuplicateDetectionPolicy):
 # Convenience alias for typing clarity when policies need mappings
 Assignment = Mapping[Hashable, Any]
 ExpansionOutput = Iterable[Tuple[Any, Assignment, float]]
-
