@@ -167,7 +167,6 @@ Track and analyze convergence behavior:
 
    from propflow import BPEngine, FGBuilder
    from propflow.configs import create_random_int_table
-   from propflow.snapshots import SnapshotsConfig
    import matplotlib.pyplot as plt
 
    fg = FGBuilder.build_cycle_graph(
@@ -177,17 +176,11 @@ Track and analyze convergence behavior:
        ct_params={'low': 1, 'high': 50}
    )
 
-   # Enable detailed snapshots
-   snap_config = SnapshotsConfig(
-       compute_jacobians=True,
-       retain_last=100
-   )
-
-   engine = BPEngine(fg, snapshots_config=snap_config)
+   engine = BPEngine(fg, use_bct_history=True)
    engine.run(max_iter=100)
 
    # Plot cost over time
-   costs = engine.history.costs
+   costs = [snap.global_cost for snap in engine.snapshots if snap.global_cost is not None]
    plt.plot(costs)
    plt.xlabel('Iteration')
    plt.ylabel('Global Cost')
