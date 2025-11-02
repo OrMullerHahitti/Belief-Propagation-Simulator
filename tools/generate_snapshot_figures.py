@@ -15,7 +15,7 @@ matplotlib.use("Agg")
 
 from propflow import BPEngine, FGBuilder
 from propflow.configs import CTFactories
-from propflow.snapshots.visualizer import SnapshotVisualizer
+from propflow.snapshots import SnapshotVisualizer
 
 
 def run_random_engine(
