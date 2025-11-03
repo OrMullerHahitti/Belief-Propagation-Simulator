@@ -8,3 +8,4 @@ recursive-include configs *.py *.md
 prune configs/logs
 prune .vscode
 prune .venv
+
