@@ -7,6 +7,14 @@ from .global_config_mapping import (
     create_poisson_table,
     create_random_int_table,
     create_uniform_float_table,
+    # Enum classes (new style)
+    EngineDefaults,
+    LoggingDefaults,
+    PolicyDefaults,
+    ConvergenceDefaults,
+    SimulatorDefaults,
+    SearchDefaults,
+    # Legacy dict interfaces (backward compatibility)
     ENGINE_DEFAULTS,
     POLICY_DEFAULTS,
     CONVERGENCE_DEFAULTS,
@@ -28,6 +36,14 @@ __all__ = [
     "create_poisson_table",
     "create_random_int_table",
     "create_uniform_float_table",
+    # Enum classes
+    "EngineDefaults",
+    "LoggingDefaults",
+    "PolicyDefaults",
+    "ConvergenceDefaults",
+    "SimulatorDefaults",
+    "SearchDefaults",
+    # Legacy dicts
     "ENGINE_DEFAULTS",
     "POLICY_DEFAULTS",
     "CONVERGENCE_DEFAULTS",

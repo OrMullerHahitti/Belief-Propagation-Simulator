@@ -13,10 +13,10 @@ from ..bp.engines import (
     Engine,
     SplitEngine,
     DampingEngine,
+    DiffusionEngine,
     CostReductionOnceEngine,
     DampingCROnceEngine,
     DampingSCFGEngine,
-    DiscountEngine,
     MessagePruningEngine,
 )
 
@@ -26,10 +26,10 @@ ENGINES = {
     "Engine": Engine,
     "SplitEngine": SplitEngine,
     "DampingEngine": DampingEngine,
+    "DiffusionEngine": DiffusionEngine,
     "CostReductionOnceEngine": CostReductionOnceEngine,
     "DampingCROnceEngine": DampingCROnceEngine,
     "DampingSCFGEngine": DampingSCFGEngine,
-    "DiscountEngine": DiscountEngine,
     "MessagePruningEngine": MessagePruningEngine,
 }
 
@@ -38,10 +38,10 @@ __all__ = [
     "Engine",
     "SplitEngine",
     "DampingEngine",
+    "DiffusionEngine",
     "CostReductionOnceEngine",
     "DampingCROnceEngine",
     "DampingSCFGEngine",
-    "DiscountEngine",
     "MessagePruningEngine",
     "ENGINES",
 ]

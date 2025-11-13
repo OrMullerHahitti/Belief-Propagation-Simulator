@@ -14,10 +14,10 @@ from .simulator import Simulator
 from .bp.engines import (
     SplitEngine,
     DampingEngine,
+    DiffusionEngine,
     CostReductionOnceEngine,
     DampingCROnceEngine,
     DampingSCFGEngine,
-    DiscountEngine,
     MessagePruningEngine,
 )
 
@@ -57,10 +57,10 @@ __all__ = [
     # Engines
     "SplitEngine",
     "DampingEngine",
+    "DiffusionEngine",
     "CostReductionOnceEngine",
     "DampingCROnceEngine",
     "DampingSCFGEngine",
-    "DiscountEngine",
     "MessagePruningEngine",
     # Computators
     "MinSumComputator",

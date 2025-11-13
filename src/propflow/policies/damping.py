@@ -5,7 +5,7 @@ to stabilize belief propagation by preventing oscillations. Damping works by
 blending a newly computed message with the message from a previous iteration.
 """
 from ..core.agents import VariableAgent
-from ..configs.global_config_mapping import POLICY_DEFAULTS
+from ..configs.global_config_mapping import PolicyDefaults
 from typing import List
 
 
@@ -28,9 +28,9 @@ def TD(variables: List[VariableAgent], x: float = None, diameter: int = None) ->
             `POLICY_DEFAULTS` is used.
     """
     if x is None:
-        x = POLICY_DEFAULTS["damping_factor"]
+        x = PolicyDefaults.DAMPING_FACTOR.value
     if diameter is None:
-        diameter = POLICY_DEFAULTS["damping_diameter"]
+        diameter = PolicyDefaults.DAMPING_DIAMETER.value
 
     for variable in variables:
         last_iter = variable.last_cycle(diameter)
@@ -59,7 +59,7 @@ def damp(variable: VariableAgent, x: float = None) -> None:
             If None, the default from `POLICY_DEFAULTS` is used.
     """
     if x is None:
-        x = POLICY_DEFAULTS["damping_factor"]
+        x = PolicyDefaults.DAMPING_FACTOR.value
 
     last_iter = variable.last_iteration
     outbox = variable.mailer.outbox

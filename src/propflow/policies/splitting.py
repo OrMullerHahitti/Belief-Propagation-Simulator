@@ -13,7 +13,7 @@ from copy import deepcopy
 
 from ..core.agents import FactorAgent
 from ..bp.factor_graph import FactorGraph
-from ..configs.global_config_mapping import POLICY_DEFAULTS
+from ..configs.global_config_mapping import PolicyDefaults
 
 
 def split_all_factors(
@@ -39,7 +39,7 @@ def split_all_factors(
         AssertionError: If `p` is not in the range (0, 1).
     """
     if p is None:
-        p = POLICY_DEFAULTS["split_factor"]
+        p = PolicyDefaults.SPLIT_FACTOR.value
 
     assert 0.0 < p < 1.0, "p must be in (0,1)"
     G: nx.Graph = fg.G

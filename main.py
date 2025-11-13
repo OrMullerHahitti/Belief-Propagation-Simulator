@@ -16,9 +16,7 @@ from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
 from propflow.configs import CTFactories
 from propflow.configs.global_config_mapping import (
-    SIMULATOR_DEFAULTS,
-    POLICY_DEFAULTS,
-    ENGINE_DEFAULTS,
+    EngineDefaults
 )
 from propflow.bp.engines import (
     BPEngine,
@@ -27,6 +25,7 @@ from propflow.bp.engines import (
     DampingCROnceEngine,
     CostReductionOnceEngine,
     SplitEngine,
+    DiffusionEngine
 )
 
 SEED = 42
@@ -40,7 +39,7 @@ if __name__ == "__main__":
     random.seed(SEED)
 
     # --- Configuration (uses centralized defaults, override as needed) ---
-    NUM_GRAPHS = 10
+    NUM_GRAPHS = 4
     MAX_ITER = ENGINE_DEFAULTS["max_iterations"]  # Can override: MAX_ITER = 2000
     LOG_LEVEL = SIMULATOR_DEFAULTS[
         "default_log_level"
@@ -48,8 +47,8 @@ if __name__ == "__main__":
 
     # Engine configurations (using centralized defaults with explicit overrides when needed)
     engine_configs = {
-        "BPEngine": {"class": BPEngine},
-        "DampingSCFGEngine_symmetric": {
+        "Baseline Belief Propagation": {"class": BPEngine},
+        "Damping+symmetric_splitting": {
             "class": DampingSCFGEngine,
             "damping_factor": POLICY_DEFAULTS[
                 "damping_factor"
@@ -58,7 +57,7 @@ if __name__ == "__main__":
                 "split_factor"
             ],  # Can override: "split_factor": 0.3,
         },
-        "Split_0.5": {
+        "Symmetric_split_only": {
             "class": SplitEngine,
             "split_factor": POLICY_DEFAULTS[
                 "split_factor"
@@ -75,7 +74,7 @@ if __name__ == "__main__":
             domain_size=10,
             ct_factory=ct_factory_fn,
             ct_params={"low": 100, "high": 200},
-            density=0.2,
+            density=0.7,
         )
         for _ in range(NUM_GRAPHS)
     ]

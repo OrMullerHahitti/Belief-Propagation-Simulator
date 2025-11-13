@@ -8,6 +8,10 @@ from ..policies.cost_reduction import (
 from ..policies.splitting import split_all_factors
 from ..policies import damp
 from ..utils.inbox_utils import multiply_messages_attentive
+import numpy as np
+from typing import Dict, Optional
+from propflow.bp.engine_base import BPEngine
+from propflow.core.components import Message
 
 
 class Engine(BPEngine):
@@ -40,7 +44,7 @@ class SplitEngine(BPEngine):
         self.split_factor = split_factor
         super().__init__(*args, **kwargs)
         self._name = "SPFGEngine"
-        self._set_name({"split-": f"{str(self.split_factor)}-{str(self.split_factor)}"})
+        self._set_name({"split-": f"{self.split_factor}-{self.split_factor}"})
 
     def post_init(self) -> None:
         """Applies the factor splitting policy after initialization."""
@@ -100,6 +104,96 @@ class DampingEngine(BPEngine):
         """Applies damping after a variable node computes its messages."""
         damp(var, self.damping_factor)
         var.append_last_iteration()
+
+
+class DiffusionEngine(BPEngine):
+    """A BP engine that applies spatial message diffusion.
+
+    Unlike damping which blends messages across time (current vs previous),
+    diffusion blends messages across space (local vs neighbors) at each iteration.
+    This can help smooth the optimization landscape and improve convergence on
+    densely connected graphs.
+    """
+
+    def __init__(self, *args, alpha: float = 0.3, **kwargs):
+        """Initializes the DiffusionEngine.
+
+        Args:
+            *args: Positional arguments for the base `BPEngine`.
+            alpha: Diffusion coefficient in [0, 1]. Higher values = more smoothing.
+                - alpha=0: no diffusion (pure BP)
+                - alpha=0.1-0.3: recommended range for most problems
+                - alpha=1: complete averaging (may lose local information)
+                Defaults to 0.3.
+            **kwargs: Keyword arguments for the base `BPEngine`.
+        """
+        if not 0 <= alpha <= 1:
+            raise ValueError(f"alpha must be in [0, 1], got {alpha}")
+
+        self.alpha = alpha
+        super().__init__(*args, **kwargs)
+        self._name = "DiffusionEngine"
+        self._set_name({"alpha": str(self.alpha)})
+
+    def post_var_compute(self, var: VariableAgent) -> None:
+        """Apply spatial diffusion to Q-messages (variable → factor).
+
+        For each message this variable sends to a factor, blend it with
+        messages from other variables connected to the same factor.
+        """
+        if self.alpha == 0:
+            return  # No diffusion needed
+
+        # For each message in this variable's outbox
+        for msg in var.outbox:
+            target_factor = msg.recipient
+
+            # Collect Q-messages from OTHER variables connected to same factor
+            neighbor_msgs = []
+            for neighbor in self.graph.G.neighbors(target_factor):
+                # Neighbors of a factor are variables
+                if neighbor != var:  # Skip self
+                    # Find if this neighbor variable has a message to the same factor
+                    for neighbor_msg in neighbor.outbox:
+                        if neighbor_msg.recipient == target_factor:
+                            neighbor_msgs.append(neighbor_msg.data)
+                            break
+
+            # Apply diffusion if neighbors exist
+            if neighbor_msgs:
+                neighbor_avg = np.mean(neighbor_msgs, axis=0)
+                # Blend: (1-α) × local + α × neighbor_average
+                msg.data = (1 - self.alpha) * msg.data + self.alpha * neighbor_avg
+
+    def post_factor_compute(self, factor: FactorAgent, iteration: int) -> None:
+        """Apply spatial diffusion to R-messages (factor → variable).
+
+        For each message this factor sends to a variable, blend it with
+        messages from other factors connected to the same variable.
+        """
+        if self.alpha == 0:
+            return  # No diffusion needed
+
+        # For each message in this factor's outbox
+        for msg in factor.outbox:
+            target_var = msg.recipient
+
+            # Collect R-messages from OTHER factors connected to same variable
+            neighbor_msgs = []
+            for neighbor in self.graph.G.neighbors(target_var):
+                # Neighbors of a variable are factors
+                if neighbor != factor:  # Skip self
+                    # Find if this neighbor factor has a message to the same variable
+                    for neighbor_msg in neighbor.outbox:
+                        if neighbor_msg.recipient == target_var:
+                            neighbor_msgs.append(neighbor_msg.data)
+                            break
+
+            # Apply diffusion if neighbors exist
+            if neighbor_msgs:
+                neighbor_avg = np.mean(neighbor_msgs, axis=0)
+                # Blend: (1-α) × local + α × neighbor_average
+                msg.data = (1 - self.alpha) * msg.data + self.alpha * neighbor_avg
 
 
 class DampingSCFGEngine(DampingEngine, SplitEngine):
@@ -189,20 +283,3 @@ class MessagePruningEngine(BPEngine):
             min_iterations=self.min_iterations,
             adaptive_threshold=self.adaptive_threshold,
         )
-
-
-class DiscountEngine(BPEngine):
-    """A BP engine that applies a discount factor to messages over time."""
-
-    def __init__(self, *args, **kwargs):
-        """Initializes the DiscountEngine.
-
-        Args:
-            *args: Positional arguments for the base `BPEngine`.
-            **kwargs: Keyword arguments for the base `BPEngine`.
-        """
-        super().__init__(*args, **kwargs)
-
-    def post_factor_cycle(self):
-        """Applies the discount policy after each message passing cycle."""
-        discount_attentive(self.graph)

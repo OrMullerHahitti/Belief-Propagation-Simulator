@@ -12,7 +12,7 @@ import numpy as np
 from ..core.agents import FGAgent
 from ..core.components import Message
 from ..core.protocols import PolicyType
-from ..configs.global_config_mapping import POLICY_DEFAULTS
+from ..configs.global_config_mapping import PolicyDefaults
 import logging
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class MessagePruningPolicy:
         self.prune_threshold = (
             prune_threshold
             if prune_threshold is not None
-            else POLICY_DEFAULTS["pruning_threshold"]
+            else PolicyDefaults.PRUNING_THRESHOLD.value
         )
         self.min_iterations = min_iterations
         self.adaptive_threshold = adaptive_threshold
@@ -91,7 +91,7 @@ class MessagePruningPolicy:
         if self.adaptive_threshold:
             msg_magnitude = np.linalg.norm(new_message.data)
             threshold *= max(
-                1.0, msg_magnitude * POLICY_DEFAULTS["pruning_magnitude_factor"]
+                1.0, msg_magnitude * PolicyDefaults.PRUNING_MAGNITUDE_FACTOR.value
             )
 
         if diff_norm < threshold:
