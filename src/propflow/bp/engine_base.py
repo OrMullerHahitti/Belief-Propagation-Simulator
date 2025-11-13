@@ -12,7 +12,7 @@ from ..snapshots import SnapshotManager, EngineSnapshot
 from ..utils.tools.performance import PerformanceMonitor
 
 from ..configs.loggers import Logger
-from ..configs.global_config_mapping import ENGINE_DEFAULTS
+from ..configs.global_config_mapping import EngineDefaults
 from ..utils import dummy_func
 
 logger = Logger(__name__, file=True)
@@ -69,11 +69,11 @@ class BPEngine:
         """
         # Apply defaults from global config with override capability
         self.computator = computator
-        self.anytime = anytime if anytime is not None else ENGINE_DEFAULTS["anytime"]
+        self.anytime = anytime if anytime is not None else EngineDefaults.ANYTIME.value
         self.normalize_messages = (
             normalize_messages
             if normalize_messages is not None
-            else ENGINE_DEFAULTS["normalize_messages"]
+            else EngineDefaults.NORMALIZE_MESSAGES.value
         )
         self.graph = factor_graph
         self.post_init()
@@ -85,7 +85,7 @@ class BPEngine:
         use_bct = (
             use_bct_history
             if use_bct_history is not None
-            else ENGINE_DEFAULTS["use_bct_history"]
+            else EngineDefaults.USE_BCT_HISTORY.value
         )
         self._use_bct_history = bool(use_bct)
         self._last_cost: float | None = None
@@ -97,7 +97,7 @@ class BPEngine:
         monitor_perf = (
             monitor_performance
             if monitor_performance is not None
-            else ENGINE_DEFAULTS["monitor_performance"]
+            else EngineDefaults.MONITOR_PERFORMANCE.value
         )
         self.performance_monitor = PerformanceMonitor() if monitor_perf else None
         self._name = name
@@ -192,7 +192,7 @@ class BPEngine:
             An optional string, typically for results or status.
         """
         max_iterations = (
-            max_iter if max_iter is not None else ENGINE_DEFAULTS["max_iterations"]
+            max_iter if max_iter is not None else EngineDefaults.MAX_ITERATIONS.value
         )
         self.convergence_monitor.reset()
         for i in range(max_iterations):

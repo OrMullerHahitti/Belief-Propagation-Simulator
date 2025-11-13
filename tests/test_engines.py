@@ -5,10 +5,10 @@ from propflow.core import VariableAgent, FactorAgent
 from propflow.bp.engines import (
     SplitEngine,
     DampingEngine,
+    DiffusionEngine,
     CostReductionOnceEngine,
     DampingCROnceEngine,
     DampingSCFGEngine,
-    DiscountEngine,
     MessagePruningEngine,
 )
 from propflow.core import Message
@@ -291,26 +291,45 @@ def test_damping_cr_once_engine():
 
 def test_discount_engine():
     """Test that DiscountEngine correctly initializes."""
-    verbose_print("\n=== Testing DiscountEngine ===")
+    # SKIPPED: DiscountEngine removed from codebase
+    return
+
+
+def test_diffusion_engine():
+    """Test that DiffusionEngine correctly initializes and applies diffusion."""
+    verbose_print("\n=== Testing DiffusionEngine ===")
 
     # Create a simple factor graph
     fg = create_simple_factor_graph()
     verbose_print("Created factor graph for testing")
 
-    # Create a DiscountEngine with the factor graph
-    verbose_print("Creating DiscountEngine")
-    engine = DiscountEngine(factor_graph=fg)
+    # Create a DiffusionEngine with the factor graph
+    verbose_print("Creating DiffusionEngine with alpha=0.3")
+    engine = DiffusionEngine(factor_graph=fg, alpha=0.3)
 
     # Verify engine is initialized correctly
     assert engine is not None
     assert engine.graph == fg
+    assert engine.alpha == 0.3
     verbose_print("✓ Engine initialized correctly")
 
-    # Testing post_factor_cycle would require more complex setup to mock discount_attentive
-    # Just ensure the method exists and can be called
-    verbose_print("Calling post_factor_cycle method...")
-    engine.post_factor_cycle()
-    verbose_print("✓ post_factor_cycle method called successfully")
+    # Test that alpha validation works
+    verbose_print("Testing alpha parameter validation...")
+    try:
+        bad_engine = DiffusionEngine(factor_graph=fg, alpha=1.5)
+        assert False, "Should have raised ValueError for alpha > 1"
+    except ValueError as e:
+        verbose_print(f"✓ Correctly rejected invalid alpha: {e}")
+
+    # Test running the engine
+    verbose_print("Running DiffusionEngine...")
+    engine.run(max_iter=10)
+    verbose_print(f"✓ Engine ran for {engine.iteration_count} iterations")
+
+    # Get the final cost from the latest snapshot
+    snapshot = engine.latest_snapshot()
+    if snapshot and snapshot.global_cost is not None:
+        verbose_print(f"  Final cost: {snapshot.global_cost:.2f}")
 
 
 def test_td_engine():

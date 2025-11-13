@@ -23,7 +23,7 @@ from .configs import Logger
 from .configs.global_config_mapping import (
     LOG_LEVELS,
     LOGGING_CONFIG,
-    SIMULATOR_DEFAULTS,
+    SimulatorDefaults,
 )
 from .policies import ConvergenceConfig
 from .search.algorithms import (
@@ -52,7 +52,7 @@ def build_engine(engine_key: str, *, factor_graph: Any, **kwargs: Any):
 def _setup_logger(level: Optional[str] = None) -> Logger:
     """Configures and returns a logger for the simulator."""
     safe_level = (
-        level if isinstance(level, str) else SIMULATOR_DEFAULTS["default_log_level"]
+        level if isinstance(level, str) else SimulatorDefaults.DEFAULT_LOG_LEVEL.value
     )
     log_level = LOG_LEVELS.get(safe_level.upper(), LOGGING_CONFIG["default_level"])
     logger = Logger("Simulator")
@@ -97,7 +97,7 @@ class Simulator:
         self.results: Dict[str, List[List[float]]] = {
             name: [] for name in engine_configs
         }
-        self.timeout = SIMULATOR_DEFAULTS["timeout"]
+        self.timeout = SimulatorDefaults.TIMEOUT.value
 
     def run_simulations(
         self, graphs: List[Any], max_iter: Optional[int] = None
@@ -112,7 +112,7 @@ class Simulator:
             A dictionary containing the collected results, where keys are engine
             names and values are lists of cost histories for each run.
         """
-        max_iter = max_iter or SIMULATOR_DEFAULTS["default_max_iter"]
+        max_iter = max_iter or SimulatorDefaults.DEFAULT_MAX_ITER.value
         self.logger.warning(
             f"Preparing {len(graphs) * len(self.engine_configs)} total simulations."
         )
@@ -159,7 +159,7 @@ class Simulator:
             verbose: If True, plots individual simulation runs with transparency
                 and standard deviation bands around the average.
         """
-        max_iter = max_iter or SIMULATOR_DEFAULTS["default_max_iter"]
+        max_iter = max_iter or SimulatorDefaults.DEFAULT_MAX_ITER.value
         self.logger.warning(f"Starting plotting... (Verbose: {verbose})")
         plt.figure(figsize=(12, 8))
         colors = plt.cm.viridis(np.linspace(0, 1, len(self.results)))

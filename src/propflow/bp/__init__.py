@@ -4,10 +4,10 @@ from .engines import (
     Engine,
     SplitEngine,
     DampingEngine,
+    DiffusionEngine,
     CostReductionOnceEngine,
     DampingCROnceEngine,
     DampingSCFGEngine,
-    DiscountEngine,
     MessagePruningEngine,
 )
 from .factor_graph import FactorGraph
@@ -15,10 +15,10 @@ from .factor_graph import FactorGraph
 __all__ = [
     "SplitEngine",
     "DampingEngine",
+    "DiffusionEngine",
     "CostReductionOnceEngine",
     "DampingCROnceEngine",
     "DampingSCFGEngine",
-    "DiscountEngine",
     "MessagePruningEngine",
     "FactorGraph",
     "Engine",

@@ -56,13 +56,100 @@ class Dirs(Enum):
 ########################################################################
 
 # Default parameters for the belief propagation engine.
+class EngineDefaults(Enum):
+    """Default parameters for the belief propagation engine."""
+    MAX_ITERATIONS = 2000
+    NORMALIZE_MESSAGES = True
+    MONITOR_PERFORMANCE = False
+    ANYTIME = False
+    USE_BCT_HISTORY = False
+    TIMEOUT = 600  # seconds
+
+
+class LoggingDefaults(Enum):
+    """Default configuration for the logging system."""
+    DEFAULT_LEVEL = logging.INFO
+    VERBOSE_LOGGING = False
+    FILE_LOGGING = True
+    LOG_DIR = "configs/logs"
+    LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    CONSOLE_FORMAT = "%(log_color)s%(asctime)s - %(name)s - %(message)s"
+    FILE_FORMAT = "%(asctime)s - %(name)s  - %(message)s"
+
+
+# For complex nested structures like console_colors, keep as a separate constant
+CONSOLE_COLORS: Dict[str, str] = {
+    "DEBUG": "cyan",
+    "INFO": "green",
+    "WARNING": "yellow",
+    "ERROR": "red",
+    "CRITICAL": "red,bg_white",
+}
+
+
+########################################################################
+# ---- Convergence Configuration --------------------------------------
+########################################################################
+
+
+class ConvergenceDefaults(Enum):
+    """Default parameters for the convergence monitor."""
+    BELIEF_THRESHOLD = 1e-6
+    ASSIGNMENT_THRESHOLD = 0
+    MIN_ITERATIONS = 0
+    PATIENCE = 5
+    USE_RELATIVE_CHANGE = True
+    TIMEOUT = 600  # seconds
+
+
+########################################################################
+# ---- Policy Configuration -------------------------------------------
+########################################################################
+
+
+class PolicyDefaults(Enum):
+    """Default parameters for various belief propagation policies."""
+    DAMPING_FACTOR = 0.9
+    DAMPING_DIAMETER = 1
+    SPLIT_FACTOR = 0.5
+    PRUNING_THRESHOLD = 0.1
+    PRUNING_MAGNITUDE_FACTOR = 0.1
+    COST_REDUCTION_ENABLED = True
+
+
+########################################################################
+# ---- Simulator Configuration ----------------------------------------
+########################################################################
+
+
+class SimulatorDefaults(Enum):
+    """Default parameters for the multi-simulation runner."""
+    DEFAULT_MAX_ITER = 5000
+    DEFAULT_LOG_LEVEL = "INFORMATIVE"
+    TIMEOUT = 3600
+    CPU_COUNT_MULTIPLIER = 1.0  # Fraction of CPU cores to use
+
+
+########################################################################
+# ---- Search Engine Configuration ------------------------------------
+########################################################################
+
+
+class SearchDefaults(Enum):
+    """Default parameters for search-based algorithms."""
+    MAX_ITERATIONS = 100
+    SEARCH_TIMEOUT = 1800  # 30 minutes
+    BEAM_WIDTH = 10
+    EXPLORATION_FACTOR = 0.1
+
+# Legacy dict interfaces for backward compatibility
 ENGINE_DEFAULTS: Dict[str, Any] = {
-    "max_iterations": 2000,
-    "normalize_messages": True,
-    "monitor_performance": False,
-    "anytime": False,
-    "use_bct_history": False,
-    "timeout": 600,  # seconds
+    "max_iterations": EngineDefaults.MAX_ITERATIONS.value,
+    "normalize_messages": EngineDefaults.NORMALIZE_MESSAGES.value,
+    "monitor_performance": EngineDefaults.MONITOR_PERFORMANCE.value,
+    "anytime": EngineDefaults.ANYTIME.value,
+    "use_bct_history": EngineDefaults.USE_BCT_HISTORY.value,
+    "timeout": EngineDefaults.TIMEOUT.value,
 }
 
 ########################################################################
@@ -71,20 +158,14 @@ ENGINE_DEFAULTS: Dict[str, Any] = {
 
 # Default configuration for the logging system.
 LOGGING_CONFIG: Dict[str, Any] = {
-    "default_level": logging.INFO,
-    "verbose_logging": False,
-    "file_logging": True,
-    "log_dir": "configs/logs",
-    "console_colors": {
-        "DEBUG": "cyan",
-        "INFO": "green",
-        "WARNING": "yellow",
-        "ERROR": "red",
-        "CRITICAL": "red,bg_white",
-    },
-    "log_format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    "console_format": "%(log_color)s%(asctime)s - %(name)s - %(message)s",
-    "file_format": "%(asctime)s - %(name)s  - %(message)s",
+    "default_level": LoggingDefaults.DEFAULT_LEVEL.value,
+    "verbose_logging": LoggingDefaults.VERBOSE_LOGGING.value,
+    "file_logging": LoggingDefaults.FILE_LOGGING.value,
+    "log_dir": LoggingDefaults.LOG_DIR.value,
+    "console_colors": CONSOLE_COLORS,
+    "log_format": LoggingDefaults.LOG_FORMAT.value,
+    "console_format": LoggingDefaults.CONSOLE_FORMAT.value,
+    "file_format": LoggingDefaults.FILE_FORMAT.value,
 }
 
 # Mapping of descriptive log level names to `logging` module constants.
@@ -96,56 +177,40 @@ LOG_LEVELS: Dict[str, int] = {
     "MINIMAL": logging.CRITICAL,
 }
 
-########################################################################
-# ---- Convergence Configuration --------------------------------------
-########################################################################
-
-# Default parameters for the convergence monitor.
+# Default parameters for the convergence monitor (backward compatibility).
 CONVERGENCE_DEFAULTS: Dict[str, Any] = {
-    "belief_threshold": 1e-6,
-    "assignment_threshold": 0,
-    "min_iterations": 0,
-    "patience": 5,
-    "use_relative_change": True,
-    "timeout": 600,  # seconds
+    "belief_threshold": ConvergenceDefaults.BELIEF_THRESHOLD.value,
+    "assignment_threshold": ConvergenceDefaults.ASSIGNMENT_THRESHOLD.value,
+    "min_iterations": ConvergenceDefaults.MIN_ITERATIONS.value,
+    "patience": ConvergenceDefaults.PATIENCE.value,
+    "use_relative_change": ConvergenceDefaults.USE_RELATIVE_CHANGE.value,
+    "timeout": ConvergenceDefaults.TIMEOUT.value,
 }
 
-########################################################################
-# ---- Policy Configuration -------------------------------------------
-########################################################################
-
-# Default parameters for various belief propagation policies.
+# Default parameters for various belief propagation policies (backward compatibility).
 POLICY_DEFAULTS: Dict[str, Any] = {
-    "damping_factor": 0.9,
-    "damping_diameter": 1,
-    "split_factor": 0.5,
-    "pruning_threshold": 0.1,
-    "pruning_magnitude_factor": 0.1,
-    "cost_reduction_enabled": True,
+    "damping_factor": PolicyDefaults.DAMPING_FACTOR.value,
+    "damping_diameter": PolicyDefaults.DAMPING_DIAMETER.value,
+    "split_factor": PolicyDefaults.SPLIT_FACTOR.value,
+    "pruning_threshold": PolicyDefaults.PRUNING_THRESHOLD.value,
+    "pruning_magnitude_factor": PolicyDefaults.PRUNING_MAGNITUDE_FACTOR.value,
+    "cost_reduction_enabled": PolicyDefaults.COST_REDUCTION_ENABLED.value,
 }
 
-########################################################################
-# ---- Simulator Configuration ----------------------------------------
-########################################################################
-
-# Default parameters for the multi-simulation runner.
+# Default parameters for the multi-simulation runner (backward compatibility).
 SIMULATOR_DEFAULTS: Dict[str, Any] = {
-    "default_max_iter": 5000,
-    "default_log_level": "INFORMATIVE",
-    "timeout": 3600,
-    "cpu_count_multiplier": 1.0,  # Fraction of CPU cores to use
+    "default_max_iter": SimulatorDefaults.DEFAULT_MAX_ITER.value,
+    "default_log_level": SimulatorDefaults.DEFAULT_LOG_LEVEL.value,
+    "timeout": SimulatorDefaults.TIMEOUT.value,
+    "cpu_count_multiplier": SimulatorDefaults.CPU_COUNT_MULTIPLIER.value,
 }
 
-########################################################################
-# ---- Search Engine Configuration ------------------------------------
-########################################################################
-
-# Default parameters for search-based algorithms.
+# Default parameters for search-based algorithms (backward compatibility).
 SEARCH_DEFAULTS: Dict[str, Any] = {
-    "max_iterations": 100,
-    "search_timeout": 1800,  # 30 minutes
-    "beam_width": 10,
-    "exploration_factor": 0.1,
+    "max_iterations": SearchDefaults.MAX_ITERATIONS.value,
+    "search_timeout": SearchDefaults.SEARCH_TIMEOUT.value,
+    "beam_width": SearchDefaults.BEAM_WIDTH.value,
+    "exploration_factor": SearchDefaults.EXPLORATION_FACTOR.value,
 }
 
 # Legacy support for verbose logging flag.
