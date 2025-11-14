@@ -73,7 +73,7 @@ class SoftMinTorchComputator(Computator):
 
         _require_torch()
         device = self._device or ("cuda" if torch.cuda.is_available() else "cpu")  # type: ignore
-        dtype = self._dtype or torch.float32  # type: ignore
+        dtype = self._dtype or torch.float64  # type: ignore
 
         k = cost_table.ndim
         shape = cost_table.shape
