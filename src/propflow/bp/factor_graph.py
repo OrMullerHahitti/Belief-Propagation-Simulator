@@ -154,6 +154,8 @@ class FactorGraph:
         layout: str = "bipartite",
         layout_kwargs: Dict[str, Any] | None = None,
         plot: bool = True,
+        *,
+        pretty: bool = False,
     ) -> Figure | None:
         """Visualizes the factor graph using matplotlib.
 
@@ -165,12 +167,23 @@ class FactorGraph:
         Args:
             layout: Layout algorithm to use. Supported values are
                 ``"bipartite"`` (default), ``"spring"``, ``"circular"``, and
-                ``"kamada_kawai"``.
+                ``"kamada_kawai"``. Ignored when ``pretty=True``.
             layout_kwargs: Optional keyword arguments forwarded to the selected
                 NetworkX layout function.
             plot: If True, call plt.show() and return None. If False, return
                 the matplotlib.figure.Figure instance without showing it.
+            pretty: When True, render a fixed spring-layout visualization with
+                styled nodes/legend useful for presentations.
         """
+        if pretty:
+            fig, ax = plt.subplots(figsize=(8.5, 6.5))
+            _plot_factor_graph(self, ax, "Factor Graph")
+            plt.tight_layout()
+            if plot:
+                plt.show()
+                return None
+            return fig
+
         layout_kwargs = dict(layout_kwargs or {})
         layout = layout.lower()
 
@@ -256,6 +269,38 @@ class FactorGraph:
     def get_factor_agents(self) -> List[FactorAgent]:
         """Returns a list of all factor agents in the graph."""
         return self.factors
+
+
+def _plot_factor_graph(graph: "FactorGraph", ax: plt.Axes, title: str) -> None:
+    """Pretty spring-layout view used when visualize(pretty=True) is requested."""
+    labels = {node: getattr(node, "name", str(node)) for node in graph.G.nodes}
+    pos = nx.spring_layout(graph.G, seed=42)
+    var_nodes = list(graph.variables)
+    fac_nodes = list(graph.factors)
+    ax.set_title(title)
+    ax.axis("off")
+    nx.draw_networkx_nodes(
+        graph.G,
+        pos,
+        nodelist=var_nodes,
+        node_color="#4c72b0",
+        node_size=600,
+        ax=ax,
+        label="Variables",
+    )
+    nx.draw_networkx_nodes(
+        graph.G,
+        pos,
+        nodelist=fac_nodes,
+        node_color="#dd8452",
+        node_shape="s",
+        node_size=500,
+        ax=ax,
+        label="Factors",
+    )
+    nx.draw_networkx_edges(graph.G, pos, ax=ax, alpha=0.3)
+    nx.draw_networkx_labels(graph.G, pos, labels=labels, font_size=10, ax=ax)
+    ax.legend(loc="upper right")
 
     @property
     def diameter(self) -> int:

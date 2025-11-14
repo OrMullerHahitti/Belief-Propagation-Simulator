@@ -200,38 +200,28 @@ for var in ["x1", "x2"]:
 
 ### 2. Convergence Analysis (BCT)
 
-Analyze how each variable's belief evolved and when it converged:
+`SnapshotVisualizer.plot_bct()` now builds Backtrack Cost Trees directly from
+snapshots and returns a `BCTCreator` that operates on the reconstructed DAG:
 
 ```python
 from propflow.snapshots import SnapshotVisualizer
 
 visualizer = SnapshotVisualizer(all_snapshots)
+creator = visualizer.plot_bct("x1", show=False)
 
-# Create and return a BCT creator object
-bct_creator = visualizer.plot_bct("x1", show=True)
-
-# Trace the tree anchored 5 steps before the latest snapshot
+# Anchor 5 snapshots before the latest record
 visualizer.plot_bct("x1", steps_back=5, show=False)
+
+# Inspect cost contributions pulled from the DAG
+for cost_key, coeff in creator.cost_contributions().items():
+    assignment = ", ".join(f"{var}={val}" for var, val in cost_key.assignment.items())
+    print(f"{cost_key.factor}({assignment}) -> {coeff:.3f}")
+```
 
 Passing ``steps_back`` lets you anchor the BCT without manually computing the
 absolute iteration index (e.g., ``steps_back=10`` starts the trace 10 steps
 before the final snapshot). The original ``iteration`` argument is still
 available when you need an explicit index.
-
-# Analyze convergence for a variable
-analysis = bct_creator.analyze_convergence("x1")
-print(f"Variable x1 converged: {analysis['converged']}")
-print(f"Final belief: {analysis['final_belief']}")
-print(f"Total change: {analysis['total_change']}")
-print(f"Convergence iteration: {analysis['convergence_iteration']}")
-
-# Compare multiple variables
-comparison = bct_creator.compare_variables(["x1", "x2", "x3"])
-print(comparison["summary"]["all_converged"])
-
-# Export detailed analysis
-bct_creator.export_analysis("bct_analysis.json")
-```
 
 ### 3. Jacobian and Block Norms
 
@@ -333,8 +323,14 @@ bct_creator = visualizer.plot_bct(
     savepath="bct_x1.png"
 )
 
-# The returned BCTCreator can be reused for analysis
-analysis = bct_creator.analyze_convergence("x1")
+# Inspect the dominant cost-table entries
+top = sorted(
+    bct_creator.cost_contributions().items(),
+    key=lambda item: abs(item[1]),
+    reverse=True,
+)[:5]
+for leaf, coeff in top:
+    print(f"{leaf.factor} {leaf.assignment} => {coeff:.3f}")
 ```
 
 ### 3. Argmin Series
@@ -657,10 +653,10 @@ Snapshots provide a comprehensive window into belief propagation dynamics:
 |------|------|
 | Track variable beliefs over time | `SnapshotVisualizer.argmin_series()` |
 | Visualize belief trajectories | `SnapshotVisualizer.plot_argmin_per_variable()` |
-| Analyze convergence | `BCTCreator.analyze_convergence()` |
+| Trace BCT contributions | `SnapshotVisualizer.plot_bct()` + `BCTCreator.cost_contributions()` |
 | Prove convergence (bounds) | Check `Jacobians.block_norms["||M||_inf_upper"]` |
 | Find feedback loops | `CycleMetrics` from snapshot |
 | Compare configurations | Run multiple engines, collect snapshots, compare |
-| Export for later analysis | `manager.save_step()` or `bct_creator.export_analysis()` |
+| Export for later analysis | Persist snapshots (`SnapshotManager`) or use `AnalysisReport` |
 
 Start with **configuration**, move to **visualization** (is algorithm converging?), then **analysis** (why/why not?), and finally **export** results for reporting.

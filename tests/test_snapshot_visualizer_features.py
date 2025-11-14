@@ -23,6 +23,8 @@ def _make_snapshot(step: int, cost: float | None) -> SnapshotRecord:
         assignments={"x1": step % 2},
         global_cost=cost,
         metadata={},
+        cost_tables={"f1": np.array([0.0, 0.5])},
+        cost_labels={"f1": ["x1"]},
     )
 
 
@@ -41,23 +43,8 @@ def _make_message_snapshot(
         R=r_messages,
         assignments={"x1": step % 2, "x2": (step + 1) % 2},
         metadata={},
-    )
-
-
-def _make_vector_belief_snapshot(
-    step: int, belief: np.ndarray, assignment: int
-) -> SnapshotRecord:
-    return EngineSnapshot(
-        step=step,
-        lambda_=0.0,
-        dom={"x1": ["0", "1"]},
-        N_var={"x1": []},
-        N_fac={},
-        Q={},
-        R={},
-        beliefs={"x1": belief},
-        assignments={"x1": assignment},
-        metadata={},
+        cost_tables={"f": np.array([[1.0, 2.0], [3.0, 0.5]])},
+        cost_labels={"f": ["x1", "x2"]},
     )
 
 
@@ -91,34 +78,47 @@ def test_plot_global_cost_returns_expected_series(tmp_path) -> None:
 
 def test_plot_bct_handles_vector_beliefs() -> None:
     snapshots = [
-        _make_vector_belief_snapshot(0, np.array([2.0, 1.0]), 0),
-        _make_vector_belief_snapshot(1, np.array([0.5, 1.5]), 1),
+        _make_message_snapshot(
+            0,
+            {("x1", "f"): np.array([0.0, 0.0]), ("x2", "f"): np.array([0.0, 0.0])},
+            {("f", "x1"): np.array([0.0, 0.0]), ("f", "x2"): np.array([0.0, 0.0])},
+        ),
+        _make_message_snapshot(
+            1,
+            {("x1", "f"): np.array([0.2, 0.1]), ("x2", "f"): np.array([0.1, 0.0])},
+            {("f", "x1"): np.array([0.3, 0.7]), ("f", "x2"): np.array([0.4, 0.6])},
+        ),
     ]
+    snapshots[0].beliefs["x1"] = np.array([2.0, 1.0])
+    snapshots[0].assignments["x1"] = 0
+    snapshots[1].beliefs["x1"] = np.array([0.5, 1.5])
+    snapshots[1].assignments["x1"] = 1
 
     visualizer = SnapshotVisualizer(snapshots)
     creator = visualizer.plot_bct("x1", show=False)
-
-    assert creator.bct_data["beliefs"]["x1"] == [1.0, 0.5]
-
+    contributions = creator.cost_contributions()
+    assert contributions
     plt.close("all")
 
 
 def test_plot_bct_steps_back_support() -> None:
-    snapshots = [
-        _make_vector_belief_snapshot(0, np.array([2.0, 1.0]), 0),
-        _make_vector_belief_snapshot(1, np.array([0.5, 1.5]), 1),
-        _make_vector_belief_snapshot(2, np.array([0.25, 0.75]), 0),
-    ]
+    snapshots = []
+    for step, assignment in enumerate([0, 1, 0]):
+        snap = _make_message_snapshot(
+            step,
+            {("x1", "f"): np.array([0.0, 0.0]), ("x2", "f"): np.array([0.0, 0.0])},
+            {("f", "x1"): np.array([0.0, 0.0]), ("f", "x2"): np.array([0.0, 0.0])},
+        )
+        snap.assignments["x1"] = assignment
+        snapshots.append(snap)
 
     visualizer = SnapshotVisualizer(snapshots)
 
     creator = visualizer.plot_bct("x1", steps_back=2, show=False)
-    assert "x1_1" in creator.bcts
-    assert creator.bcts["x1_1"].iteration == 1
+    assert creator.root.iteration == 1
 
     creator_early = visualizer.plot_bct("x1", steps_back=10, show=False)
-    assert "x1_0" in creator_early.bcts
-
+    assert creator_early.root.iteration == 0
     plt.close("all")
 
 

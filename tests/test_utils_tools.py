@@ -1,10 +1,17 @@
 import numpy as np
+from typing import Mapping
 
 from propflow.configs import create_random_int_table
 from propflow.utils.fg_utils import FGBuilder
 from propflow.utils.tools import convex_hull as ch
 from propflow.utils.tools import jacobian_analysis as ja
-from propflow.utils.tools.bct import BCTCreator
+from propflow.snapshots.types import EngineSnapshot
+from propflow.utils.tools.bct import (
+    BCTCreator,
+    CostKey,
+    MessageKey,
+    SnapshotBCTBuilder,
+)
 from propflow.utils.tools.draw import draw_factor_graph
 from propflow.utils.tools.performance import PerformanceMonitor
 
@@ -106,42 +113,88 @@ def test_performance_monitor_tracks_metrics():
     assert summary["total_steps"] >= 1
 
 
-class DummyFactorGraph:
-    pass
+def _make_snapshot(
+    step: int,
+    *,
+    lambda_: float,
+    q_messages: Mapping[tuple[str, str], np.ndarray],
+    r_messages: Mapping[tuple[str, str], np.ndarray],
+    assignments: Mapping[str, int],
+    cost_table: np.ndarray,
+) -> EngineSnapshot:
+    return EngineSnapshot(
+        step=step,
+        lambda_=lambda_,
+        dom={"x1": ["0", "1"], "x2": ["0", "1"]},
+        N_var={"x1": ["f"], "x2": ["f"]},
+        N_fac={"f": ["x1", "x2"]},
+        Q={key: np.asarray(val, dtype=float) for key, val in q_messages.items()},
+        R={key: np.asarray(val, dtype=float) for key, val in r_messages.items()},
+        unary={},
+        beliefs={"x1": np.array([0.0, 1.0]), "x2": np.array([0.0, 1.0])},
+        assignments=dict(assignments),
+        metadata={},
+        cost_tables={"f": np.asarray(cost_table, dtype=float)},
+        cost_labels={"f": ["x1", "x2"]},
+    )
 
 
-class DummyHistory:
-    use_bct_history = True
-
-    def get_bct_data(self):
-        return {
-            "beliefs": {"x1": [0.1, 0.05, 0.02]},
-            "messages": {"f1->x1": [0.2, 0.1], "x1->f1": [0.05]},
-            "assignments": {"x1": [0, 0, 0]},
-            "metadata": {"total_steps": 3},
-        }
-
-
-def test_bct_creator_builds_tree():
-    history = DummyHistory()
-    creator = BCTCreator(DummyFactorGraph(), history, damping_factor=0.1)
-    root = creator.create_bct("x1")
-    assert root.name.startswith("x1")
-    analysis = creator.analyze_convergence("x1")
-    assert analysis["total_iterations"] == 3
-    coeff = creator._get_damping_coefficient(2)
-    assert coeff < 1.0
+def test_snapshot_bct_builder_creates_cost_leaves():
+    snapshot = _make_snapshot(
+        0,
+        lambda_=0.0,
+        q_messages={("x1", "f"): np.array([0.0, 0.5]), ("x2", "f"): np.array([0.0, 0.2])},
+        r_messages={("f", "x1"): np.array([1.0, 2.0]), ("f", "x2"): np.array([1.0, 0.5])},
+        assignments={"x1": 0, "x2": 1},
+        cost_table=np.array([[1.0, 2.0], [3.0, 0.5]]),
+    )
+    builder = SnapshotBCTBuilder([snapshot])
+    root = builder.belief_root("x1", 0, 0)
+    creator = BCTCreator(builder.graph, root)
+    contributions = creator.cost_contributions()
+    assert contributions
+    assert any(isinstance(key, CostKey) for key in contributions)
 
 
-def test_bct_creator_handles_negative_iteration_offsets():
-    history = DummyHistory()
-    creator = BCTCreator(DummyFactorGraph(), history, damping_factor=0.0)
+def test_snapshot_bct_builder_handles_damping():
+    base = _make_snapshot(
+        0,
+        lambda_=0.0,
+        q_messages={("x1", "f"): np.array([0.0, 0.0]), ("x2", "f"): np.array([0.0, 0.0])},
+        r_messages={("f", "x1"): np.array([0.0, 0.0]), ("f", "x2"): np.array([0.0, 0.0])},
+        assignments={"x1": 0, "x2": 0},
+        cost_table=np.array([[1.0, 2.0], [3.0, 0.5]]),
+    )
+    damped = _make_snapshot(
+        1,
+        lambda_=0.5,
+        q_messages={("x1", "f"): np.array([1.0, 0.0]), ("x2", "f"): np.array([0.5, 0.0])},
+        r_messages={("f", "x1"): np.array([0.2, 0.1]), ("f", "x2"): np.array([0.3, 0.7])},
+        assignments={"x1": 0, "x2": 0},
+        cost_table=np.array([[1.0, 2.0], [3.0, 0.5]]),
+    )
+    builder = SnapshotBCTBuilder([base, damped])
+    q_key = MessageKey("Q", "x1", "f", 1, 0)
+    prev_key = MessageKey("Q", "x1", "f", 0, 0)
+    children = builder.graph.children(q_key)
+    assert abs(children.get(prev_key, 0.0) - 0.5) < 1e-9
 
-    root = creator.create_bct("x1", final_iteration=-2)
-    assert root.iteration == 1
 
-    earliest = creator.create_bct("x1", final_iteration=-10)
-    assert earliest.iteration == 0
+def test_bct_creator_visualizes_graph(monkeypatch):
+    snapshot = _make_snapshot(
+        0,
+        lambda_=0.0,
+        q_messages={("x1", "f"): np.array([0.0, 0.0]), ("x2", "f"): np.array([0.0, 0.0])},
+        r_messages={("f", "x1"): np.array([0.0, 0.0]), ("f", "x2"): np.array([0.0, 0.0])},
+        assignments={"x1": 0, "x2": 0},
+        cost_table=np.array([[1.0, 2.0], [3.0, 0.5]]),
+    )
+    builder = SnapshotBCTBuilder([snapshot])
+    root = builder.belief_root("x1", 0, 0)
+    creator = BCTCreator(builder.graph, root)
+    monkeypatch.setattr("matplotlib.pyplot.show", lambda: None)
+    fig = creator.visualize_bct(show=False)
+    assert fig is not None
 
 
 def test_draw_factor_graph(monkeypatch):

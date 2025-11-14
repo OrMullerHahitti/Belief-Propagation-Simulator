@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from .types import SnapshotRecord
-from propflow.utils.tools.bct import BCTCreator
+from propflow.utils.tools.bct import BCTCreator, SnapshotBCTBuilder
 from propflow.core.agents import FactorAgent
 
 FactorLike = str | FactorAgent
@@ -38,6 +38,7 @@ class SnapshotVisualizer:
         self._records = sorted(list(snapshots), key=lambda rec: rec.data.step)
         self._steps = [rec.data.step for rec in self._records]
         self._variables = self._collect_variables(self._records)
+        self._bct_builder: SnapshotBCTBuilder | None = None
 
         if not self._variables:
             raise ValueError("No variable assignments found in snapshots")
@@ -1061,6 +1062,7 @@ class SnapshotVisualizer:
         variable_name: str,
         iteration: int | None = None,
         *,
+        value_index: int | None = None,
         steps_back: int | None = None,
         show: bool = True,
         savepath: str | None = None,
@@ -1092,116 +1094,18 @@ class SnapshotVisualizer:
         if variable_name not in self._variables:
             raise ValueError(f"Variable {variable_name} not found in snapshots")
 
-        # Reconstruct BCT data from snapshots
-        bct_data = self._reconstruct_bct_data_from_snapshots()
-        total_steps = bct_data["metadata"].get("total_steps", len(self._records))
-        iteration = self._resolve_bct_iteration(iteration, steps_back, total_steps)
-
-        # Create a mock history object that works with BCTCreator
-        mock_history = _SnapshotBasedHistory(bct_data)
-
-        # Create BCTCreator with the reconstructed data
-        creator = BCTCreator(
-            factor_graph=None,  # Not needed when using snapshot-based data
-            history=mock_history,
-            damping_factor=self._records[0].data.lambda_ if self._records else 0.0,
-        )
-
-        # Visualize the BCT
-        creator.visualize_bct(variable_name, iteration=iteration, save_path=savepath)
-
-        if show:
-            plt.show()
-
+        builder = self._ensure_bct_builder()
+        total_steps = len(self._records)
+        resolved_step = self._resolve_bct_iteration(iteration, steps_back, total_steps)
+        target_value = value_index
+        if target_value is None:
+            target_value = builder.assignment_for(variable_name, resolved_step)
+        if target_value is None:
+            target_value = 0
+        root = builder.belief_root(variable_name, resolved_step, int(target_value))
+        creator = BCTCreator(builder.graph, root)
+        creator.visualize_bct(show=show, save_path=savepath)
         return creator
-
-    def _reconstruct_bct_data_from_snapshots(self) -> Dict[str, Any]:
-        """Reconstruct BCT data structure from snapshot messages.
-
-        Builds a data structure compatible with BCTCreator that contains:
-        - Belief evolution per variable
-        - Assignment evolution per variable
-        - Message flows between agents
-        - Metadata and costs
-
-        Returns:
-            A dictionary with keys: 'beliefs', 'assignments', 'messages', 'costs', 'metadata'.
-        """
-        bct_data: Dict[str, Any] = {
-            "beliefs": {},
-            "assignments": {},
-            "messages": {},
-            "costs": [],
-            "metadata": {"total_steps": len(self._records)},
-        }
-
-        # Extract belief and assignment trajectories for all variables
-        all_variables = self.variables()
-        for var in all_variables:
-            beliefs = []
-            assignments = []
-            for rec in self._records:
-                data = rec.data
-                raw_belief = data.beliefs.get(var)
-                if raw_belief is None:
-                    fallback = data.assignments.get(var)
-                    belief_value = float(fallback) if fallback is not None else 0.0
-                else:
-                    belief_value = self._scalarize_belief(raw_belief)
-                beliefs.append(belief_value)
-                assignments.append(data.assignments.get(var))
-
-            bct_data["beliefs"][var] = beliefs
-            bct_data["assignments"][var] = assignments
-
-        # Extract message flows from Q and R messages
-        message_flows: Dict[str, List[float]] = {}
-
-        for rec in self._records:
-            data = rec.data
-
-            # Process Q messages (variable -> factor)
-            for (var, factor), q_msg in data.Q.items():
-                flow_key = f"{var}->{factor}"
-                if flow_key not in message_flows:
-                    message_flows[flow_key] = []
-                # Store the sum of Q-message values
-                q_value = float(np.sum(np.asarray(q_msg, dtype=float)))
-                message_flows[flow_key].append(q_value)
-
-            # Process R messages (factor -> variable)
-            for (factor, var), r_msg in data.R.items():
-                flow_key = f"{factor}->{var}"
-                if flow_key not in message_flows:
-                    message_flows[flow_key] = []
-                # Store the sum of R-message values
-                r_value = float(np.sum(np.asarray(r_msg, dtype=float)))
-                message_flows[flow_key].append(r_value)
-
-            # Extract global cost if available
-            if data.global_cost is not None:
-                bct_data["costs"].append(data.global_cost)
-
-        bct_data["messages"] = message_flows
-
-        return bct_data
-
-    @staticmethod
-    def _scalarize_belief(value: Any) -> float:
-        """Convert belief vectors or scalars into a single float value."""
-        if value is None:
-            return 0.0
-        if isinstance(value, np.ndarray):
-            if value.size == 0:
-                return 0.0
-            return float(np.min(value))
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            array = np.asarray(value, dtype=float)
-            if array.size == 0:
-                return 0.0
-            return float(np.min(array))
 
     @staticmethod
     def _resolve_bct_iteration(
@@ -1226,29 +1130,9 @@ class SnapshotVisualizer:
 
         return resolved
 
+    def _ensure_bct_builder(self) -> SnapshotBCTBuilder:
+        if self._bct_builder is None:
+            self._bct_builder = SnapshotBCTBuilder(self._records)
+        return self._bct_builder
+
     __all__ = ["SnapshotVisualizer"]
-
-
-class _SnapshotBasedHistory:
-    """Mock history object that provides BCTCreator-compatible interface from snapshots.
-
-    This allows BCTCreator to work with snapshot-derived data without requiring
-    the original History object.
-    """
-
-    def __init__(self, bct_data: Dict[str, Any]):
-        """Initialize with pre-constructed BCT data.
-
-        Args:
-            bct_data: Dictionary with keys 'beliefs', 'assignments', 'messages', 'costs', 'metadata'.
-        """
-        self.bct_data = bct_data
-        self.use_bct_history = True
-
-    def get_bct_data(self) -> Dict[str, Any]:
-        """Return the reconstructed BCT data.
-
-        Returns:
-            The BCT data dictionary.
-        """
-        return self.bct_data
