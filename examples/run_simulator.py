@@ -51,14 +51,15 @@ if __name__ == "__main__":
             ct_factory=ct_factory_fn,
             ct_params={"low": 100, "high": 200},
             density=0.25,
+            seed=SEED + idx,
         )
-        for _ in range(NUM_GRAPHS)
+        for idx in range(NUM_GRAPHS)
     ]
     print(f"[{time.strftime('%H:%M:%S')}] Created {len(random_fg)} factor graphs.")
 
     # --- Simulation ---
     # Instantiate the simulator
-    simulator = Simulator(engine_configs, log_level=LOG_LEVEL)
+    simulator = Simulator(engine_configs, log_level=LOG_LEVEL, seed=SEED)
 
     # Run all simulations
     results = simulator.run_simulations(random_fg, max_iter=MAX_ITER)

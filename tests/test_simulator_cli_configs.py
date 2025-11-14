@@ -42,6 +42,7 @@ def test_simulator_run_simulations(monkeypatch):
 
     def fake_run_batch(args, max_workers):
         assert len(args) == 1
+        assert args[0][-1] is None
         return [(0, "engineA", [1.0, 0.5, 0.25])]
 
     monkeypatch.setattr(sim, "_run_batch_safe", fake_run_batch)
@@ -59,6 +60,7 @@ def test_run_single_simulation_success():
         pickle.dumps(graph),
         3,
         LOG_LEVELS["INFORMATIVE"],
+        None,
     )
     index, name, costs = Simulator._run_single_simulation(args)
     assert index == 0 and name == "engineA" and costs[-1] == 5.0
@@ -71,7 +73,7 @@ def test_sequential_fallback(monkeypatch):
         "_run_single_simulation",
         staticmethod(lambda args: (args[0], args[1], [42])),
     )
-    results = sim._sequential_fallback([(0, "engineA", {}, b"", 1, 0)])
+    results = sim._sequential_fallback([(0, "engineA", {}, b"", 1, 0, None)])
     assert results[0][2] == [42]
 
 
@@ -127,6 +129,7 @@ def test_run_single_simulation_handles_engine_failure():
         pickle.dumps({"nodes": [1]}),
         3,
         20,
+        None,
     )
 
     index, name, costs = Simulator._run_single_simulation(args)
@@ -148,7 +151,28 @@ def test_run_single_simulation_handles_unpickle_error():
         b"not-a-real-pickle",
         2,
         20,
+        None,
     )
 
     index, name, costs = Simulator._run_single_simulation(args)
     assert index == 1 and name == "noop" and costs == []
+
+
+def test_simulator_seed_propagation(monkeypatch):
+    configs = {
+        "engineA": {"class": StubEngine},
+        "engineB": {"class": StubEngine},
+    }
+    sim = Simulator(configs, seed=900)
+
+    def fake_run_batch(args, max_workers):
+        seeds = [job[-1] for job in args]
+        # 2 graphs × 2 engines
+        assert seeds == [900, 901, 902, 903]
+        return [(job[0], job[1], [float(job[0])]) for job in args]
+
+    monkeypatch.setattr(sim, "_run_batch_safe", fake_run_batch)
+    graphs = [{"nodes": [1]}, {"nodes": [2]}]
+    results = sim.run_simulations(graphs, max_iter=2)
+    assert len(results["engineA"]) == 2
+    assert len(results["engineB"]) == 2

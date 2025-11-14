@@ -18,6 +18,7 @@ import os
 import sys
 import pickle
 import traceback
+import random
 
 from .configs import Logger
 from .configs.global_config_mapping import (
@@ -84,13 +85,22 @@ class Simulator:
         timeout (int): The timeout in seconds for multiprocessing tasks.
     """
 
-    def __init__(self, engine_configs: Dict[str, Any], log_level: Optional[str] = None):
+    def __init__(
+        self,
+        engine_configs: Dict[str, Any],
+        log_level: Optional[str] = None,
+        *,
+        seed: int | None = None,
+    ):
         """Initializes the Simulator.
 
         Args:
             engine_configs: A dictionary where keys are descriptive engine names
                 and values are configuration dictionaries for each engine.
             log_level: The logging level for the simulator (e.g., 'INFO', 'DEBUG').
+            seed: Optional base seed applied to every simulation job. When
+                provided, each worker process deterministically seeds numpy and
+                Python's ``random`` module before running an engine.
         """
         self.engine_configs = engine_configs
         self.logger = _setup_logger(log_level)
@@ -98,6 +108,7 @@ class Simulator:
             name: [] for name in engine_configs
         }
         self.timeout = SimulatorDefaults.TIMEOUT.value
+        self._seed = seed
 
     def run_simulations(
         self, graphs: List[Any], max_iter: Optional[int] = None
@@ -117,11 +128,26 @@ class Simulator:
             f"Preparing {len(graphs) * len(self.engine_configs)} total simulations."
         )
 
-        simulation_args = [
-            (i, name, config, pickle.dumps(graph), max_iter, self.logger.level)
-            for i, graph in enumerate(graphs)
-            for name, config in self.engine_configs.items()
-        ]
+        simulation_args: List[Tuple[Any, ...]] = []
+        job_counter = 0
+        for i, graph in enumerate(graphs):
+            graph_blob = pickle.dumps(graph)
+            for name, config in self.engine_configs.items():
+                job_seed = None
+                if self._seed is not None:
+                    job_seed = self._seed + job_counter
+                simulation_args.append(
+                    (
+                        i,
+                        name,
+                        config,
+                        graph_blob,
+                        max_iter,
+                        self.logger.level,
+                        job_seed,
+                    )
+                )
+                job_counter += 1
 
         start_time = time.time()
         try:
@@ -222,9 +248,20 @@ class Simulator:
     @staticmethod
     def _run_single_simulation(args: Tuple) -> Tuple[int, str, List[float]]:
         """A static method to run a single simulation instance, designed for multiprocessing."""
-        graph_index, engine_name, config, graph_data, max_iter, log_level = args
+        (
+            graph_index,
+            engine_name,
+            config,
+            graph_data,
+            max_iter,
+            log_level,
+            job_seed,
+        ) = args
         logger = _setup_logger(str(log_level))
         try:
+            if job_seed is not None:
+                np.random.seed(job_seed)
+                random.seed(job_seed)
             fg_copy = pickle.loads(graph_data)
             engine_cls_or_key = config["class"]
             engine_params = {k: v for k, v in config.items() if k != "class"}

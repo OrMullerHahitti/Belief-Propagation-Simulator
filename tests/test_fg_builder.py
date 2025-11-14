@@ -257,6 +257,43 @@ class TestFGBuilder:
         assert len(fg.factors) > 0
         assert len(fg.edges) == len(fg.factors)
 
+    def test_random_graph_seed_reproducibility(self):
+        """Graphs built with the same seed should match exactly."""
+
+        def signature(graph):
+            sig = []
+            for factor, vars_list in graph.edges.items():
+                sig.append((factor.name, tuple(sorted(var.name for var in vars_list))))
+            return sorted(sig)
+
+        fg1 = FGBuilder.build_random_graph(
+            num_vars=6,
+            domain_size=3,
+            ct_factory=create_random_int_table,
+            ct_params={"low": 0, "high": 5},
+            density=0.3,
+            seed=321,
+        )
+        fg2 = FGBuilder.build_random_graph(
+            num_vars=6,
+            domain_size=3,
+            ct_factory=create_random_int_table,
+            ct_params={"low": 0, "high": 5},
+            density=0.3,
+            seed=321,
+        )
+        fg3 = FGBuilder.build_random_graph(
+            num_vars=6,
+            domain_size=3,
+            ct_factory=create_random_int_table,
+            ct_params={"low": 0, "high": 5},
+            density=0.3,
+            seed=999,
+        )
+
+        assert signature(fg1) == signature(fg2)
+        assert signature(fg1) != signature(fg3)
+
     # test_single_variable_graph deleted - test expects self-loop (factor connecting to same variable twice)
     # but actual implementation only includes variable once in connection list
 
