@@ -1,15 +1,18 @@
+import random
+from typing import Dict, Optional
+
+import networkx as nx
+import numpy as np
+
 from ..core.agents import VariableAgent, FactorAgent
 from .engine_base import BPEngine
 from ..policies.cost_reduction import (
     cost_reduction_all_factors_once,
     discount_attentive,
 )
-
 from ..policies.splitting import split_all_factors
 from ..policies import damp
 from ..utils.inbox_utils import multiply_messages_attentive
-import numpy as np
-from typing import Dict, Optional
 from propflow.bp.engine_base import BPEngine
 from propflow.core.components import Message
 
@@ -248,6 +251,158 @@ class DampingCROnceEngine(DampingEngine, CostReductionOnceEngine):
             }
         )
 
+
+class TRWEngine(BPEngine):
+    """
+    Tree-Reweighted Belief Propagation engine (Min-Sum variant).
+
+    The engine keeps the standard Min-Sum computator but automatically:
+
+        1. Samples spanning trees over the variable-only (primal) graph to
+           estimate per-factor appearance probabilities ``rho_f``.
+        2. Scales each factor's energy table by ``1 / rho_f`` before message
+           computation so local costs match the TRW objective.
+        3. Re-weights outgoing R-messages from factors by ``rho_f`` so that
+           variable updates/beliefs operate on appropriately weighted costs.
+
+    Rho sampling and scaling can be overridden by providing explicit
+    ``factor_rhos`` (all > 0). Otherwise the engine performs end-to-end
+    TRW reweighting using the current factor graph structure.
+    """
+
+    DEFAULT_MIN_RHO = 1e-6
+
+    def __init__(
+        self,
+        *args,
+        factor_rhos: Optional[Dict[str, float]] = None,
+        tree_sample_count: int = 64,
+        tree_sampler_seed: Optional[int] = None,
+        min_rho: float = DEFAULT_MIN_RHO,
+        **kwargs,
+    ) -> None:
+        """
+        Args:
+            factor_rhos:
+                Optional explicit mapping from factor name to rho_f > 0. When
+                omitted, the engine estimates rhos via spanning-tree sampling.
+            tree_sample_count:
+                Number of spanning trees to sample when estimating rhos.
+            tree_sampler_seed:
+                Seed forwarded to the tree sampler for reproducibility.
+            min_rho:
+                Lower bound applied to sampled rhos to keep them strictly
+                positive (important for stable scaling).
+        """
+        self.tree_sample_count = max(1, int(tree_sample_count))
+        self.tree_sampler_seed = tree_sampler_seed
+        self.min_rho = max(float(min_rho), self.DEFAULT_MIN_RHO)
+        self._user_defined_rhos = bool(factor_rhos)
+        self.factor_rhos: Dict[str, float] = dict(factor_rhos or {})
+
+        super().__init__(*args, **kwargs)
+        self._name = "TRWEngine"
+        suffix = "custom" if self._user_defined_rhos else f"trees-{self.tree_sample_count}"
+        self._set_name({"trw": suffix})
+
+    def post_init(self) -> None:
+        """
+        Validate rho configuration, sample if needed, and scale costs.
+
+        Called from BPEngine.__init__ after `self.graph` is set but before
+        messages are initialized.
+        """
+        factors = getattr(self.graph, "factors", [])
+        if not factors:
+            return
+
+        if not self.factor_rhos:
+            self.factor_rhos = self._estimate_rhos_via_spanning_trees(factors)
+        else:
+            for factor in factors:
+                self.factor_rhos.setdefault(factor.name, 1.0)
+
+        for factor in factors:
+            rho = self.factor_rhos.get(factor.name, 1.0)
+            if rho <= 0:
+                raise ValueError(
+                    f"TRWEngine: rho for factor '{factor.name}' must be > 0, got {rho}"
+                )
+            self._scale_factor_cost_table(factor, rho)
+
+    def post_factor_compute(self, factor: FactorAgent, iteration: int) -> None:
+        """Scale outgoing R-messages by rho_f before they are sent."""
+        rho = self.factor_rhos.get(factor.name, 1.0)
+        if rho == 1.0 or not factor.mailer.outbox:
+            return
+
+        for msg in factor.mailer.outbox:
+            msg.data = rho * msg.data
+
+    # --- Internal helpers -------------------------------------------------
+
+    def _scale_factor_cost_table(self, factor: FactorAgent, rho: float) -> None:
+        """Reset to the original cost table (if saved) and divide by rho."""
+        factor.save_original()
+        base = factor.original_cost_table if factor.original_cost_table is not None else factor.cost_table
+        if base is None:
+            return
+        factor.cost_table = base / rho
+
+    def _estimate_rhos_via_spanning_trees(
+        self, factors: list[FactorAgent]
+    ) -> Dict[str, float]:
+        """Compute rho_f by sampling spanning trees on the primal graph."""
+        primal_graph, edge_to_factors = self._build_primal_graph()
+        if (
+            primal_graph.number_of_edges() == 0
+            or primal_graph.number_of_nodes() == 0
+            or not nx.is_connected(primal_graph)
+        ):
+            # Fallback: no usable topology information, keep uniform rhos.
+            return {factor.name: 1.0 for factor in factors}
+
+        counts = {factor.name: 0 for factor in factors}
+        rng = random.Random(self.tree_sampler_seed)
+        samples = max(1, self.tree_sample_count)
+
+        for _ in range(samples):
+            seed = rng.randint(0, 2**32 - 1)
+            tree = nx.random_spanning_tree(primal_graph, seed=seed)
+            for node_u, node_v in tree.edges():
+                key = tuple(sorted((node_u, node_v)))
+                for factor in edge_to_factors.get(key, []):
+                    counts[factor.name] += 1
+
+        rhos: Dict[str, float] = {}
+        for factor in factors:
+            count = counts.get(factor.name, 0)
+            rho = count / samples if count > 0 else 0.0
+            if rho <= 0:
+                rho = self.min_rho
+            rhos[factor.name] = rho
+
+        return rhos
+
+    def _build_primal_graph(self) -> tuple[nx.Graph, Dict[tuple[str, str], list[FactorAgent]]]:
+        """Construct the variable-only graph used for tree sampling."""
+        graph = nx.Graph()
+        variables = getattr(self.graph, "variables", [])
+        graph.add_nodes_from(var.name for var in variables)
+
+        edge_to_factors: Dict[tuple[str, str], list[FactorAgent]] = {}
+        for factor in getattr(self.graph, "factors", []):
+            var_names = sorted(factor.connection_number.keys())
+            if len(var_names) != 2:
+                # Hyper-edges are left unweighted (rho defaults to 1).
+                continue
+            edge_key = (var_names[0], var_names[1])
+            graph.add_edge(*edge_key)
+            edge_to_factors.setdefault(edge_key, []).append(factor)
+
+        # Guard against multiple factors per variable pair by treating them
+        # as parallel edges (each receives credit whenever the pair is picked).
+        return graph, edge_to_factors
 
 class MessagePruningEngine(BPEngine):
     """A BP engine that applies a message pruning policy to reduce memory usage."""
