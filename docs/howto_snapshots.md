@@ -69,9 +69,12 @@ fig, payload = viz.plot_global_cost(show=False, return_data=True)
 
 ## 6. BCT Data
 
-Set `use_bct_history=True` on the engine if you need message traces for
-Backtrack Cost Trees. The snapshots will include enough information for
-`propflow.utils.tools.bct.BCTCreator` to reconstruct per-variable trees.
+`SnapshotVisualizer.plot_bct()` reconstructs Backtrack Cost Trees directly from
+the recorded Q/R messages and factor cost tables. Internally it uses
+`propflow.utils.tools.bct.SnapshotBCTBuilder` to build the message DAG and
+returns a `BCTCreator` instance that can visualise the tree or report per-leaf
+coefficients via `cost_contributions()`. Provide `steps_back` or an explicit
+`iteration` to anchor the root on earlier snapshots.
 
 ---
 

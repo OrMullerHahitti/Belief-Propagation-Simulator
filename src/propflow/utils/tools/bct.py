@@ -1,390 +1,629 @@
-"""Tools for creating and analyzing Backtrack Cost Trees (BCTs).
+"""Snapshot-driven Backtrack Cost Tree utilities.
 
-This module provides the `BCTCreator` class, which can take the history of a
-simulation run and construct a BCT. A BCT is a tree structure that visualizes
-how costs or beliefs from earlier iterations contribute to the final belief of
-a specific variable, making it a powerful tool for debugging and understanding
-the dynamics of belief propagation.
+This module implements Backtrack Cost Trees (BCTs) directly from per-step
+snapshots. It follows the simulator-level specification used throughout the
+project: message nodes reference specific Q or R message entries, edges are
+labeled by the contribution weight (including damping coefficients), and leaves
+reference concrete cost-table entries.
 """
 
-from collections import deque
-import numpy as np
+from __future__ import annotations
+
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from typing import Any, Dict, Hashable, Iterable, List, Literal, Mapping, Optional, Sequence, Tuple
+
 import matplotlib.pyplot as plt
 import networkx as nx
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, field
-import json
+import numpy as np
+
+
+MessageDirection = Literal["Q", "R"]
+
+
+@dataclass(frozen=True)
+class MessageKey:
+    """Unique identifier for a message entry in the BCT graph."""
+
+    direction: MessageDirection
+    sender: str
+    recipient: str
+    iteration: int
+    value_index: int
+
+    def label(self) -> str:
+        return f"{self.direction}:{self.sender}->{self.recipient}[{self.value_index}]@{self.iteration}"
+
+
+@dataclass(frozen=True)
+class CostKey:
+    """Identifier for a cost-table entry."""
+
+    factor: str
+    assignment: Tuple[int, ...]
+
+    def label(self) -> str:
+        values = ", ".join(str(v) for v in self.assignment)
+        return f"cost:{self.factor}({values})"
+
+
+@dataclass(frozen=True)
+class BeliefKey:
+    """Identifier for a belief entry (variable value at a specific step)."""
+
+    variable: str
+    iteration: int
+    value_index: int
+
+    def label(self) -> str:
+        return f"belief:{self.variable}[{self.value_index}]@{self.iteration}"
 
 
 @dataclass
 class BCTNode:
-    """Represents a single node in a Backtrack Cost Tree (BCT).
+    """Node metadata stored inside the BCT graph."""
 
-    Attributes:
-        name: The name of the node, typically identifying the source agent.
-        iteration: The simulation iteration this node corresponds to.
-        cost: The belief or message value at this node.
-        node_type: The type of the node (e.g., 'variable', 'factor').
-        children: A list of child `BCTNode` objects.
-        coefficient: The damping coefficient applied to this node's cost.
-    """
+    key: Hashable
+    kind: Literal["message", "cost", "belief"]
+    label: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
-    name: str
-    iteration: int
-    cost: float
-    node_type: str  # 'variable', 'factor', 'cost'
-    children: List["BCTNode"] = field(default_factory=list)
-    coefficient: float = 1.0
+
+class BCTGraph:
+    """Directed acyclic graph capturing message/cost dependencies."""
+
+    def __init__(self) -> None:
+        self.nodes: Dict[Hashable, BCTNode] = {}
+        self._edges: Dict[Hashable, Dict[Hashable, float]] = defaultdict(dict)
+
+    # ------------------------------------------------------------------
+    # Node creation helpers
+    # ------------------------------------------------------------------
+    def ensure_message_node(self, key: MessageKey, **metadata: Any) -> MessageKey:
+        node_meta = dict(metadata)
+        node_meta.setdefault("iteration", getattr(key, "iteration", 0))
+        node_meta.setdefault("message_role", "variable" if key.direction == "Q" else "factor")
+        if key not in self.nodes:
+            self.nodes[key] = BCTNode(key=key, kind="message", label=key.label(), metadata=node_meta)
+        else:
+            self.nodes[key].metadata.update(node_meta)
+        return key
+
+    def ensure_cost_node(self, key: CostKey, **metadata: Any) -> CostKey:
+        node_meta = dict(metadata)
+        node_meta.setdefault("iteration", metadata.get("iteration", 0))
+        if key not in self.nodes:
+            self.nodes[key] = BCTNode(key=key, kind="cost", label=key.label(), metadata=node_meta)
+        else:
+            self.nodes[key].metadata.update(node_meta)
+        return key
+
+    def ensure_belief_node(self, key: BeliefKey, **metadata: Any) -> BeliefKey:
+        node_meta = dict(metadata)
+        node_meta.setdefault("iteration", getattr(key, "iteration", 0))
+        if key not in self.nodes:
+            self.nodes[key] = BCTNode(key=key, kind="belief", label=key.label(), metadata=node_meta)
+        else:
+            self.nodes[key].metadata.update(node_meta)
+        return key
+
+    # ------------------------------------------------------------------
+    # Graph edges
+    # ------------------------------------------------------------------
+    def add_edge(self, source: Hashable, target: Hashable, weight: float) -> None:
+        if abs(weight) <= 0.0:
+            return
+        if source not in self.nodes or target not in self.nodes:
+            raise KeyError("Both source and target nodes must exist before adding an edge")
+        bucket = self._edges[source]
+        bucket[target] = bucket.get(target, 0.0) + float(weight)
+
+    def children(self, key: Hashable) -> Dict[Hashable, float]:
+        return self._edges.get(key, {})
+
+    def reachable_nodes(self, root: Hashable) -> List[Hashable]:
+        visited: set[Hashable] = set()
+        queue = deque([root])
+        while queue:
+            node = queue.popleft()
+            if node in visited:
+                continue
+            visited.add(node)
+            for child in self.children(node):
+                queue.append(child)
+        return list(visited)
+
+
+@dataclass
+class _FactorContext:
+    cost_table: np.ndarray
+    labels: List[str]
+    aggregate: np.ndarray
+    broadcasts: List[np.ndarray]
+    q_vectors: Dict[str, np.ndarray]
+
+
+class SnapshotBCTBuilder:
+    """Construct BCT DAGs directly from a sequence of snapshots."""
+
+    def __init__(
+        self,
+        snapshots: Sequence[Any],
+        *,
+        tolerance: float = 1e-9,
+        max_minimizers: int = 128,
+    ) -> None:
+        if not snapshots:
+            raise ValueError("Snapshots are required to build a BCT")
+        self._records = [rec.data if hasattr(rec, "data") else rec for rec in snapshots]
+        self._records.sort(key=lambda rec: rec.step)
+        self.tolerance = tolerance
+        self.max_minimizers = max_minimizers
+        self.graph = BCTGraph()
+        self._factor_cache: Dict[Tuple[int, str], Optional[_FactorContext]] = {}
+        self._steps = [rec.step for rec in self._records]
+        self._snapshots_by_step = {rec.step: rec for rec in self._records}
+        self._assignments_by_step = {rec.step: dict(getattr(rec, "assignments", {})) for rec in self._records}
+        self._build()
+
+    # ------------------------------------------------------------------
+    # Public helpers
+    # ------------------------------------------------------------------
+    def resolve_step(self, iteration: Optional[int], steps_back: Optional[int]) -> int:
+        if iteration is not None:
+            if iteration not in self._snapshots_by_step:
+                raise ValueError(f"Snapshot for step {iteration} not available")
+            return iteration
+        total = len(self._steps)
+        if total == 0:
+            raise ValueError("Snapshots are empty")
+        if steps_back is None:
+            return self._steps[-1]
+        if steps_back <= 0:
+            raise ValueError("steps_back must be positive")
+        index = max(0, total - steps_back)
+        return self._steps[index]
+
+    def assignment_for(self, variable: str, step: int) -> Optional[int]:
+        return self._assignments_by_step.get(step, {}).get(variable)
+
+    def belief_root(self, variable: str, step: int, value_index: int) -> BeliefKey:
+        key = BeliefKey(variable=variable, iteration=step, value_index=value_index)
+        if key not in self.graph.nodes:
+            raise ValueError(f"Belief node for {variable} at step {step} is not available")
+        return key
+
+    # ------------------------------------------------------------------
+    def _build(self) -> None:
+        prev_snapshot: Optional[Any] = None
+        for snapshot in self._records:
+            self._build_q_nodes(snapshot, prev_snapshot)
+            self._build_r_nodes(snapshot)
+            self._build_beliefs(snapshot)
+            prev_snapshot = snapshot
+
+    # ------------------------------------------------------------------
+    def _build_q_nodes(self, snapshot: Any, prev_snapshot: Optional[Any]) -> None:
+        lambda_coeff = float(getattr(snapshot, "lambda_", 0.0) or 0.0)
+        lambda_coeff = min(max(lambda_coeff, 0.0), 1.0)
+        prev_step = getattr(prev_snapshot, "step", None)
+        for (var_name, factor_name), values in snapshot.Q.items():
+            arr = np.asarray(values, dtype=float).ravel()
+            for value_index, _ in enumerate(arr):
+                key = MessageKey("Q", var_name, factor_name, snapshot.step, value_index)
+                node_meta = {
+                    "variable": var_name,
+                    "factor": factor_name,
+                    "value": float(arr[value_index]) if value_index < len(arr) else 0.0,
+                }
+                self.graph.ensure_message_node(key, **node_meta)
+                if lambda_coeff > 0.0 and prev_step is not None:
+                    prev_key = MessageKey("Q", var_name, factor_name, prev_step, value_index)
+                    if prev_key in self.graph.nodes:
+                        self.graph.add_edge(key, prev_key, lambda_coeff)
+                weight = 1.0 - lambda_coeff
+                if weight <= 0.0 or prev_step is None:
+                    continue
+                for neighbor in snapshot.N_var.get(var_name, []):
+                    if neighbor == factor_name:
+                        continue
+                    prev_array = None
+                    if prev_snapshot is not None:
+                        prev_array = prev_snapshot.R.get((neighbor, var_name))
+                    if prev_array is None:
+                        continue
+                    prev_arr = np.asarray(prev_array, dtype=float).ravel()
+                    if value_index >= len(prev_arr):
+                        continue
+                    child_key = MessageKey("R", neighbor, var_name, prev_step, value_index)
+                    child_value = float(prev_arr[value_index])
+                    self.graph.ensure_message_node(
+                        child_key,
+                        variable=var_name,
+                        factor=neighbor,
+                        value=child_value,
+                    )
+                    self.graph.add_edge(key, child_key, weight)
+
+    # ------------------------------------------------------------------
+    def _build_r_nodes(self, snapshot: Any) -> None:
+        for (factor_name, var_name), values in snapshot.R.items():
+            context = self._factor_context(snapshot, factor_name)
+            if context is None:
+                # Create placeholder node so belief edges can attach even if cost tables were missing
+                arr = np.asarray(values, dtype=float).ravel()
+                for value_index, value in enumerate(arr):
+                    key = MessageKey("R", factor_name, var_name, snapshot.step, value_index)
+                    self.graph.ensure_message_node(
+                        key,
+                        variable=var_name,
+                        factor=factor_name,
+                        value=float(value),
+                    )
+                continue
+            labels = context.labels
+            if var_name not in labels:
+                continue
+            axis = labels.index(var_name)
+            r_arr = np.asarray(values, dtype=float).ravel()
+            domain = min(len(r_arr), context.cost_table.shape[axis])
+            exclusion = context.broadcasts[axis]
+            reduced = context.aggregate - exclusion
+            for value_index in range(domain):
+                key = MessageKey("R", factor_name, var_name, snapshot.step, value_index)
+                node_meta = {
+                    "variable": var_name,
+                    "factor": factor_name,
+                    "value": float(r_arr[value_index]) if value_index < len(r_arr) else 0.0,
+                }
+                self.graph.ensure_message_node(key, **node_meta)
+                slice_view = np.take(reduced, indices=value_index, axis=axis)
+                assignments = self._enumerate_minimizers(
+                    slice_view,
+                    axis=axis,
+                    axis_value=value_index,
+                    shape=context.cost_table.shape,
+                )
+                if len(assignments) > 1:
+                    self.graph.nodes[key].metadata["has_ties"] = True
+                for assignment in assignments:
+                    assignment_tuple: Tuple[int, ...] = tuple(int(x) for x in assignment)
+                    cost_key = CostKey(factor=factor_name, assignment=assignment_tuple)
+                    assignment_map = {labels[i]: assignment_tuple[i] for i in range(len(labels))}
+                    cost_value = float(context.cost_table[assignment_tuple])
+                    cost_metadata = {
+                        "factor": factor_name,
+                        "assignment": assignment_map,
+                        "iteration": snapshot.step,
+                        "value": cost_value,
+                    }
+                    self.graph.ensure_cost_node(cost_key, **cost_metadata)
+                    self.graph.add_edge(key, cost_key, 1.0)
+                    for idx, neighbor in enumerate(labels):
+                        if neighbor == var_name:
+                            continue
+                        assigned_value = assignment_tuple[idx]
+                        child_key = MessageKey("Q", neighbor, factor_name, snapshot.step, assigned_value)
+                        child_value_vector = snapshot.Q.get((neighbor, factor_name))
+                        value_payload = 0.0
+                        if child_value_vector is not None:
+                            arr_child = np.asarray(child_value_vector, dtype=float).ravel()
+                            if assigned_value < len(arr_child):
+                                value_payload = float(arr_child[assigned_value])
+                        self.graph.ensure_message_node(
+                            child_key,
+                            variable=neighbor,
+                            factor=factor_name,
+                            value=value_payload,
+                        )
+                        self.graph.add_edge(key, child_key, 1.0)
+
+    # ------------------------------------------------------------------
+    def _build_beliefs(self, snapshot: Any) -> None:
+        assignments = getattr(snapshot, "assignments", {}) or {}
+        for var_name in snapshot.dom.keys():
+            value_index = assignments.get(var_name)
+            if value_index is None:
+                belief = snapshot.beliefs.get(var_name)
+                if belief is not None and len(belief):
+                    value_index = int(np.argmin(np.asarray(belief, dtype=float)))
+                else:
+                    value_index = 0
+            belief_value = None
+            belief_arr = snapshot.beliefs.get(var_name)
+            if belief_arr is not None:
+                belief_np = np.asarray(belief_arr, dtype=float)
+                if int(value_index) < len(belief_np):
+                    belief_value = float(belief_np[int(value_index)])
+            key = BeliefKey(variable=var_name, iteration=snapshot.step, value_index=int(value_index))
+            extra_meta = {}
+            if belief_value is not None:
+                extra_meta["value"] = belief_value
+            self.graph.ensure_belief_node(key, **extra_meta)
+            for factor_name in snapshot.N_var.get(var_name, []):
+                r_values = snapshot.R.get((factor_name, var_name))
+                if r_values is None:
+                    continue
+                arr = np.asarray(r_values, dtype=float).ravel()
+                if value_index >= len(arr):
+                    continue
+                child_key = MessageKey("R", factor_name, var_name, snapshot.step, int(value_index))
+                child_value = float(arr[int(value_index)])
+                self.graph.ensure_message_node(
+                    child_key,
+                    variable=var_name,
+                    factor=factor_name,
+                    value=child_value,
+                )
+                self.graph.add_edge(key, child_key, 1.0)
+
+    # ------------------------------------------------------------------
+    def _factor_context(self, snapshot: Any, factor_name: str) -> Optional[_FactorContext]:
+        cache_key = (snapshot.step, factor_name)
+        if cache_key in self._factor_cache:
+            return self._factor_cache[cache_key]
+        cost_table = snapshot.cost_tables.get(factor_name)
+        labels = snapshot.cost_labels.get(factor_name)
+        if cost_table is None or not labels:
+            self._factor_cache[cache_key] = None
+            return None
+        table = np.asarray(cost_table, dtype=float)
+        agg = table.copy()
+        broadcasts: List[np.ndarray] = []
+        q_vectors: Dict[str, np.ndarray] = {}
+        for axis, var_name in enumerate(labels):
+            q_values = snapshot.Q.get((var_name, factor_name))
+            if q_values is None:
+                vector = np.zeros(table.shape[axis], dtype=float)
+            else:
+                vector = np.asarray(q_values, dtype=float).ravel()
+            if vector.size != table.shape[axis]:
+                vector = np.resize(vector, table.shape[axis])
+            broadcast = vector.reshape(
+                [table.shape[i] if i == axis else 1 for i in range(table.ndim)]
+            )
+            broadcasts.append(broadcast)
+            q_vectors[var_name] = vector
+            agg = agg + broadcast
+        context = _FactorContext(cost_table=table, labels=list(labels), aggregate=agg, broadcasts=broadcasts, q_vectors=q_vectors)
+        self._factor_cache[cache_key] = context
+        return context
+
+    # ------------------------------------------------------------------
+    def _enumerate_minimizers(
+        self,
+        slice_array: np.ndarray,
+        *,
+        axis: int,
+        axis_value: int,
+        shape: Tuple[int, ...],
+    ) -> List[Tuple[int, ...]]:
+        arr = np.asarray(slice_array, dtype=float)
+        flat = arr.reshape(-1)
+        if flat.size == 0:
+            return [tuple(axis_value if i == axis else 0 for i in range(len(shape)))]
+        min_value = float(np.min(flat))
+        tolerance = max(self.tolerance, 0.0)
+        indices = np.argwhere(np.isclose(arr, min_value, atol=tolerance))
+        if indices.size == 0:
+            indices = np.array([[0] * arr.ndim], dtype=int)
+        assignments: List[Tuple[int, ...]] = []
+        for idx_tuple in indices[: self.max_minimizers]:
+            full: List[int] = []
+            cursor = 0
+            for dim in range(len(shape)):
+                if dim == axis:
+                    full.append(int(axis_value))
+                else:
+                    full.append(int(idx_tuple[cursor]))
+                    cursor += 1
+            assignments.append(tuple(full))
+        return assignments
 
 
 class BCTCreator:
-    """Creates, analyzes, and visualizes Backtrack Cost Trees (BCTs).
+    """Convenience wrapper around a BCTGraph for visualization and queries."""
 
-    This class uses the data collected in a `History` object to trace the
-    dependencies of a variable's final belief back through the message-passing
-    history of the simulation.
-    """
+    def __init__(self, graph: BCTGraph, root: Hashable):
+        self.graph = graph
+        self.root = root
 
-    def __init__(self, factor_graph: Any, history: Any, damping_factor: float = 0.0):
-        """Initializes the BCTCreator.
+    # ------------------------------------------------------------------
+    def visualize_bct(self, *, show: bool = True, save_path: Optional[str] = None) -> plt.Figure:
+        reachable = self.graph.reachable_nodes(self.root)
+        if not reachable:
+            raise ValueError("BCT root has no reachable nodes")
+        positions: Dict[Hashable, Tuple[float, float]] = {}
+        labels: Dict[Hashable, str] = {}
+        node_meta: Dict[Hashable, BCTNode] = {node: self.graph.nodes[node] for node in reachable}
 
-        Args:
-            factor_graph: The `FactorGraph` object from the simulation.
-            history: The `History` object containing the simulation run data.
-            damping_factor: The damping factor used in the simulation, for
-                correctly calculating cost contributions.
-        """
-        self.factor_graph = factor_graph
-        self.history = history
-        self.damping_factor = damping_factor
-        self.bct_data = history.get_bct_data()
-        self.bcts: Dict[str, BCTNode] = {}  # Cache for built BCTs
+        def _child_nodes(node_key: Hashable) -> List[Hashable]:
+            children = [
+                child for child in self.graph.children(node_key) if child in node_meta
+            ]
+            return sorted(children, key=lambda child: node_meta[child].label)
 
-        print("BCTCreator initialized:")
-        print(f"  - BCT mode: {history.use_bct_history}")
-        print(f"  - Variables tracked: {len(self.bct_data.get('beliefs', {}))}")
-        print(f"  - Message flows: {len(self.bct_data.get('messages', {}))}")
-        print(
-            f"  - Total steps: {self.bct_data.get('metadata', {}).get('total_steps', 0)}"
-        )
+        layout_cache: Dict[Hashable, float] = {}
+        depth_map: Dict[Hashable, int] = {}
+        x_cursor = {"value": 0.0}
 
-    def create_bct(self, variable_name: str, final_iteration: int = -1) -> BCTNode:
-        """Creates a BCT for a specific variable, tracing its belief back in time.
+        def _assign(node_key: Hashable, depth: int) -> float:
+            if node_key in layout_cache:
+                depth_map[node_key] = min(depth_map[node_key], depth)
+                return layout_cache[node_key]
+            children = _child_nodes(node_key)
+            if not children:
+                x = float(x_cursor["value"])
+                x_cursor["value"] += 1.0
+            else:
+                child_positions = [_assign(child, depth + 1) for child in children]
+                x = float(sum(child_positions) / len(child_positions))
+            node = node_meta[node_key]
+            label_text = node.label
+            value = node.metadata.get("value")
+            should_show_value = (
+                node.kind == "cost"
+                or (
+                    node.kind == "message"
+                    and node.metadata.get("message_role") == "factor"
+                )
+                or node.kind == "belief"
+            )
+            if value is not None and should_show_value:
+                label_text = f"{label_text}\n{value:.3f}"
+            labels[node_key] = label_text
+            depth_map[node_key] = depth
+            positions[node_key] = (x, -self._depth_level(node, depth))
+            layout_cache[node_key] = x
+            return x
 
-        Args:
-            variable_name: The name of the variable to create the BCT for.
-            final_iteration: The final iteration to analyze. Defaults to -1 (the last one).
+        _assign(self.root, 0)
 
-        Returns:
-            The root `BCTNode` of the constructed tree.
+        level_nodes: Dict[int, List[Hashable]] = defaultdict(list)
+        for node, depth in depth_map.items():
+            level_nodes[depth].append(node)
 
-        Raises:
-            ValueError: If no data is found for the specified variable.
-        """
-        if variable_name not in self.bct_data.get("beliefs", {}):
-            raise ValueError(f"Variable {variable_name} not found in history data")
+        min_spacing = 1.5
+        for depth in sorted(level_nodes):
+            ordered = sorted(level_nodes[depth], key=lambda n: positions[n][0])
+            current_x: float | None = None
+            for node in ordered:
+                x, y = positions[node]
+                if current_x is None:
+                    target = x
+                else:
+                    target = max(x, current_x + min_spacing)
+                positions[node] = (target, y)
+                current_x = target
 
-        beliefs = self.bct_data["beliefs"][variable_name]
-        if not beliefs:
-            raise ValueError(f"No belief data found for {variable_name}")
+        if positions:
+            xs = [x for x, _ in positions.values()]
+            center_shift = (min(xs) + max(xs)) / 2.0
+            for node, (x, y) in positions.items():
+                positions[node] = (x - center_shift, y)
 
-        final_iteration = self._normalize_iteration(final_iteration, len(beliefs))
-        final_belief = beliefs[final_iteration]
+        base_graph = nx.DiGraph()
+        for node in reachable:
+            base_graph.add_node(node)
+            for child, weight in self.graph.children(node).items():
+                if child in reachable:
+                    base_graph.add_edge(node, child, weight=weight)
+        visible_nodes = [n for n in base_graph.nodes() if node_meta[n].kind != "cost"]
+        visible_positions = {n: positions[n] for n in visible_nodes}
+        visible_labels = {n: labels[n] for n in visible_nodes}
+        G = nx.DiGraph()
+        G.add_nodes_from(visible_nodes)
+        for u, v, data in base_graph.edges(data=True):
+            if u in visible_nodes and v in visible_nodes:
+                G.add_edge(u, v, **data)
 
-        root = BCTNode(
-            name=f"{variable_name}_belief",
-            iteration=final_iteration,
-            cost=final_belief,
-            node_type="variable",
-            coefficient=self._get_damping_coefficient(final_iteration),
-        )
-        self._build_bct_recursive(root, variable_name, final_iteration)
-        self.bcts[f"{variable_name}_{final_iteration}"] = root
-        return root
-
-    def _build_bct_recursive(
-        self, node: BCTNode, variable_name: str, iteration: int
-    ) -> None:
-        """Recursively builds the BCT by backtracking through message history."""
-        if iteration <= 0:
-            return
-
-        messages = self.bct_data.get("messages", {})
-        for flow_key, msg_values in messages.items():
-            if "->" in flow_key:
-                sender, recipient = flow_key.split("->")
-                if recipient == variable_name and iteration - 1 < len(msg_values):
-                    msg_cost = msg_values[iteration - 1]
-                    sender_type = "factor" if "f" in sender.lower() else "variable"
-                    child = BCTNode(
-                        name=f"{sender}->msg",
-                        iteration=iteration - 1,
-                        cost=msg_cost,
-                        node_type=sender_type,
-                        coefficient=self._get_damping_coefficient(iteration - 1),
-                    )
-                    child.cost *= child.coefficient
-                    node.children.append(child)
-                    self._build_bct_recursive(child, sender, iteration - 1)
-
-    def _get_damping_coefficient(self, iteration: int) -> float:
-        """Calculates the damping coefficient for a given iteration."""
-        if self.damping_factor == 0.0:
-            return 1.0
-        return (1 - self.damping_factor) * (
-            self.damping_factor ** max(0, iteration - 1)
-        )
-
-    @staticmethod
-    def _normalize_iteration(iteration: int, total_steps: int) -> int:
-        """Clamp/normalize iteration indexes, supporting negative offsets."""
-        if total_steps <= 0:
-            return 0
-        if iteration < 0:
-            iteration = total_steps + iteration
-        if iteration < 0:
-            return 0
-        if iteration >= total_steps:
-            return total_steps - 1
-        return iteration
-
-    def analyze_convergence(self, variable_name: str) -> Dict[str, Any]:
-        """Analyzes the convergence pattern for a single variable.
-
-        Args:
-            variable_name: The name of the variable to analyze.
-
-        Returns:
-            A dictionary containing convergence metrics like total change,
-            average change, and whether the variable has stabilized.
-        """
-        if variable_name not in self.bct_data.get("beliefs", {}):
-            return {"error": f"Variable {variable_name} not found"}
-        beliefs = self.bct_data["beliefs"][variable_name]
-        assignments = self.bct_data.get("assignments", {}).get(variable_name, [])
-        if not beliefs:
-            return {"error": "No belief data available"}
-
-        changes = [abs(beliefs[i] - beliefs[i - 1]) for i in range(1, len(beliefs))]
-        converged = len(changes) >= 3 and all(c < 0.001 for c in changes[-3:])
-        convergence_iter = len(beliefs) - 3 if converged else -1
-        assignment_stable = len(assignments) >= 3 and len(set(assignments[-3:])) == 1
-
-        return {
-            "variable": variable_name,
-            "total_iterations": len(beliefs),
-            "initial_belief": beliefs[0],
-            "final_belief": beliefs[-1],
-            "total_change": abs(beliefs[-1] - beliefs[0]) if len(beliefs) >= 2 else 0.0,
-            "max_change": max(changes) if changes else 0.0,
-            "average_change": sum(changes) / len(changes) if changes else 0.0,
-            "converged": converged,
-            "convergence_iteration": convergence_iter,
-            "assignment_stable": assignment_stable,
-            "belief_evolution": beliefs,
-            "assignment_evolution": assignments,
-            "changes": changes,
+        total_levels = max(depth_map.values(), default=0) + 1
+        fig_height = max(8.0, total_levels * 1.2)
+        fig_width = max(14.0, total_levels * 1.6)
+        fig = plt.figure(figsize=(fig_width, fig_height))
+        raw_edge_labels = nx.get_edge_attributes(G, "weight")
+        edge_labels = {
+            edge: weight
+            for edge, weight in raw_edge_labels.items()
+            if abs(weight - 1.0) > 1e-9
         }
 
-    def visualize_bct(
-        self, variable_name: str, iteration: int = -1, save_path: Optional[str] = None
-    ) -> plt.Figure:
-        """Generates and optionally saves a visualization of a BCT.
+        ax = plt.gca()
+        if visible_positions:
+            min_x = min(x for x, _ in visible_positions.values())
+            depth_to_y: Dict[int, List[float]] = defaultdict(list)
+            for node in visible_nodes:
+                depth_to_y[depth_map[node]].append(visible_positions[node][1])
+            for depth, ys in depth_to_y.items():
+                level_y = sum(ys) / len(ys)
+                ax.axhline(y=level_y, color="#dddddd", linestyle="--", linewidth=0.7, zorder=0)
+                ax.text(
+                    min_x - 0.5,
+                    level_y,
+                    f"Level {depth + 1}",
+                    fontsize=8,
+                    va="center",
+                    ha="right",
+                    color="#666666",
+                )
 
-        Args:
-            variable_name: The name of the variable to visualize the BCT for.
-            iteration: The final iteration to trace back from. Defaults to -1 (last).
-            save_path: An optional path to save the generated figure.
-
-        Returns:
-            The `matplotlib.Figure` object of the visualization.
-        """
-        cache_key = f"{variable_name}_{iteration}"
-        root = self.bcts.get(cache_key) or self.create_bct(variable_name, iteration)
-
-        G = nx.DiGraph()
-        pos, labels, colors = {}, {}, []
-        queue = deque([(root, 0, 0)])
-        node_map = {id(root): f"{root.name}_{root.iteration}_{id(root)}"}
-        root_id = node_map[id(root)]
-        G.add_node(root_id)
-
-        while queue:
-            node, x, level = queue.popleft()
-            node_id = node_map[id(node)]
-            pos[node_id] = (x, -level)
-            label = f"{node.name}\niter:{node.iteration}\ncost:{node.cost:.3f}"
-            if node.coefficient != 1.0:
-                label += f"\ncoeff:{node.coefficient:.3f}"
-            labels[node_id] = label
-            colors.append(
-                "lightblue"
-                if node.node_type == "variable"
-                else "lightcoral"
-                if node.node_type == "factor"
-                else "lightgreen"
-            )
-
-            num_children = len(node.children)
-            start_x = x - (num_children - 1) / 2
-            for i, child in enumerate(node.children):
-                child_id = f"{child.name}_{child.iteration}_{id(child)}"
-                node_map[id(child)] = child_id
-                G.add_edge(node_id, child_id)
-                queue.append((child, start_x + i, level + 1))
-
-        plt.figure(figsize=(14, 10))
-        nx.draw(
+        nx.draw_networkx_edges(G, visible_positions, arrows=True, arrowsize=18)
+        belief_nodes = [n for n in G.nodes() if node_meta[n].kind == "belief"]
+        variable_nodes = [
+            n
+            for n in G.nodes()
+            if node_meta[n].kind == "message"
+            and node_meta[n].metadata.get("message_role") == "variable"
+        ]
+        factor_nodes = [
+            n
+            for n in G.nodes()
+            if node_meta[n].kind == "message"
+            and node_meta[n].metadata.get("message_role") == "factor"
+        ]
+        nx.draw_networkx_nodes(
             G,
-            pos,
-            with_labels=False,
-            node_color=colors,
-            node_size=2500,
-            arrows=True,
-            arrowsize=20,
+            visible_positions,
+            nodelist=belief_nodes,
+            node_color="#FFD966",
+            node_shape="o",
+            node_size=2600,
         )
-        nx.draw_networkx_labels(G, pos, labels, font_size=7)
-        plt.title(f"BCT for {variable_name} at iteration {iteration}")
+        nx.draw_networkx_nodes(
+            G,
+            visible_positions,
+            nodelist=variable_nodes,
+            node_color="#6FA8DC",
+            node_shape="o",
+            node_size=2600,
+        )
+        nx.draw_networkx_nodes(
+            G,
+            visible_positions,
+            nodelist=factor_nodes,
+            node_color="#93C47D",
+            node_shape="s",
+            node_size=2400,
+        )
+        nx.draw_networkx_labels(G, visible_positions, visible_labels, font_size=7)
+        if edge_labels:
+            nx.draw_networkx_edge_labels(
+                G, visible_positions, edge_labels=edge_labels, font_color="gray"
+            )
+        plt.title("Backtrack Cost Tree")
         plt.tight_layout()
-
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches="tight")
-            print(f"BCT visualization saved to: {save_path}")
-        return plt.gcf()
+        if show:
+            plt.show()
+        else:
+            plt.close(fig)
+        return fig
 
-    def compare_variables(self, variable_names: List[str]) -> Dict[str, Any]:
-        """Performs a comparative analysis of convergence across multiple variables.
+    # ------------------------------------------------------------------
+    def cost_contributions(self) -> Dict[CostKey, float]:
+        contributions: Dict[CostKey, float] = defaultdict(float)
+        stack: List[Tuple[Hashable, float]] = [(self.root, 1.0)]
+        while stack:
+            node_key, coeff = stack.pop()
+            node = self.graph.nodes.get(node_key)
+            if node is None:
+                continue
+            if node.kind == "cost" and isinstance(node.key, CostKey):
+                contributions[node.key] += coeff
+                continue
+            for child, weight in self.graph.children(node_key).items():
+                stack.append((child, coeff * weight))
+        return contributions
 
-        Args:
-            variable_names: A list of variable names to compare.
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _depth_level(node: BCTNode, depth: int) -> float:
+        offset = 0.0
+        if node.kind == "message":
+            offset = 1.0 if node.metadata.get("message_role") == "factor" else 2.0
+        elif node.kind == "cost":
+            offset = 3.0
+        return depth * 4.0 + offset
 
-        Returns:
-            A dictionary containing the analysis for each variable and a summary.
-        """
-        comparison = {"variables": variable_names, "analyses": {}, "summary": {}}
-        for var_name in variable_names:
-            if var_name in self.bct_data.get("beliefs", {}):
-                comparison["analyses"][var_name] = self.analyze_convergence(var_name)
-        if comparison["analyses"]:
-            all_analyses = list(comparison["analyses"].values())
-            comparison["summary"] = {
-                "all_converged": all(a.get("converged", False) for a in all_analyses),
-                "convergence_rates": [
-                    a.get("convergence_iteration", -1) for a in all_analyses
-                ],
-                "final_beliefs": [a.get("final_belief", 0.0) for a in all_analyses],
-                "total_changes": [a.get("total_change", 0.0) for a in all_analyses],
-            }
-        return comparison
-
-    def export_analysis(self, output_file: str) -> None:
-        """Exports the complete analysis for all variables to a JSON file.
-
-        Args:
-            output_file: The path where the JSON file will be saved.
-        """
-        analysis_data = {
-            "metadata": {
-                "damping_factor": self.damping_factor,
-                "bct_mode": self.history.use_bct_history,
-                "total_variables": len(self.bct_data.get("beliefs", {})),
-                "total_steps": self.bct_data.get("metadata", {}).get("total_steps", 0),
-            },
-            "variable_analyses": {
-                var: self.analyze_convergence(var)
-                for var in self.bct_data.get("beliefs", {})
-            },
-            "global_data": {
-                "costs": self.bct_data.get("costs", []),
-                "message_flows": list(self.bct_data.get("messages", {}).keys()),
-            },
-        }
-        with open(output_file, "w") as f:
-            json.dump(analysis_data, f, indent=2, default=str)
-        print(f"Complete analysis exported to: {output_file}")
-
-    def print_summary(self) -> None:
-        """Prints a human-readable summary of the BCT analysis to the console."""
-        print("\n=== BCT Analysis Summary ===")
-        print(
-            f"History mode: {'BCT (step-by-step)' if self.history.use_bct_history else 'Legacy (cycle-based)'}"
-        )
-        print(f"Damping factor: {self.damping_factor}")
-        beliefs = self.bct_data.get("beliefs", {})
-        print(f"Variables: {len(beliefs)}")
-        print(f"Message flows: {len(self.bct_data.get('messages', {}))}")
-        if beliefs:
-            print("\nPer-variable analysis:")
-            for var_name in beliefs:
-                analysis = self.analyze_convergence(var_name)
-                print(f"  {var_name}:")
-                print(f"    Iterations: {analysis.get('total_iterations', 0)}")
-                print(f"    Final belief: {analysis.get('final_belief', 0):.4f}")
-                print(f"    Total change: {analysis.get('total_change', 0):.4f}")
-                print(f"    Converged: {analysis.get('converged', False)}")
-        costs = self.bct_data.get("costs", [])
-        if costs:
-            print("\nGlobal costs:")
-            print(f"  Initial: {costs[0]:.2f}")
-            print(f"  Final: {costs[-1]:.2f}")
-            print(f"  Improvement: {costs[0] - costs[-1]:.2f}")
-
-
-def quick_bct_analysis(
-    factor_graph: Any, history: Any, variable_name: str, damping_factor: float = 0.0
-) -> Dict[str, Any]:
-    """A convenience function for performing a quick BCT analysis on a variable.
-
-    Args:
-        factor_graph: The `FactorGraph` object.
-        history: The `History` object from a simulation run.
-        variable_name: The name of the variable to analyze.
-        damping_factor: The damping factor used in the simulation.
-
-    Returns:
-        A dictionary containing the convergence analysis for the variable.
-    """
-    creator = BCTCreator(factor_graph, history, damping_factor)
-    return creator.analyze_convergence(variable_name)
-
-
-def quick_bct_visualization(
-    factor_graph: Any,
-    history: Any,
-    variable_name: str,
-    save_path: Optional[str] = None,
-    damping_factor: float = 0.0,
-) -> plt.Figure:
-    """A convenience function for generating a quick BCT visualization.
-
-    Args:
-        factor_graph: The `FactorGraph` object.
-        history: The `History` object from a simulation run.
-        variable_name: The name of the variable to visualize.
-        save_path: An optional path to save the generated figure.
-        damping_factor: The damping factor used in the simulation.
-
-    Returns:
-        The `matplotlib.Figure` object of the visualization.
-    """
-    creator = BCTCreator(factor_graph, history, damping_factor)
-    return creator.visualize_bct(variable_name, save_path=save_path)
-
-
-def example_usage() -> None:
-    """Provides an example of how to use the `BCTCreator` class."""
-    print("BCTCreator ready for use! See the function's docstring for an example.")
-    # Example usage pattern:
-    #
-    # # Assuming `my_graph` and `engine` (after a run) exist
-    # creator = BCTCreator(my_graph, engine.history, damping_factor=0.2)
-    # analysis = creator.analyze_convergence('x1')
-    # print(f"Variable x1 converged: {analysis['converged']}")
-    # creator.visualize_bct('x1', save_path='x1_bct.png')
-    # comparison = creator.compare_variables(['x1', 'x2', 'x3'])
-    # creator.export_analysis('complete_bct_analysis.json')
-    # creator.print_summary()
-
-
-if __name__ == "__main__":
-    example_usage()
+__all__ = ["BCTGraph", "BCTCreator", "SnapshotBCTBuilder", "MessageKey", "BeliefKey", "CostKey"]
