@@ -10,6 +10,7 @@ from propflow.bp.engines import (
     DampingCROnceEngine,
     DampingSCFGEngine,
     MessagePruningEngine,
+    TRWEngine,
 )
 from propflow.core import Message
 
@@ -55,6 +56,43 @@ def create_simple_factor_graph():
     fg = FactorGraph(variable_li=variable_li, factor_li=factor_li, edges=edges)
 
     return fg
+
+
+def _pairwise_cost_table(num_vars: int | None = None, domain_size: int | None = None, **kwargs):
+    """Deterministic binary cost table for TRW tests."""
+    n_vars = num_vars or 2
+    domain = domain_size or 2
+    shape = (domain,) * n_vars
+    return np.arange(np.prod(shape), dtype=float).reshape(shape)
+
+
+def create_pairwise_factor_graph():
+    """Binary factor graph with one factor f12."""
+    var1 = VariableAgent(name="x1", domain=2)
+    var2 = VariableAgent(name="x2", domain=2)
+    factor = FactorAgent(
+        name="f12",
+        domain=2,
+        ct_creation_func=_pairwise_cost_table,
+    )
+    edges = {factor: [var1, var2]}
+    return FactorGraph(variable_li=[var1, var2], factor_li=[factor], edges=edges)
+
+
+def create_triangle_factor_graph():
+    """Three variables connected in a cycle (f12, f23, f13)."""
+    vars_ = [VariableAgent(name=f"x{i}", domain=2) for i in range(1, 4)]
+    factors = [
+        FactorAgent(name="f12", domain=2, ct_creation_func=_pairwise_cost_table),
+        FactorAgent(name="f23", domain=2, ct_creation_func=_pairwise_cost_table),
+        FactorAgent(name="f13", domain=2, ct_creation_func=_pairwise_cost_table),
+    ]
+    edges = {
+        factors[0]: [vars_[0], vars_[1]],
+        factors[1]: [vars_[1], vars_[2]],
+        factors[2]: [vars_[0], vars_[2]],
+    }
+    return FactorGraph(variable_li=vars_, factor_li=factors, edges=edges)
 
 
 def test_split_engine():
@@ -211,6 +249,49 @@ def test_damping_scfg_engine():
     verbose_print(f"Actual damped data: {curr_msg.data}")
     np.testing.assert_array_almost_equal(curr_msg.data, expected_data)
     verbose_print("✓ Message correctly damped")
+
+
+def test_trw_engine_applies_custom_rhos():
+    """Verify TRWEngine respects explicit rho configuration."""
+    fg = create_pairwise_factor_graph()
+    rho = {"f12": 0.25}
+    engine = TRWEngine(factor_graph=fg, factor_rhos=rho)
+    factor = next(f for f in fg.factors if f.name == "f12")
+    assert np.isclose(engine.factor_rhos["f12"], rho["f12"])
+    np.testing.assert_allclose(
+        factor.cost_table,
+        factor.original_cost_table / rho["f12"],
+    )
+
+
+def test_trw_engine_sampling_reproducible():
+    """Tree-sampled rho values should match deterministic expectations."""
+    fg = create_triangle_factor_graph()
+    engine = TRWEngine(
+        factor_graph=fg,
+        tree_sample_count=16,
+        tree_sampler_seed=123,
+    )
+    expected = engine._estimate_rhos_via_spanning_trees(fg.factors)
+    for name, rho in expected.items():
+        assert np.isclose(engine.factor_rhos[name], rho)
+
+
+def test_trw_engine_scales_outgoing_messages():
+    """Outgoing R-messages should be multiplied by rho_f."""
+    fg = create_pairwise_factor_graph()
+    rho = {"f12": 0.4}
+    engine = TRWEngine(factor_graph=fg, factor_rhos=rho)
+    factor = next(f for f in fg.factors if f.name == "f12")
+    var = next(v for v in fg.variables if v.name == "x1")
+    message = Message(
+        data=np.array([1.0, 2.0], dtype=float),
+        sender=factor,
+        recipient=var,
+    )
+    factor.mailer.outbox = [message]
+    engine.post_factor_compute(factor, iteration=0)
+    np.testing.assert_allclose(message.data, np.array([1.0, 2.0]) * rho["f12"])
     verbose_print("✓ DampingSCFGEngine correctly implements both splitting and damping")
 
 

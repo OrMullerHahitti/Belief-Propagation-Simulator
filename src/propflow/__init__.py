@@ -19,6 +19,7 @@ from .bp.engines import (
     DampingCROnceEngine,
     DampingSCFGEngine,
     MessagePruningEngine,
+    TRWEngine,
 )
 
 # Computators
@@ -62,6 +63,7 @@ __all__ = [
     "DampingCROnceEngine",
     "DampingSCFGEngine",
     "MessagePruningEngine",
+    "TRWEngine",
     # Computators
     "MinSumComputator",
     "MaxSumComputator",
