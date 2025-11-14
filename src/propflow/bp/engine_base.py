@@ -79,7 +79,9 @@ class BPEngine:
         self.post_init()
         self._initialize_messages()
         self.graph.set_computator(self.computator)
-        self.var_nodes, self.factor_nodes = nx.bipartite.sets(self.graph.G)
+        var_set, factor_set = nx.bipartite.sets(self.graph.G)
+        self.var_nodes = sorted(var_set, key=lambda node: node.name)
+        self.factor_nodes = sorted(factor_set, key=lambda node: node.name)
 
         engine_type = self.__class__.__name__
         use_bct = (

@@ -18,6 +18,7 @@ from .bp.engines import (
     CostReductionOnceEngine,
     DampingCROnceEngine,
     DampingSCFGEngine,
+    DampingTRWEngine,
     MessagePruningEngine,
     TRWEngine,
 )
@@ -62,6 +63,7 @@ __all__ = [
     "CostReductionOnceEngine",
     "DampingCROnceEngine",
     "DampingSCFGEngine",
+    "DampingTRWEngine",
     "MessagePruningEngine",
     "TRWEngine",
     # Computators

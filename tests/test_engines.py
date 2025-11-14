@@ -9,6 +9,7 @@ from propflow.bp.engines import (
     CostReductionOnceEngine,
     DampingCROnceEngine,
     DampingSCFGEngine,
+    DampingTRWEngine,
     MessagePruningEngine,
     TRWEngine,
 )
@@ -292,6 +293,33 @@ def test_trw_engine_scales_outgoing_messages():
     factor.mailer.outbox = [message]
     engine.post_factor_compute(factor, iteration=0)
     np.testing.assert_allclose(message.data, np.array([1.0, 2.0]) * rho["f12"])
+
+
+def test_damping_trw_engine_combines_behaviors():
+    """DampingTRWEngine should damp variable messages and apply TRW scaling."""
+    fg = create_pairwise_factor_graph()
+    rho = {"f12": 0.5}
+    damping = 0.25
+    engine = DampingTRWEngine(
+        factor_graph=fg,
+        factor_rhos=rho,
+        damping_factor=damping,
+    )
+    factor = next(f for f in fg.factors if f.name == "f12")
+    np.testing.assert_allclose(
+        factor.cost_table, factor.original_cost_table / rho["f12"]
+    )
+
+    var = next(v for v in fg.variables if v.name == "x1")
+    prev = Message(data=np.array([2.0, 4.0]), sender=var, recipient=factor)
+    curr = Message(data=np.array([6.0, 8.0]), sender=var, recipient=factor)
+    var._history = [[prev]]
+    var.mailer.outbox = [curr]
+    curr_before = curr.data.copy()
+
+    engine.post_var_compute(var)
+    expected = damping * prev.data + (1 - damping) * curr_before
+    np.testing.assert_allclose(curr.data, expected)
     verbose_print("✓ DampingSCFGEngine correctly implements both splitting and damping")
 
 
