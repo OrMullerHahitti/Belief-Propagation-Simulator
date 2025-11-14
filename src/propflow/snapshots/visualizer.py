@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Sequence, Tuple
+from typing import Any, Dict, List, Literal, Mapping, Sequence, Tuple
 
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
@@ -751,6 +751,7 @@ class SnapshotVisualizer:
         cmap: str = "viridis",
         missing_value: float = float("nan"),
         annotate: bool = True,
+        value_labels: Mapping[int, str] | Sequence[str] | None = None,
         return_data: bool = False,
     ) -> plt.Figure | Tuple[plt.Figure, Dict[str, Any]]:
         """Plot variable assignments over time as a heatmap.
@@ -763,6 +764,9 @@ class SnapshotVisualizer:
             missing_value: Value inserted when an assignment is missing for a step.
                 Defaults to ``NaN`` so gaps appear as empty cells.
             annotate: Whether to write assignment values inside each cell.
+            value_labels: Optional mapping or ordered list that converts assignment
+                indices to display labels (e.g., ``{0: \"A\", 1: \"B\"}`` or
+                ``[\"A\", \"B\", \"C\"]``).
             return_data: If True, return the data used for plotting alongside the figure.
 
         Returns:
@@ -790,6 +794,21 @@ class SnapshotVisualizer:
         if np.all(np.isnan(matrix)):
             raise ValueError("No assignments recorded for the selected variables.")
 
+        label_lookup: Dict[int, str] = {}
+        if value_labels is not None:
+            if isinstance(value_labels, Mapping):
+                label_lookup = {int(k): str(v) for k, v in value_labels.items()}
+            elif isinstance(value_labels, Sequence) and not isinstance(
+                value_labels, (str, bytes)
+            ):
+                label_lookup = {
+                    idx: str(name) for idx, name in enumerate(value_labels)
+                }
+            else:
+                raise TypeError(
+                    "value_labels must be a mapping or a sequence of labels"
+                )
+
         fig_width = max(6.0, 0.6 * len(steps))
         fig_height = max(4.0, 0.5 * len(target_vars))
         fig, ax = plt.subplots(figsize=(fig_width, fig_height))
@@ -813,10 +832,12 @@ class SnapshotVisualizer:
                     value = matrix[row, col]
                     if np.isnan(value):
                         continue
+                    int_value = int(round(value))
+                    label = label_lookup.get(int_value, f"{int_value}")
                     ax.text(
                         col,
                         row,
-                        f"{int(value)}",
+                        label,
                         ha="center",
                         va="center",
                         color="white" if value > color_threshold else "black",
@@ -824,7 +845,21 @@ class SnapshotVisualizer:
                         fontweight="bold",
                     )
 
-        fig.colorbar(im, ax=ax, shrink=0.85, label="Assignment index")
+        cbar = fig.colorbar(im, ax=ax, shrink=0.85)
+        if label_lookup:
+            unique_values = sorted(
+                {
+                    int(round(v))
+                    for v in np.unique(matrix[~np.isnan(matrix)])
+                }
+            )
+            cbar.set_ticks(unique_values)
+            cbar.set_ticklabels(
+                [label_lookup.get(val, str(val)) for val in unique_values]
+            )
+            cbar.set_label("Assignment label")
+        else:
+            cbar.set_label("Assignment index")
         fig.tight_layout()
 
         if savepath:
@@ -841,6 +876,7 @@ class SnapshotVisualizer:
             "variables": target_vars,
             "steps": steps,
             "matrix": matrix,
+            "value_labels": label_lookup if label_lookup else None,
         }
         return (fig, payload) if return_data else fig
 
@@ -1025,6 +1061,7 @@ class SnapshotVisualizer:
         variable_name: str,
         iteration: int | None = None,
         *,
+        steps_back: int | None = None,
         show: bool = True,
         savepath: str | None = None,
     ) -> BCTCreator:
@@ -1036,8 +1073,11 @@ class SnapshotVisualizer:
 
         Args:
             variable_name: The name of the variable to visualize the BCT for.
-            iteration: The iteration to trace back from. Defaults to None (last step).
+            iteration: The iteration index to trace back from. Defaults to None (last step).
                 If None, uses -1 (the last captured iteration).
+            steps_back: Optional number of steps from the end to anchor the tree.
+                For example, ``steps_back=10`` traces the state 10 steps before the last
+                recorded snapshot. When provided, overrides ``iteration``.
             show: Whether to display the plot.
             savepath: Optional path to save the generated figure.
 
@@ -1052,11 +1092,10 @@ class SnapshotVisualizer:
         if variable_name not in self._variables:
             raise ValueError(f"Variable {variable_name} not found in snapshots")
 
-        if iteration is None:
-            iteration = -1
-
         # Reconstruct BCT data from snapshots
         bct_data = self._reconstruct_bct_data_from_snapshots()
+        total_steps = bct_data["metadata"].get("total_steps", len(self._records))
+        iteration = self._resolve_bct_iteration(iteration, steps_back, total_steps)
 
         # Create a mock history object that works with BCTCreator
         mock_history = _SnapshotBasedHistory(bct_data)
@@ -1103,9 +1142,13 @@ class SnapshotVisualizer:
             assignments = []
             for rec in self._records:
                 data = rec.data
-                # Get belief, fallback to assignment
-                belief = data.beliefs.get(var, data.assignments.get(var, 0.0))
-                beliefs.append(float(belief))
+                raw_belief = data.beliefs.get(var)
+                if raw_belief is None:
+                    fallback = data.assignments.get(var)
+                    belief_value = float(fallback) if fallback is not None else 0.0
+                else:
+                    belief_value = self._scalarize_belief(raw_belief)
+                beliefs.append(belief_value)
                 assignments.append(data.assignments.get(var))
 
             bct_data["beliefs"][var] = beliefs
@@ -1142,6 +1185,46 @@ class SnapshotVisualizer:
         bct_data["messages"] = message_flows
 
         return bct_data
+
+    @staticmethod
+    def _scalarize_belief(value: Any) -> float:
+        """Convert belief vectors or scalars into a single float value."""
+        if value is None:
+            return 0.0
+        if isinstance(value, np.ndarray):
+            if value.size == 0:
+                return 0.0
+            return float(np.min(value))
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            array = np.asarray(value, dtype=float)
+            if array.size == 0:
+                return 0.0
+            return float(np.min(array))
+
+    @staticmethod
+    def _resolve_bct_iteration(
+        iteration: int | None, steps_back: int | None, total_steps: int
+    ) -> int:
+        """Resolve the effective iteration index for BCT visualization."""
+        if total_steps <= 0:
+            return 0
+
+        resolved = iteration if iteration is not None else -1
+
+        if steps_back is not None:
+            if steps_back <= 0:
+                raise ValueError("steps_back must be positive")
+            resolved = max(0, total_steps - steps_back)
+
+        if resolved < 0:
+            resolved = max(0, total_steps + resolved)
+
+        if resolved >= total_steps:
+            resolved = total_steps - 1
+
+        return resolved
 
     __all__ = ["SnapshotVisualizer"]
 

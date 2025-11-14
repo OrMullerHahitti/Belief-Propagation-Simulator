@@ -88,8 +88,7 @@ class BCTCreator:
         if not beliefs:
             raise ValueError(f"No belief data found for {variable_name}")
 
-        if final_iteration == -1 or final_iteration >= len(beliefs):
-            final_iteration = len(beliefs) - 1
+        final_iteration = self._normalize_iteration(final_iteration, len(beliefs))
         final_belief = beliefs[final_iteration]
 
         root = BCTNode(
@@ -135,6 +134,19 @@ class BCTCreator:
         return (1 - self.damping_factor) * (
             self.damping_factor ** max(0, iteration - 1)
         )
+
+    @staticmethod
+    def _normalize_iteration(iteration: int, total_steps: int) -> int:
+        """Clamp/normalize iteration indexes, supporting negative offsets."""
+        if total_steps <= 0:
+            return 0
+        if iteration < 0:
+            iteration = total_steps + iteration
+        if iteration < 0:
+            return 0
+        if iteration >= total_steps:
+            return total_steps - 1
+        return iteration
 
     def analyze_convergence(self, variable_name: str) -> Dict[str, Any]:
         """Analyzes the convergence pattern for a single variable.

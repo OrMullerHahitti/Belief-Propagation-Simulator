@@ -133,6 +133,17 @@ def test_bct_creator_builds_tree():
     assert coeff < 1.0
 
 
+def test_bct_creator_handles_negative_iteration_offsets():
+    history = DummyHistory()
+    creator = BCTCreator(DummyFactorGraph(), history, damping_factor=0.0)
+
+    root = creator.create_bct("x1", final_iteration=-2)
+    assert root.iteration == 1
+
+    earliest = creator.create_bct("x1", final_iteration=-10)
+    assert earliest.iteration == 0
+
+
 def test_draw_factor_graph(monkeypatch):
     graph = FGBuilder.build_cycle_graph(
         num_vars=3,

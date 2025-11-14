@@ -210,6 +210,14 @@ visualizer = SnapshotVisualizer(all_snapshots)
 # Create and return a BCT creator object
 bct_creator = visualizer.plot_bct("x1", show=True)
 
+# Trace the tree anchored 5 steps before the latest snapshot
+visualizer.plot_bct("x1", steps_back=5, show=False)
+
+Passing ``steps_back`` lets you anchor the BCT without manually computing the
+absolute iteration index (e.g., ``steps_back=10`` starts the trace 10 steps
+before the final snapshot). The original ``iteration`` argument is still
+available when you need an explicit index.
+
 # Analyze convergence for a variable
 analysis = bct_creator.analyze_convergence("x1")
 print(f"Variable x1 converged: {analysis['converged']}")
@@ -405,6 +413,11 @@ need to revisit them later.
    :width: 65%
 
    Assignment heatmap highlighting per-variable argmin trajectories.
+
+Pass ``value_labels`` to ``plot_assignment_heatmap`` when you want the heatmap to
+display symbolic labels (e.g., ``["A", "B", "C"]`` or ``{0: "Lo", 1: "Hi"}``) in
+place of raw assignment indices. The same mapping is applied to the colorbar and
+cell annotations so you can mirror domain labels directly in the visual.
 
 ### Snapshot Directory Structure
 
