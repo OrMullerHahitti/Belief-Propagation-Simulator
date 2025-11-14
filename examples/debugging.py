@@ -421,6 +421,7 @@ if __name__ == "__main__":
                 ct_factory=ct_factory_fn,
                 ct_params={"low": 100, "high": 200},
                 density=0.25,
+                seed=SEED + i,
             )
         )
 

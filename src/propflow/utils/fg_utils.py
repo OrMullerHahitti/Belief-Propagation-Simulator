@@ -25,6 +25,8 @@ from ..core.agents import VariableAgent, FactorAgent
 project_root = find_project_root()
 sys.path.append(str(project_root))
 
+_MAX_SEED = 2**63 - 1
+
 
 def _make_variable(idx: int, domain: int) -> VariableAgent:
     """Creates a single `VariableAgent` with a standardized name."""
@@ -56,18 +58,30 @@ def _build_factor_edge_list(
     return edge_dict
 
 
+def _resolve_graph_seed(seed: int | None) -> int:
+    """Resolve a deterministic seed, respecting the global numpy RNG."""
+
+    if seed is not None:
+        return int(seed) % _MAX_SEED
+
+    # numpy's legacy global RNG honors np.random.seed calls from user scripts.
+    return int(np.random.randint(0, _MAX_SEED, dtype=np.int64))
+
+
 def _make_connections_density(
-    variable_list: List[VariableAgent], density: float
+    variable_list: List[VariableAgent], density: float, *, seed: int | None = None
 ) -> List[Tuple[VariableAgent, VariableAgent]]:
     """Creates a random graph of variable connections based on a given density."""
+    graph_seed = _resolve_graph_seed(seed)
+    rng = random.Random(graph_seed)
     num_vars = len(variable_list)
-    r_graph = nx.erdos_renyi_graph(num_vars, density)
+    r_graph = nx.erdos_renyi_graph(num_vars, density, seed=graph_seed)
     if num_vars > 1 and not nx.is_connected(r_graph):
         components = list(nx.connected_components(r_graph))
         # Connect components sequentially to ensure a single connected component.
         for comp_a, comp_b in zip(components, components[1:]):
-            u = random.choice(tuple(comp_a))
-            v = random.choice(tuple(comp_b))
+            u = rng.choice(tuple(comp_a))
+            v = rng.choice(tuple(comp_b))
             r_graph.add_edge(u, v)
     variable_map = dict(enumerate(variable_list))
     full_graph = nx.relabel_nodes(r_graph, variable_map)
@@ -103,6 +117,8 @@ class FGBuilder:
         ct_factory: Callable | str,
         ct_params: Dict[str, Any],
         density: float,
+        *,
+        seed: int | None = None,
     ) -> FactorGraph:
         """Builds a factor graph with random binary constraints.
 
@@ -112,12 +128,16 @@ class FGBuilder:
             ct_factory: The factory for creating cost tables.
             ct_params: Parameters for the cost table factory.
             density: The density of the graph (probability of an edge).
+            seed: Optional seed controlling the random topology. When omitted,
+                randomness is derived from the globally-configured numpy and
+                ``random`` RNGs so user-level seeding still produces
+                deterministic graphs.
 
         Returns:
             A `FactorGraph` instance with a random topology.
         """
         variables = [_make_variable(i + 1, domain_size) for i in range(num_vars)]
-        connections = _make_connections_density(variables, density)
+        connections = _make_connections_density(variables, density, seed=seed)
         edges = _build_factor_edge_list(connections, domain_size, ct_factory, ct_params)
         factors = list(edges.keys())
         return FactorGraph(variables, factors, edges)
