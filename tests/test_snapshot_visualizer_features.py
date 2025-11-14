@@ -44,6 +44,23 @@ def _make_message_snapshot(
     )
 
 
+def _make_vector_belief_snapshot(
+    step: int, belief: np.ndarray, assignment: int
+) -> SnapshotRecord:
+    return EngineSnapshot(
+        step=step,
+        lambda_=0.0,
+        dom={"x1": ["0", "1"]},
+        N_var={"x1": []},
+        N_fac={},
+        Q={},
+        R={},
+        beliefs={"x1": belief},
+        assignments={"x1": assignment},
+        metadata={},
+    )
+
+
 def test_plot_global_cost_returns_expected_series(tmp_path) -> None:
     snapshots = [
         _make_snapshot(0, 10.0),
@@ -70,6 +87,39 @@ def test_plot_global_cost_returns_expected_series(tmp_path) -> None:
     assert save_file.exists()
 
     plt.close(fig)
+
+
+def test_plot_bct_handles_vector_beliefs() -> None:
+    snapshots = [
+        _make_vector_belief_snapshot(0, np.array([2.0, 1.0]), 0),
+        _make_vector_belief_snapshot(1, np.array([0.5, 1.5]), 1),
+    ]
+
+    visualizer = SnapshotVisualizer(snapshots)
+    creator = visualizer.plot_bct("x1", show=False)
+
+    assert creator.bct_data["beliefs"]["x1"] == [1.0, 0.5]
+
+    plt.close("all")
+
+
+def test_plot_bct_steps_back_support() -> None:
+    snapshots = [
+        _make_vector_belief_snapshot(0, np.array([2.0, 1.0]), 0),
+        _make_vector_belief_snapshot(1, np.array([0.5, 1.5]), 1),
+        _make_vector_belief_snapshot(2, np.array([0.25, 0.75]), 0),
+    ]
+
+    visualizer = SnapshotVisualizer(snapshots)
+
+    creator = visualizer.plot_bct("x1", steps_back=2, show=False)
+    assert "x1_1" in creator.bcts
+    assert creator.bcts["x1_1"].iteration == 1
+
+    creator_early = visualizer.plot_bct("x1", steps_back=10, show=False)
+    assert "x1_0" in creator_early.bcts
+
+    plt.close("all")
 
 
 def test_plot_message_norms_computes_expected_values(tmp_path) -> None:
@@ -175,5 +225,51 @@ def test_plot_assignment_heatmap_builds_matrix(tmp_path) -> None:
     )
     np.testing.assert_allclose(payload["matrix"], expected_matrix)
     assert save_path.exists()
+
+    plt.close(fig)
+
+
+def test_plot_assignment_heatmap_value_labels() -> None:
+    snapshots = [
+        EngineSnapshot(
+            step=0,
+            lambda_=0.0,
+            dom={"x1": ["0", "1"], "x2": ["0", "1"]},
+            N_var={"x1": [], "x2": []},
+            N_fac={},
+            Q={},
+            R={},
+            beliefs={},
+            assignments={"x1": 0, "x2": 1},
+            metadata={},
+        ),
+        EngineSnapshot(
+            step=1,
+            lambda_=0.0,
+            dom={"x1": ["0", "1"], "x2": ["0", "1"]},
+            N_var={"x1": [], "x2": []},
+            N_fac={},
+            Q={},
+            R={},
+            beliefs={},
+            assignments={"x1": 1, "x2": 0},
+            metadata={},
+        ),
+    ]
+
+    visualizer = SnapshotVisualizer(snapshots)
+
+    fig, payload = visualizer.plot_assignment_heatmap(
+        vars_filter=["x1"],
+        show=False,
+        annotate=True,
+        value_labels=["A", "B"],
+        return_data=True,
+    )
+
+    ax = next(ax for ax in fig.axes if ax.images)
+    texts = {text.get_text() for text in ax.texts}
+    assert {"A", "B"}.issubset(texts)
+    assert payload["value_labels"][0] == "A"
 
     plt.close(fig)
