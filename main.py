@@ -14,9 +14,11 @@ if SRC_DIR.is_dir() and str(SRC_DIR) not in sys.path:
 
 from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
-from propflow.configs import CTFactories
-from propflow.configs.global_config_mapping import (
-    EngineDefaults
+from propflow.configs import (
+    CTFactories,
+    ENGINE_DEFAULTS,
+    POLICY_DEFAULTS,
+    SIMULATOR_DEFAULTS,
 )
 from propflow.bp.engines import (
     BPEngine,
@@ -24,8 +26,11 @@ from propflow.bp.engines import (
     DampingEngine,
     DampingCROnceEngine,
     CostReductionOnceEngine,
+    DampingTRWEngine,
     SplitEngine,
-    DiffusionEngine
+    DiffusionEngine,
+    TRWEngine,
+    DampingTRWEngine
 )
 
 SEED = 42
@@ -63,6 +68,17 @@ if __name__ == "__main__":
                 "split_factor"
             ],  # Can override: "split_factor": 0.7,
         },
+        "TRW Engine": {
+            "class": TRWEngine
+          # Can override: "tree_reweight_factor": 0.5,
+        },
+        "Damping+TRW": {
+            "class": DampingTRWEngine,
+            "damping_factor": POLICY_DEFAULTS[
+                "damping_factor"
+            ],  # Can override: "damping_factor": 0.6,
+            # "tree_reweight_factor": 0.5,  # Can override
+        },
     }
     # --- Graph Creation ---
     print(f"[{time.strftime('%H:%M:%S')}] Creating {NUM_GRAPHS} factor graphs...")
@@ -74,7 +90,7 @@ if __name__ == "__main__":
             domain_size=10,
             ct_factory=ct_factory_fn,
             ct_params={"low": 100, "high": 200},
-            density=0.7,
+            density=0.25,
             seed=SEED + idx,
         )
         for idx in range(NUM_GRAPHS)

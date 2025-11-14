@@ -276,7 +276,7 @@ class TRWEngine(BPEngine):
         self,
         *args,
         factor_rhos: Optional[Dict[str, float]] = None,
-        tree_sample_count: int = 64,
+        tree_sample_count: int = 250,
         tree_sampler_seed: Optional[int] = None,
         min_rho: float = DEFAULT_MIN_RHO,
         **kwargs,
@@ -294,9 +294,9 @@ class TRWEngine(BPEngine):
                 Lower bound applied to sampled rhos to keep them strictly
                 positive (important for stable scaling).
         """
-        self.tree_sample_count = max(1, int(tree_sample_count))
+        self.tree_sample_count = max(1, tree_sample_count)
         self.tree_sampler_seed = tree_sampler_seed
-        self.min_rho = max(float(min_rho), self.DEFAULT_MIN_RHO)
+        self.min_rho = max(min_rho, self.DEFAULT_MIN_RHO)
         self._user_defined_rhos = bool(factor_rhos)
         self.factor_rhos: Dict[str, float] = dict(factor_rhos or {})
 
@@ -367,10 +367,9 @@ class TRWEngine(BPEngine):
         samples = max(1, self.tree_sample_count)
 
         for _ in range(samples):
-            seed = rng.randint(0, 2**32 - 1)
-            tree = nx.random_spanning_tree(primal_graph, seed=seed)
-            for node_u, node_v in tree.edges():
-                key = tuple(sorted((node_u, node_v)))
+            tree_edges = self._sample_spanning_tree(primal_graph, rng)
+            for node_u, node_v in tree_edges:
+                key = (node_u, node_v) if node_u <= node_v else (node_v, node_u)
                 for factor in edge_to_factors.get(key, []):
                     counts[factor.name] += 1
 
@@ -403,6 +402,76 @@ class TRWEngine(BPEngine):
         # Guard against multiple factors per variable pair by treating them
         # as parallel edges (each receives credit whenever the pair is picked).
         return graph, edge_to_factors
+
+    def _sample_spanning_tree(
+        self, graph: nx.Graph, rng: random.Random
+    ) -> list[tuple[str, str]]:
+        """
+        Sample a spanning tree using Wilson's algorithm (loop-erased random walk).
+
+        Wilson's method draws a uniformly random spanning tree without needing any
+        determinant computations, avoiding numerical issues on large graphs.
+        """
+        nodes = list(graph.nodes())
+        if not nodes:
+            return []
+
+        root = rng.choice(nodes)
+        tree_nodes = {root}
+        unvisited = set(nodes)
+        unvisited.discard(root)
+        tree_edges: set[tuple[str, str]] = set()
+
+        while unvisited:
+            start = rng.choice(tuple(unvisited))
+            walk = [start]
+            visited_index = {start: 0}
+            current = start
+
+            while current not in tree_nodes:
+                neighbors = list(graph.neighbors(current))
+                if not neighbors:
+                    break  # disconnected; handled by caller beforehand
+
+                nxt = rng.choice(neighbors)
+                if nxt in visited_index:
+                    # Erase the loop by truncating the walk.
+                    loop_start = visited_index[nxt]
+                    walk = walk[: loop_start + 1]
+                else:
+                    walk.append(nxt)
+                    visited_index[nxt] = len(walk) - 1
+                current = nxt
+
+            # Add the walk to the tree (connecting to the existing tree at `current`).
+            for u, v in zip(walk, walk[1:]):
+                edge = (u, v) if u <= v else (v, u)
+                tree_edges.add(edge)
+                tree_nodes.add(u)
+                tree_nodes.add(v)
+                unvisited.discard(u)
+                unvisited.discard(v)
+            tree_nodes.add(current)
+            unvisited.discard(current)
+
+        return list(tree_edges)
+
+
+class DampingTRWEngine(DampingEngine, TRWEngine):
+    """A BP engine that combines TRW reweighting with message damping."""
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("damping_factor", 0.9)
+        super().__init__(*args, **kwargs)
+        self.damping_factor = kwargs.get("damping_factor", 0.9)
+        trw_suffix = (
+            "custom"
+            if getattr(self, "_user_defined_rhos", False)
+            else f"trees-{self.tree_sample_count}"
+        )
+        self._name = "DampingTRWEngine"
+        self._set_name({"damping": str(self.damping_factor), "trw": trw_suffix})
+
 
 class MessagePruningEngine(BPEngine):
     """A BP engine that applies a message pruning policy to reduce memory usage."""
