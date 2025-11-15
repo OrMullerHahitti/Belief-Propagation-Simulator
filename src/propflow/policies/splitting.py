@@ -18,7 +18,7 @@ from ..configs.global_config_mapping import PolicyDefaults
 
 def split_all_factors(
     fg: FactorGraph,
-    p: float = None,
+    p: float = None, # type: ignore
 ) -> None:
     """Performs an in-place replacement of every factor with two cloned factors.
 
@@ -49,8 +49,43 @@ def split_all_factors(
 
     for f in original_factors:
         # Build the two new factor agents with distributed costs.
-        cost1 = p * f.cost_table
-        cost2 = (1.0 - p) * f.cost_table
+        cost1 = p * f.cost_table # type: ignore
+        cost2 = (1.0 - p) * f.cost_table # type: ignore
+
+        f1 = f.create_from_cost_table(cost_table=cost1, name=f"{f.name}'")
+        f2 = f.create_from_cost_table(cost_table=cost2, name=f"{f.name}''")
+
+        # Copy the dimension mapping to ensure message axes stay aligned.
+        f1.connection_number = deepcopy(f.connection_number)
+        f2.connection_number = deepcopy(f.connection_number)
+
+        # Add the new nodes and replicate the edges of the original factor.
+        for v, edge_data in G[f].items():
+            G.add_edge(f1, v, **edge_data)
+            G.add_edge(f2, v, **edge_data)
+
+        # Register the new factors in the FactorGraph.
+        fg.factors.append(f1)
+        fg.factors.append(f2)
+
+        # Remove the original factor node and its reference from the graph.
+        G.remove_node(f)
+        fg.factors.remove(f)
+
+def split_specific_factors(fg: FactorGraph, factors: List[FactorAgent], p: float | None = None):
+    if p is None:
+        p = PolicyDefaults.SPLIT_FACTOR.value
+
+    assert 0.0 < p < 1.0, "p must be in (0,1)" # type: ignore
+    G: nx.Graph = fg.G
+
+    # Iterate over a copy of the factors list to avoid mutation issues during iteration.
+    original_factors: List[FactorAgent] = factors
+
+    for f in original_factors:
+        # Build the two new factor agents with distributed costs.
+        cost1 = p * f.cost_table # type: ignore
+        cost2 = (1.0 - p) * f.cost_table # type: ignore
 
         f1 = f.create_from_cost_table(cost_table=cost1, name=f"{f.name}'")
         f2 = f.create_from_cost_table(cost_table=cost2, name=f"{f.name}''")
