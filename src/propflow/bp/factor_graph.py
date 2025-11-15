@@ -5,6 +5,8 @@ import numpy as np
 from typing import List, Dict, Any
 import logging
 
+from propflow.bp.computators import BPComputator
+
 from ..core.dcop_base import Computator
 from ..core.agents import VariableAgent, FactorAgent
 
@@ -12,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+from matplotlib.axes import Axes
 
 
 class FactorGraph:
@@ -59,7 +62,7 @@ class FactorGraph:
     @property
     def lb(self) -> int | float:
         """The lower bound of the problem, can be set externally."""
-        return self._lb
+        return self._lb # type: ignore
 
     @lb.setter
     def lb(self, value: int | float) -> None:
@@ -103,7 +106,7 @@ class FactorGraph:
                         else factor.cost_table
                     )
                     total_cost += cost_table[tuple(indices)]
-        return total_cost
+        return total_cost # pyright: ignore[reportReturnType]
 
     @property
     def curr_assignment(self) -> Dict[VariableAgent, int]:
@@ -128,7 +131,7 @@ class FactorGraph:
                 edge_dict[factor] = [var for var, _ in vars_with_dims]
         return edge_dict
 
-    def set_computator(self, computator: Computator, **kwargs) -> None:
+    def set_computator(self, computator: Computator|BPComputator, **kwargs) -> None:
         """Assigns a computator to all nodes in the graph.
 
         Args:
@@ -178,12 +181,7 @@ class FactorGraph:
         if pretty:
             fig, ax = plt.subplots(figsize=(8.5, 6.5))
             _plot_factor_graph(self, ax, "Factor Graph")
-            plt.tight_layout()
-            if plot:
-                plt.show()
-                return None
-            return fig
-
+            return self._extracted_from_visualize_30(plot, fig)
         layout_kwargs = dict(layout_kwargs or {})
         layout = layout.lower()
 
@@ -224,8 +222,11 @@ class FactorGraph:
         nx.draw_networkx_edges(self.G, pos, ax=ax)
         nx.draw_networkx_labels(self.G, pos, ax=ax)
         ax.set_axis_off()
-        plt.tight_layout()
+        return self._extracted_from_visualize_30(plot, fig)
 
+    # TODO Rename this here and in `visualize`
+    def _extracted_from_visualize_30(self, plot, fig):
+        plt.tight_layout()
         if plot:
             plt.show()
             return None
@@ -270,8 +271,7 @@ class FactorGraph:
         """Returns a list of all factor agents in the graph."""
         return self.factors
 
-
-def _plot_factor_graph(graph: "FactorGraph", ax: plt.Axes, title: str) -> None:
+def _plot_factor_graph(graph: "FactorGraph", ax: Axes, title: str) -> None:
     """Pretty spring-layout view used when visualize(pretty=True) is requested."""
     labels = {node: getattr(node, "name", str(node)) for node in graph.G.nodes}
     pos = nx.spring_layout(graph.G, seed=42)
@@ -316,9 +316,7 @@ def _plot_factor_graph(graph: "FactorGraph", ax: plt.Axes, title: str) -> None:
                 return 0
             largest_cc = max(nx.connected_components(self.G), key=len)
             subgraph = self.G.subgraph(largest_cc)
-            if not subgraph.nodes():
-                return 0
-            return nx.diameter(subgraph)
+            return nx.diameter(subgraph) if subgraph.nodes() else 0
         return nx.diameter(self.G)
 
     def __getstate__(self) -> dict:

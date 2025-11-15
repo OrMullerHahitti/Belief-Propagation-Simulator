@@ -74,11 +74,11 @@ class BPEngine:
             normalize_messages
             if normalize_messages is not None
             else EngineDefaults.NORMALIZE_MESSAGES.value
-        )
+        ) # type: ignore
         self.graph = factor_graph
         self.post_init()
         self._initialize_messages()
-        self.graph.set_computator(self.computator)
+        self.graph.set_computator(self.computator) # type: ignore
         var_set, factor_set = nx.bipartite.sets(self.graph.G)
         self.var_nodes = sorted(var_set, key=lambda node: node.name)
         self.factor_nodes = sorted(factor_set, key=lambda node: node.name)
