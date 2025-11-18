@@ -754,7 +754,7 @@ class SnapshotVisualizer:
         annotate: bool = True,
         value_labels: Mapping[int, str] | Sequence[str] | None = None,
         return_data: bool = False,
-    ) -> plt.Figure | Tuple[plt.Figure, Dict[str, Any]]:
+    ) -> plt.Figure | Tuple[plt.Figure, Dict[str, Any]] | None:
         """Plot variable assignments over time as a heatmap.
 
         Args:
@@ -778,11 +778,7 @@ class SnapshotVisualizer:
             raise ValueError("No variables available to plot assignments.")
 
         steps = self._steps
-        matrix = np.full(
-            (len(target_vars), len(steps)),
-            float(missing_value),
-            dtype=float,
-        )
+        matrix = np.full((len(target_vars), len(steps)), missing_value, dtype=float)
 
         for col, rec in enumerate(self._records):
             assignments = rec.data.assignments
@@ -816,7 +812,7 @@ class SnapshotVisualizer:
 
         im = ax.imshow(matrix, aspect="auto", cmap=cmap, interpolation="nearest")
         ax.set_xticks(range(len(steps)))
-        ax.set_xticklabels(steps, rotation=45, ha="right")
+        ax.set_xticklabels(steps, rotation=45, ha="right") # type: ignore
         ax.set_yticks(range(len(target_vars)))
         ax.set_yticklabels(target_vars)
         ax.set_xlabel("Iteration")
@@ -870,6 +866,7 @@ class SnapshotVisualizer:
 
         if show:
             fig.show()
+            return None
         else:
             plt.close(fig)
 
@@ -877,7 +874,7 @@ class SnapshotVisualizer:
             "variables": target_vars,
             "steps": steps,
             "matrix": matrix,
-            "value_labels": label_lookup if label_lookup else None,
+            "value_labels": label_lookup or None,
         }
         return (fig, payload) if return_data else fig
 
