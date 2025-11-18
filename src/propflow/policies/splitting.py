@@ -73,6 +73,13 @@ def split_all_factors(
         fg.factors.remove(f)
 
 def split_specific_factors(fg: FactorGraph, factors: List[FactorAgent], p: float | None = None):
+    """Split specific factors in the factor graph.
+
+    Args:
+        fg (FactorGraph): The factor graph to modify.
+        factors (List[FactorAgent]): The factors to split.
+        p (float | None, optional): The splitting proportion. Defaults to None.
+    """
     if p is None:
         p = PolicyDefaults.SPLIT_FACTOR.value
 
