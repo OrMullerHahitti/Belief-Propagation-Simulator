@@ -14,7 +14,7 @@ __pycache__/
 /*.egg-info/
 /.claude/
 /.vscode
-/.AGENTS.md
+AGENTS.md
 configs/logs/debug_graph.log
 src/propflow.egg-info/dependency_links.txt
 src/propflow.egg-info/entry_points.txt
@@ -28,7 +28,6 @@ configs/logs/Simulator.log
 configs/logs/Simulator.log
 
 CLAUDE.md
-GEMINI.md
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
