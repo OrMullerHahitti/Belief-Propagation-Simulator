@@ -16,9 +16,9 @@ from propflow.simulator import Simulator
 from propflow.utils.fg_utils import FGBuilder
 from propflow.configs import (
     CTFactories,
-    ENGINE_DEFAULTS,
-    POLICY_DEFAULTS,
-    SIMULATOR_DEFAULTS,
+    EngineDefaults,
+    PolicyDefaults,
+    SimulatorDefaults,
 )
 from propflow.bp.engines import (
     BPEngine,
@@ -45,28 +45,20 @@ if __name__ == "__main__":
 
     # --- Configuration (uses centralized defaults, override as needed) ---
     NUM_GRAPHS = 4
-    MAX_ITER = ENGINE_DEFAULTS["max_iterations"]  # Can override: MAX_ITER = 2000
-    LOG_LEVEL = SIMULATOR_DEFAULTS[
-        "default_log_level"
-    ]  # Can override: LOG_LEVEL = "HIGH"
+    MAX_ITER = EngineDefaults().max_iterations  # Can override: MAX_ITER = 2000
+    LOG_LEVEL = SimulatorDefaults().default_log_level  # Can override: LOG_LEVEL = "HIGH"
 
     # Engine configurations (using centralized defaults with explicit overrides when needed)
     engine_configs = {
         "Baseline Belief Propagation": {"class": BPEngine},
         "Damping+symmetric_splitting": {
             "class": DampingSCFGEngine,
-            "damping_factor": POLICY_DEFAULTS[
-                "damping_factor"
-            ],  # Can override: "damping_factor": 0.8,
-            "split_factor": POLICY_DEFAULTS[
-                "split_factor"
-            ],  # Can override: "split_factor": 0.3,
+            "damping_factor": PolicyDefaults().damping_factor,  # Can override: "damping_factor": 0.8,
+            "split_factor": PolicyDefaults().split_factor,  # Can override: "split_factor": 0.3,
         },
         "Symmetric_split_only": {
             "class": SplitEngine,
-            "split_factor": POLICY_DEFAULTS[
-                "split_factor"
-            ],  # Can override: "split_factor": 0.7,
+            "split_factor": PolicyDefaults().split_factor,  # Can override: "split_factor": 0.7,
         },
         "TRW Engine": {
             "class": TRWEngine
@@ -74,10 +66,9 @@ if __name__ == "__main__":
         },
         "Damping+TRW": {
             "class": DampingTRWEngine,
-            "damping_factor": POLICY_DEFAULTS[
-                "damping_factor"
-            ],  # Can override: "damping_factor": 0.6,
-            # "tree_reweight_factor": 0.5,  # Can override
+            "damping_factor": PolicyDefaults().damping_factor,  # Can override: "damping_factor": 0.6,
+            "tree_reweight_factor": PolicyDefaults().tree_reweight_factor,  # Can override: "tree_reweight_factor": 0.5,
+            
         },
     }
     # --- Graph Creation ---
