@@ -81,7 +81,7 @@ def split_specific_factors(fg: FactorGraph, factors: List[FactorAgent], p: float
         p (float | None, optional): The splitting proportion. Defaults to None.
     """
     if p is None:
-        p = PolicyDefaults.SPLIT_FACTOR.value
+        p = PolicyDefaults().split_factor
 
     assert 0.0 < p < 1.0, "p must be in (0,1)" # type: ignore
     G: nx.Graph = fg.G

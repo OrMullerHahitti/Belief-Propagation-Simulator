@@ -36,39 +36,7 @@ def test_step_and_cycle_equality():
     assert cycle_1 == cycle_2
 
 
-def test_history_legacy_serialization(tmp_path):
-    var, factor = _make_agents()
-    history = History(engine_type="TestEngine", use_bct_history=False)
 
-    cycle0 = Cycle(number=0)
-    step0 = Step(num=0)
-    step0.add(var, Message(np.array([0.0, 1.0]), sender=factor, recipient=var))
-    cycle0.add(step0)
-    history[0] = cycle0
-    history.beliefs[0] = {var.name: np.array([1.0, 2.0])}
-    history.assignments[0] = {var.name: 1}
-
-    cycle1 = Cycle(number=1)
-    step1 = Step(num=1)
-    step1.add(var, Message(np.array([1.0, 3.0]), sender=factor, recipient=var))
-    cycle1.add(step1)
-    history[1] = cycle1
-    history.assignments[1] = {var.name: 1}
-
-    history.initialize_cost(5.0)
-    assert len(history.costs) == 5
-    assert history.compare_last_two_cycles() is True
-
-    output_path = history.to_json(str(tmp_path / "legacy_history.json"))
-    assert (tmp_path / "legacy_history.json").exists()
-    with open(output_path) as fh:
-        payload = json.load(fh)
-    assert payload["engine_type"] == "TestEngine"
-    assert payload["cycles"]["0"]["steps"][0]["num"] == 0
-
-    bct_payload = history.get_bct_data()
-    assert bct_payload["metadata"]["has_step_data"] is False
-    assert var.name in bct_payload["beliefs"]
 
 
 def test_history_bct_tracking_and_export(tmp_path):

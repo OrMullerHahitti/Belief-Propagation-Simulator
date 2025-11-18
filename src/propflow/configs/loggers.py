@@ -4,8 +4,8 @@ This module sets up a standardized logging system for the entire application.
 It uses the `colorlog` library to provide colored console output for improved
 readability and also supports logging to files.
 
-The configuration is driven by the `LOGGING_CONFIG` dictionary in the
-`global_config_mapping` module. It initializes a root logger and provides a
+The configuration is driven by the `LoggingDefaults` and `get_validated_config`
+in the `global_config_mapping` module. It initializes a root logger and provides a
 custom `Logger` class that can be instantiated anywhere in the project for
 consistent logging behavior.
 """
@@ -18,7 +18,11 @@ from enum import Enum
 import colorlog
 
 from ..utils.path_utils import find_project_root
-from .global_config_mapping import LOGGING_CONFIG
+from .global_config_mapping import LoggingDefaults, get_validated_config
+
+
+# Load logging configuration
+LOGGING_CONFIG = get_validated_config("logging")
 
 # Ensure the log directory exists.
 log_dir = find_project_root() / LOGGING_CONFIG["log_dir"]
@@ -63,9 +67,9 @@ class Logger(logging.Logger):
         Args:
             name: The name of the logger, typically `__name__`.
             level: The logging level. If not provided, it defaults to the
-                `default_level` in `LOGGING_CONFIG`.
+                `default_level` in `LoggingDefaults`.
             file: Whether to enable file-based logging for this logger instance.
-                If not provided, it defaults to `file_logging` in `LOGGING_CONFIG`.
+                If not provided, it defaults to `file_logging` in `LoggingDefaults`.
         """
         if level is None:
             level = LOGGING_CONFIG["default_level"]

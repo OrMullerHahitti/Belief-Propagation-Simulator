@@ -26,12 +26,13 @@ from propflow.bp.computators import MinSumComputator, MaxSumComputator
 from propflow.bp.engines import BPEngine
 from propflow.policies.convergance import ConvergenceConfig, ConvergenceMonitor
 from propflow.configs.global_config_mapping import (
-    ENGINE_DEFAULTS,
-    POLICY_DEFAULTS,
-    CONVERGENCE_DEFAULTS,
-    SIMULATOR_DEFAULTS,
-    LOGGING_CONFIG,
+    EngineDefaults,
+    PolicyDefaults,
+    ConvergenceDefaults,
+    SimulatorDefaults,
+    LoggingDefaults,
 )
+from dataclasses import asdict
 from propflow.utils.fg_utils import FGBuilder
 from propflow.configs import create_random_int_table
 
@@ -396,11 +397,11 @@ def engine_configs():
 def default_configs():
     """Access to all default configurations."""
     return {
-        "engine": ENGINE_DEFAULTS,
-        "policy": POLICY_DEFAULTS,
-        "convergence": CONVERGENCE_DEFAULTS,
-        "simulator": SIMULATOR_DEFAULTS,
-        "logging": LOGGING_CONFIG,
+        "engine": asdict(EngineDefaults()),
+        "policy": asdict(PolicyDefaults()),
+        "convergence": asdict(ConvergenceDefaults()),
+        "simulator": asdict(SimulatorDefaults()),
+        "logging": asdict(LoggingDefaults()),
     }
 
 

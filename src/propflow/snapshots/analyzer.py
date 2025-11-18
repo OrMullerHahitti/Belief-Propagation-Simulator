@@ -14,7 +14,7 @@ import networkx as nx
 import numpy as np
 from scipy import sparse
 
-from .types import SnapshotRecord
+from .types import EngineSnapshot
 
 
 # Tolerance constants
@@ -43,7 +43,7 @@ class SnapshotAnalyzer:
 
     def __init__(
         self,
-        snapshots: Sequence[SnapshotRecord],
+        snapshots: Sequence[EngineSnapshot],
         *,
         domain: Mapping[str, int] | None = None,
         max_cycle_len: int = 12,
@@ -51,18 +51,18 @@ class SnapshotAnalyzer:
         """Initialize the analyzer with a sequence of snapshots.
 
         Args:
-            snapshots: A sequence of SnapshotRecord objects from a simulation.
+            snapshots: A sequence of EngineSnapshot objects from a simulation.
             domain: Optional domain mapping (var -> domain_size). If not provided,
                 will be inferred from snapshots.
             max_cycle_len: Maximum cycle length to enumerate in cycle analysis.
         """
         if not snapshots:
             raise ValueError("SnapshotAnalyzer requires at least one snapshot")
-        self._snapshots: List[SnapshotRecord] = sorted(
-            list(snapshots), key=lambda rec: rec.data.step
+        self._snapshots: List[EngineSnapshot] = sorted(
+            list(snapshots), key=lambda rec: rec.step
         )
         self._step_index: Dict[int, int] = {
-            rec.data.step: idx for idx, rec in enumerate(self._snapshots)
+            rec.step: idx for idx, rec in enumerate(self._snapshots)
         }
         self._max_cycle_len = max_cycle_len
         self._domain = dict(domain or self._infer_domain(self._snapshots[0]))
@@ -75,7 +75,7 @@ class SnapshotAnalyzer:
         series: Dict[str, List[int | None]] = {var: [] for var in variables}
 
         for rec in self._snapshots:
-            data = rec.data
+            data = rec
             # Sum R messages per variable to compute belief
             grouped: Dict[str, List[np.ndarray]] = {}
             for (f, v), r_msg in data.R.items():
@@ -98,7 +98,7 @@ class SnapshotAnalyzer:
     ]:
         """Compute ΔQ and ΔR (difference coordinates) for a snapshot."""
         rec = self._snapshot_by_index(step_idx)
-        data = rec.data
+        data = rec
 
         delta_q: Dict[tuple[str, str], float | np.ndarray] = {}
         delta_r: Dict[tuple[str, str], float | np.ndarray] = {}
@@ -146,7 +146,7 @@ class SnapshotAnalyzer:
 
         # Factor rows
         rec = self._snapshot_by_index(step_idx)
-        data = rec.data
+        data = rec
         q_messages = dict(data.Q.items())
 
         for coord in r_coords:
@@ -282,7 +282,7 @@ class SnapshotAnalyzer:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _snapshot_by_index(self, step_idx: int) -> SnapshotRecord:
+    def _snapshot_by_index(self, step_idx: int) -> EngineSnapshot:
         """Retrieve snapshot by index in the sorted list."""
         if step_idx < 0 or step_idx >= len(self._snapshots):
             raise IndexError("step_idx out of range")
@@ -306,9 +306,9 @@ class SnapshotAnalyzer:
         return np.array([float(value)], dtype=float)
 
     @staticmethod
-    def _infer_domain(record: SnapshotRecord) -> Dict[str, int]:
+    def _infer_domain(record: EngineSnapshot) -> Dict[str, int]:
         """Infer variable domains from snapshot data."""
-        data = record.data
+        data = record
         domain: Dict[str, int] = {}
 
         # From assignments

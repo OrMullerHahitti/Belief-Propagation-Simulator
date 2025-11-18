@@ -4,13 +4,14 @@ import pytest
 from propflow.configs.global_config_mapping import (
     CT_FACTORIES,
     CTFactories,
-    ENGINE_DEFAULTS,
+    EngineDefaults,
     get_ct_factory,
     get_validated_config,
     validate_convergence_config,
     validate_engine_config,
     validate_policy_config,
 )
+from dataclasses import asdict
 
 
 def test_get_ct_factory_returns_callable():
@@ -27,7 +28,7 @@ def test_get_ct_factory_returns_callable():
 
 
 def test_validation_helpers_enforce_constraints():
-    valid_engine = ENGINE_DEFAULTS.copy()
+    valid_engine = asdict(EngineDefaults())
     assert validate_engine_config(valid_engine)
 
     invalid_engine = valid_engine.copy()
@@ -55,7 +56,7 @@ def test_validation_helpers_enforce_constraints():
 def test_get_validated_config_merges_defaults():
     config = get_validated_config("engine", {"max_iterations": 25})
     assert config["max_iterations"] == 25
-    assert config["normalize_messages"] == ENGINE_DEFAULTS["normalize_messages"]
+    assert config["normalize_messages"] == EngineDefaults().normalize_messages
 
     simulator_config = get_validated_config("simulator")
     assert "default_max_iter" in simulator_config
