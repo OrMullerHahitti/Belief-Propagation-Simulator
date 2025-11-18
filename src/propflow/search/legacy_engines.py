@@ -22,7 +22,7 @@ from .search_computator import (
 logger = logging.getLogger(__name__)
 
 
-class SearchEngine(BPEngine):
+class LocalSearchBase(BPEngine):
     """Base engine for local-search algorithms operating on factor graphs."""
 
     def __init__(
@@ -162,7 +162,7 @@ class SearchEngine(BPEngine):
         }
 
 
-class DSAEngine(SearchEngine):
+class DSAEngine(LocalSearchBase):
     """Engine for the Distributed Stochastic Algorithm (DSA)."""
 
     def __init__(
@@ -205,7 +205,7 @@ class DSAEngine(SearchEngine):
         return step, changes
 
 
-class MGMEngine(SearchEngine):
+class MGMEngine(LocalSearchBase):
     """Engine for the Maximum Gain Messaging (MGM) algorithm."""
 
     def __init__(
@@ -278,7 +278,7 @@ class MGMEngine(SearchEngine):
         return step, changes
 
 
-class MGM2Engine(SearchEngine):
+class MGM2Engine(LocalSearchBase):
     """Engine for the MGM2 algorithm allowing coordinated pair moves."""
 
     def __init__(

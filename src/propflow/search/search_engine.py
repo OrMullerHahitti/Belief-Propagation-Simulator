@@ -219,25 +219,5 @@ class SearchEngine(Generic[S, A]):
         self.history.push_snapshot(payload)
 
 
-# ----------------------------------------------------------------------#
-# Backward compatibility with legacy local-search engines
-# ----------------------------------------------------------------------#
-try:  # pragma: no cover - exercised indirectly
-    from .legacy_engines import (  # type: ignore
-        SearchEngine as LegacySearchEngine,
-        DSAEngine,
-        MGM2Engine,
-        MGMEngine,
-    )
-
-    __all__ = [
-        "SearchEngine",
-        "EngineHooks",
-        "EngineHistory",
-        "LegacySearchEngine",
-        "DSAEngine",
-        "MGMEngine",
-        "MGM2Engine",
-    ]
-except Exception:  # pragma: no cover - optional legacy support
     __all__ = ["SearchEngine", "EngineHooks", "EngineHistory"]
+

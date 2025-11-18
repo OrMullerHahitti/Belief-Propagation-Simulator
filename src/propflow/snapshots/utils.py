@@ -6,10 +6,10 @@ a simulation engine instance that has a `SnapshotManager` attached.
 """
 from __future__ import annotations
 from typing import Optional, Any
-from .types import SnapshotRecord, Jacobians, CycleMetrics
+from .types import EngineSnapshot, Jacobians, CycleMetrics
 
 
-def latest_snapshot(engine: Any) -> Optional[SnapshotRecord]:
+def latest_snapshot(engine: Any) -> Optional[EngineSnapshot]:
     """Retrieves the most recent snapshot record from the engine.
 
     Args:
@@ -17,7 +17,7 @@ def latest_snapshot(engine: Any) -> Optional[SnapshotRecord]:
             `latest_snapshot` method.
 
     Returns:
-        The latest `SnapshotRecord` object, or `None` if no snapshots are available.
+        The latest `EngineSnapshot` object, or `None` if no snapshots are available.
     """
     return getattr(engine, "latest_snapshot", lambda: None)()
 
@@ -61,7 +61,7 @@ def latest_winners(engine: Any) -> Optional[dict]:
     return getattr(rec, "winners", None) if rec else None
 
 
-def get_snapshot(engine: Any, step_index: int) -> Optional[SnapshotRecord]:
+def get_snapshot(engine: Any, step_index: int) -> Optional[EngineSnapshot]:
     """Retrieves a snapshot record for a specific step index from the engine.
 
     Args:
@@ -70,6 +70,6 @@ def get_snapshot(engine: Any, step_index: int) -> Optional[SnapshotRecord]:
         step_index: The step index for which to retrieve the snapshot.
 
     Returns:
-        The `SnapshotRecord` for the given step, or `None` if not found.
+        The `EngineSnapshot` for the given step, or `None` if not found.
     """
     return getattr(engine, "get_snapshot", lambda _i: None)(step_index)

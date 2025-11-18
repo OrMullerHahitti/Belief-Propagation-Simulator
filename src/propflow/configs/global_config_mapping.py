@@ -14,8 +14,8 @@ Key Sections:
 - Registries and Factories: Mappings for dynamically loading graph builders,
   computators, and cost table factories.
 """
+from dataclasses import dataclass, asdict, field
 from typing import Dict, Callable, Any, Optional
-from enum import Enum
 import logging
 
 from narwhals import Field
@@ -37,18 +37,19 @@ COMPUTATOR = MinSumComputator()
 PROJECT_ROOT: str = find_project_root()
 
 
-class Dirs(Enum):
+@dataclass(frozen=True)
+class Dirs:
     """Standardized names for common project directories."""
 
-    LOGS = "logs"
-    TEST_LOGS = "test_logs"
-    TEST_DATA = "test_data"
-    TEST_RESULTS = "test_results"
-    TEST_CONFIGS = "test_configs"
-    TEST_PLOTS = "test_plots"
-    TEST_PLOTS_DATA = "test_plots_data"
-    TEST_PLOTS_FIGURES = "test_plots_figures"
-    TEST_PLOTS_FIGURES_DATA = "test_plots_figures_data"
+    LOGS: str = "logs"
+    TEST_LOGS: str = "test_logs"
+    TEST_DATA: str = "test_data"
+    TEST_RESULTS: str = "test_results"
+    TEST_CONFIGS: str = "test_configs"
+    TEST_PLOTS: str = "test_plots"
+    TEST_PLOTS_DATA: str = "test_plots_data"
+    TEST_PLOTS_FIGURES: str = "test_plots_figures"
+    TEST_PLOTS_FIGURES_DATA: str = "test_plots_figures_data"
 
 
 ########################################################################
@@ -56,28 +57,38 @@ class Dirs(Enum):
 ########################################################################
 
 # Default parameters for the belief propagation engine.
-class EngineDefaults(Enum):
+@dataclass
+class EngineDefaults:
     """Default parameters for the belief propagation engine."""
-    MAX_ITERATIONS = 2000
-    NORMALIZE_MESSAGES = True
-    MONITOR_PERFORMANCE = False
-    ANYTIME = False
-    USE_BCT_HISTORY = False
-    TIMEOUT = 600  # seconds
+    max_iterations: int = 2000
+    normalize_messages: bool = True
+    monitor_performance: bool = False
+    anytime: bool = False
+    use_bct_history: bool = False
+    timeout: int = 600  # seconds
 
 
-class LoggingDefaults(Enum):
+@dataclass
+class LoggingDefaults:
     """Default configuration for the logging system."""
-    DEFAULT_LEVEL = logging.INFO
-    VERBOSE_LOGGING = False
-    FILE_LOGGING = True
-    LOG_DIR = "configs/logs"
-    LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    CONSOLE_FORMAT = "%(log_color)s%(asctime)s - %(name)s - %(message)s"
-    FILE_FORMAT = "%(asctime)s - %(name)s  - %(message)s"
+    default_level: int = logging.INFO
+    verbose_logging: bool = False
+    file_logging: bool = True
+    log_dir: str = "configs/logs"
+    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    console_format: str = "%(log_color)s%(asctime)s - %(name)s - %(message)s"
+    file_format: str = "%(asctime)s - %(name)s  - %(message)s"
+    console_colors: Dict[str, str] = field(default_factory=lambda: {
+        "DEBUG": "cyan",
+        "INFO": "green",
+        "WARNING": "yellow",
+        "ERROR": "red",
+        "CRITICAL": "red,bg_white",
+    })
 
 
 # For complex nested structures like console_colors, keep as a separate constant
+# Used in default factory above
 CONSOLE_COLORS: Dict[str, str] = {
     "DEBUG": "cyan",
     "INFO": "green",
@@ -86,20 +97,33 @@ CONSOLE_COLORS: Dict[str, str] = {
     "CRITICAL": "red,bg_white",
 }
 
+LOG_LEVELS: Dict[str, int] = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
+    "INFORMATIVE": 20,
+    "MILD": 30,
+    "HIGH": 10,
+    "VERBOSE": 40,
+}
+
 
 ########################################################################
 # ---- Convergence Configuration --------------------------------------
 ########################################################################
 
 
-class ConvergenceDefaults(Enum):
+@dataclass
+class ConvergenceDefaults:
     """Default parameters for the convergence monitor."""
-    BELIEF_THRESHOLD = 1e-6
-    ASSIGNMENT_THRESHOLD = 0
-    MIN_ITERATIONS = 0
-    PATIENCE = 5
-    USE_RELATIVE_CHANGE = True
-    TIMEOUT = 600  # seconds
+    belief_threshold: float = 1e-6
+    assignment_threshold: int = 0
+    min_iterations: int = 0
+    patience: int = 5
+    use_relative_change: bool = True
+    timeout: int = 600  # seconds
 
 
 ########################################################################
@@ -107,14 +131,15 @@ class ConvergenceDefaults(Enum):
 ########################################################################
 
 
-class PolicyDefaults(Enum):
+@dataclass
+class PolicyDefaults:
     """Default parameters for various belief propagation policies."""
-    DAMPING_FACTOR = 0.9
-    DAMPING_DIAMETER = 1
-    SPLIT_FACTOR = 0.5
-    PRUNING_THRESHOLD = 0.1
-    PRUNING_MAGNITUDE_FACTOR = 0.1
-    COST_REDUCTION_ENABLED = True
+    damping_factor: float = 0.9
+    damping_diameter: int = 1
+    split_factor: float = 0.5
+    pruning_threshold: float = 0.1
+    pruning_magnitude_factor: float = 0.1
+    cost_reduction_enabled: bool = True
 
 
 ########################################################################
@@ -122,12 +147,13 @@ class PolicyDefaults(Enum):
 ########################################################################
 
 
-class SimulatorDefaults(Enum):
+@dataclass
+class SimulatorDefaults:
     """Default parameters for the multi-simulation runner."""
-    DEFAULT_MAX_ITER = 5000
-    DEFAULT_LOG_LEVEL = "INFORMATIVE"
-    TIMEOUT = 3600
-    CPU_COUNT_MULTIPLIER = 1.0  # Fraction of CPU cores to use
+    default_max_iter: int = 5000
+    default_log_level: str = "INFORMATIVE"
+    timeout: int = 3600
+    cpu_count_multiplier: float = 1.0  # Fraction of CPU cores to use
 
 
 ########################################################################
@@ -135,86 +161,20 @@ class SimulatorDefaults(Enum):
 ########################################################################
 
 
-class SearchDefaults(Enum):
+@dataclass
+class SearchDefaults:
     """Default parameters for search-based algorithms."""
-    MAX_ITERATIONS = 100
-    SEARCH_TIMEOUT = 1800  # 30 minutes
-    BEAM_WIDTH = 10
-    EXPLORATION_FACTOR = 0.1
+    max_iterations: int = 100
+    search_timeout: int = 1800  # 30 minutes
+    beam_width: int = 10
+    exploration_factor: float = 0.1
 
-# Legacy dict interfaces for backward compatibility
-ENGINE_DEFAULTS: Dict[str, Any] = {
-    "max_iterations": EngineDefaults.MAX_ITERATIONS.value,
-    "normalize_messages": EngineDefaults.NORMALIZE_MESSAGES.value,
-    "monitor_performance": EngineDefaults.MONITOR_PERFORMANCE.value,
-    "anytime": EngineDefaults.ANYTIME.value,
-    "use_bct_history": EngineDefaults.USE_BCT_HISTORY.value,
-    "timeout": EngineDefaults.TIMEOUT.value,
-}
 
-########################################################################
-# ---- Logging Configuration ------------------------------------------
-########################################################################
+# Legacy dict interfaces for backward compatibility - REMOVED
+# ENGINE_DEFAULTS, LOGGING_CONFIG, CONVERGENCE_DEFAULTS, POLICY_DEFAULTS, SIMULATOR_DEFAULTS, SEARCH_DEFAULTS removed.
 
-# Default configuration for the logging system.
-LOGGING_CONFIG: Dict[str, Any] = {
-    "default_level": LoggingDefaults.DEFAULT_LEVEL.value,
-    "verbose_logging": LoggingDefaults.VERBOSE_LOGGING.value,
-    "file_logging": LoggingDefaults.FILE_LOGGING.value,
-    "log_dir": LoggingDefaults.LOG_DIR.value,
-    "console_colors": CONSOLE_COLORS,
-    "log_format": LoggingDefaults.LOG_FORMAT.value,
-    "console_format": LoggingDefaults.CONSOLE_FORMAT.value,
-    "file_format": LoggingDefaults.FILE_FORMAT.value,
-}
-
-# Mapping of descriptive log level names to `logging` module constants.
-LOG_LEVELS: Dict[str, int] = {
-    "HIGH": logging.DEBUG,
-    "INFORMATIVE": logging.INFO,
-    "VERBOSE": logging.WARNING,
-    "MILD": logging.ERROR,
-    "MINIMAL": logging.CRITICAL,
-}
-
-# Default parameters for the convergence monitor (backward compatibility).
-CONVERGENCE_DEFAULTS: Dict[str, Any] = {
-    "belief_threshold": ConvergenceDefaults.BELIEF_THRESHOLD.value,
-    "assignment_threshold": ConvergenceDefaults.ASSIGNMENT_THRESHOLD.value,
-    "min_iterations": ConvergenceDefaults.MIN_ITERATIONS.value,
-    "patience": ConvergenceDefaults.PATIENCE.value,
-    "use_relative_change": ConvergenceDefaults.USE_RELATIVE_CHANGE.value,
-    "timeout": ConvergenceDefaults.TIMEOUT.value,
-}
-
-# Default parameters for various belief propagation policies (backward compatibility).
-POLICY_DEFAULTS: Dict[str, Any] = {
-    "damping_factor": PolicyDefaults.DAMPING_FACTOR.value,
-    "damping_diameter": PolicyDefaults.DAMPING_DIAMETER.value,
-    "split_factor": PolicyDefaults.SPLIT_FACTOR.value,
-    "pruning_threshold": PolicyDefaults.PRUNING_THRESHOLD.value,
-    "pruning_magnitude_factor": PolicyDefaults.PRUNING_MAGNITUDE_FACTOR.value,
-    "cost_reduction_enabled": PolicyDefaults.COST_REDUCTION_ENABLED.value,
-}
-
-# Default parameters for the multi-simulation runner (backward compatibility).
-SIMULATOR_DEFAULTS: Dict[str, Any] = {
-    "default_max_iter": SimulatorDefaults.DEFAULT_MAX_ITER.value,
-    "default_log_level": SimulatorDefaults.DEFAULT_LOG_LEVEL.value,
-    "timeout": SimulatorDefaults.TIMEOUT.value,
-    "cpu_count_multiplier": SimulatorDefaults.CPU_COUNT_MULTIPLIER.value,
-}
-
-# Default parameters for search-based algorithms (backward compatibility).
-SEARCH_DEFAULTS: Dict[str, Any] = {
-    "max_iterations": SearchDefaults.MAX_ITERATIONS.value,
-    "search_timeout": SearchDefaults.SEARCH_TIMEOUT.value,
-    "beam_width": SearchDefaults.BEAM_WIDTH.value,
-    "exploration_factor": SearchDefaults.EXPLORATION_FACTOR.value,
-}
-
-# Legacy support for verbose logging flag.
-VERBOSE_LOGGING = LOGGING_CONFIG["verbose_logging"]
+# Legacy support for verbose logging flag - REMOVED
+# VERBOSE_LOGGING removed.
 
 ########################################################################
 # ---- Configuration Validation ---------------------------------------
@@ -295,14 +255,16 @@ def get_validated_config(
     Raises:
         ValueError: If the config_type is unknown or validation fails.
     """
+    # Construct base configs from Dataclasses
     base_configs = {
-        "engine": ENGINE_DEFAULTS,
-        "policy": POLICY_DEFAULTS,
-        "convergence": CONVERGENCE_DEFAULTS,
-        "simulator": SIMULATOR_DEFAULTS,
-        "logging": LOGGING_CONFIG,
-        "search": SEARCH_DEFAULTS,
+        "engine": asdict(EngineDefaults()),
+        "policy": asdict(PolicyDefaults()),
+        "convergence": asdict(ConvergenceDefaults()),
+        "simulator": asdict(SimulatorDefaults()),
+        "logging": asdict(LoggingDefaults()),
+        "search": asdict(SearchDefaults()),
     }
+    
     if config_type not in base_configs:
         raise ValueError(f"Unknown config type: {config_type}")
 
@@ -323,9 +285,9 @@ def get_validated_config(
 
 # Validate default configurations on import
 try:
-    validate_engine_config(ENGINE_DEFAULTS)
-    validate_policy_config(POLICY_DEFAULTS)
-    validate_convergence_config(CONVERGENCE_DEFAULTS)
+    validate_engine_config(asdict(EngineDefaults()))
+    validate_policy_config(asdict(PolicyDefaults()))
+    validate_convergence_config(asdict(ConvergenceDefaults()))
 except ValueError as e:
     raise RuntimeError(f"Invalid default configuration: {e}")
 
