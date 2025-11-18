@@ -14,6 +14,7 @@ __pycache__/
 /*.egg-info/
 /.claude/
 /.vscode
+/.AGENTS.md
 configs/logs/debug_graph.log
 src/propflow.egg-info/dependency_links.txt
 src/propflow.egg-info/entry_points.txt
