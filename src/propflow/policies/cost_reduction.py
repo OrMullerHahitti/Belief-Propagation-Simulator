@@ -6,8 +6,8 @@ used as policies within a belief propagation engine to influence the
 algorithm's behavior, such as improving convergence or exploring different
 solution spaces.
 """
-from ..core.agents import FactorAgent
-from typing import Iterable
+from ..core.agents import FactorAgent, VariableAgent
+from typing import Iterable, Set
 
 from ..bp.factor_graph import FactorGraph
 
@@ -52,7 +52,7 @@ def discount_attentive(fg: FactorGraph) -> None:
     Args:
         fg: The `FactorGraph` containing the variables to be updated.
     """
-    variables = {n for n, d in fg.G.nodes(data=True) if d.get("bipartite") == 0}
+    variables:Set[VariableAgent] = {n for n, d in fg.G.nodes(data=True) if d.get("bipartite") == 0}
 
     normalized_weights = {
         node: 1.0 / fg.G.degree(node) if fg.G.degree(node) > 0 else 0
