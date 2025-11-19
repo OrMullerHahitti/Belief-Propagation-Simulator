@@ -34,8 +34,8 @@ def TD(variables: List[VariableAgent], x: float = None, diameter: int = None) ->
         diameter = PolicyDefaults().damping_diameter
     if diameter is None: # Keep this check in case diameter was explicitly passed as None but x was not.
         diameter = PolicyDefaults().damping_diameter
-        if diameter is None:
-            raise ValueError("Damping diameter is None")
+    if diameter is None:
+        raise ValueError("Damping diameter is None")
 
 
     for variable in variables:
