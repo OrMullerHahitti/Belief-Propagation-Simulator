@@ -140,6 +140,7 @@ class PolicyDefaults:
     pruning_threshold: float = 0.1
     pruning_magnitude_factor: float = 0.1
     cost_reduction_enabled: bool = True
+    tree_reweight_factor: float = 0.5
 
 
 ########################################################################
