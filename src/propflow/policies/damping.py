@@ -28,9 +28,15 @@ def TD(variables: List[VariableAgent], x: float = None, diameter: int = None) ->
             `POLICY_DEFAULTS` is used.
     """
     if x is None:
-        x = PolicyDefaults.DAMPING_FACTOR.value
-    if diameter is None:
-        diameter = PolicyDefaults.DAMPING_DIAMETER.value
+        x = PolicyDefaults().damping_factor
+        if x is None:
+            raise ValueError("Damping factor is None")
+        diameter = PolicyDefaults().damping_diameter
+    if diameter is None: # Keep this check in case diameter was explicitly passed as None but x was not.
+        diameter = PolicyDefaults().damping_diameter
+        if diameter is None:
+            raise ValueError("Damping diameter is None")
+
 
     for variable in variables:
         last_iter = variable.last_cycle(diameter)
@@ -59,7 +65,7 @@ def damp(variable: VariableAgent, x: float = None) -> None:
             If None, the default from `POLICY_DEFAULTS` is used.
     """
     if x is None:
-        x = PolicyDefaults.DAMPING_FACTOR.value
+        x = PolicyDefaults().damping_factor
 
     last_iter = variable.last_iteration
     outbox = variable.mailer.outbox

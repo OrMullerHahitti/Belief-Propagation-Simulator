@@ -9,7 +9,7 @@ from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .types import SnapshotRecord
+from .types import EngineSnapshot
 from propflow.utils.tools.bct import BCTCreator, SnapshotBCTBuilder
 from propflow.core.agents import FactorAgent
 
@@ -23,11 +23,11 @@ class SnapshotVisualizer:
     _SMALL_PLOT_THRESHOLD = 8
     _MAX_AUTO_MESSAGE_PAIRS = 6
 
-    def __init__(self, snapshots: Sequence[SnapshotRecord]):
+    def __init__(self, snapshots: Sequence[EngineSnapshot]):
         """Initialize the visualizer with snapshot records.
 
         Args:
-            snapshots: A sequence of SnapshotRecord objects.
+            snapshots: A sequence of EngineSnapshot objects.
 
         Raises:
             ValueError: If snapshots is empty or contains no variables.
@@ -35,8 +35,8 @@ class SnapshotVisualizer:
         if not snapshots:
             raise ValueError("Snapshots are empty")
 
-        self._records = sorted(list(snapshots), key=lambda rec: rec.data.step)
-        self._steps = [rec.data.step for rec in self._records]
+        self._records = sorted(list(snapshots), key=lambda rec: rec.step)
+        self._steps = [rec.step for rec in self._records]
         self._variables = self._collect_variables(self._records)
         self._bct_builder: SnapshotBCTBuilder | None = None
 
@@ -51,7 +51,7 @@ class SnapshotVisualizer:
         """Return the ordered simulation steps captured in the snapshots."""
         return list(self._steps)
 
-    def _snapshot_by_step(self, step: int) -> SnapshotRecord:
+    def _snapshot_by_step(self, step: int) -> EngineSnapshot:
         try:
             idx = self._steps.index(step)
         except ValueError as exc:  # pragma: no cover - defensive
@@ -90,7 +90,7 @@ class SnapshotVisualizer:
         result: Dict[str, List[int | None]] = {var: [] for var in target_vars}
 
         for rec in self._records:
-            data = rec.data
+            data = rec
 
             # Group R messages by recipient (variable)
             r_grouped: Dict[str, List[np.ndarray]] = {}
@@ -131,8 +131,8 @@ class SnapshotVisualizer:
         costs: List[float] = []
 
         for rec in self._records:
-            step = rec.data.step
-            cost = rec.data.global_cost
+            step = rec.step
+            cost = rec.global_cost
             if cost is None:
                 if include_missing:
                     steps.append(step)
@@ -150,7 +150,7 @@ class SnapshotVisualizer:
         """Return a copy of a factor's cost table at a given step."""
         factor_name = self._factor_name(factor)
         record = self._snapshot_by_step(step)
-        tables = getattr(record.data, "cost_tables", {})
+        tables = getattr(record, "cost_tables", {})
         if factor_name not in tables:
             available = ", ".join(sorted(tables.keys())) or "none"
             raise ValueError(
@@ -164,7 +164,7 @@ class SnapshotVisualizer:
     ) -> Tuple[List[str], List[str]]:
         factor_name = self._factor_name(factor)
         record = self._snapshot_by_step(step)
-        labels = getattr(record.data, "cost_labels", {}).get(factor_name)
+        labels = getattr(record, "cost_labels", {}).get(factor_name)
         if not labels:
             raise ValueError(
                 f"No variable ordering stored for factor '{factor_name}' at step {step}."
@@ -175,7 +175,7 @@ class SnapshotVisualizer:
                 f" Factor '{factor_name}' has {len(labels)} variables."
             )
         row_var, col_var = labels
-        dom = record.data.dom
+        dom = record.dom
         row_labels = dom.get(row_var) or [
             f"{row_var}:{i}" for i in range(self._infer_domain_size(row_var, record))
         ]
@@ -185,11 +185,11 @@ class SnapshotVisualizer:
         return row_labels, col_labels
 
     @staticmethod
-    def _infer_domain_size(var: str, record: SnapshotRecord) -> int:
-        size = len(record.data.dom.get(var, []))
+    def _infer_domain_size(var: str, record: EngineSnapshot) -> int:
+        size = len(record.dom.get(var, []))
         if size:
             return size
-        assignments = record.data.assignments.get(var)
+        assignments = record.assignments.get(var)
         return int(assignments) + 1 if assignments is not None else 0
 
     def _prepare_cost_display(
@@ -209,7 +209,7 @@ class SnapshotVisualizer:
                 f"matrix={matrix.shape}, rows={len(row_labels)}, cols={len(col_labels)}"
             )
         record = self._snapshot_by_step(step)
-        row_var, col_var = getattr(record.data, "cost_labels", {}).get(
+        row_var, col_var = getattr(record, "cost_labels", {}).get(
             factor, ["rows", "cols"]
         )
         return matrix, row_labels, col_labels, row_var, col_var
@@ -244,7 +244,7 @@ class SnapshotVisualizer:
         """Infer whether to highlight minima or maxima from snapshot metadata."""
         if not self._records:
             return "min"
-        metadata = getattr(self._records[0].data, "metadata", {}) or {}
+        metadata = getattr(self._records[0], "metadata", {}) or {}
         name = str(metadata.get("computator", "")).lower()
         return "max" if "max" in name else "min"
 
@@ -266,13 +266,13 @@ class SnapshotVisualizer:
         # sourcery skip: low-code-quality
         factor_name = self._factor_name(factor)
         record = self._snapshot_by_step(step)
-        neighbours = record.data.N_fac.get(factor_name, [])
+        neighbours = record.N_fac.get(factor_name, [])
         if from_variable not in neighbours:
             raise ValueError(
                 f"Variable '{from_variable}' is not connected to factor '{factor_name}' at step {step}."
             )
 
-        labels = getattr(record.data, "cost_labels", {}).get(factor_name)
+        labels = getattr(record, "cost_labels", {}).get(factor_name)
         if not labels or len(labels) != 2:
             raise ValueError(
                 "plot_factor_costs currently supports binary factors only. "
@@ -297,8 +297,8 @@ class SnapshotVisualizer:
 
         aligned = matrix if target_index == 0 else np.swapaxes(matrix, 0, 1)
 
-        row_labels = record.data.dom.get(from_variable)
-        col_labels = record.data.dom.get(other_variable)
+        row_labels = record.dom.get(from_variable)
+        col_labels = record.dom.get(other_variable)
         if not row_labels or not col_labels:
             raise ValueError(
                 "Domain labels missing for factor visualisation: "
@@ -306,7 +306,7 @@ class SnapshotVisualizer:
             )
 
         # Get Q message from from_variable only (not both variables)
-        from_q_message = record.data.Q.get((from_variable, factor_name))
+        from_q_message = record.Q.get((from_variable, factor_name))
         from_msg = (
             np.zeros(len(row_labels))
             if from_q_message is None
@@ -415,7 +415,7 @@ class SnapshotVisualizer:
         ax.set_xlim(-0.5, len(col_labels) - 0.5)
 
         # Compute message for return compatibility (sum of incoming R messages)
-        message = record.data.R.get((factor_name, from_variable))
+        message = record.R.get((factor_name, from_variable))
         message_arr = (
             np.zeros(len(row_labels))
             if message is None
@@ -703,7 +703,7 @@ class SnapshotVisualizer:
         series: Dict[tuple[str, str], List[float]] = {pair: [] for pair in target_pairs}
 
         for rec in self._records:
-            messages = rec.data.Q if msg_type == "Q" else rec.data.R
+            messages = rec.Q if msg_type == "Q" else rec.R
             for pair in target_pairs:
                 payload = messages.get(pair)
                 if payload is None:
@@ -781,7 +781,7 @@ class SnapshotVisualizer:
         matrix = np.full((len(target_vars), len(steps)), missing_value, dtype=float)
 
         for col, rec in enumerate(self._records):
-            assignments = rec.data.assignments
+            assignments = rec.assignments
             for row, var in enumerate(target_vars):
                 value = assignments.get(var)
                 if value is None:
@@ -1024,11 +1024,11 @@ class SnapshotVisualizer:
         return sorted(self._variables)
 
     @staticmethod
-    def _collect_variables(records: Sequence[SnapshotRecord]) -> set[str]:
+    def _collect_variables(records: Sequence[EngineSnapshot]) -> set[str]:
         """Collect all variable names from snapshot assignments."""
         vars_set = set()
         for rec in records:
-            vars_set.update(str(key) for key in rec.data.assignments.keys())
+            vars_set.update(str(key) for key in rec.assignments.keys())
         return vars_set
 
     def _collect_message_pairs(
@@ -1037,7 +1037,7 @@ class SnapshotVisualizer:
         """Collect all unique sender/recipient pairs for a message type."""
         pairs: set[tuple[str, str]] = set()
         for rec in self._records:
-            store = rec.data.Q if message_type == "Q" else rec.data.R
+            store = rec.Q if message_type == "Q" else rec.R
             for src, dst in store.keys():
                 pairs.add((str(src), str(dst)))
         return sorted(pairs)

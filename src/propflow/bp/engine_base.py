@@ -69,11 +69,11 @@ class BPEngine:
         """
         # Apply defaults from global config with override capability
         self.computator = computator
-        self.anytime = anytime if anytime is not None else EngineDefaults.ANYTIME.value
+        self.anytime = anytime if anytime is not None else EngineDefaults().anytime
         self.normalize_messages = (
             normalize_messages
             if normalize_messages is not None
-            else EngineDefaults.NORMALIZE_MESSAGES.value
+            else EngineDefaults().normalize_messages
         ) # type: ignore
         self.graph = factor_graph
         self.post_init()
@@ -87,7 +87,7 @@ class BPEngine:
         use_bct = (
             use_bct_history
             if use_bct_history is not None
-            else EngineDefaults.USE_BCT_HISTORY.value
+            else EngineDefaults().use_bct_history
         )
         self._use_bct_history = bool(use_bct)
         self._last_cost: float | None = None
@@ -99,7 +99,7 @@ class BPEngine:
         monitor_perf = (
             monitor_performance
             if monitor_performance is not None
-            else EngineDefaults.MONITOR_PERFORMANCE.value
+            else EngineDefaults().monitor_performance
         )
         self.performance_monitor = PerformanceMonitor() if monitor_perf else None
         self._name = name
@@ -194,7 +194,7 @@ class BPEngine:
             An optional string, typically for results or status.
         """
         max_iterations = (
-            max_iter if max_iter is not None else EngineDefaults.MAX_ITERATIONS.value
+            max_iter if max_iter is not None else EngineDefaults().max_iterations
         )
         self.convergence_monitor.reset()
         for i in range(max_iterations):

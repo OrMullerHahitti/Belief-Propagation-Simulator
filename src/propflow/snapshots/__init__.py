@@ -13,7 +13,7 @@ Top-level exports:
 - SnapshotVisualizer: plot belief argmin trajectories from snapshots
 """
 
-from .types import EngineSnapshot, SnapshotRecord, Jacobians, CycleMetrics
+from .types import EngineSnapshot, Jacobians, CycleMetrics
 from .manager import SnapshotManager
 from .analyzer import SnapshotAnalyzer, AnalysisReport
 from .visualizer import SnapshotVisualizer
@@ -21,7 +21,6 @@ from . import utils as snapshot_utils
 
 __all__ = [
     "EngineSnapshot",
-    "SnapshotRecord",
     "Jacobians",
     "CycleMetrics",
     "SnapshotManager",

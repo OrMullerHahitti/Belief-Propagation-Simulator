@@ -61,17 +61,7 @@ class Step:
         self.r_messages[factor_name] = messages
 
 
-@dataclass
-class EngineSnapshot:
-    """Lightweight runtime snapshot captured after each BP step."""
-
-    step: int
-    global_cost: float
-    beliefs: Dict[str, np.ndarray]
-    assignments: Dict[str, Union[int, float]]
-    q_messages: Dict[str, List[Dict[str, Any]]]
-    r_messages: Dict[str, List[Dict[str, Any]]]
-    captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+from ..snapshots import EngineSnapshot
 
 
 @dataclass
@@ -283,7 +273,7 @@ class History:
             A dictionary containing beliefs, messages, assignments, costs, and metadata.
         """
         if not self.use_bct_history:
-            return self._convert_legacy_to_bct_format()
+            return {}
 
         return {
             "beliefs": self._format_step_beliefs(),
@@ -326,37 +316,7 @@ class History:
                 messages_by_flow.setdefault(key, []).append(value)
         return messages_by_flow
 
-    def _convert_legacy_to_bct_format(self) -> Dict:
-        """Converts legacy cycle-based data to a BCT-compatible format."""
-        beliefs_by_var = {}
-        for cycle_num in sorted(self.beliefs.keys()):
-            for var_name, belief_array in self.beliefs[cycle_num].items():
-                value = (
-                    float(np.min(belief_array))
-                    if isinstance(belief_array, np.ndarray)
-                    else float(belief_array)
-                    if belief_array is not None
-                    else 0.0
-                )
-                beliefs_by_var.setdefault(var_name, []).append(value)
 
-        assignments_by_var = {}
-        for cycle_num in sorted(self.assignments.keys()):
-            for var_name, assignment in self.assignments[cycle_num].items():
-                assignments_by_var.setdefault(var_name, []).append(int(assignment))
-
-        return {
-            "beliefs": beliefs_by_var,
-            "messages": {},  # No step-by-step messages in legacy mode
-            "assignments": assignments_by_var,
-            "costs": [float(cost) for cost in self.costs],
-            "metadata": {
-                "engine_type": self.engine_type,
-                "use_bct_history": self.use_bct_history,
-                "total_steps": len(self.beliefs),
-                "has_step_data": False,
-            },
-        }
 
     def to_json(self, filepath: str) -> str:
         """Saves the history data to a JSON file.
@@ -369,11 +329,19 @@ class History:
         Returns:
             The filepath where the history was saved.
         """
-        data = (
-            self.get_bct_data()
-            if self.use_bct_history
-            else self._get_legacy_json_data()
-        )
+        data = self.get_bct_data()
+        if not data and not self.use_bct_history:
+             # Fallback to legacy serialization
+             data = {
+                 "cycles": self._serialize_cycles(),
+                 "beliefs": self._serialize_beliefs(),
+                 "assignments": self._serialize_assignments(),
+                 "costs": self.costs,
+                 "metadata": {
+                     "engine_type": self.engine_type,
+                     "use_bct_history": False,
+                 }
+             }
         Path(filepath).parent.mkdir(parents=True, exist_ok=True)
 
         def convert_numpy(obj):
@@ -395,16 +363,7 @@ class History:
         print(f"History saved to: {filepath}")
         return filepath
 
-    def _get_legacy_json_data(self) -> Dict:
-        """Returns the history data in the original, legacy JSON format."""
-        return {
-            "config": self.config,
-            "engine_type": self.engine_type,
-            "cycles": self._serialize_cycles(),
-            "beliefs": self._serialize_beliefs(),
-            "assignments": self._serialize_assignments(),
-            "costs": [float(cost) for cost in self.costs],
-        }
+
 
     def _serialize_cycles(self) -> Dict:
         """Serializes `Cycle` objects for JSON output."""

@@ -1,6 +1,6 @@
 import numpy as np
 
-from propflow.snapshots.types import EngineSnapshot, SnapshotRecord
+from propflow.snapshots.types import EngineSnapshot
 from propflow.snapshots.utils import (
     latest_cycles,
     latest_jacobians,
@@ -10,7 +10,7 @@ from propflow.snapshots.utils import (
 )
 
 
-def _make_record(step: int = 0) -> SnapshotRecord:
+def _make_record(step: int = 0) -> EngineSnapshot:
     return EngineSnapshot(
         step=step,
         lambda_=0.1,

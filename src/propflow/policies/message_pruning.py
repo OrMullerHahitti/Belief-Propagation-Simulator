@@ -90,9 +90,14 @@ class MessagePruningPolicy:
         threshold = self.prune_threshold
         if self.adaptive_threshold:
             msg_magnitude = np.linalg.norm(new_message.data)
-            threshold *= max(
-                1.0, msg_magnitude * PolicyDefaults.PRUNING_MAGNITUDE_FACTOR.value
+            # Calculate dynamic threshold based on message magnitude
+            # For very small messages, we want a smaller threshold to avoid pruning everything
+            # For large messages, we can afford a larger threshold
+            # The factor 0.1 is arbitrary but seems to work well
+            dynamic_factor = max(
+                1.0, msg_magnitude * PolicyDefaults().pruning_magnitude_factor
             )
+            threshold *= dynamic_factor
 
         if diff_norm < threshold:
             self.pruned_count += 1
