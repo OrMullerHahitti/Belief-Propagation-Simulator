@@ -71,18 +71,11 @@ class EngineSnapshot:
     bct_metadata: Dict[str, Any] = field(default_factory=dict)
     captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
-    @property
-    def data(self) -> "EngineSnapshot":
-        """Compatibility accessor for legacy code that references ``record.data``."""
-        return self
+    captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
-
-# Backwards compatibility aliases -------------------------------------------------
-SnapshotRecord = EngineSnapshot
 
 __all__ = [
     "EngineSnapshot",
-    "SnapshotRecord",
     "Jacobians",
     "CycleMetrics",
 ]

@@ -32,11 +32,11 @@ class ConvergenceConfig:
             for the threshold check; otherwise, uses the absolute change.
     """
 
-    belief_threshold: float = ConvergenceDefaults.BELIEF_THRESHOLD.value
-    assignment_threshold: int = ConvergenceDefaults.ASSIGNMENT_THRESHOLD.value
-    min_iterations: int = ConvergenceDefaults.MIN_ITERATIONS.value
-    patience: int = ConvergenceDefaults.PATIENCE.value
-    use_relative_change: bool = ConvergenceDefaults.USE_RELATIVE_CHANGE.value
+    belief_threshold: float = ConvergenceDefaults().belief_threshold
+    assignment_threshold: int = ConvergenceDefaults().assignment_threshold
+    min_iterations: int = ConvergenceDefaults().min_iterations
+    patience: int = ConvergenceDefaults().patience
+    use_relative_change: bool = ConvergenceDefaults().use_relative_change
 
 
 class ConvergenceMonitor:

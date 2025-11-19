@@ -23,8 +23,8 @@ import random
 from .configs import Logger
 from .configs.global_config_mapping import (
     LOG_LEVELS,
-    LOGGING_CONFIG,
     SimulatorDefaults,
+    get_validated_config,
 )
 from .policies import ConvergenceConfig
 from .search.algorithms import (
@@ -52,10 +52,11 @@ def build_engine(engine_key: str, *, factor_graph: Any, **kwargs: Any):
 
 def _setup_logger(level: Optional[str] = None) -> Logger:
     """Configures and returns a logger for the simulator."""
+    logging_config = get_validated_config("logging")
     safe_level = (
-        level if isinstance(level, str) else SimulatorDefaults.DEFAULT_LOG_LEVEL.value
+        level if isinstance(level, str) else SimulatorDefaults().default_log_level
     )
-    log_level = LOG_LEVELS.get(safe_level.upper(), LOGGING_CONFIG["default_level"])
+    log_level = LOG_LEVELS.get(safe_level.upper(), logging_config["default_level"])
     logger = Logger("Simulator")
     logger.setLevel(log_level)
 
@@ -63,8 +64,8 @@ def _setup_logger(level: Optional[str] = None) -> Logger:
         console = colorlog.StreamHandler(sys.stdout)
         console.setFormatter(
             colorlog.ColoredFormatter(
-                LOGGING_CONFIG["console_format"],
-                log_colors=LOGGING_CONFIG["console_colors"],
+                logging_config["console_format"],
+                log_colors=logging_config["console_colors"],
             )
         )
         logger.addHandler(console)
@@ -107,7 +108,7 @@ class Simulator:
         self.results: Dict[str, List[List[float]]] = {
             name: [] for name in engine_configs
         }
-        self.timeout = SimulatorDefaults.TIMEOUT.value
+        self.timeout = SimulatorDefaults().timeout
         self._seed = seed
 
     def run_simulations(
@@ -123,7 +124,7 @@ class Simulator:
             A dictionary containing the collected results, where keys are engine
             names and values are lists of cost histories for each run.
         """
-        max_iter = max_iter or SimulatorDefaults.DEFAULT_MAX_ITER.value
+        max_iter = max_iter or SimulatorDefaults().default_max_iter
         self.logger.warning(
             f"Preparing {len(graphs) * len(self.engine_configs)} total simulations."
         )
@@ -185,7 +186,7 @@ class Simulator:
             verbose: If True, plots individual simulation runs with transparency
                 and standard deviation bands around the average.
         """
-        max_iter = max_iter or SimulatorDefaults.DEFAULT_MAX_ITER.value
+        max_iter = max_iter or SimulatorDefaults().default_max_iter
         self.logger.warning(f"Starting plotting... (Verbose: {verbose})")
         plt.figure(figsize=(12, 8))
         colors = plt.cm.viridis(np.linspace(0, 1, len(self.results)))

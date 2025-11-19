@@ -8,13 +8,14 @@ from propflow.cli import main as cli_main
 from propflow.computators import COMPUTATORS
 from propflow.configs import (
     CTFactories,
-    ENGINE_DEFAULTS,
+    EngineDefaults,
     LOG_LEVELS,
     Logger,
     get_ct_factory,
     validate_engine_config,
     validate_policy_config,
 )
+from dataclasses import asdict
 from propflow.engines import ENGINES
 from propflow.simulator import Simulator, _setup_logger
 
@@ -98,7 +99,7 @@ def test_cli_main_version_output(monkeypatch, capsys):
 
 
 def test_config_validators_and_factories():
-    config = ENGINE_DEFAULTS.copy()
+    config = asdict(EngineDefaults())
     assert validate_engine_config(config)
     policy = {"damping_factor": 0.5, "split_factor": 0.4, "pruning_threshold": 0.1}
     assert validate_policy_config(policy)

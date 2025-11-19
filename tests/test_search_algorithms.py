@@ -1,13 +1,13 @@
 import numpy as np
 
-from src.propflow.bp.factor_graph import FactorGraph
-from src.propflow.core.agents import FactorAgent, VariableAgent
-from src.propflow.search.search_computator import (
+from propflow.bp.factor_graph import FactorGraph
+from propflow.core.agents import FactorAgent, VariableAgent
+from propflow.search.search_computator import (
     DSAComputator,
     MGMComputator,
     MGM2Computator,
 )
-from src.propflow.search.search_engine import DSAEngine, MGMEngine, MGM2Engine
+from propflow.search import DSAEngine, MGMEngine, MGM2Engine
 
 
 def _build_two_variable_graph() -> FactorGraph:
