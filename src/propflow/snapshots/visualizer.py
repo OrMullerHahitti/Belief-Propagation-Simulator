@@ -186,8 +186,7 @@ class SnapshotVisualizer:
 
     @staticmethod
     def _infer_domain_size(var: str, record: EngineSnapshot) -> int:
-        size = len(record.dom.get(var, []))
-        if size:
+        if size := len(record.dom.get(var, [])):
             return size
         assignments = record.assignments.get(var)
         return int(assignments) + 1 if assignments is not None else 0
