@@ -181,7 +181,7 @@ class FactorGraph:
         if pretty:
             fig, ax = plt.subplots(figsize=(8.5, 6.5))
             _plot_factor_graph(self, ax, "Factor Graph")
-            return self._extracted_from_visualize_30(plot, fig)
+            return self._finalize_visualization(plot, fig)
         layout_kwargs = dict(layout_kwargs or {})
         layout = layout.lower()
 
@@ -222,10 +222,9 @@ class FactorGraph:
         nx.draw_networkx_edges(self.G, pos, ax=ax)
         nx.draw_networkx_labels(self.G, pos, ax=ax)
         ax.set_axis_off()
-        return self._extracted_from_visualize_30(plot, fig)
+        return self._finalize_visualization(plot, fig)
 
-    # TODO Rename this here and in `visualize`
-    def _extracted_from_visualize_30(self, plot, fig):
+    def _finalize_visualization(self, plot, fig):
         plt.tight_layout()
         if plot:
             plt.show()
@@ -275,6 +274,7 @@ def _plot_factor_graph(graph: "FactorGraph", ax: Axes, title: str) -> None:
     """Pretty spring-layout view used when visualize(pretty=True) is requested."""
     labels = {node: getattr(node, "name", str(node)) for node in graph.G.nodes}
     pos = nx.spring_layout(graph.G, seed=42)
+    #pos = nx.circular_layout(graph.G)
     var_nodes = list(graph.variables)
     fac_nodes = list(graph.factors)
     ax.set_title(title)

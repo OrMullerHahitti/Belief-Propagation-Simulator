@@ -62,12 +62,12 @@ if __name__ == "__main__":
         },
         "TRW Engine": {
             "class": TRWEngine
-          # Can override: "tree_reweight_factor": 0.5,
+        
         },
         "Damping+TRW": {
             "class": DampingTRWEngine,
-            "damping_factor": PolicyDefaults().damping_factor,  # Can override: "damping_factor": 0.6,
-            "tree_reweight_factor": PolicyDefaults().tree_reweight_factor,  # Can override: "tree_reweight_factor": 0.5,
+            "damping_factor": PolicyDefaults().damping_factor # Can override: "damping_factor": 0.6,
+            
             
         },
     }
@@ -82,9 +82,9 @@ if __name__ == "__main__":
             ct_factory=ct_factory_fn,
             ct_params={"low": 100, "high": 200},
             density=0.25,
-            seed=SEED + idx,
+            seed=SEED + i,
         )
-        for idx in range(NUM_GRAPHS)
+        for i in range(NUM_GRAPHS)
     ]
     print(f"[{time.strftime('%H:%M:%S')}] Created {len(random_fg)} factor graphs.")
 
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     # --- Plotting ---
     if results:
-        simulator.plot_results(max_iter=MAX_ITER, verbose=False)
+        simulator.plot_results(max_iter=MAX_ITER, verbose=True)
     else:
         print(f"[{time.strftime('%H:%M:%S')}] No results to plot.")
 
