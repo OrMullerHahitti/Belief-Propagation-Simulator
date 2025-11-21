@@ -75,6 +75,7 @@ class BCTGraph:
     def __init__(self) -> None:
         self.nodes: Dict[Hashable, BCTNode] = {}
         self._edges: Dict[Hashable, Dict[Hashable, float]] = defaultdict(dict)
+        self._edge_meta: Dict[tuple[Hashable, Hashable], Dict[str, Any]] = {}
 
     # ------------------------------------------------------------------
     # Node creation helpers
@@ -110,16 +111,34 @@ class BCTGraph:
     # ------------------------------------------------------------------
     # Graph edges
     # ------------------------------------------------------------------
-    def add_edge(self, source: Hashable, target: Hashable, weight: float) -> None:
+    def add_edge(
+        self,
+        source: Hashable,
+        target: Hashable,
+        weight: float,
+        *,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Add a directed edge with optional metadata."""
         if abs(weight) <= 0.0:
             return
         if source not in self.nodes or target not in self.nodes:
             raise KeyError("Both source and target nodes must exist before adding an edge")
         bucket = self._edges[source]
-        bucket[target] = bucket.get(target, 0.0) + float(weight)
+        new_weight = bucket.get(target, 0.0) + float(weight)
+        bucket[target] = new_weight
+        if metadata:
+            edge_key = (source, target)
+            stored = self._edge_meta.setdefault(edge_key, {})
+            stored.update(metadata)
+            stored.setdefault("weight", new_weight)
 
     def children(self, key: Hashable) -> Dict[Hashable, float]:
         return self._edges.get(key, {})
+
+    def edge_metadata(self, source: Hashable, target: Hashable) -> Dict[str, Any]:
+        """Return a shallow copy of metadata registered for an edge."""
+        return dict(self._edge_meta.get((source, target), {}))
 
     def reachable_nodes(self, root: Hashable) -> List[Hashable]:
         visited: set[Hashable] = set()
@@ -211,39 +230,74 @@ class SnapshotBCTBuilder:
             arr = np.asarray(values, dtype=float).ravel()
             for value_index, _ in enumerate(arr):
                 key = MessageKey("Q", var_name, factor_name, snapshot.step, value_index)
+                parent_value = float(arr[value_index]) if value_index < len(arr) else 0.0
                 node_meta = {
                     "variable": var_name,
                     "factor": factor_name,
-                    "value": float(arr[value_index]) if value_index < len(arr) else 0.0,
+                    "value": parent_value,
                 }
                 self.graph.ensure_message_node(key, **node_meta)
                 if lambda_coeff > 0.0 and prev_step is not None:
                     prev_key = MessageKey("Q", var_name, factor_name, prev_step, value_index)
                     if prev_key in self.graph.nodes:
-                        self.graph.add_edge(key, prev_key, lambda_coeff)
-                weight = 1.0 - lambda_coeff
-                if weight <= 0.0 or prev_step is None:
+                        self.graph.add_edge(
+                            key,
+                            prev_key,
+                            lambda_coeff,
+                            metadata={
+                                "role": "damping",
+                                "lambda": lambda_coeff,
+                                "message_value": parent_value,
+                            },
+                        )
+                if prev_step is None:
                     continue
+                contribs: List[Dict[str, Any]] = []
+                neighbor_entries: List[tuple[str, MessageKey, float]] = []
                 for neighbor in snapshot.N_var.get(var_name, []):
-                    if neighbor == factor_name:
+                    neighbor_name = str(neighbor)
+                    if neighbor_name == factor_name:
                         continue
                     prev_array = None
                     if prev_snapshot is not None:
-                        prev_array = prev_snapshot.R.get((neighbor, var_name))
+                        prev_array = prev_snapshot.R.get((neighbor_name, var_name))
                     if prev_array is None:
                         continue
                     prev_arr = np.asarray(prev_array, dtype=float).ravel()
                     if value_index >= len(prev_arr):
                         continue
-                    child_key = MessageKey("R", neighbor, var_name, prev_step, value_index)
+                    child_key = MessageKey("R", neighbor_name, var_name, prev_step, value_index)
                     child_value = float(prev_arr[value_index])
+                    contribs.append(
+                        {
+                            "src": f"{neighbor_name}->{var_name}[{value_index}]",
+                            "value": child_value,
+                        }
+                    )
+                    neighbor_entries.append((neighbor_name, child_key, child_value))
+
+                if not neighbor_entries:
+                    continue
+
+                weight = 1.0 - lambda_coeff
+                for neighbor_name, child_key, child_value in neighbor_entries:
                     self.graph.ensure_message_node(
                         child_key,
                         variable=var_name,
-                        factor=neighbor,
+                        factor=neighbor_name,
                         value=child_value,
                     )
-                    self.graph.add_edge(key, child_key, weight)
+                    self.graph.add_edge(
+                        key,
+                        child_key,
+                        weight if weight > 0.0 else 1.0,
+                        metadata={
+                            "role": "q_from_neighbors",
+                            "assignment": {var_name: value_index},
+                            "message_value": parent_value,
+                            "summands": list(contribs),
+                        },
+                    )
 
     # ------------------------------------------------------------------
     def _build_r_nodes(self, snapshot: Any) -> None:
@@ -261,7 +315,7 @@ class SnapshotBCTBuilder:
                         value=float(value),
                     )
                 continue
-            labels = context.labels
+            labels = [str(label) for label in context.labels]
             if var_name not in labels:
                 continue
             axis = labels.index(var_name)
@@ -271,10 +325,11 @@ class SnapshotBCTBuilder:
             reduced = context.aggregate - exclusion
             for value_index in range(domain):
                 key = MessageKey("R", factor_name, var_name, snapshot.step, value_index)
+                r_value = float(r_arr[value_index]) if value_index < len(r_arr) else 0.0
                 node_meta = {
                     "variable": var_name,
                     "factor": factor_name,
-                    "value": float(r_arr[value_index]) if value_index < len(r_arr) else 0.0,
+                    "value": r_value,
                 }
                 self.graph.ensure_message_node(key, **node_meta)
                 slice_view = np.take(reduced, indices=value_index, axis=axis)
@@ -297,8 +352,35 @@ class SnapshotBCTBuilder:
                         "iteration": snapshot.step,
                         "value": cost_value,
                     }
+                    summands: List[Dict[str, Any]] = [
+                        {"src": f"{factor_name} cost", "value": cost_value}
+                    ]
+                    for idx, neighbor in enumerate(labels):
+                        if neighbor == var_name:
+                            continue
+                        assigned_value = assignment_tuple[idx]
+                        q_vec = context.q_vectors.get(neighbor)
+                        if q_vec is None or assigned_value >= len(q_vec):
+                            continue
+                        summands.append(
+                            {
+                                "src": f"{neighbor}[{assigned_value}]",
+                                "value": float(q_vec[assigned_value]),
+                            }
+                        )
                     self.graph.ensure_cost_node(cost_key, **cost_metadata)
-                    self.graph.add_edge(key, cost_key, 1.0)
+                    self.graph.add_edge(
+                        key,
+                        cost_key,
+                        1.0,
+                        metadata={
+                            "role": "factor_cost",
+                            "assignment": assignment_map,
+                            "cost": cost_value,
+                            "message_value": r_value,
+                            "summands": list(summands),
+                        },
+                    )
                     for idx, neighbor in enumerate(labels):
                         if neighbor == var_name:
                             continue
@@ -316,7 +398,18 @@ class SnapshotBCTBuilder:
                             factor=factor_name,
                             value=value_payload,
                         )
-                        self.graph.add_edge(key, child_key, 1.0)
+                        self.graph.add_edge(
+                            key,
+                            child_key,
+                            1.0,
+                            metadata={
+                                "role": "factor_to_variable",
+                                "assignment": {neighbor: assigned_value},
+                                "message_value": r_value,
+                                "cost": cost_value,
+                                "summands": list(summands),
+                            },
+                        )
 
     # ------------------------------------------------------------------
     def _build_beliefs(self, snapshot: Any) -> None:
@@ -341,21 +434,31 @@ class SnapshotBCTBuilder:
                 extra_meta["value"] = belief_value
             self.graph.ensure_belief_node(key, **extra_meta)
             for factor_name in snapshot.N_var.get(var_name, []):
-                r_values = snapshot.R.get((factor_name, var_name))
+                factor_label = str(factor_name)
+                r_values = snapshot.R.get((factor_label, var_name))
                 if r_values is None:
                     continue
                 arr = np.asarray(r_values, dtype=float).ravel()
                 if value_index >= len(arr):
                     continue
-                child_key = MessageKey("R", factor_name, var_name, snapshot.step, int(value_index))
+                child_key = MessageKey("R", factor_label, var_name, snapshot.step, int(value_index))
                 child_value = float(arr[int(value_index)])
                 self.graph.ensure_message_node(
                     child_key,
                     variable=var_name,
-                    factor=factor_name,
+                    factor=factor_label,
                     value=child_value,
                 )
-                self.graph.add_edge(key, child_key, 1.0)
+                self.graph.add_edge(
+                    key,
+                    child_key,
+                    1.0,
+                    metadata={
+                        "role": "belief_to_factor",
+                        "assignment": {var_name: int(value_index)},
+                        "message_value": child_value,
+                    },
+                )
 
     # ------------------------------------------------------------------
     def _factor_context(self, snapshot: Any, factor_name: str) -> Optional[_FactorContext]:
@@ -429,7 +532,13 @@ class BCTCreator:
         self.root = root
 
     # ------------------------------------------------------------------
-    def visualize_bct(self, *, show: bool = True, save_path: Optional[str] = None) -> plt.Figure:
+    def visualize_bct(
+        self,
+        *,
+        show: bool = True,
+        save_path: Optional[str] = None,
+        verbose: bool = False,
+    ) -> plt.Figure:
         reachable = self.graph.reachable_nodes(self.root)
         if not reachable:
             raise ValueError("BCT root has no reachable nodes")
@@ -459,16 +568,17 @@ class BCTCreator:
                 child_positions = [_assign(child, depth + 1) for child in children]
                 x = float(sum(child_positions) / len(child_positions))
             node = node_meta[node_key]
-            label_text = node.label
             value = node.metadata.get("value")
-            should_show_value = (
-                node.kind == "cost"
-                or (
-                    node.kind == "message"
-                    and node.metadata.get("message_role") == "factor"
-                )
-                or node.kind == "belief"
-            )
+            label_text = node.label
+            should_show_value = node.kind in ("cost", "belief")
+            if node.kind == "message":
+                if node.metadata.get("message_role") == "factor":
+                    label_text = node.metadata.get("factor", node.label)
+                else:
+                    label_text = node.metadata.get("variable", node.label)
+                iter_idx = node.metadata.get("iteration")
+                if iter_idx is not None:
+                    label_text = f"{label_text}\n@{iter_idx}"
             if value is not None and should_show_value:
                 label_text = f"{label_text}\n{value:.3f}"
             labels[node_key] = label_text
@@ -521,12 +631,39 @@ class BCTCreator:
         fig_height = max(8.0, total_levels * 1.2)
         fig_width = max(14.0, total_levels * 1.6)
         fig = plt.figure(figsize=(fig_width, fig_height))
-        raw_edge_labels = nx.get_edge_attributes(G, "weight")
-        edge_labels = {
-            edge: weight
-            for edge, weight in raw_edge_labels.items()
-            if abs(weight - 1.0) > 1e-9
-        }
+
+        raw_edge_labels = {(u, v): self.graph.edge_metadata(u, v) for u, v in G.edges()}
+
+        def _format_edge_label(meta: Dict[str, Any], weight: float | None) -> str:
+            lines: List[str] = []
+            if "assignment" in meta:
+                assignments = ", ".join(f"{k}={v}" for k, v in sorted(meta["assignment"].items()))
+                lines.append(assignments)
+            if "message_value" in meta:
+                lines.append(f"belief={float(meta['message_value']):.3f}")
+            if "cost" in meta:
+                lines.append(f"cost={float(meta['cost']):.3f}")
+            if meta.get("role") == "damping" and "lambda" in meta:
+                lines.append(f"λ={float(meta['lambda']):.2f}")
+            if verbose and meta.get("summands"):
+                pieces = []
+                for item in meta["summands"]:
+                    if isinstance(item, dict) and "src" in item and "value" in item:
+                        pieces.append(f"{item['src']}={float(item['value']):.3f}")
+                    else:
+                        pieces.append(str(item))
+                if pieces:
+                    lines.append("sum: " + " + ".join(pieces))
+            if not verbose and not lines and weight is not None and abs(weight - 1.0) > 1e-9:
+                lines.append(f"w={weight:.3f}")
+            return "\n".join(lines)
+
+        edge_labels = {}
+        for edge, meta in raw_edge_labels.items():
+            weight = G.edges[edge].get("weight")
+            label_text = _format_edge_label(meta, weight)
+            if label_text:
+                edge_labels[edge] = label_text
 
         ax = plt.gca()
         if visible_positions:
@@ -536,7 +673,7 @@ class BCTCreator:
                 depth_to_y[depth_map[node]].append(visible_positions[node][1])
             for depth, ys in depth_to_y.items():
                 level_y = sum(ys) / len(ys)
-                ax.axhline(y=level_y, color="#dddddd", linestyle="--", linewidth=0.7, zorder=0)
+                ax.axhline(y=level_y, color="#e6e6e6", linestyle="--", linewidth=0.8, zorder=0)
                 ax.text(
                     min_x - 0.5,
                     level_y,
@@ -547,7 +684,14 @@ class BCTCreator:
                     color="#666666",
                 )
 
-        nx.draw_networkx_edges(G, visible_positions, arrows=True, arrowsize=18)
+        nx.draw_networkx_edges(
+            G,
+            visible_positions,
+            arrows=True,
+            arrowsize=18,
+            edge_color="#4a4a4a",
+            width=1.3,
+        )
         belief_nodes = [n for n in G.nodes() if node_meta[n].kind == "belief"]
         variable_nodes = [
             n
@@ -565,7 +709,7 @@ class BCTCreator:
             G,
             visible_positions,
             nodelist=belief_nodes,
-            node_color="#FFD966",
+            node_color="#F6C667",
             node_shape="o",
             node_size=2600,
         )
@@ -581,14 +725,19 @@ class BCTCreator:
             G,
             visible_positions,
             nodelist=factor_nodes,
-            node_color="#93C47D",
+            node_color="#7AC7A3",
             node_shape="s",
             node_size=2400,
         )
         nx.draw_networkx_labels(G, visible_positions, visible_labels, font_size=7)
         if edge_labels:
             nx.draw_networkx_edge_labels(
-                G, visible_positions, edge_labels=edge_labels, font_color="gray"
+                G,
+                visible_positions,
+                edge_labels=edge_labels,
+                font_color="#333333",
+                font_size=7,
+                label_pos=0.55,
             )
         plt.title("Backtrack Cost Tree")
         plt.tight_layout()

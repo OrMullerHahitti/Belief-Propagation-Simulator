@@ -1063,6 +1063,7 @@ class SnapshotVisualizer:
         steps_back: int | None = None,
         show: bool = True,
         savepath: str | None = None,
+        verbose: bool = False,
     ) -> BCTCreator:
         """Plot a Backtrack Cost Tree (BCT) for a variable from snapshots.
 
@@ -1079,6 +1080,8 @@ class SnapshotVisualizer:
                 recorded snapshot. When provided, overrides ``iteration``.
             show: Whether to display the plot.
             savepath: Optional path to save the generated figure.
+            verbose: If True, annotate edges with message costs that generated
+                each contribution in addition to assignments and table costs.
 
         Returns:
             The BCTCreator object for further analysis (e.g., convergence analysis,
@@ -1101,7 +1104,7 @@ class SnapshotVisualizer:
             target_value = 0
         root = builder.belief_root(variable_name, resolved_step, int(target_value))
         creator = BCTCreator(builder.graph, root)
-        creator.visualize_bct(show=show, save_path=savepath)
+        creator.visualize_bct(show=show, save_path=savepath, verbose=verbose)
         return creator
 
     @staticmethod

@@ -35,13 +35,13 @@ class SplitEngine(BPEngine):
     convergence.
     """
 
-    def __init__(self, *args, split_factor: float = 0.6, **kwargs):
+    def __init__(self, *args, split_factor: float = 0.5, **kwargs):
         """Initializes the SplitEngine.
 
         Args:
             *args: Positional arguments for the base `BPEngine`.
             split_factor: The proportion of the cost to allocate to the first
-                of the two new factors. Defaults to 0.6.
+                of the two new factors. Defaults to 0.5.
             **kwargs: Keyword arguments for the base `BPEngine`.
         """
         self.split_factor = split_factor
