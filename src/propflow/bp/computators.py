@@ -25,17 +25,17 @@ class BPComputator(Computator):
 
     This class provides a highly optimized implementation for the core
     computations in belief propagation algorithms. It uses function dispatch
-    tables for common operations (e.g., `min`, `max`, `sum`, `add`, `multiply`)
+    tables for common operations ( `min`, `max`, `sum`, `add`, `multiply`)
     to minimize overhead and leverages vectorized numpy operations for
     performance.
 
-    The behavior of the computator (e.g., Min-Sum, Max-Product) is determined
+    The behavior of the computator (Min-Sum, Max-Product) is determined
     by the `reduce_func` and `combine_func` arguments passed during
     initialization.
 
     Attributes:
-        reduce_func (Callable): The function used for message reduction (e.g., `np.min`).
-        combine_func (Callable): The function used for message combination (e.g., `np.add`).
+        reduce_func (Callable): The function used for message reduction (`np.min`).
+        combine_func (Callable): The function used for message combination (`np.add`).
     """
 
     # Function dispatch tables for zero-overhead lookups
@@ -236,9 +236,9 @@ class BPComputator(Computator):
                 return []
             factor = incoming_messages[0].recipient
             if not hasattr(factor, "connection_number") or not factor.connection_number:
-                factor.connection_number = {}
-                for i, msg in enumerate(incoming_messages):
-                    factor.connection_number[msg.sender.name] = i
+                factor.connection_number = {
+                    msg.sender.name: i for i, msg in enumerate(incoming_messages)
+                }
         return None
 
     def _get_node_dimension(self, factor, node) -> int:
@@ -247,11 +247,10 @@ class BPComputator(Computator):
         if cache_key in self._connection_cache:
             return self._connection_cache[cache_key]
 
-        if hasattr(factor, "connection_number") and factor.connection_number:
-            if node.name in factor.connection_number:
-                dim = factor.connection_number[node.name]
-                self._connection_cache[cache_key] = dim
-                return dim
+        if hasattr(factor, "connection_number") and factor.connection_number and node.name in factor.connection_number:
+            dim = factor.connection_number[node.name]
+            self._connection_cache[cache_key] = dim
+            return dim
 
         available_keys = list(getattr(factor, "connection_number", {}).keys())
         raise KeyError(
