@@ -54,7 +54,7 @@ def main() -> None:
 
     # Show belief convergence
     beliefs = analyzer.beliefs_per_variable()
-    converged_vars = sum(1 for traj in beliefs.values() if len(set(traj[-5:])) == 1)
+    converged_vars = sum(len(set(traj[-5:])) == 1 for traj in beliefs.values())
     print(f"  - Variables converged: {converged_vars}/{len(beliefs)}")
 
 
