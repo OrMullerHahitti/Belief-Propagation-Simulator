@@ -65,6 +65,10 @@ from propflow.snapshots import SnapshotVisualizer
 
 viz = SnapshotVisualizer(engine.snapshots)
 fig, payload = viz.plot_global_cost(show=False, return_data=True)
+
+# Inspect cost tables (rows/cols labeled with variable names)
+viz.show_cost_tables(factor="F12", step=10)   # pretty-printed single factor
+viz.show_cost_tables(show=True, annotate=True)  # grid plot for all factors at last step
 ```
 
 ## 6. BCT Data

@@ -17,6 +17,7 @@ Key Sections:
 from dataclasses import dataclass, asdict, field
 from typing import Dict, Callable, Any, Optional
 import logging
+from string import ascii_lowercase
 
 from narwhals import Field
 
@@ -29,6 +30,25 @@ from ..utils.path_utils import find_project_root
 
 # Default domain size for messages if not otherwise specified.
 MESSAGE_DOMAIN_SIZE = 3
+
+# Map domain indices to readable letter labels (1 -> "a", 2 -> "b", etc.)
+DOMAIN_VALUE_LABELS: Dict[int, str] = {idx + 1: letter for idx, letter in enumerate(ascii_lowercase)}
+
+# Convert a positive domain index to a lowercase alphabetic label (1→a, 2→b, ..., 27→aa).
+def domain_value_to_label(index: int) -> str:
+    if index <= 0:
+        return str(index)
+    if index in DOMAIN_VALUE_LABELS:
+        return DOMAIN_VALUE_LABELS[index]
+    n = index - 1  # convert to zero-based for base-26 conversion
+    chars = []
+    while True:
+        n, rem = divmod(n, 26)
+        chars.append(ascii_lowercase[rem])
+        if n == 0:
+            break
+        n -= 1
+    return "".join(reversed(chars))
 
 # Default computator instance used across the application.
 COMPUTATOR = MinSumComputator()
