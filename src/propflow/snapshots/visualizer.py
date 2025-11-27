@@ -12,6 +12,7 @@ import numpy as np
 from .types import EngineSnapshot
 from propflow.utils.tools.bct import BCTCreator, SnapshotBCTBuilder
 from propflow.core.agents import FactorAgent
+from propflow.configs.global_config_mapping import domain_value_to_label
 
 FactorLike = str | FactorAgent
 
@@ -46,7 +47,7 @@ class SnapshotVisualizer:
     def variables(self) -> List[str]:
         """Return sorted list of all variables in the snapshots."""
         return sorted(self._variables)
-
+   
     def steps(self) -> List[int]:
         """Return the ordered simulation steps captured in the snapshots."""
         return list(self._steps)
@@ -67,12 +68,12 @@ class SnapshotVisualizer:
             return factor.name
         if isinstance(factor, str):
             return factor
-        name = getattr(factor, "name", None)
-        if not name:
+        if name := getattr(factor, "name", None):
+            return str(name)
+        else:
             raise ValueError(
                 "Factor reference must be a name or an object with a 'name' attribute"
             )
-        return str(name)
 
     def argmin_series(
         self, vars_filter: List[str] | None = None
@@ -136,7 +137,7 @@ class SnapshotVisualizer:
             if cost is None:
                 if include_missing:
                     steps.append(step)
-                    costs.append(float(fill_value))
+                    costs.append(fill_value)
                 continue
             steps.append(step)
             costs.append(float(cost))
@@ -186,8 +187,7 @@ class SnapshotVisualizer:
 
     @staticmethod
     def _infer_domain_size(var: str, record: EngineSnapshot) -> int:
-        size = len(record.dom.get(var, []))
-        if size:
+        if size := len(record.dom.get(var, [])):
             return size
         assignments = record.assignments.get(var)
         return int(assignments) + 1 if assignments is not None else 0
@@ -203,6 +203,8 @@ class SnapshotVisualizer:
                 f"Factor '{factor}' cost table has shape {matrix.shape}; only 2D tables are supported for plotting."
             )
         row_labels, col_labels = self.factor_cost_labels(factor, step)
+        row_labels = self._human_domain_labels(row_labels)
+        col_labels = self._human_domain_labels(col_labels)
         if matrix.shape != (len(row_labels), len(col_labels)):
             raise ValueError(
                 "Cost table shape does not match domain sizes: "
@@ -239,6 +241,143 @@ class SnapshotVisualizer:
         ax.set_yticks(np.arange(-0.5, len(row_labels), 1), minor=True)
         ax.grid(which="minor", color="w", linestyle="-", linewidth=1.0, alpha=0.6)
         return im  # type: ignore
+    def show_cost_tables(
+        self,
+        factor: FactorLike | None = None,
+        step: int | None = None,
+        *,
+        show: bool = True,
+        savepath: str | None = None,
+        cmap: str = "viridis",
+        annotate: bool = True,
+        fmt: str = "{:.3g}",
+    ) -> plt.Figure | str:
+        """Pretty-print or plot factor cost tables from a snapshot.
+
+        - When ``factor`` is provided, prints a labeled table for that factor and
+          returns the formatted string.
+        - When ``factor`` is ``None``, plots all cost tables in a grid with axis
+          labels derived from the factor's variable ordering. Titles include the
+          factor name.
+
+        Args:
+            factor: Optional factor name/agent. If provided, only that factor is shown.
+            step: Snapshot step to use. Defaults to the last recorded step.
+            show: Whether to display the plot (when plotting all factors).
+            savepath: Optional path to save the plotted figure (when plotting all factors).
+            cmap: Matplotlib colormap name for heatmaps.
+            annotate: Whether to overlay numeric values on heatmaps.
+            fmt: Numeric format string for printing tables and annotations.
+
+        Returns:
+            A matplotlib Figure when plotting all factors, or the formatted table string
+            when printing a single factor.
+        """
+        if not self._records:
+            raise ValueError("No snapshots available")
+
+        target_step = step if step is not None else self._records[-1].step
+        record = self._snapshot_by_step(target_step)
+        tables = getattr(record, "cost_tables", {})
+        if not tables:
+            raise ValueError(f"No cost tables available at step {target_step}")
+
+        if factor is not None:
+            factor_name = self._factor_name(factor)
+            if factor_name not in tables:
+                available = ", ".join(sorted(tables.keys())) or "none"
+                raise ValueError(
+                    f"Factor '{factor_name}' not found in cost tables. Available: {available}"
+                )
+            matrix, row_labels, col_labels, row_var, col_var = self._prepare_cost_display(
+                np.asarray(tables[factor_name], dtype=float),
+                factor_name,
+                target_step,
+            )
+            table_str = self._format_cost_table(
+                matrix, row_labels, col_labels, row_var, col_var, fmt=fmt
+            )
+            print(table_str)
+            return table_str
+
+        # Plot all factors
+        factors = sorted(tables.keys())
+        ncols = min(3, len(factors))
+        nrows = math.ceil(len(factors) / ncols)
+        fig, axes = plt.subplots(
+            nrows,
+            ncols,
+            figsize=(5.5 * ncols, 4.5 * nrows),
+            constrained_layout=True,
+            squeeze=False,
+        )
+        flat_axes = axes.flatten()
+        ims: List[plt.AxesImage] = []
+
+        for ax, factor_name in zip(flat_axes, factors):
+            matrix, row_labels, col_labels, row_var, col_var = self._prepare_cost_display(
+                np.asarray(tables[factor_name], dtype=float),
+                factor_name,
+                target_step,
+            )
+            im = self._draw_cost_heatmap(
+                ax,
+                matrix,
+                factor_name,
+                target_step,
+                row_labels,
+                col_labels,
+                row_var,
+                col_var,
+                cmap,
+            )
+            if annotate:
+                # Choose text color based on underlying cell luminance for readability
+                norm = im.norm
+                cmap_fn = im.cmap
+                for i, row_label in enumerate(row_labels):
+                    for j, _ in enumerate(col_labels):
+                        val = matrix[i, j]
+                        rgba = cmap_fn(norm(val))
+                        r, g, b = rgba[:3]
+                        luminance = 0.299 * r + 0.587 * g + 0.114 * b
+                        txt_color = "white" if luminance < 0.6 else "black"
+                        ax.text(
+                            j,
+                            i,
+                            fmt.format(val),
+                            ha="center",
+                            va="center",
+                            color=txt_color,
+                            fontsize=9,
+                        )
+            ims.append(im)
+            ax.set_title(factor_name)
+
+        # Hide unused axes
+        for ax in flat_axes[len(factors) :]:
+            ax.axis("off")
+
+        if ims:
+            fig.colorbar(
+                ims[0],
+                ax=flat_axes[: len(factors)],
+                shrink=0.85,
+                location="right",
+                pad=0.06,
+            )
+
+        if savepath:
+            save_path = Path(savepath)
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.savefig(save_path, dpi=150)
+
+        if show:
+            fig.show()
+        else:
+            plt.close(fig)
+
+        return fig
 
     def _infer_message_mode(self) -> Literal["min", "max"]:
         """Infer whether to highlight minima or maxima from snapshot metadata."""
@@ -304,6 +443,8 @@ class SnapshotVisualizer:
                 "Domain labels missing for factor visualisation: "
                 f"rows={row_labels}, cols={col_labels}"
             )
+        row_labels = self._human_domain_labels(row_labels)
+        col_labels = self._human_domain_labels(col_labels)
 
         # Get Q message from from_variable only (not both variables)
         from_q_message = record.Q.get((from_variable, factor_name))
@@ -695,8 +836,9 @@ class SnapshotVisualizer:
             target_pairs = available_pairs[: self._MAX_AUTO_MESSAGE_PAIRS]
         else:
             target_pairs = [(str(src), str(dst)) for src, dst in pairs]
-            missing = [pair for pair in target_pairs if pair not in available_pairs]
-            if missing:
+            if missing := [
+                pair for pair in target_pairs if pair not in available_pairs
+            ]:
                 missing_str = ", ".join(f"{a}->{b}" for a, b in missing)
                 raise ValueError(f"Requested message pairs not present: {missing_str}")
 
@@ -911,8 +1053,53 @@ class SnapshotVisualizer:
 
         if layout_choice == "combined" or len(target_vars) > self._SMALL_PLOT_THRESHOLD:
             fig, ax = plt.subplots(figsize=figsize or (12, 6))
-            for var in target_vars:
-                ax.plot(steps, series[var], marker="o", label=var)  # type: ignore
+            color_cycle = plt.rcParams.get("axes.prop_cycle")
+            palette = (
+                color_cycle.by_key().get("color", []) if color_cycle is not None else []
+            )
+            for idx, var in enumerate(target_vars):
+                color = palette[idx % len(palette)] if palette else None
+                xs_all: List[int] = []
+                ys_all: List[int] = []
+                segments: List[tuple[list[int], list[int]]] = []
+                seg_x: List[int] = []
+                seg_y: List[int] = []
+
+                for step, value in zip(steps, series[var]):
+                    if value is None:
+                        if seg_x:
+                            segments.append((seg_x, seg_y))
+                            seg_x, seg_y = [], []
+                        continue
+                    xs_all.append(step)
+                    ys_all.append(value)
+                    seg_x.append(step)
+                    seg_y.append(value)
+
+                if seg_x:
+                    segments.append((seg_x, seg_y))
+
+                if not xs_all:
+                    continue
+
+                label = var
+                for seg_x, seg_y in segments:
+                    ax.plot(
+                        seg_x,
+                        seg_y,
+                        color=color,
+                        linewidth=1.6,
+                        label=label,
+                    )
+                    label = None  # Only label first segment per variable
+
+                ax.scatter(
+                    xs_all,
+                    ys_all,
+                    color=color,
+                    s=60,
+                    label=label,
+                )
             ax.set_xlabel("Iteration")
             ax.set_ylabel("Argmin index")
             ax.set_title("Belief argmin trajectories")
@@ -1134,5 +1321,60 @@ class SnapshotVisualizer:
         if self._bct_builder is None:
             self._bct_builder = SnapshotBCTBuilder(self._records)
         return self._bct_builder
+
+    @staticmethod
+    def _human_domain_labels(labels: Sequence[Any]) -> List[str]:
+        """Map numeric domain values to letter labels (0→a, 1→b, etc.)."""
+        pretty: List[str] = []
+        for lbl in labels:
+            try:
+                idx = int(lbl)
+                pretty.append(domain_value_to_label(idx))
+                continue
+            except (ValueError, TypeError):
+                pass
+            pretty.append(str(lbl))
+        return pretty
+
+    @staticmethod
+    def _format_cost_table(
+        matrix: np.ndarray,
+        row_labels: Sequence[str],
+        col_labels: Sequence[str],
+        row_var: str,
+        col_var: str,
+        *,
+        fmt: str = "{:.3g}",
+    ) -> str:
+        """Return a labeled, aligned text table for a 2D cost matrix."""
+        col_names = [str(col) for col in col_labels]
+        row_names = [str(row) for row in row_labels]
+
+        # Compute cell widths for alignment
+        value_strings = [[fmt.format(val) for val in row] for row in matrix]
+        widths: List[int] = []
+        widths.append(
+            max(len(f"{row_var} \\ {col_var}"), len(row_var), max(len(r) for r in row_names))
+        )
+        for col_idx in range(len(col_names)):
+            col_width = len(col_names[col_idx])
+            for row_vals in value_strings:
+                col_width = max(col_width, len(row_vals[col_idx]))
+            widths.append(col_width)
+
+        def _pad(text: str, width: int) -> str:
+            return text.ljust(width)
+
+        header_cells = [_pad(f"{row_var} \\ {col_var}", widths[0])] + [
+            _pad(name, widths[i + 1]) for i, name in enumerate(col_names)
+        ]
+        lines = ["  ".join(header_cells)]
+
+        for row_name, row_vals in zip(row_names, value_strings):
+            cells = [_pad(row_name, widths[0])]
+            cells += [_pad(val, widths[i + 1]) for i, val in enumerate(row_vals)]
+            lines.append("  ".join(cells))
+
+        return "\n".join(lines)
 
     __all__ = ["SnapshotVisualizer"]
