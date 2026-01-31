@@ -1,7 +1,6 @@
 from __future__ import annotations
-from typing import Optional, Dict
+from typing import Dict, List, Optional, TypeAlias, TYPE_CHECKING
 import numpy as np
-from typing import List, TypeAlias, TYPE_CHECKING
 
 from .dcop_base import Agent
 
@@ -56,17 +55,13 @@ class Message:
             and self.recipient.name == other.recipient.name
         )
 
-    def __ne__(self, other: object) -> bool:
-        """Checks for inequality."""
-        return not self == other
-
     def __str__(self) -> str:
         """Returns a human-readable string representation of the message."""
         return f"Message from {self.sender.name} to {self.recipient.name}: {self.data}"
 
     def __repr__(self) -> str:
         """Returns a detailed string representation of the message."""
-        return self.__str__()
+        return f"Message from {self.sender.name} to {self.recipient.name}: {self.data}"
 
 
 class MailHandler:
@@ -97,7 +92,6 @@ class MailHandler:
         Args:
             policy: An object with a `should_accept_message` method.
         """
-        self.pruning_policy = getattr(self, "pruning_policy", None)
         self.pruning_policy = policy
 
     def _make_key(self, agent: Agent) -> str:

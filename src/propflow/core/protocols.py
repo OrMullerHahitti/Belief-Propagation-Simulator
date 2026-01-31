@@ -2,18 +2,12 @@ from typing import (
     Any,
     Dict,
     List,
-    Tuple,
     TypeAlias,
     Optional,
-    Callable,
     Union,
-    TypeVar,
     Protocol,
     Literal,
     runtime_checkable,
-    Sequence,
-    Mapping,
-    Iterator,
 )
 
 import numpy as np
