@@ -7,18 +7,45 @@ between these two clones. This can be useful for altering the message-passing
 dynamics and can sometimes help with convergence or finding better solutions.
 """
 from __future__ import annotations
-from typing import List
-import networkx as nx
-from copy import deepcopy
 
-from ..core.agents import FactorAgent
+from copy import deepcopy
+from typing import List
+
+import networkx as nx
+
 from ..bp.factor_graph import FactorGraph
 from ..configs.global_config_mapping import PolicyDefaults
+from ..core.agents import FactorAgent
+
+
+def _split_factors(fg: FactorGraph, factors: List[FactorAgent], p: float) -> None:
+    """Replaces each factor with two clones having cost tables p*C and (1-p)*C."""
+    G: nx.Graph = fg.G
+
+    for f in list(factors):
+        cost1 = p * f.cost_table  # type: ignore
+        cost2 = (1.0 - p) * f.cost_table  # type: ignore
+
+        f1 = f.create_from_cost_table(cost_table=cost1, name=f"{f.name}'")
+        f2 = f.create_from_cost_table(cost_table=cost2, name=f"{f.name}''")
+
+        f1.connection_number = deepcopy(f.connection_number)
+        f2.connection_number = deepcopy(f.connection_number)
+
+        for v, edge_data in G[f].items():
+            G.add_edge(f1, v, **edge_data)
+            G.add_edge(f2, v, **edge_data)
+
+        fg.factors.append(f1)
+        fg.factors.append(f2)
+
+        G.remove_node(f)
+        fg.factors.remove(f)
 
 
 def split_all_factors(
     fg: FactorGraph,
-    p: float = None, # type: ignore
+    p: float = None,  # type: ignore
 ) -> None:
     """Performs an in-place replacement of every factor with two cloned factors.
 
@@ -42,35 +69,8 @@ def split_all_factors(
         p = PolicyDefaults.SPLIT_FACTOR.value
 
     assert 0.0 < p < 1.0, "p must be in (0,1)"
-    G: nx.Graph = fg.G
+    _split_factors(fg, fg.factors, p)
 
-    # Iterate over a copy of the factors list to avoid mutation issues during iteration.
-    original_factors: List[FactorAgent] = list(fg.factors)
-
-    for f in original_factors:
-        # Build the two new factor agents with distributed costs.
-        cost1 = p * f.cost_table # type: ignore
-        cost2 = (1.0 - p) * f.cost_table # type: ignore
-
-        f1 = f.create_from_cost_table(cost_table=cost1, name=f"{f.name}'")
-        f2 = f.create_from_cost_table(cost_table=cost2, name=f"{f.name}''")
-
-        # Copy the dimension mapping to ensure message axes stay aligned.
-        f1.connection_number = deepcopy(f.connection_number)
-        f2.connection_number = deepcopy(f.connection_number)
-
-        # Add the new nodes and replicate the edges of the original factor.
-        for v, edge_data in G[f].items():
-            G.add_edge(f1, v, **edge_data)
-            G.add_edge(f2, v, **edge_data)
-
-        # Register the new factors in the FactorGraph.
-        fg.factors.append(f1)
-        fg.factors.append(f2)
-
-        # Remove the original factor node and its reference from the graph.
-        G.remove_node(f)
-        fg.factors.remove(f)
 
 def split_specific_factors(fg: FactorGraph, factors: List[FactorAgent], p: float | None = None):
     """Split specific factors in the factor graph.
@@ -83,33 +83,5 @@ def split_specific_factors(fg: FactorGraph, factors: List[FactorAgent], p: float
     if p is None:
         p = PolicyDefaults().split_factor
 
-    assert 0.0 < p < 1.0, "p must be in (0,1)" # type: ignore
-    G: nx.Graph = fg.G
-
-    # Iterate over a copy of the factors list to avoid mutation issues during iteration.
-    original_factors: List[FactorAgent] = factors
-
-    for f in original_factors:
-        # Build the two new factor agents with distributed costs.
-        cost1 = p * f.cost_table # type: ignore
-        cost2 = (1.0 - p) * f.cost_table # type: ignore
-
-        f1 = f.create_from_cost_table(cost_table=cost1, name=f"{f.name}'")
-        f2 = f.create_from_cost_table(cost_table=cost2, name=f"{f.name}''")
-
-        # Copy the dimension mapping to ensure message axes stay aligned.
-        f1.connection_number = deepcopy(f.connection_number)
-        f2.connection_number = deepcopy(f.connection_number)
-
-        # Add the new nodes and replicate the edges of the original factor.
-        for v, edge_data in G[f].items():
-            G.add_edge(f1, v, **edge_data)
-            G.add_edge(f2, v, **edge_data)
-
-        # Register the new factors in the FactorGraph.
-        fg.factors.append(f1)
-        fg.factors.append(f2)
-
-        # Remove the original factor node and its reference from the graph.
-        G.remove_node(f)
-        fg.factors.remove(f)
+    assert 0.0 < p < 1.0, "p must be in (0,1)"  # type: ignore
+    _split_factors(fg, factors, p)

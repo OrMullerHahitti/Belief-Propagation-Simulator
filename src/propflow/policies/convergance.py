@@ -5,10 +5,11 @@ simulation and determine if it has converged. Convergence is typically
 assessed by checking if the beliefs and variable assignments have stabilized
 over a certain number of iterations.
 """
-import numpy as np
-from typing import Dict, Optional
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
+from typing import Dict, Optional
+
+import numpy as np
 
 from ..configs.global_config_mapping import ConvergenceDefaults
 

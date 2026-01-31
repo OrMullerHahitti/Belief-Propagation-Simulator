@@ -7,13 +7,15 @@ same sender and discarding the new one if the change is below a certain
 threshold. This can significantly reduce memory usage and computation time in
 simulations where messages quickly stabilize.
 """
+import logging
 from typing import Dict
+
 import numpy as np
+
+from ..configs.global_config_mapping import PolicyDefaults
 from ..core.agents import FGAgent
 from ..core.components import Message
 from ..core.protocols import PolicyType
-from ..configs.global_config_mapping import PolicyDefaults
-import logging
 
 logger = logging.getLogger(__name__)
 

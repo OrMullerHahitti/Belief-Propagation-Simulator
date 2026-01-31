@@ -6,10 +6,18 @@ used as policies within a belief propagation engine to influence the
 algorithm's behavior, such as improving convergence or exploring different
 solution spaces.
 """
-from ..core.agents import FactorAgent, VariableAgent
 from typing import Iterable, Set
 
 from ..bp.factor_graph import FactorGraph
+from ..core.agents import FactorAgent, VariableAgent
+
+
+def _apply_discount(factors: Iterable[FactorAgent], x: float) -> None:
+    """Multiplies cost tables by x, saving originals first."""
+    for factor in factors:
+        if factor.cost_table is not None:
+            factor.save_original()
+            factor.cost_table = factor.cost_table * x
 
 
 def cost_reduction_all_factors_once(fg: FactorGraph, x: float) -> None:
@@ -23,10 +31,7 @@ def cost_reduction_all_factors_once(fg: FactorGraph, x: float) -> None:
         fg: The `FactorGraph` to modify.
         x: The multiplicative factor to apply to the cost tables.
     """
-    for factor in fg.factors:
-        if factor.cost_table is not None:
-            factor.save_original()
-            factor.cost_table = factor.cost_table * x
+    _apply_discount(fg.factors, x)
 
 
 def discount(fac_a: Iterable[FactorAgent], x: float) -> None:
@@ -36,10 +41,7 @@ def discount(fac_a: Iterable[FactorAgent], x: float) -> None:
         fac_a: An iterable of `FactorAgent` objects whose cost tables will be discounted.
         x: The multiplicative discount factor to apply.
     """
-    for factor in fac_a:
-        if factor.cost_table is not None:
-            factor.save_original()
-            factor.cost_table = factor.cost_table * x
+    _apply_discount(fac_a, x)
 
 
 def discount_attentive(fg: FactorGraph) -> None:
@@ -52,7 +54,7 @@ def discount_attentive(fg: FactorGraph) -> None:
     Args:
         fg: The `FactorGraph` containing the variables to be updated.
     """
-    variables:Set[VariableAgent] = {n for n, d in fg.G.nodes(data=True) if d.get("bipartite") == 0}
+    variables: Set[VariableAgent] = {n for n, d in fg.G.nodes(data=True) if d.get("bipartite") == 0}
 
     normalized_weights = {
         node: 1.0 / fg.G.degree(node) if fg.G.degree(node) > 0 else 0
