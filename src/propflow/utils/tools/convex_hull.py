@@ -7,14 +7,12 @@ models and for analyzing the behavior of certain message-passing algorithms.
 import numpy as np
 from scipy.spatial import ConvexHull
 from scipy.spatial._qhull import QhullError
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Tuple, Optional, Union, Literal, Any
 import math
 
 try:
     import matplotlib.pyplot as plt
-    from matplotlib.colors import ListedColormap
-
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
