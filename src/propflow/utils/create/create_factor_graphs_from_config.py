@@ -7,16 +7,17 @@ table factories to dynamically create graphs with different topologies and
 cost structures.
 """
 from __future__ import annotations
-import pickle
-import os
-from pathlib import Path
-from importlib import import_module
-from typing import Callable, Any
 
-from ...configs.global_config_mapping import GRAPH_TYPES, CT_FACTORIES
-from .create_factor_graph_config import ConfigCreator, GraphConfig
+import os
+import pickle
+from importlib import import_module
+from pathlib import Path
+from typing import Any, Callable
+
 from ...bp.factor_graph import FactorGraph
+from ...configs.global_config_mapping import CT_FACTORIES, GRAPH_TYPES
 from ..path_utils import find_project_root
+from .create_factor_graph_config import ConfigCreator, GraphConfig
 
 
 def _resolve(dotted: str) -> Any:

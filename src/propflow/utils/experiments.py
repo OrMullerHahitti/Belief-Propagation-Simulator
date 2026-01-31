@@ -10,18 +10,12 @@ This script automates the process of:
    such as total messages processed, execution time, and pruning rate.
 """
 
-import sys
-from pathlib import Path
+import logging
 
-sys.path.append(str(Path(__file__).parent.parent))
-
+from ..bp.computators import MinSumComputator
 from ..bp.engines import BPEngine, MessagePruningEngine
 from .create.create_factor_graph_config import ConfigCreator
-from .create.create_factor_graphs_from_config import (
-    FactorGraphBuilder,
-)
-from ..bp.computators import MinSumComputator
-import logging
+from .create.create_factor_graphs_from_config import FactorGraphBuilder
 
 logging.basicConfig(level=logging.INFO)
 

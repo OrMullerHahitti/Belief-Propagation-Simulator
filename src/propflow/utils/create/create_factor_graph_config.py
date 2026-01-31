@@ -5,14 +5,15 @@ configurations in a structured way and a `ConfigCreator` class to validate,
 build, and save these configurations as pickle files.
 """
 from __future__ import annotations
-from dataclasses import dataclass
-from pathlib import Path
-import pickle
+
 import inspect
 import os
+import pickle
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ...configs.global_config_mapping import GRAPH_TYPES, CT_FACTORIES
+from ...configs.global_config_mapping import CT_FACTORIES, GRAPH_TYPES
 from ..path_utils import find_project_root
 
 

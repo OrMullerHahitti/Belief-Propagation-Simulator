@@ -3,8 +3,9 @@
 This module provides helper functions for performing bulk operations on lists
 of `Message` objects, such as modifying their data content.
 """
-from ..core.components import Message
 from typing import List
+
+from ..core.components import Message
 
 
 def multiply_messages(messages: List[Message], factor: float) -> None:
