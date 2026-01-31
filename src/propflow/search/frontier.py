@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import heapq
 from collections import deque
-from typing import Deque, Generic, List, Tuple, TypeVar
+from typing import Generic, TypeVar
 
 from .node import Node
 
@@ -14,7 +14,7 @@ class PriorityFrontier(Generic[S, A]):
     """Heap-backed best-first frontier for A* / greedy searches."""
 
     def __init__(self) -> None:
-        self._heap: List[Tuple[float, int, Node[S, A]]] = []
+        self._heap: list[tuple[float, int, Node[S, A]]] = []
         self._counter = 0
 
     def push(self, node: Node[S, A]) -> None:
@@ -32,7 +32,7 @@ class FIFOFrontier(Generic[S, A]):
     """Simple queue frontier for BFS-style searches."""
 
     def __init__(self) -> None:
-        self._queue: Deque[Node[S, A]] = deque()
+        self._queue: deque[Node[S, A]] = deque()
 
     def push(self, node: Node[S, A]) -> None:
         self._queue.append(node)
@@ -51,7 +51,7 @@ class BeamFrontier(Generic[S, A]):
         if width <= 0:
             raise ValueError("Beam width must be a positive integer.")
         self.width = width
-        self._buffer: List[Node[S, A]] = []
+        self._buffer: list[Node[S, A]] = []
 
     def push(self, node: Node[S, A]) -> None:
         self._buffer.append(node)

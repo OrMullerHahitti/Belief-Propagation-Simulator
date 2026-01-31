@@ -4,8 +4,8 @@ This module provides extensions to the core agent classes, adapting them for
 use in local search algorithms like DSA and MGM, rather than belief propagation.
 """
 
-from typing import Dict, Any, List, Optional
 import logging
+from typing import Any, Dict, List, Optional
 
 from ..core.agents import VariableAgent as BaseVariableAgent
 from .search_computator import SearchComputator
