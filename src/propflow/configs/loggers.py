@@ -11,8 +11,8 @@ consistent logging behavior.
 """
 
 import logging
-import sys
 import os
+import sys
 from enum import Enum
 
 import colorlog

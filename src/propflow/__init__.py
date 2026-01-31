@@ -1,43 +1,33 @@
 from ._version import __version__
-
-# Core graph and agent components
+from .bp.computators import (
+    MaxProductComputator,
+    MaxSumComputator,
+    MinSumComputator,
+    SumProductComputator,
+)
 from .bp.engine_base import BPEngine
-from .bp.factor_graph import FactorGraph
-from .core import VariableAgent, FactorAgent
-
-# Graph builders and simulation
-from .utils import FGBuilder
-from propflow.configs.global_config_mapping import CTFactories
-from .simulator import Simulator
-
-# Engine variants
 from .bp.engines import (
-    SplitEngine,
-    DampingEngine,
-    DiffusionEngine,
     CostReductionOnceEngine,
     DampingCROnceEngine,
+    DampingEngine,
     DampingSCFGEngine,
     DampingTRWEngine,
+    DiffusionEngine,
     MessagePruningEngine,
+    RDampingEngine,
+    SplitEngine,
     TRWEngine,
 )
-
-# Computators
-from .bp.computators import (
-    MinSumComputator,
-    MaxSumComputator,
-    SumProductComputator,
-    MaxProductComputator,
-)
-
-# Commonly used configs and utilities
+from .bp.factor_graph import FactorGraph
 from .configs import (
     CTFactories,
+    create_poisson_table,
     create_random_int_table,
     create_uniform_float_table,
-    create_poisson_table,
 )
+from .core import FactorAgent, VariableAgent
+from .simulator import Simulator
+from .utils import FGBuilder
 
 # Snapshot configuration and analysis
 from .snapshots import (
@@ -59,6 +49,7 @@ __all__ = [
     # Engines
     "SplitEngine",
     "DampingEngine",
+    "RDampingEngine",
     "DiffusionEngine",
     "CostReductionOnceEngine",
     "DampingCROnceEngine",
@@ -87,12 +78,9 @@ __all__ = [
     "SnapshotVisualizer",
 ]
 
-# --- Optional (only if PyTorch is available) ---
 try:
-    # Importing directly avoids failing when __all__ is empty in propflow.nn
     from .nn.torch_computators import SoftMinTorchComputator  # type: ignore
 
     __all__.append("SoftMinTorchComputator")
 except Exception:
-    # PyTorch not installed; keep base API intact
     pass

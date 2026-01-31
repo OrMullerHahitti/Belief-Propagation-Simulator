@@ -6,19 +6,17 @@ engine configurations across a set of factor graphs in parallel. It uses Python'
 and provides a simple plotting utility to visualize and compare the performance
 of different engines.
 """
-import logging
+import pickle
+import random
+import sys
 import time
+import traceback
 from multiprocessing import Pool, cpu_count
 from typing import Any, Dict, List, Optional, Tuple
 
 import colorlog
-import numpy as np
 import matplotlib.pyplot as plt
-import os
-import sys
-import pickle
-import traceback
-import random
+import numpy as np
 
 from .configs import Logger
 from .configs.global_config_mapping import (

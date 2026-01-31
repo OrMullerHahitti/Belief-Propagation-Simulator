@@ -14,12 +14,10 @@ Key Sections:
 - Registries and Factories: Mappings for dynamically loading graph builders,
   computators, and cost table factories.
 """
-from dataclasses import dataclass, asdict, field
-from typing import Dict, Callable, Any, Optional
 import logging
+from dataclasses import asdict, dataclass, field
 from string import ascii_lowercase
-
-from narwhals import Field
+from typing import Any, Callable, Dict, Optional
 
 from ..bp.computators import MinSumComputator
 from ..utils.path_utils import find_project_root
@@ -107,16 +105,6 @@ class LoggingDefaults:
     })
 
 
-# For complex nested structures like console_colors, keep as a separate constant
-# Used in default factory above
-CONSOLE_COLORS: Dict[str, str] = {
-    "DEBUG": "cyan",
-    "INFO": "green",
-    "WARNING": "yellow",
-    "ERROR": "red",
-    "CRITICAL": "red,bg_white",
-}
-
 LOG_LEVELS: Dict[str, int] = {
     "DEBUG": logging.DEBUG,
     "INFO": logging.INFO,
@@ -190,12 +178,6 @@ class SearchDefaults:
     beam_width: int = 10
     exploration_factor: float = 0.1
 
-
-# Legacy dict interfaces for backward compatibility - REMOVED
-# ENGINE_DEFAULTS, LOGGING_CONFIG, CONVERGENCE_DEFAULTS, POLICY_DEFAULTS, SIMULATOR_DEFAULTS, SEARCH_DEFAULTS removed.
-
-# Legacy support for verbose logging flag - REMOVED
-# VERBOSE_LOGGING removed.
 
 ########################################################################
 # ---- Configuration Validation ---------------------------------------

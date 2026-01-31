@@ -10,14 +10,15 @@ These map to implementations in `propflow.bp.engine_base` and
 
 from ..bp.engine_base import BPEngine
 from ..bp.engines import (
-    Engine,
-    SplitEngine,
-    DampingEngine,
-    DiffusionEngine,
     CostReductionOnceEngine,
     DampingCROnceEngine,
+    DampingEngine,
     DampingSCFGEngine,
+    DiffusionEngine,
+    Engine,
     MessagePruningEngine,
+    RDampingEngine,
+    SplitEngine,
 )
 
 # Optional convenience registry
@@ -26,6 +27,7 @@ ENGINES = {
     "Engine": Engine,
     "SplitEngine": SplitEngine,
     "DampingEngine": DampingEngine,
+    "RDampingEngine": RDampingEngine,
     "DiffusionEngine": DiffusionEngine,
     "CostReductionOnceEngine": CostReductionOnceEngine,
     "DampingCROnceEngine": DampingCROnceEngine,
@@ -38,6 +40,7 @@ __all__ = [
     "Engine",
     "SplitEngine",
     "DampingEngine",
+    "RDampingEngine",
     "DiffusionEngine",
     "CostReductionOnceEngine",
     "DampingCROnceEngine",
