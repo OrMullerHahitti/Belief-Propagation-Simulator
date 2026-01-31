@@ -4,9 +4,21 @@ This module provides functions that implement message damping, a technique used
 to stabilize belief propagation by preventing oscillations. Damping works by
 blending a newly computed message with the message from a previous iteration.
 """
-from ..core.agents import VariableAgent
-from ..configs.global_config_mapping import PolicyDefaults
 from typing import List
+
+from ..configs.global_config_mapping import PolicyDefaults
+from ..core.agents import VariableAgent
+
+
+def _apply_damping(outbox, last_iter, x: float) -> None:
+    """Blends outbox messages with previous messages using damping factor x."""
+    if not last_iter or not outbox:
+        return
+    last_msg_map = {msg.recipient.name: msg for msg in last_iter}
+    for msg in outbox:
+        last_msg = last_msg_map.get(msg.recipient.name)
+        if last_msg is not None:
+            msg.data = x * last_msg.data + (1 - x) * msg.data
 
 
 def TD(variables: List[VariableAgent], x: float = None, diameter: int = None) -> None:
@@ -31,23 +43,13 @@ def TD(variables: List[VariableAgent], x: float = None, diameter: int = None) ->
         x = PolicyDefaults().damping_factor
         if x is None:
             raise ValueError("Damping factor is None")
-        diameter = PolicyDefaults().damping_diameter
-    if diameter is None: # Keep this check in case diameter was explicitly passed as None but x was not.
+    if diameter is None:
         diameter = PolicyDefaults().damping_diameter
         if diameter is None:
             raise ValueError("Damping diameter is None")
 
-
     for variable in variables:
-        last_iter = variable.last_cycle(diameter)
-        outbox = variable.mailer.outbox
-        if not last_iter or not outbox:
-            continue
-        last_msg_map = {msg.recipient.name: msg for msg in last_iter}
-        for msg in outbox:
-            last_msg = last_msg_map.get(msg.recipient.name)
-            if last_msg is not None:
-                msg.data = x * last_msg.data + (1 - x) * msg.data
+        _apply_damping(variable.mailer.outbox, variable.last_cycle(diameter), x)
 
 
 def damp(variable: VariableAgent, x: float = None) -> None:
@@ -66,13 +68,24 @@ def damp(variable: VariableAgent, x: float = None) -> None:
     """
     if x is None:
         x = PolicyDefaults().damping_factor
+    _apply_damping(variable.mailer.outbox, variable.last_iteration, x)
 
-    last_iter = variable.last_iteration
-    outbox = variable.mailer.outbox
-    if not last_iter or not outbox:
-        return
-    last_msg_map = {msg.recipient.name: msg for msg in last_iter}
-    for msg in outbox:
-        last_msg = last_msg_map.get(msg.recipient.name)
-        if last_msg is not None:
-            msg.data = x * last_msg.data + (1 - x) * msg.data
+
+def damp_factor(factor, x: float = None) -> None:
+    """Applies damping to the outgoing messages of a single factor agent.
+
+    This function updates each outgoing R-message in the factor's outbox by
+    blending it with the corresponding message from the previous iteration.
+
+    The update rule is:
+    `new_message = x * previous_iteration_message + (1 - x) * current_message`
+
+    Args:
+        factor: The `FactorAgent` whose outbox messages will be damped.
+        x: The damping factor, representing the weight of the previous message.
+            If None, the default from `POLICY_DEFAULTS` is used.
+    """
+    if x is None:
+        x = PolicyDefaults().damping_factor
+    _apply_damping(factor.mailer.outbox, factor.last_iteration, x)
+

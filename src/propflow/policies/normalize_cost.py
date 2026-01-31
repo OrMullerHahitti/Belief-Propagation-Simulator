@@ -6,8 +6,10 @@ for preventing numerical instability and ensuring that costs or probabilities
 remain in a manageable range.
 """
 from typing import List
+
 import numpy as np
-from ..core.agents import VariableAgent, FactorAgent
+
+from ..core.agents import FactorAgent, VariableAgent
 from ..core.protocols import CostTable
 
 
