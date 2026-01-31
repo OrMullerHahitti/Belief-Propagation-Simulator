@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Generic, Hashable, Iterable, Optional, Tuple, TypeVar
+from typing import Dict, Generic, Hashable, Optional, Tuple, TypeVar
 
 from .frontier import PriorityFrontier
 from .node import Node
@@ -182,9 +182,8 @@ class SearchEngine(Generic[S, A]):
     # ------------------------------------------------------------------#
     # Helpers
     # ------------------------------------------------------------------#
-    def reconstruct_path(self, terminal: Node[S, A]) -> Iterable[Tuple[S, Optional[A]]]:
+    def reconstruct_path(self, terminal: Node[S, A]) -> list[Tuple[S, Optional[A]]]:
         """Yield ``(state, action)`` pairs from start to ``terminal``."""
-        key = self.state_key(terminal.state)
         chain: list[Tuple[S, Optional[A]]] = []
         node = terminal
         while True:
@@ -194,23 +193,21 @@ class SearchEngine(Generic[S, A]):
             parent = self._nodes.get(node.parent_key)
             if parent is None:
                 break
-            key = node.parent_key
             node = parent
-        return reversed(chain)
+        chain.reverse()
+        return chain
 
     def _build_start_node(self, start_state: S) -> Node[S, A]:
         h_val = self.heuristic.h(start_state)
-        node = Node(
+        return Node(
             state=start_state,
             parent_key=None,
             action=None,
             g=0.0,
             h=h_val,
-            f=0.0,
+            f=self.cost.f_score(0.0, h_val),
             depth=0,
         )
-        node.f = self.cost.f_score(node.g, node.h)
-        return node
 
     def _register_node(self, key: Hashable, node: Node[S, A]) -> None:
         self._nodes[key] = node

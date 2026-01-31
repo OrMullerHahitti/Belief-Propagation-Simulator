@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from .adapters.factor_graph import (
     Assignment,
@@ -54,7 +54,7 @@ def greedy_best_first_factor_graph(
         def f_score(self, g: float, h: float) -> float:
             return h
 
-    engine = SearchEngine(
+    return SearchEngine(
         expander=FGExpansion(factor_graph, var_order),
         heuristic=FGHeuristic(factor_graph),
         goal=FGGoal(factor_graph),
@@ -65,7 +65,6 @@ def greedy_best_first_factor_graph(
         hooks=hooks,
         history=history,
     )
-    return engine
 
 
 def beam_search_factor_graph(

@@ -92,8 +92,6 @@ class FactorGraphView(FactorGraphProtocol):
 def _coerce_view(
     factor_graph: FactorGraph | FactorGraphProtocol,
 ) -> FactorGraphProtocol:
-    if isinstance(factor_graph, FactorGraphView):
-        return factor_graph
     if isinstance(factor_graph, FactorGraphProtocol):
         return factor_graph
     if isinstance(factor_graph, FactorGraph):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Hashable, Iterable, Mapping, Sequence, Tuple
+from typing import Any, Dict, Hashable, Iterable, Mapping, Tuple
 
 from .protocols import (
     CostAccumulationPolicy,

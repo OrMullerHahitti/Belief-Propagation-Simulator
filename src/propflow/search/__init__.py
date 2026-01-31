@@ -9,7 +9,6 @@ from .search_computator import (
 from .search_engine import (
     EngineHistory,
     EngineHooks,
-
     SearchEngine,
 )
 from .legacy_engines import (
@@ -64,8 +63,7 @@ __all__ = [
     "beam_search_factor_graph",
     "greedy_best_first_factor_graph",
     "iddfs_factor_graph",
-# Legacy local-search support
-
+    # Legacy local-search support
     "DSAEngine",
     "MGMEngine",
     "MGM2Engine",
