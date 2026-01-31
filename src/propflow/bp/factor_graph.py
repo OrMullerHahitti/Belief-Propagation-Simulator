@@ -1,20 +1,17 @@
-from copy import deepcopy
-
-import networkx as nx
-import numpy as np
-from typing import List, Dict, Any
 import logging
-
-from propflow.bp.computators import BPComputator
-
-from ..core.dcop_base import Computator
-from ..core.agents import VariableAgent, FactorAgent
-
-logger = logging.getLogger(__name__)
+from copy import deepcopy
+from typing import Any, Dict, List
 
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
+import networkx as nx
+import numpy as np
 from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+
+from ..core.agents import FactorAgent, VariableAgent
+from .computators import BPComputator
+
+logger = logging.getLogger(__name__)
 
 
 class FactorGraph:
@@ -131,7 +128,7 @@ class FactorGraph:
                 edge_dict[factor] = [var for var, _ in vars_with_dims]
         return edge_dict
 
-    def set_computator(self, computator: Computator|BPComputator, **kwargs) -> None:
+    def set_computator(self, computator: BPComputator, **kwargs) -> None:
         """Assigns a computator to all nodes in the graph.
 
         Args:
@@ -270,11 +267,53 @@ class FactorGraph:
         """Returns a list of all factor agents in the graph."""
         return self.factors
 
+    @property
+    def diameter(self) -> int:
+        """int: The diameter of the factor graph.
+
+        If the graph is not connected, it returns the diameter of the
+        largest connected component.
+        """
+        if not self.G:
+            return 0
+        if not nx.is_connected(self.G):
+            if not list(nx.connected_components(self.G)):
+                return 0
+            largest_cc = max(nx.connected_components(self.G), key=len)
+            subgraph = self.G.subgraph(largest_cc)
+            return nx.diameter(subgraph) if subgraph.nodes() else 0
+        return nx.diameter(self.G)
+
+    def __getstate__(self) -> dict:
+        """Custom method to control what gets pickled."""
+        return self.__dict__.copy()
+
+    def __setstate__(self, state: dict) -> None:
+        """Custom method to control unpickling behavior."""
+        self.__dict__.update(state)
+        if not hasattr(self, "G") or self.G is None:
+            self.G = nx.Graph()
+            if hasattr(self, "variables") and hasattr(self, "factors"):
+                self.G.add_nodes_from(self.variables, bipartite=0)
+                self.G.add_nodes_from(self.factors, bipartite=1)
+                var_name_to_obj = {var.name: var for var in self.variables}
+                for factor in self.factors:
+                    if hasattr(factor, "connection_number"):
+                        for var_name, dim in factor.connection_number.items():
+                            if var_name in var_name_to_obj:
+                                var = var_name_to_obj[var_name]
+                                self.G.add_edge(factor, var, dim=dim)
+
+    @property
+    def original_factors(self) -> List[FactorAgent]:
+        """list[FactorAgent]: A deep copy of the original factor agents."""
+        return self._original_factors
+
+
 def _plot_factor_graph(graph: "FactorGraph", ax: Axes, title: str) -> None:
     """Pretty spring-layout view used when visualize(pretty=True) is requested."""
     labels = {node: getattr(node, "name", str(node)) for node in graph.G.nodes}
     pos = nx.spring_layout(graph.G, seed=42)
-    #pos = nx.circular_layout(graph.G)
     var_nodes = list(graph.variables)
     fac_nodes = list(graph.factors)
     ax.set_title(title)
@@ -301,57 +340,3 @@ def _plot_factor_graph(graph: "FactorGraph", ax: Axes, title: str) -> None:
     nx.draw_networkx_edges(graph.G, pos, ax=ax, alpha=0.3)
     nx.draw_networkx_labels(graph.G, pos, labels=labels, font_size=10, ax=ax)
     ax.legend(loc="upper right")
-
-    @property
-    def diameter(self) -> int:
-        """int: The diameter of the factor graph.
-
-        If the graph is not connected, it returns the diameter of the
-        largest connected component.
-        """
-        if not self.G:
-            return 0
-        if not nx.is_connected(self.G):
-            if not list(nx.connected_components(self.G)):
-                return 0
-            largest_cc = max(nx.connected_components(self.G), key=len)
-            subgraph = self.G.subgraph(largest_cc)
-            return nx.diameter(subgraph) if subgraph.nodes() else 0
-        return nx.diameter(self.G)
-
-    def __getstate__(self) -> dict:
-        """Custom method to control what gets pickled.
-
-        This is used to ensure the object can be correctly serialized.
-        """
-        state = self.__dict__.copy()
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        """Custom method to control unpickling behavior.
-
-        This ensures that the `networkx.Graph` object is correctly
-        reconstructed if it was not pickled.
-        """
-        self.__dict__.update(state)
-        if not hasattr(self, "G") or self.G is None:
-            self.G = nx.Graph()
-            if hasattr(self, "variables") and hasattr(self, "factors"):
-                self.G.add_nodes_from(self.variables, bipartite=0)
-                self.G.add_nodes_from(self.factors, bipartite=1)
-                var_name_to_obj = {var.name: var for var in self.variables}
-                for factor in self.factors:
-                    if hasattr(factor, "connection_number"):
-                        for var_name, dim in factor.connection_number.items():
-                            if var_name in var_name_to_obj:
-                                var = var_name_to_obj[var_name]
-                                self.G.add_edge(factor, var, dim=dim)
-
-    @property
-    def original_factors(self) -> List[FactorAgent]:
-        """list[FactorAgent]: A deep copy of the original factor agents.
-
-        This is preserved to allow for calculating the true global cost,
-        even if factor costs are modified during a simulation run.
-        """
-        return self._original_factors

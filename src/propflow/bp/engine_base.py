@@ -1,19 +1,19 @@
-from typing import Callable, Dict, Optional, List
-import numpy as np
-import networkx as nx
-from ..policies.normalize_cost import normalize_inbox
-from ..core.agents import VariableAgent, FactorAgent
-from .computators import BPComputator, MinSumComputator
-from .engine_components import Step, SnapshotHistoryView
-from .factor_graph import FactorGraph
-from ..core.dcop_base import Computator
-from ..policies.convergance import ConvergenceMonitor, ConvergenceConfig
-from ..snapshots import SnapshotManager, EngineSnapshot
-from ..utils.tools.performance import PerformanceMonitor
+from typing import Callable, Dict, List, Optional
 
-from ..configs.loggers import Logger
+import networkx as nx
+import numpy as np
+
 from ..configs.global_config_mapping import EngineDefaults
+from ..configs.loggers import Logger
+from ..core.agents import FactorAgent, VariableAgent
+from ..policies.convergance import ConvergenceConfig, ConvergenceMonitor
+from ..policies.normalize_cost import normalize_inbox
+from ..snapshots import EngineSnapshot, SnapshotManager
 from ..utils import dummy_func
+from ..utils.tools.performance import PerformanceMonitor
+from .computators import BPComputator, MinSumComputator
+from .engine_components import SnapshotHistoryView, Step
+from .factor_graph import FactorGraph
 
 logger = Logger(__name__, file=True)
 logger.setLevel(100)
@@ -43,7 +43,7 @@ class BPEngine:
     def __init__(
         self,
         factor_graph: FactorGraph,
-        computator: Computator | BPComputator = MinSumComputator(),
+        computator: BPComputator = MinSumComputator(),
         init_normalization: Callable = dummy_func,
         name: str = "BPEngine",
         convergence_config: ConvergenceConfig | None = None,
@@ -319,7 +319,7 @@ class BPEngine:
 
     def __str__(self) -> str:
         """Returns the name of the engine."""
-        return f"{self.name}"
+        return self.name
 
     def post_init(self) -> None:
         """Hook for logic to be executed after engine initialization."""
@@ -381,10 +381,6 @@ class BPEngine:
             cost = float(self._last_cost)
         self._last_cost = cost
         return cost
-
-    def normalize_messages(self) -> None:
-        """Placeholder hook for message normalization logic."""
-        pass
 
     def _handle_cycle_events(self, i: int) -> None:
         """Handles events that occur at specific cycle intervals.

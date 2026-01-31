@@ -4,17 +4,12 @@ from typing import Dict, Optional
 import networkx as nx
 import numpy as np
 
-from ..core.agents import VariableAgent, FactorAgent
-from .engine_base import BPEngine
-from ..policies.cost_reduction import (
-    cost_reduction_all_factors_once,
-    discount_attentive,
-)
-from ..policies.splitting import split_all_factors
+from ..core.agents import FactorAgent, VariableAgent
 from ..policies import damp
+from ..policies.cost_reduction import cost_reduction_all_factors_once
+from ..policies.splitting import split_all_factors
 from ..utils.inbox_utils import multiply_messages_attentive
-from propflow.bp.engine_base import BPEngine
-from propflow.core.components import Message
+from .engine_base import BPEngine
 
 
 class Engine(BPEngine):
