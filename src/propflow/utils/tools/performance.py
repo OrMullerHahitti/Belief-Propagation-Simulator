@@ -62,14 +62,12 @@ class PerformanceMonitor:
         """Record step metrics."""
         duration = time.time() - start_time
 
-        # Calculate message statistics
         message_count = len(messages) if messages else 0
         if messages and hasattr(messages[0], "data"):
             avg_size = np.mean([msg.data.size for msg in messages])
         else:
             avg_size = 0.0
 
-        # Get system metrics
         memory_mb = 0.0
         cpu_percent = 0.0
 
@@ -77,16 +75,15 @@ class PerformanceMonitor:
             if self.track_memory:
                 try:
                     memory_mb = self.process.memory_info().rss / 1024 / 1024
-                except:
+                except (psutil.Error, OSError):
                     pass
 
             if self.track_cpu:
                 try:
                     cpu_percent = self.process.cpu_percent(interval=0.1)
-                except:
+                except (psutil.Error, OSError):
                     pass
 
-        # Create metrics
         metrics = StepMetrics(
             step_number=step_num,
             duration=duration,
@@ -161,12 +158,15 @@ class PerformanceMonitor:
         self.cycle_metrics.append(metrics)
         self._cycle_start_time = None
 
-        logger.info(
-            f"Cycle {cycle_num}: {duration:.3f}s, {len(self._cycle_steps)} steps, "
-            f"cost: {cost:.2f}"
-            if cost
-            else ""
-        )
+        if cost is not None:
+            logger.info(
+                f"Cycle {cycle_num}: {duration:.3f}s, {len(self._cycle_steps)} steps, "
+                f"cost: {cost:.2f}"
+            )
+        else:
+            logger.info(
+                f"Cycle {cycle_num}: {duration:.3f}s, {len(self._cycle_steps)} steps"
+            )
 
         return metrics
 

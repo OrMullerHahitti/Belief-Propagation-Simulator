@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import Any, Dict, Hashable, Iterable, List, Literal, Mapping, Optional, Sequence, Tuple
+from typing import Any, Dict, Hashable, List, Literal, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import networkx as nx
