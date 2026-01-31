@@ -129,8 +129,7 @@ class VariableAgent(FGAgent):
             name (str): The name of the variable (e.g., 'x1').
             domain (int): The size of the variable's domain.
         """
-        node_type = "variable"
-        super().__init__(name, node_type, domain)
+        super().__init__(name, "variable", domain)
 
     def compute_messages(self) -> None:
         """Computes outgoing messages to factor nodes.
@@ -207,8 +206,7 @@ class FactorAgent(FGAgent):
             param (dict, optional): Parameters for `ct_creation_func`. Defaults to None.
             cost_table (CostTable, optional): An existing cost table. Defaults to None.
         """
-        node_type = "factor"
-        super().__init__(name, node_type, domain)
+        super().__init__(name, "factor", domain)
 
         self.cost_table = None if cost_table is None else cost_table.copy()
         self.connection_number: Dict[str, int] = {}  # var_name -> dimension
@@ -296,10 +294,10 @@ class FactorAgent(FGAgent):
         Args:
             ct (CostTable, optional): An external cost table to save. Defaults to None.
         """
-        if self._original is None and self.cost_table is not None and ct is None:
-            self._original = np.copy(self.cost_table)
-        elif ct is not None and self._original is None and self.cost_table is not None:
-            self._original = np.copy(ct)
+        if self._original is not None or self.cost_table is None:
+            return
+        # save either the provided table or the current one
+        self._original = np.copy(ct if ct is not None else self.cost_table)
 
     @property
     def mean_cost(self) -> float:

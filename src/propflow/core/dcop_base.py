@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import List
 import numpy as np
 
 from .protocols import Message
@@ -14,10 +14,6 @@ class Computator(ABC):
     Constraint Optimization Problem (DCOP) system. Subclasses must implement
     the `compute_Q` and `compute_R` methods.
     """
-
-    def __init_subclass__(cls, **kwargs):
-        """Initializes a subclass, can be used for registration or setup."""
-        super().__init_subclass__(**kwargs)
 
     @abstractmethod
     async def compute_Q(self, messages: List[Message]) -> List[Message]:
@@ -90,17 +86,7 @@ class Agent(ABC):
 
     def __hash__(self) -> int:
         """Computes the hash based on name and type."""
-        try:
-            name_val = self.name
-        except AttributeError:
-            name_val = str(id(self))
-
-        try:
-            type_val = self.type
-        except AttributeError:
-            type_val = "unknown"
-
-        return hash((name_val, type_val))
+        return hash((self.name, self.type))
 
     def __repr__(self) -> str:
         """Returns a string representation of the Agent."""
@@ -126,19 +112,16 @@ class Mailer(Agent):
         super().__init__("mailer", "mailer")
         self.mailbox = {}
 
-    def send_message(self, recipient: Agent, message: Any) -> None:
+    def send_message(self, recipient: Agent, message) -> None:
         """Sends a message to a specific recipient.
 
         Args:
             recipient: The agent to receive the message.
             message: The message content.
         """
-        if recipient.name in self.mailbox:
-            self.mailbox[recipient.name].append(message)
-        else:
-            self.mailbox[recipient.name] = [message]
+        self.mailbox.setdefault(recipient.name, []).append(message)
 
-    def retrieve_messages(self, recipient: Agent) -> List[Any]:
+    def retrieve_messages(self, recipient: Agent) -> List:
         """Retrieves all messages for a specific recipient.
 
         Args:
@@ -147,10 +130,7 @@ class Mailer(Agent):
         Returns:
             A list of messages for the recipient, or an empty list if none.
         """
-        if recipient.name in self.mailbox:
-            return self.mailbox[recipient.name]
-        else:
-            return []
+        return self.mailbox.get(recipient.name, [])
 
     def clear_mailbox(self) -> None:
         """Clears all messages from the mailbox."""
