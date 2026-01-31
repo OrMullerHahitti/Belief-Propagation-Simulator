@@ -1,14 +1,14 @@
 import json
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Mapping
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING
-import numpy as np
-from ..core.dcop_base import Agent
-from ..core.components import Message
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Union
 
-if TYPE_CHECKING:  # pragma: no cover
+import numpy as np
+
+from ..core.components import Message
+from ..core.dcop_base import Agent
+
+if TYPE_CHECKING:
     from .engine_base import BPEngine
 
 
@@ -98,10 +98,10 @@ class Cycle:
         """
         if len(self.steps) != len(other.steps):
             return False
-        for step1, step2 in zip(self.steps, other.steps):
-            if step1.messages != step2.messages:
-                return False
-        return True
+        return all(
+            step1.messages == step2.messages
+            for step1, step2 in zip(self.steps, other.steps)
+        )
 
 
 @dataclass
@@ -316,8 +316,6 @@ class History:
                 messages_by_flow.setdefault(key, []).append(value)
         return messages_by_flow
 
-
-
     def to_json(self, filepath: str) -> str:
         """Saves the history data to a JSON file.
 
@@ -362,8 +360,6 @@ class History:
 
         print(f"History saved to: {filepath}")
         return filepath
-
-
 
     def _serialize_cycles(self) -> Dict:
         """Serializes `Cycle` objects for JSON output."""

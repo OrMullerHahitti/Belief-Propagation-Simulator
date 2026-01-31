@@ -1,19 +1,12 @@
-import numpy as np
-from typing import List, TypeAlias
-import logging
 import functools
+import logging
 from functools import lru_cache
+from typing import List, TypeAlias
 
-from ..core.protocols import Computator
-
-try:
-    import numba
-
-    HAS_NUMBA = True
-except ImportError:
-    HAS_NUMBA = False
+import numpy as np
 
 from ..core.components import Message
+from ..core.protocols import Computator
 
 # Minimal logging for computators
 logger = logging.getLogger(__name__)
