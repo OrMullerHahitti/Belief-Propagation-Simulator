@@ -17,6 +17,7 @@ from .types import EngineSnapshot, Jacobians, CycleMetrics
 from .manager import SnapshotManager
 from .analyzer import SnapshotAnalyzer, AnalysisReport
 from .visualizer import SnapshotVisualizer
+from .step_formatter import StepByStepFormatter
 from . import utils as snapshot_utils
 
 __all__ = [
@@ -27,5 +28,7 @@ __all__ = [
     "SnapshotAnalyzer",
     "AnalysisReport",
     "SnapshotVisualizer",
+    "StepByStepFormatter",
     "snapshot_utils",
 ]
+

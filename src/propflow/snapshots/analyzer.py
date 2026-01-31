@@ -66,7 +66,6 @@ class SnapshotAnalyzer:
         }
         self._max_cycle_len = max_cycle_len
         self._domain = dict(domain or self._infer_domain(self._snapshots[0]))
-        self._dag_bound_cache: Dict[int, int | None] = {}
         self._nilpotent_cache: Dict[int, int | None] = {}
 
     def beliefs_per_variable(self) -> Dict[str, List[int | None]]:
@@ -75,10 +74,9 @@ class SnapshotAnalyzer:
         series: Dict[str, List[int | None]] = {var: [] for var in variables}
 
         for rec in self._snapshots:
-            data = rec
-            # Sum R messages per variable to compute belief
+            # sum R messages per variable to compute belief
             grouped: Dict[str, List[np.ndarray]] = {}
-            for (f, v), r_msg in data.R.items():
+            for (f, v), r_msg in rec.R.items():
                 grouped.setdefault(v, []).append(np.asarray(r_msg, dtype=float))
 
             for var in variables:
@@ -86,7 +84,7 @@ class SnapshotAnalyzer:
                     combined = np.sum(vectors, axis=0)
                     series[var].append(int(np.argmin(combined)))
                 else:
-                    series[var].append(data.assignments.get(var))
+                    series[var].append(rec.assignments.get(var))
 
         return series
 
@@ -98,17 +96,16 @@ class SnapshotAnalyzer:
     ]:
         """Compute ΔQ and ΔR (difference coordinates) for a snapshot."""
         rec = self._snapshot_by_index(step_idx)
-        data = rec
 
         delta_q: Dict[tuple[str, str], float | np.ndarray] = {}
         delta_r: Dict[tuple[str, str], float | np.ndarray] = {}
 
-        for (u, f), q_msg in data.Q.items():
+        for (u, f), q_msg in rec.Q.items():
             values = np.asarray(q_msg, dtype=float)
             if values.size > 0:
                 delta_q[(u, f)] = self._recenter(values)
 
-        for (f, v), r_msg in data.R.items():
+        for (f, v), r_msg in rec.R.items():
             values = np.asarray(r_msg, dtype=float)
             if values.size > 0:
                 delta_r[(f, v)] = self._recenter(values)
@@ -131,7 +128,7 @@ class SnapshotAnalyzer:
             coord.key(): len(q_coords) + idx for idx, coord in enumerate(r_coords)
         }
 
-        # Variable rows
+        # variable rows
         for coord in q_coords:
             row = q_index[coord.key()]
             for r_coord in r_coords:
@@ -144,10 +141,9 @@ class SnapshotAnalyzer:
                 col = r_index[r_coord.key()]
                 _set_entry(matrix, row, col, 1.0)
 
-        # Factor rows
+        # factor rows
         rec = self._snapshot_by_index(step_idx)
-        data = rec
-        q_messages = dict(data.Q.items())
+        q_messages = dict(rec.Q.items())
 
         for coord in r_coords:
             row = r_index[coord.key()]
@@ -308,22 +304,18 @@ class SnapshotAnalyzer:
     @staticmethod
     def _infer_domain(record: EngineSnapshot) -> Dict[str, int]:
         """Infer variable domains from snapshot data."""
-        data = record
         domain: Dict[str, int] = {}
 
-        # From assignments
-        for var, val in data.assignments.items():
+        for var, val in record.assignments.items():
             if val is not None:
                 domain[var] = max(domain.get(var, 0), val + 1)
 
-        # From Q messages
-        for (u, f), q_arr in data.Q.items():
+        for (u, f), q_arr in record.Q.items():
             values = np.asarray(q_arr, dtype=float)
             if values.size:
                 domain[u] = max(domain.get(u, 0), values.size)
 
-        # From R messages
-        for (f, v), r_arr in data.R.items():
+        for (f, v), r_arr in record.R.items():
             values = np.asarray(r_arr, dtype=float)
             if values.size:
                 domain[v] = max(domain.get(v, 0), values.size)
