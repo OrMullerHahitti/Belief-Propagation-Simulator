@@ -4,10 +4,12 @@ This module provides a set of functions to generate numpy arrays that can be
 used as cost tables in factor graphs. It includes a general-purpose creator
 and several convenience wrappers for common random distributions.
 """
+from typing import Any, Callable
+
 import numpy as np
-from typing import Callable, Any
-from ...core.protocols import CostTable
 from scipy.special import logsumexp
+
+from ...core.protocols import CostTable
 
 
 def _create_cost_table(
@@ -30,7 +32,7 @@ def _create_cost_table(
     Returns:
         An n-dimensional numpy array representing the cost table.
     """
-    shape = tuple([domain] * connections)
+    shape = (domain,) * connections
     return policy(**policy_params, size=shape)
 
 

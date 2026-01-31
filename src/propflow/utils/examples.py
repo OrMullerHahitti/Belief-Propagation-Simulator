@@ -3,12 +3,12 @@
 This module provides high-level helper functions to easily generate or load
 factor graphs for use in demonstrations, tests, or experiments.
 """
-from ..bp.factor_graph import FactorGraph
-from typing import Callable, Optional, Dict, Any
 import os
 import sys
+from typing import Any, Callable, Dict, Optional
 
-from ..configs.global_config_mapping import CTFactories, get_ct_factory
+from ..bp.factor_graph import FactorGraph
+from ..configs.global_config_mapping import get_ct_factory
 from .create.create_factor_graphs_from_config import FactorGraphBuilder
 from .fg_utils import FGBuilder
 from .path_utils import find_project_root

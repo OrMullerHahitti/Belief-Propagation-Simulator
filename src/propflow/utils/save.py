@@ -5,13 +5,14 @@ or multiple simulation runs. It includes an `EnhancedSaveModule` class that can
 extract and persist detailed analysis of engine performance, convergence behavior,
 and cost progression, in both JSON and CSV formats.
 """
+import csv
 import json
 import os
-import csv
-import numpy as np
-from typing import Dict, List, Optional, Any
 import time
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 
 def save_simulation_data(engine: Any, filepath: str) -> str:

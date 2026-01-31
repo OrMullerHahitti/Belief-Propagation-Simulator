@@ -5,8 +5,9 @@ random data for a given shape) and factory functions to create random messages
 and cost tables using these policies. This approach allows for easy dependency
 injection of different random generation strategies.
 """
-import numpy as np
 from typing import Callable, Tuple
+
+import numpy as np
 
 RandomnessPolicy = Callable[[Tuple[int, ...]], np.ndarray]
 """A type alias for a function that generates a random numpy array.

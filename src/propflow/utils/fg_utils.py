@@ -5,22 +5,21 @@ tasks related to factor graphs, such as building graphs with specific
 topologies (random, cycle), calculating bounds, and safely handling pickled
 graph objects.
 """
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, Patch
 import pickle
-import sys
-from typing import Callable, Dict, Any, List, Tuple
-from functools import lru_cache
 import random
+import sys
+from functools import lru_cache
+from typing import Any, Callable, Dict, List, Tuple
 
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+from matplotlib.patches import Patch, Rectangle
 
-from .path_utils import find_project_root
 from ..bp.factor_graph import FactorGraph
-from ..configs.global_config_mapping import get_ct_factory, CTFactories
-from ..core.agents import VariableAgent, FactorAgent
+from ..configs.global_config_mapping import get_ct_factory
+from ..core.agents import FactorAgent, VariableAgent
+from .path_utils import find_project_root
 
 project_root = find_project_root()
 sys.path.append(str(project_root))
@@ -240,6 +239,69 @@ class FGBuilder:
     # Provide aliases for API compatibility/user preference.
     create_lemniscate_graph = build_lemniscate_graph
     create_leminscate_graph = build_lemniscate_graph
+
+    @staticmethod
+    def build_with_unary_costs(
+        base_graph: FactorGraph,
+        unary_costs: Dict[str, np.ndarray],
+    ) -> FactorGraph:
+        """Extends a factor graph with unary constraints (per-variable cost biases).
+
+        Unary factors are single-variable factors that act as priors or biases
+        for individual variables. They're useful for adding soft constraints or
+        preferences on variable assignments.
+
+        Args:
+            base_graph: An existing factor graph to extend.
+            unary_costs: A dictionary mapping variable names to 1D numpy arrays
+                of costs. The array length must match the variable's domain size.
+
+        Returns:
+            A new FactorGraph with the unary factors added.
+
+        Example:
+            >>> fg = FGBuilder.build_cycle_graph(3, 2, create_random_int_table, {"low": 0, "high": 10})
+            >>> unary = {"x1": np.array([0, 5]), "x2": np.array([3, 0])}
+            >>> fg_with_unary = FGBuilder.build_with_unary_costs(fg, unary)
+        """
+        # copy existing components
+        variables = list(base_graph.variables)
+        factors = list(base_graph.factors)
+        edges = dict(base_graph.edges)
+
+        # create unary factors
+        var_map = {v.name: v for v in variables}
+        for var_name, costs in unary_costs.items():
+            if var_name not in var_map:
+                raise ValueError(f"Variable '{var_name}' not found in graph")
+
+            var = var_map[var_name]
+            cost_arr = np.asarray(costs, dtype=float)
+
+            if cost_arr.ndim != 1:
+                raise ValueError(f"Unary costs for '{var_name}' must be 1D array")
+            if len(cost_arr) != var.domain:
+                raise ValueError(
+                    f"Unary costs for '{var_name}' must have length {var.domain}, got {len(cost_arr)}"
+                )
+
+            # create unary factor with lambda returning the fixed cost array
+            def make_unary_ct(costs_array):
+                def ct_func(num_vars, domain_size, **kwargs):
+                    return costs_array.copy()
+                return ct_func
+
+            unary_factor = FactorAgent(
+                name=f"u{var_name[1:]}",  # u1 for x1, etc
+                domain=var.domain,
+                ct_creation_func=make_unary_ct(cost_arr),
+                param={},
+            )
+            factors.append(unary_factor)
+            edges[unary_factor] = [var]
+
+        return FactorGraph(variables, factors, edges)
+
 
 
 def get_message_shape(domain_size: int, connections: int = 2) -> tuple[int, ...]:
