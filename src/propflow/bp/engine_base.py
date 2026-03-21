@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Literal, Optional
 
 import networkx as nx
 import numpy as np
@@ -8,7 +8,7 @@ from ..configs.loggers import Logger
 from ..core.agents import FactorAgent, VariableAgent
 from ..policies.convergance import ConvergenceConfig, ConvergenceMonitor
 from ..policies.normalize_cost import normalize_inbox
-from ..snapshots import EngineSnapshot, SnapshotManager
+from ..snapshots import EngineSnapshot, SnapshotManager, StepByStepFormatter
 from ..utils import dummy_func
 from ..utils.tools.performance import PerformanceMonitor
 from .computators import BPComputator, MinSumComputator
@@ -84,12 +84,6 @@ class BPEngine:
         self.factor_nodes = sorted(factor_set, key=lambda node: node.name)
 
         engine_type = self.__class__.__name__
-        use_bct = (
-            use_bct_history
-            if use_bct_history is not None
-            else EngineDefaults().use_bct_history
-        )
-        self._use_bct_history = bool(use_bct)
         self._last_cost: float | None = None
         self.snapshot_manager = snapshot_manager or SnapshotManager()
         self._snapshots: dict[int, EngineSnapshot] = {}
@@ -108,7 +102,6 @@ class BPEngine:
             self,
             engine_type=engine_type,
             config={"computator": computator, "factor_graph": factor_graph},
-            use_bct_history=self._use_bct_history,
         )
 
     def step(self, i: int = 0) -> Step:
@@ -164,8 +157,6 @@ class BPEngine:
         snapshot = self.snapshot_manager.capture_step(i, step, self)
         if snapshot.global_cost is None:
             snapshot.global_cost = cost
-        if self._use_bct_history:
-            self.snapshot_manager.capture_bct_data(snapshot, self)
         self._snapshots[i] = snapshot
 
         if self.performance_monitor:
@@ -235,7 +226,8 @@ class BPEngine:
 
     @property
     def use_bct_history(self) -> bool:
-        return self._use_bct_history
+        """Always True. Retained for backwards compatibility."""
+        return True
 
     def get_beliefs(self) -> Dict[str, np.ndarray]:
         """Retrieves the current beliefs of all variable nodes.
@@ -285,23 +277,26 @@ class BPEngine:
         var_assignments = {node.name: node.curr_assignment for node in self.var_nodes}
         total_cost = 0.0
         for factor in self.graph._original_factors:
-            if factor.cost_table is not None:
-                indices = []
-                for var_name, dim in factor.connection_number.items():
-                    if var_name in var_assignments:
-                        while len(indices) <= dim:
-                            indices.append(None)
-                        indices[dim] = var_assignments[var_name]
+            if factor.cost_table is None or not factor.connection_number:
+                continue
+            indices = []
+            for var_name, dim in factor.connection_number.items():
+                if var_name in var_assignments:
+                    while len(indices) <= dim:
+                        indices.append(None)
+                    indices[dim] = var_assignments[var_name]
 
-                if None not in indices and len(indices) == len(
-                    factor.connection_number
-                ):
-                    cost_table = (
-                        factor.original_cost_table
-                        if factor.original_cost_table is not None
-                        else factor.cost_table
-                    )
-                    total_cost += cost_table[tuple(indices)]
+            if (
+                None not in indices
+                and len(indices) == len(factor.connection_number)
+                and len(indices) == factor.cost_table.ndim
+            ):
+                cost_table = (
+                    factor.original_cost_table
+                    if factor.original_cost_table is not None
+                    else factor.cost_table
+                )
+                total_cost += cost_table[tuple(indices)]
         return total_cost
 
     def _initialize_messages(self) -> None:
@@ -434,3 +429,31 @@ class BPEngine:
     @property
     def snapshot_map(self) -> Dict[int, EngineSnapshot]:
         return self._snapshots
+
+    def print_snapshots(
+        self,
+        include_cost_tables: bool = True,
+        show: Literal["text", "table"] = "text",
+    ) -> None:
+        """Prints a step-by-step formatted history of the simulation.
+
+        Args:
+            include_cost_tables: Whether to include cost tables in the output.
+            show: "text" (default) or "table" (tabular layout for messages).
+        """
+        # check if we have snapshots
+        if not self.snapshots:
+            print("No snapshots available. Did you run the engine?")
+            return
+
+        formatter = StepByStepFormatter(self.snapshots)
+        print(formatter.format_all_steps(include_cost_tables=include_cost_tables, show=show))
+
+    def normalize_inbox(self) -> None:
+        """Manually normalizes messages in the system.
+
+        This normalizes the R-messages currently waiting in Variable inboxes.
+        Since Q-messages are computed from these R-messages in the next step,
+        this effectively stabilizes both message types against drift.
+        """
+        normalize_inbox(self.var_nodes)

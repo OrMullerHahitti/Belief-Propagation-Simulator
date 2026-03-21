@@ -10,6 +10,5 @@ try:
     from .trainable_bp import TrainableBPModule, BPTrainer  # noqa: F401
 
     __all__.extend(["SoftMinTorchComputator", "TrainableBPModule", "BPTrainer"])
-except Exception:
-    # PyTorch not installed or failed to import – expose nothing.
+except ImportError:
     pass

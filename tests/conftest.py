@@ -428,7 +428,6 @@ def custom_engine_config():
         "normalize_messages": False,
         "monitor_performance": True,
         "anytime": True,
-        "use_bct_history": True,
     }
 
 

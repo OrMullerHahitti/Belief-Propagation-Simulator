@@ -17,6 +17,7 @@ from ..bp.engines import (
     DiffusionEngine,
     Engine,
     MessagePruningEngine,
+    QRDampingEngine,
     RDampingEngine,
     SplitEngine,
 )
@@ -27,6 +28,7 @@ ENGINES = {
     "Engine": Engine,
     "SplitEngine": SplitEngine,
     "DampingEngine": DampingEngine,
+    "QRDampingEngine": QRDampingEngine,
     "RDampingEngine": RDampingEngine,
     "DiffusionEngine": DiffusionEngine,
     "CostReductionOnceEngine": CostReductionOnceEngine,
@@ -40,6 +42,7 @@ __all__ = [
     "Engine",
     "SplitEngine",
     "DampingEngine",
+    "QRDampingEngine",
     "RDampingEngine",
     "DiffusionEngine",
     "CostReductionOnceEngine",

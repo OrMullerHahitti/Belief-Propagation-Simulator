@@ -82,7 +82,6 @@ class EngineDefaults:
     normalize_messages: bool = True
     monitor_performance: bool = False
     anytime: bool = False
-    use_bct_history: bool = False
     timeout: int = 600  # seconds
 
 
@@ -191,7 +190,6 @@ def validate_engine_config(config: Dict[str, Any]) -> bool:
         "normalize_messages",
         "monitor_performance",
         "anytime",
-        "use_bct_history",
     ]
     for key in required_keys:
         if key not in config:
