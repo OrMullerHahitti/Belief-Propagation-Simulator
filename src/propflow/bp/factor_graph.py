@@ -85,24 +85,29 @@ class FactorGraph:
         var_name_assignments = {var.name: var.curr_assignment for var in self.variables}
         total_cost = 0.0
         for factor in self.factors:
-            if factor.cost_table is not None:
-                indices = []
-                valid_lookup = True
-                for var_name, dim in factor.connection_number.items():
-                    if var_name in var_name_assignments:
-                        while len(indices) <= dim:
-                            indices.append(None)
-                        indices[dim] = var_name_assignments[var_name]
-                    else:
-                        valid_lookup = False
-                        break
-                if valid_lookup and None not in indices:
-                    cost_table = (
-                        factor.original_cost_table
-                        if factor.original_cost_table is not None
-                        else factor.cost_table
-                    )
-                    total_cost += cost_table[tuple(indices)]
+            if factor.cost_table is None or not factor.connection_number:
+                continue
+            indices = []
+            valid_lookup = True
+            for var_name, dim in factor.connection_number.items():
+                if var_name in var_name_assignments:
+                    while len(indices) <= dim:
+                        indices.append(None)
+                    indices[dim] = var_name_assignments[var_name]
+                else:
+                    valid_lookup = False
+                    break
+            if (
+                valid_lookup
+                and None not in indices
+                and len(indices) == factor.cost_table.ndim
+            ):
+                cost_table = (
+                    factor.original_cost_table
+                    if factor.original_cost_table is not None
+                    else factor.cost_table
+                )
+                total_cost += cost_table[tuple(indices)]
         return total_cost # pyright: ignore[reportReturnType]
 
     @property

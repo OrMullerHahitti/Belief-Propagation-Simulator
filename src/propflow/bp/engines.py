@@ -5,7 +5,8 @@ import networkx as nx
 import numpy as np
 
 from ..core.agents import FactorAgent, VariableAgent
-from ..policies import damp
+from ..core.components import Message
+from ..policies import damp, damp_factor
 from ..policies.cost_reduction import cost_reduction_all_factors_once
 from ..policies.splitting import split_all_factors
 from ..utils.inbox_utils import multiply_messages_attentive
@@ -102,6 +103,102 @@ class DampingEngine(BPEngine):
         """Applies damping after a variable node computes its messages."""
         damp(var, self.damping_factor)
         var.append_last_iteration()
+
+class QRDampingEngine(BPEngine):
+    """A BP engine that applies message damping to both Q and R messages.
+
+    Q damping applies to variable → factor messages.
+    R damping applies to factor → variable messages.
+    """
+
+    def __init__(
+        self,
+        *args,
+        q_damping_factor: float = 0.0,
+        r_damping_factor: float = 0.0,
+        **kwargs,
+    ):
+        self.q_damping_factor = float(q_damping_factor)
+        self.r_damping_factor = float(r_damping_factor)
+        # Keep a single `damping_factor` attribute for compatibility with
+        # snapshot tooling and existing expectations.
+        self.damping_factor = (
+            self.q_damping_factor if self.q_damping_factor > 0 else self.r_damping_factor
+        )
+        super().__init__(*args, **kwargs)
+        self._name = "QRDampingEngine"
+        self._set_name(
+            {"q_damping": str(self.q_damping_factor), "r_damping": str(self.r_damping_factor)}
+        )
+
+    def post_init(self) -> None:
+        """Prime factor history with zero messages so R-damping applies from iter 0."""
+        if self.r_damping_factor > 0:
+            for factor in self.graph.factors:
+                if not factor._history:
+                    zero_msgs = []
+                    for neighbor in self.graph.G.neighbors(factor):
+                        zero_msgs.append(Message(sender=factor, recipient=neighbor, data=np.zeros(factor.domain)))
+                    factor._history.append(zero_msgs)
+
+    def post_var_compute(self, var: VariableAgent) -> None:
+        if self.q_damping_factor > 0:
+            damp(var, self.q_damping_factor)
+            var.append_last_iteration()
+
+    def post_factor_compute(self, factor: FactorAgent, iteration: int) -> None:
+        if self.r_damping_factor > 0:
+            damp_factor(factor, self.r_damping_factor)
+            factor.append_last_iteration()
+
+
+class RDampingEngine(BPEngine):
+    """A BP engine that applies message damping to R messages.
+
+    Damping averages the R message from the previous iteration with the newly
+    computed message. This can help prevent oscillations and improve convergence.
+    Unlike DampingEngine which damps Q messages (Variable -> Factor), this engine
+    damps R messages (Factor -> Variable).
+    """
+
+    def __init__(self, *args, damping_factor: float = 0.9, **kwargs):
+        """Initializes the RDampingEngine.
+
+        Args:
+            *args: Positional arguments for the base `BPEngine`.
+            damping_factor: The weight given to the previous message.
+                Defaults to 0.9.
+            **kwargs: Keyword arguments for the base `BPEngine`.
+        """
+        self.damping_factor = damping_factor
+        super().__init__(*args, **kwargs)
+        self._name = "RDampingEngine"
+        self._set_name({"damping": str(self.damping_factor)})
+
+    def post_init(self) -> None:
+        """Initialize history with zero messages to ensure damping works from iter 0."""
+        # For RDampingEngine (Factor Agents)
+        for factor in self.graph.factors:
+            self._init_agent_history(factor)
+
+    def _init_agent_history(self, agent: FactorAgent) -> None:
+        """Helper to prime history with zeros."""
+        if agent._history:
+            return
+
+        zero_msgs = []
+        neighbors = self.graph.G.neighbors(agent)
+
+        for neighbor in neighbors:
+            msg = Message(sender=agent, recipient=neighbor, data=np.zeros(agent.domain))
+            zero_msgs.append(msg)
+
+        agent._history.append(zero_msgs)
+
+    def post_factor_compute(self, factor: FactorAgent, iteration: int):
+        """Applies damping after a factor node computes its messages."""
+        damp_factor(factor, self.damping_factor)
+        factor.append_last_iteration()
 
 
 class DiffusionEngine(BPEngine):

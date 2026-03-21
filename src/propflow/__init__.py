@@ -14,6 +14,7 @@ from .bp.engines import (
     DampingTRWEngine,
     DiffusionEngine,
     MessagePruningEngine,
+    QRDampingEngine,
     RDampingEngine,
     SplitEngine,
     TRWEngine,
@@ -49,6 +50,7 @@ __all__ = [
     # Engines
     "SplitEngine",
     "DampingEngine",
+    "QRDampingEngine",
     "RDampingEngine",
     "DiffusionEngine",
     "CostReductionOnceEngine",

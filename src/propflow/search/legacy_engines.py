@@ -41,7 +41,7 @@ class LocalSearchBase(BPEngine):
             engine_type=self.__class__.__name__,
             computator=computator,
             factor_graph=factor_graph,
-            use_bct_history=self._use_bct_history,
+            use_bct_history=False,
         )
         self.max_iterations = max_iterations
         self.best_assignment: Dict[str, Any] | None = None

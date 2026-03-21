@@ -4,6 +4,8 @@ from .engines import (
     Engine,
     SplitEngine,
     DampingEngine,
+    RDampingEngine,
+    QRDampingEngine,
     DiffusionEngine,
     CostReductionOnceEngine,
     DampingCROnceEngine,
@@ -15,6 +17,8 @@ from .factor_graph import FactorGraph
 __all__ = [
     "SplitEngine",
     "DampingEngine",
+    "RDampingEngine",
+    "QRDampingEngine",
     "DiffusionEngine",
     "CostReductionOnceEngine",
     "DampingCROnceEngine",

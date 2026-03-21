@@ -411,8 +411,8 @@ class EnhancedSaveModule:
             enhanced_data["cost_analysis"] = self._analyze_cost_progression(
                 engine.history.costs
             )
-        if hasattr(engine, "history") and getattr(
-            engine.history, "use_bct_history", False
+        if hasattr(engine, "history") and hasattr(
+            engine.history, "step_messages"
         ):
             enhanced_data["message_analysis"] = self._analyze_message_patterns(
                 engine.history

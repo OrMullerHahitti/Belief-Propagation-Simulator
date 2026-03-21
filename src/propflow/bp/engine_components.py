@@ -444,18 +444,19 @@ class History:
 class SnapshotHistoryView:
     """Read-only compatibility layer exposing snapshot data via the history API."""
 
+    use_bct_history = True
+
     def __init__(
         self,
         engine: "BPEngine",
         *,
         engine_type: str,
         config: Optional[Dict[str, Any]] = None,
-        use_bct_history: bool = False,
+        use_bct_history: bool = True,
     ) -> None:
         self._engine = engine
         self.engine_type = engine_type
         self.config = dict(config or {})
-        self.use_bct_history = use_bct_history
         self.name = self.config.get("name", engine_type)
 
     def __bool__(self) -> bool:
@@ -520,8 +521,6 @@ class SnapshotHistoryView:
 
     @property
     def step_messages(self) -> Mapping[int, List[MessageData]]:
-        if not self.use_bct_history:
-            return {}
         timeline: Dict[int, List[MessageData]] = {}
         for snapshot in self._snapshots():
             entries: List[MessageData] = []
@@ -577,7 +576,7 @@ class SnapshotHistoryView:
             "costs": self.step_costs.copy(),
             "metadata": {
                 "engine_type": self.engine_type,
-                "use_bct_history": self.use_bct_history,
+                "use_bct_history": True,
                 "total_steps": len(self._snapshots()),
                 "has_step_data": bool(self._snapshots()),
             },

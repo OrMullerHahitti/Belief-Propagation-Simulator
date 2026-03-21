@@ -18,16 +18,7 @@ class SnapshotManager:
 
     def capture_step(self, step_index: int, step: Any, engine: Any) -> EngineSnapshot:
         """Capture the engine state after a completed step."""
-        snapshot = build_snapshot_from_engine(step_index, step, engine)
-        if getattr(engine, "use_bct_history", False):
-            self.capture_bct_data(snapshot, engine)
-        return snapshot
-
-    def capture_bct_data(
-        self, snapshot: EngineSnapshot, engine: Any
-    ) -> None:  # pragma: no cover - hook
-        """Optional hook to enrich a snapshot with BCT-specific data."""
-        return None
+        return build_snapshot_from_engine(step_index, step, engine)
 
 
 __all__ = ["SnapshotManager"]

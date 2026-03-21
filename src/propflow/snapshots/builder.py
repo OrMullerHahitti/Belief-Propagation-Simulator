@@ -35,6 +35,8 @@ def extract_qr_from_step(
         for msg in messages:
             recipient = getattr(msg.recipient, "name", str(msg.recipient))
             data = np.asarray(getattr(msg, "data", np.array([])), dtype=float)
+            # Unlike Q-messages, keep R-messages in their raw form. Normalizing R
+            # changes semantics (e.g., offsets matter for downstream analysis).
             R[(fac_name, recipient)] = data
 
     return Q, R
@@ -119,7 +121,6 @@ def build_snapshot_from_engine(
         "num_variables": len(variables),
         "num_factors": len(factors),
         "message_counts": {"Q": len(Q), "R": len(R)},
-        "use_bct_history": bool(getattr(engine, "use_bct_history", False)),
     }
 
     return EngineSnapshot(
