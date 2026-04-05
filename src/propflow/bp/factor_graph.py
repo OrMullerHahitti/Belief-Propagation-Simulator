@@ -75,40 +75,40 @@ class FactorGraph:
             raise ValueError("Lower bound must be an integer or float.")
         self._lb = value
 
-    @property
-    def global_cost(self) -> int | float:
-        """Calculates the global cost based on current variable assignments.
+    def compute_cost(self, factors: List[FactorAgent] | None = None) -> float:
+        """Compute total cost over the given factors using current variable assignments.
 
-        This property queries each variable for its current assignment and uses
-        the original, unmodified factor cost tables to compute the total cost.
+        Args:
+            factors: which factors to sum over. Defaults to ``self.factors``
+                (current, possibly modified factors). Pass ``self.original_factors``
+                to get the cost against the original, unmodified cost tables.
         """
-        var_name_assignments = {var.name: var.curr_assignment for var in self.variables}
-        total_cost = 0.0
-        for factor in self.factors:
+        if factors is None:
+            factors = self.factors
+        assignments = {var.name: var.curr_assignment for var in self.variables}
+        total = 0.0
+        for factor in factors:
             if factor.cost_table is None or not factor.connection_number:
                 continue
             indices = []
-            valid_lookup = True
+            valid = True
             for var_name, dim in factor.connection_number.items():
-                if var_name in var_name_assignments:
+                if var_name in assignments:
                     while len(indices) <= dim:
                         indices.append(None)
-                    indices[dim] = var_name_assignments[var_name]
+                    indices[dim] = assignments[var_name]
                 else:
-                    valid_lookup = False
+                    valid = False
                     break
-            if (
-                valid_lookup
-                and None not in indices
-                and len(indices) == factor.cost_table.ndim
-            ):
-                cost_table = (
-                    factor.original_cost_table
-                    if factor.original_cost_table is not None
-                    else factor.cost_table
-                )
-                total_cost += cost_table[tuple(indices)]
-        return total_cost # pyright: ignore[reportReturnType]
+            if valid and None not in indices and len(indices) == factor.cost_table.ndim:
+                ct = factor.original_cost_table if factor.original_cost_table is not None else factor.cost_table
+                total += ct[tuple(indices)]
+        return total
+
+    @property
+    def global_cost(self) -> int | float:
+        """Total cost over current (possibly modified) factors."""
+        return self.compute_cost()
 
     @property
     def curr_assignment(self) -> Dict[VariableAgent, int]:
@@ -149,10 +149,9 @@ class FactorGraph:
         This is a common technique to prevent numerical instability in belief
         propagation algorithms by shifting message values.
         """
-        for node in nx.bipartite.sets(self.G)[0]:
-            if isinstance(node, VariableAgent):
-                for message in node.mailer.inbox:
-                    message.data -= np.min(message.data)
+        for var in self.variables:
+            for message in var.mailer.inbox:
+                message.data -= np.min(message.data)
 
     def visualize(
         self,
@@ -254,15 +253,14 @@ class FactorGraph:
 
     def _initialize_cost_tables(self) -> None:
         """Initializes the cost tables for all factor nodes in the graph."""
-        for node in list(nx.bipartite.sets(self.G))[1]:
-            if isinstance(node, FactorAgent):
-                if getattr(node, "cost_table", None) is None:
-                    node.initiate_cost_table()
-                    logger.debug(
-                        "Cost table initialized for factor node: %s", node.name
-                    )
-                elif getattr(node, "original_cost_table", None) is None:
-                    node.save_original()
+        for factor in self.factors:
+            if getattr(factor, "cost_table", None) is None:
+                factor.initiate_cost_table()
+                logger.debug(
+                    "Cost table initialized for factor node: %s", factor.name
+                )
+            elif getattr(factor, "original_cost_table", None) is None:
+                factor.save_original()
 
     def get_variable_agents(self) -> List[VariableAgent]:
         """Returns a list of all variable agents in the graph."""

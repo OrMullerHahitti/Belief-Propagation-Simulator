@@ -52,40 +52,21 @@ def TD(variables: List[VariableAgent], x: float = None, diameter: int = None) ->
         _apply_damping(variable.mailer.outbox, variable.last_cycle(diameter), x)
 
 
-def damp(variable: VariableAgent, x: float = None) -> None:
-    """Applies damping to the outgoing messages of a single variable agent.
+def damp(agent, x: float = None) -> None:
+    """Applies damping to outgoing messages of a variable or factor agent.
 
-    This function updates each outgoing message in the variable's outbox by
-    blending it with the corresponding message from the previous iteration.
-
-    The update rule is:
-    `new_message = x * previous_iteration_message + (1 - x) * current_message`
+    Blends each outgoing message with the corresponding message from the
+    previous iteration: ``new = x * prev + (1 - x) * current``.
 
     Args:
-        variable: The `VariableAgent` whose outbox messages will be damped.
-        x: The damping factor, representing the weight of the previous message.
-            If None, the default from `POLICY_DEFAULTS` is used.
+        agent: The agent (variable or factor) whose outbox messages will be damped.
+        x: The damping factor (weight of previous message). Defaults to PolicyDefaults.
     """
     if x is None:
         x = PolicyDefaults().damping_factor
-    _apply_damping(variable.mailer.outbox, variable.last_iteration, x)
+    _apply_damping(agent.mailer.outbox, agent.last_iteration, x)
 
 
-def damp_factor(factor, x: float = None) -> None:
-    """Applies damping to the outgoing messages of a single factor agent.
-
-    This function updates each outgoing R-message in the factor's outbox by
-    blending it with the corresponding message from the previous iteration.
-
-    The update rule is:
-    `new_message = x * previous_iteration_message + (1 - x) * current_message`
-
-    Args:
-        factor: The `FactorAgent` whose outbox messages will be damped.
-        x: The damping factor, representing the weight of the previous message.
-            If None, the default from `POLICY_DEFAULTS` is used.
-    """
-    if x is None:
-        x = PolicyDefaults().damping_factor
-    _apply_damping(factor.mailer.outbox, factor.last_iteration, x)
+# backwards-compatible alias
+damp_factor = damp
 

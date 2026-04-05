@@ -13,7 +13,6 @@ from .global_config_mapping import (
     PolicyDefaults,
     ConvergenceDefaults,
     SimulatorDefaults,
-    SearchDefaults,
     LOG_LEVELS,
     # Validation functions
     validate_engine_config,
@@ -36,7 +35,6 @@ __all__ = [
     "PolicyDefaults",
     "ConvergenceDefaults",
     "SimulatorDefaults",
-    "SearchDefaults",
     "LOG_LEVELS",
     # Validation functions
     "validate_engine_config",
