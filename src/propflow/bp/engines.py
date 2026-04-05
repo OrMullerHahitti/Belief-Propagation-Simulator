@@ -9,7 +9,7 @@ from ..core.components import Message
 from ..policies import damp, damp_factor
 from ..policies.cost_reduction import cost_reduction_all_factors_once
 from ..policies.splitting import split_all_factors
-from ..utils.inbox_utils import multiply_messages_attentive
+from ..utils.inbox_utils import multiply_messages
 from .engine_base import BPEngine
 
 
@@ -75,7 +75,7 @@ class CostReductionOnceEngine(BPEngine):
 
     def post_factor_compute(self, factor: FactorAgent, iteration: int):
         """Applies a discount to outgoing messages from factors."""
-        multiply_messages_attentive(factor.outbox, 0.5, iteration)
+        multiply_messages(factor.outbox, 0.5)
 
 
 class DampingEngine(BPEngine):
@@ -311,8 +311,8 @@ class DampingSCFGEngine(DampingEngine, SplitEngine):
         self._name = "DampingSCFG"
         self._set_name(
             {
-                "split": f"{str(self.split_factor)}-{str(1-self.split_factor)}",
-                "damping": "0.9",
+                "split": f"{self.split_factor}-{1-self.split_factor}",
+                "damping": str(self.damping_factor),
             }
         )
 
@@ -338,8 +338,8 @@ class DampingCROnceEngine(DampingEngine, CostReductionOnceEngine):
         self._name = "DampingCROnceEngine"
         self._set_name(
             {
-                "split": f"{str(self.reduction_factor)}-{str(1-self.reduction_factor)}",
-                "damping": "0.9",
+                "reduction": f"{self.reduction_factor}-{1-self.reduction_factor}",
+                "damping": str(self.damping_factor),
             }
         )
 

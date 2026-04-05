@@ -84,7 +84,6 @@ class MailHandler:
         self._message_domain_size = _domain_size
         self._incoming: Dict[str, Message] = {}  # Key: sender_key, Value: message
         self._outgoing: List[Message] = []
-        self._clear_after_staging = True
 
     def set_pruning_policy(self, policy) -> None:
         """Sets a message pruning policy.

@@ -165,20 +165,6 @@ class SimulatorDefaults:
 
 
 ########################################################################
-# ---- Search Engine Configuration ------------------------------------
-########################################################################
-
-
-@dataclass
-class SearchDefaults:
-    """Default parameters for search-based algorithms."""
-    max_iterations: int = 100
-    search_timeout: int = 1800  # 30 minutes
-    beam_width: int = 10
-    exploration_factor: float = 0.1
-
-
-########################################################################
 # ---- Configuration Validation ---------------------------------------
 ########################################################################
 
@@ -263,7 +249,6 @@ def get_validated_config(
         "convergence": asdict(ConvergenceDefaults()),
         "simulator": asdict(SimulatorDefaults()),
         "logging": asdict(LoggingDefaults()),
-        "search": asdict(SearchDefaults()),
     }
     
     if config_type not in base_configs:
@@ -309,12 +294,6 @@ COMPUTATORS: Dict[str, str] = {  # str -> dotted‑path to BPComputator subclass
     "max-sum": "bp.computators.MaxSumComputator",
     "min-sum": "bp.computators.MinSumComputator",
     "sum-product": "my_bp.computators.SumProductComputator",
-}
-
-ENGINE_MAPPING: Dict[str, str] = {
-    "engine.search.a_star_fg": "propflow.search.algorithms:a_star_factor_graph",
-    "engine.search.greedy_fg": "propflow.search.algorithms:greedy_best_first_factor_graph",
-    "engine.search.beam_fg": "propflow.search.algorithms:beam_search_factor_graph",
 }
 
 ########################################################################

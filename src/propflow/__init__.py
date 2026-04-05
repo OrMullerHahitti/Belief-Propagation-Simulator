@@ -80,9 +80,3 @@ __all__ = [
     "SnapshotVisualizer",
 ]
 
-try:
-    from .nn.torch_computators import SoftMinTorchComputator  # type: ignore
-
-    __all__.append("SoftMinTorchComputator")
-except Exception:
-    pass

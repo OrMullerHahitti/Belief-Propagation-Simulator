@@ -1,46 +1,6 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import List
-import numpy as np
-
-from .protocols import Message
-
-
-class Computator(ABC):
-    """Abstract base class for a Computator.
-
-    This class defines the interface for computing messages in a Distributed
-    Constraint Optimization Problem (DCOP) system. Subclasses must implement
-    the `compute_Q` and `compute_R` methods.
-    """
-
-    @abstractmethod
-    async def compute_Q(self, messages: List[Message]) -> List[Message]:
-        """Computes outgoing messages from a variable node.
-
-        Args:
-            messages: A list of incoming messages from factor nodes.
-
-        Returns:
-            A list of computed messages to be sent to factor nodes.
-        """
-        pass
-
-    @abstractmethod
-    async def compute_R(
-        self, cost_table: np.ndarray, incoming_messages: List[Message]
-    ) -> List[Message]:
-        """Computes outgoing messages from a factor node.
-
-        Args:
-            cost_table: The cost table associated with the factor.
-            incoming_messages: A list of incoming messages from variable nodes.
-
-        Returns:
-            A list of computed messages to be sent to variable nodes.
-        """
-        pass
+from abc import ABC
 
 
 class Agent(ABC):
@@ -61,21 +21,15 @@ class Agent(ABC):
         """
         self.name = name
         self.type = node_type
-        self._computator: Computator | None = None
+        self._computator = None
         self.mailer = None
 
     @property
-    def computator(self) -> Computator | None:
-        """Computator | None: The computator used by this agent."""
+    def computator(self):
         return self._computator
 
     @computator.setter
-    def computator(self, computator: Computator) -> None:
-        """Sets the computator for this agent.
-
-        Args:
-            computator: The computator instance to be set.
-        """
+    def computator(self, computator) -> None:
         self._computator = computator
 
     def __eq__(self, other: object) -> bool:
@@ -89,49 +43,4 @@ class Agent(ABC):
         return hash((self.name, self.type))
 
     def __repr__(self) -> str:
-        """Returns a string representation of the Agent."""
         return f"Agent({self.name}, {self.type})"
-
-
-class Mailer(Agent):
-    """A simple mailer class for message passing between agents.
-
-    This class provides basic functionality for sending, retrieving, and
-    clearing messages.
-
-    Note:
-        This class appears to be a simpler, possibly legacy, alternative to
-        `MailHandler`.
-
-    Attributes:
-        mailbox (dict): A dictionary to store messages, keyed by recipient name.
-    """
-
-    def __init__(self):
-        """Initializes the Mailer."""
-        super().__init__("mailer", "mailer")
-        self.mailbox = {}
-
-    def send_message(self, recipient: Agent, message) -> None:
-        """Sends a message to a specific recipient.
-
-        Args:
-            recipient: The agent to receive the message.
-            message: The message content.
-        """
-        self.mailbox.setdefault(recipient.name, []).append(message)
-
-    def retrieve_messages(self, recipient: Agent) -> List:
-        """Retrieves all messages for a specific recipient.
-
-        Args:
-            recipient: The agent whose messages are to be retrieved.
-
-        Returns:
-            A list of messages for the recipient, or an empty list if none.
-        """
-        return self.mailbox.get(recipient.name, [])
-
-    def clear_mailbox(self) -> None:
-        """Clears all messages from the mailbox."""
-        self.mailbox = {}

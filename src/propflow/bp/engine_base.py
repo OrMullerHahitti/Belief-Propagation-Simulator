@@ -50,7 +50,6 @@ class BPEngine:
         monitor_performance: bool | None = None,
         normalize_messages: bool | None = None,
         anytime: bool | None = None,
-        use_bct_history: bool | None = None,
         snapshot_manager: SnapshotManager | None = None,
     ):
         """Initializes the belief propagation engine.
@@ -64,7 +63,6 @@ class BPEngine:
             monitor_performance: Whether to monitor performance.
             normalize_messages: Whether to normalize messages during execution.
             anytime: Whether to operate in "anytime" mode, tracking best cost.
-            use_bct_history: Retained for backwards compatibility (no-op).
             snapshot_manager: Optional custom snapshot manager to use.
         """
         # Apply defaults from global config with override capability
@@ -224,11 +222,6 @@ class BPEngine:
         """int: The number of iterations completed so far."""
         return len(self._snapshots)
 
-    @property
-    def use_bct_history(self) -> bool:
-        """Always True. Retained for backwards compatibility."""
-        return True
-
     def get_beliefs(self) -> Dict[str, np.ndarray]:
         """Retrieves the current beliefs of all variable nodes.
 
@@ -266,38 +259,8 @@ class BPEngine:
         }
 
     def calculate_global_cost(self) -> float:
-        """Calculates the global cost based on the current variable assignments.
-
-        This method uses the original, unmodified factor cost tables to ensure
-        the true cost is computed, independent of any runtime cost modifications.
-
-        Returns:
-            The total cost of the current assignments.
-        """
-        var_assignments = {node.name: node.curr_assignment for node in self.var_nodes}
-        total_cost = 0.0
-        for factor in self.graph._original_factors:
-            if factor.cost_table is None or not factor.connection_number:
-                continue
-            indices = []
-            for var_name, dim in factor.connection_number.items():
-                if var_name in var_assignments:
-                    while len(indices) <= dim:
-                        indices.append(None)
-                    indices[dim] = var_assignments[var_name]
-
-            if (
-                None not in indices
-                and len(indices) == len(factor.connection_number)
-                and len(indices) == factor.cost_table.ndim
-            ):
-                cost_table = (
-                    factor.original_cost_table
-                    if factor.original_cost_table is not None
-                    else factor.cost_table
-                )
-                total_cost += cost_table[tuple(indices)]
-        return total_cost
+        """Calculates the global cost using the original, unmodified factor cost tables."""
+        return self.graph.compute_cost(self.graph.original_factors)
 
     def _initialize_messages(self) -> None:
         """Initializes mailboxes for all nodes with zero-messages.
