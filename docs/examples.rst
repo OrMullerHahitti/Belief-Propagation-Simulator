@@ -176,7 +176,7 @@ Track and analyze convergence behavior:
        ct_params={'low': 1, 'high': 50}
    )
 
-   engine = BPEngine(fg, use_bct_history=True)
+   engine = BPEngine(fg)
    engine.run(max_iter=100)
 
    # Plot cost over time

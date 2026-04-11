@@ -10,8 +10,7 @@ Overview
   analysis placeholders.
 - Snapshots are appended to ``engine.snapshots`` automatically; call
   :meth:`engine.latest_snapshot` for the most recent entry.
-- Set ``use_bct_history=True`` when constructing an engine if you need
-  Backtrack Cost Tree (BCT) data.
+- Snapshots automatically capture enough detail for BCT analysis.
 
 Capturing Snapshots
 -------------------
@@ -21,7 +20,7 @@ Capturing Snapshots
    from propflow import BPEngine, FGBuilder
 
    graph = FGBuilder.build_cycle_graph(num_vars=6, domain_size=3, ct_factory="random_int", ct_params={"low": 0, "high": 5})
-   engine = BPEngine(graph, use_bct_history=True)
+   engine = BPEngine(graph)
    engine.run(max_iter=60)
 
    latest = engine.latest_snapshot()
@@ -67,8 +66,8 @@ Analysis and Visualisation
 BCT Data
 --------
 
-When ``use_bct_history=True`` is specified, snapshots contain enough detail to
-reconstruct Backtrack Cost Trees via ``propflow.utils.tools.bct``.
+Snapshots contain enough detail to reconstruct Backtrack Cost Trees via
+``propflow.utils.tools.bct``.
 
 Future Work
 -----------

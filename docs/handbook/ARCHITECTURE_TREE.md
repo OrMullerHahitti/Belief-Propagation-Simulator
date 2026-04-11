@@ -46,11 +46,6 @@ src/propflow
 │   ├── types.py                  # EngineSnapshot + Jacobian metadata
 │   ├── manager.py                # SnapshotManager (A,P,B, cycles, norms, winners)
 │   └── builder.py                # Extract Q/R, neighborhoods, domains from step
-├── search/                       # Local search engines (DSA, MGM, K-Opt MGM)
-│   ├── __init__.py
-│   ├── search_engine.py          # Engines adapting the BPEngine lifecycle
-│   ├── search_computator.py      # DSA, MGM, KOptMGM computators
-│   └── search_agents.py          # Variable agent extensions for search
 ├── utils/                        # Builders, tools, IO helpers
 │   ├── __init__.py
 │   ├── fg_utils.py               # FGBuilder, helpers, pickle safety
@@ -82,14 +77,11 @@ src/propflow/snapshots            # Snapshot capture and analysis toolkit
 - Graph & Agents:
   - `FactorGraph`, `VariableAgent`, `FactorAgent`
 - Engines (BP):
-  - `BPEngine` (base), `DampingEngine`, `SplitEngine`, `CostReductionOnceEngine`, `DampingSCFGEngine`, `DampingCROnceEngine`, `DiscountEngine`, `MessagePruningEngine`
+  - `BPEngine` (base), `DampingEngine`, `SplitEngine`, `CostReductionOnceEngine`, `DampingSCFGEngine`, `DampingCROnceEngine`, `MessagePruningEngine`
 - Batch runner:
   - `Simulator`
 - Builders:
   - `FGBuilder` (`build_random_graph`, `build_cycle_graph`), `CTFactory` registry
-- Search (optional):
-  - `search` engines (`DSAEngine`, `MGMEngine`, `KOptMGMEngine`) and computators
-
 ## Factor Graphs
 
 - Structure: `FactorGraph(variables, factors, edges)` where `edges: {FactorAgent: [VariableAgent, ...]}`.
@@ -105,7 +97,7 @@ src/propflow/snapshots            # Snapshot capture and analysis toolkit
 
 ## Engines (BP)
 
-- Base: `BPEngine(factor_graph, computator=MinSumComputator(), init_normalization=dummy, name="BPEngine", convergence_config=None, monitor_performance=None, normalize_messages=None, anytime=None, use_bct_history=None, snapshots_config=None)`
+- Base: `BPEngine(factor_graph, computator=MinSumComputator(), init_normalization=dummy, name="BPEngine", convergence_config=None, monitor_performance=None, normalize_messages=None, anytime=None, snapshot_manager=None)`
   - Inputs:
     - Required: `factor_graph`
     - Optional: `computator` (min-sum/max-sum/sum-product/max-product), convergence & performance configs, normalization flags, snapshots
@@ -125,8 +117,6 @@ src/propflow/snapshots            # Snapshot capture and analysis toolkit
     - Composition of damping + splitting
   - `DampingCROnceEngine(damping_factor=0.9, reduction_factor=0.5)`
     - Composition of damping + single-pass cost reduction
-  - `DiscountEngine()`
-    - `post_factor_cycle` applies discounted updates to factor side
   - `MessagePruningEngine(prune_threshold=1e-4, min_iterations=5, adaptive_threshold=True)`
     - Initializes a pruning policy to reduce near-duplicate messages (accept/prune by L2-diff); integrate by setting policy on agent mailers if needed
 
@@ -194,15 +184,6 @@ src/propflow/snapshots            # Snapshot capture and analysis toolkit
   - `ConfigCreator.create_graph_config(...)` → pickled `GraphConfig`
   - `FactorGraphBuilder.build_and_return(cfg_path)` or `build_and_save(cfg_path)`
 
-## Search Engines (optional)
-
-- Engines adapt BP lifecycle to local search: `SearchEngine`, `DSAEngine`, `MGMEngine`, `KOptMGMEngine`
-- Computators: `DSAComputator`, `MGMComputator`, `KOptMGMComputator`
-- Agents: `SearchVariableAgent` extends `VariableAgent` with neighbor-value access, pending decisions, and direct assignment property
-- I/O:
-  - Inputs: same `FactorGraph` + a search computator
-  - Per-step output: best assignment/cost tracking via `history.costs` and `best_assignment` fields (see `SearchEngine`)
-
 ## CLI & Examples
 
 - CLI: `bp-sim --version` prints version (more commands can be added later)
@@ -255,7 +236,7 @@ sim.plot_results(verbose=True)
 from propflow import DampingEngine
 from propflow.snapshots import SnapshotAnalyzer
 
-engine = DampingEngine(factor_graph=fg, damping_factor=0.9, use_bct_history=True)
+engine = DampingEngine(factor_graph=fg, damping_factor=0.9)
 engine.run(max_iter=50)
 
 analyzer = SnapshotAnalyzer(engine.snapshots)
@@ -268,7 +249,7 @@ print(block_norms)
 - Common engine inputs
   - `factor_graph`: `FactorGraph`
   - `computator`: one of `MinSumComputator` (default), `MaxSumComputator`, `SumProductComputator`, `MaxProductComputator`
-  - Optional: `ConvergenceConfig`, performance monitoring, normalization flags, `use_bct_history`
+  - Optional: `ConvergenceConfig`, performance monitoring, normalization flags, `snapshot_manager`
 - Common outputs
   - `history.costs`: list[float]
   - `history.beliefs[cycle]`: dict[var -> np.ndarray]

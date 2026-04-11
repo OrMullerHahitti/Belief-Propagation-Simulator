@@ -109,7 +109,6 @@ from propflow import BPEngine, DampingEngine
 engine = DampingEngine(
     factor_graph=graph,
     damping_factor=0.9,
-    use_bct_history=True,  # Optional: retain per-step message traces for BCT tools
 )
 
 engine.run(max_iter=100)
@@ -118,8 +117,7 @@ latest = engine.latest_snapshot()
 print(len(engine.snapshots))
 ```
 
-Set ``use_bct_history=True`` when constructing an engine if you need message
-trajectories for Backtrack Cost Tree analysis or external tooling.
+Snapshots automatically capture message trajectories for BCT analysis.
 
 ---
 

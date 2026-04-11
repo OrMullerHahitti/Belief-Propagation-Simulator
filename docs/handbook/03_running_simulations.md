@@ -67,7 +67,7 @@ from pathlib import Path
 from propflow.snapshots import SnapshotAnalyzer, AnalysisReport
 from propflow.snapshots import SnapshotVisualizer
 
-engine = BPEngine(factor_graph=fg, use_bct_history=True)
+engine = BPEngine(factor_graph=fg)
 engine.run(max_iter=100)
 
 snapshots = list(engine.snapshots)
