@@ -359,6 +359,9 @@ class SafeUnpickler(pickle.Unpickler):
             "bp.components": "propflow.core.components",
         }
         module = module_mapping.get(module, module)
+        # handle renamed experiments directory (was "expiriments")
+        if module.startswith("expiriments."):
+            module = "experiments." + module[len("expiriments."):]
         try:
             return super().find_class(module, name)
         except (ImportError, AttributeError) as e:

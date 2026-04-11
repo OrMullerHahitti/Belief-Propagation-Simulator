@@ -21,20 +21,3 @@ def multiply_messages(messages: List[Message], factor: float) -> None:
         message.data *= factor
 
 
-def multiply_messages_attentive(
-    messages: List[Message], factor: float, iteration: int = 0
-) -> None:
-    """Multiplies the data of each message by a given factor.
-
-    Note:
-        The current implementation multiplies all messages in the list, similar
-        to `multiply_messages`. The `iteration` parameter is not used. The original
-        intent may have been to apply a more selective (attentive) multiplication.
-
-    Args:
-        messages: A list of `Message` objects.
-        factor: The factor by which to multiply the message data.
-        iteration: The current iteration number (currently unused).
-    """
-    for message in messages:
-        message.data *= factor
