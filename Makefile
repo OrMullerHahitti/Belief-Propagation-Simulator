@@ -7,7 +7,7 @@ UV ?= uv
 VERSION_FILE := src/propflow/_version.py
 VERSION := $(shell sed -n 's/__version__ = "\(.*\)"/\1/p' $(VERSION_FILE))
 
-.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example start-python notebook repl bump bump-patch bump-minor bump-major tag
+.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example start-python notebook repl bump bump-patch bump-minor bump-major tag web-sim repro-5a repro-5b repro-8 gen-graphs run-experiment plot-experiment
 
 help: ; @grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS=":.*## "} {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}' ## Show this help
 
@@ -79,3 +79,24 @@ notebook: ## Launch Jupyter Lab inside the uv-managed environment
 
 repl: ## Open a Python REPL with project dependencies via uv
 	$(UV) run python
+
+web-sim: ## Start the PropFlow Web simulator (backend + frontend)
+	@./start_app.sh
+
+repro-5a: ## Reproduce Figure 5a (consistent, no tail)
+	$(UV) run python experiments/reproduce_figure.py --figure 5a
+
+repro-5b: ## Reproduce Figure 5b (consistent, with tail)
+	$(UV) run python experiments/reproduce_figure.py --figure 5b
+
+repro-8: ## Reproduce Figure 8 (inconsistent, no tail)
+	$(UV) run python experiments/reproduce_figure.py --figure 8
+
+gen-graphs: ## Generate structured-vs-random factor graphs (step 1)
+	$(UV) run python experiments/structured_vs_random/generate_graphs.py
+
+run-experiment: ## Run BP engines on structured-vs-random graphs (step 2)
+	$(UV) run python experiments/structured_vs_random/run_experiment.py
+
+plot-experiment: ## Plot structured-vs-random results (step 3)
+	$(UV) run python experiments/structured_vs_random/plot_results.py
