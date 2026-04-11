@@ -30,14 +30,25 @@ def build_graph(spec: GraphSpec) -> FactorGraph:
 
     # create factors from spec
     for f_spec in spec.factors:
-        cost_matrix = np.array(f_spec.cost_table)
-        factor = FactorAgent.create_from_cost_table(name=f_spec.name, cost_table=cost_matrix)
-
-        connected_vars = []
         for v_name in f_spec.neighbors:
             if v_name not in var_map:
                 raise ValueError(f"Factor {f_spec.name} refers to unknown variable {v_name}")
-            connected_vars.append(var_map[v_name])
+
+        # compute_R in propflow assumes the factor inbox index matches the
+        # cost-table dimension. the inbox is keyed by sender name so it ends
+        # up alphabetical. if the user's neighbors aren't alphabetical we
+        # reorder them and transpose the cost table so dim i maps to the
+        # i-th sorted neighbor. this preserves the user's intended semantics
+        # without touching the core library.
+        neighbor_names = list(f_spec.neighbors)
+        perm = sorted(range(len(neighbor_names)), key=lambda i: neighbor_names[i])
+        sorted_neighbors = [neighbor_names[i] for i in perm]
+        cost_matrix = np.array(f_spec.cost_table, dtype=float)
+        if perm != list(range(len(neighbor_names))):
+            cost_matrix = np.transpose(cost_matrix, axes=perm)
+
+        factor = FactorAgent.create_from_cost_table(name=f_spec.name, cost_table=cost_matrix)
+        connected_vars = [var_map[v_name] for v_name in sorted_neighbors]
 
         factor_agents.append(factor)
         edges[factor] = connected_vars
@@ -107,15 +118,9 @@ def run_simulation(spec: GraphSpec) -> List[SnapshotJSON]:
     else:
         engine = BPEngine(graph, computator=computator)
 
-    snapshots_data = []
-    max_iters = spec.config.max_iters
-
-    for i in range(max_iters):
-        # step() captures the snapshot internally and stores in engine._snapshots[i]
-        engine.step(i)
-
-        # retrieve the snapshot captured by the engine
-        snap = engine._snapshots[i]
-        snapshots_data.append(serialize_snapshot(snap))
-
-    return snapshots_data
+    # run through the full engine lifecycle so cycle-level events
+    # (normalize_inbox, convergence checks) fire. the prior manual step
+    # loop skipped these and left the web sim without normalization or
+    # early termination.
+    engine.run(max_iter=spec.config.max_iters)
+    return [serialize_snapshot(snap) for snap in engine.snapshots]
