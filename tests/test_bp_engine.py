@@ -1,6 +1,6 @@
 import functools
 
-import networkx as nx
+
 import numpy as np
 import pytest
 
@@ -236,8 +236,8 @@ class TestBPEngine:
             engine
         ), "Energy minimization failed"
 
-    def test_bp_engine_disconnected_graph_raises(self, convergence_config):
-        """Disconnected graphs should be rejected during setup."""
+    def test_bp_engine_disconnected_graph_constructs(self, convergence_config):
+        """Disconnected graphs should be constructible (bipartite sets resolved via node attributes)."""
 
         var_a = VariableAgent("x1", domain=2)
         var_b = VariableAgent("x2", domain=2)
@@ -246,12 +246,14 @@ class TestBPEngine:
             return np.zeros((domain_size,) * max(1, num_vars))
 
         factor = FactorAgent("f1", domain=2, ct_creation_func=zero_cost)
-        with pytest.raises(nx.AmbiguousSolution):
-            FactorGraph(
-                variable_li=[var_a, var_b],
-                factor_li=[factor],
-                edges={factor: [var_a]},
-            )
+        # should not raise even though var_b is disconnected
+        fg = FactorGraph(
+            variable_li=[var_a, var_b],
+            factor_li=[factor],
+            edges={factor: [var_a]},
+        )
+        assert len(fg.variables) == 2
+        assert len(fg.factors) == 1
 
     # Tests deleted due to incompatible API usage:
     # - test_bp_engine_early_convergence (uses engine.converged, wrong ConvergenceConfig params)

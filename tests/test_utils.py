@@ -10,10 +10,7 @@ from propflow.utils.fg_utils import (
     get_bound,
 )
 from propflow.utils.general_utils import profiling
-from propflow.utils.inbox_utils import (
-    multiply_messages,
-    multiply_messages_attentive,
-)
+from propflow.utils.inbox_utils import multiply_messages
 from propflow.utils.create.create_cost_tables import (
     create_random_int_table,
     create_uniform_table,
@@ -135,9 +132,6 @@ class TestInboxUtils:
         # Check that all messages are multiplied by factor
         for i, msg in enumerate(sample_messages):
             np.testing.assert_array_equal(msg.data, original_data[i] * factor)
-
-    # test_multiply_messages_attentive deleted - test expects iteration parameter to affect multiplication
-    # but actual implementation doesn't use iteration (see note in multiply_messages_attentive docstring)
 
     def test_multiply_messages_with_zero_factor(self, sample_messages):
         """Test message multiplication with zero factor."""

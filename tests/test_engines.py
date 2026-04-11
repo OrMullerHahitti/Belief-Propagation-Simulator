@@ -5,6 +5,8 @@ from propflow.core import VariableAgent, FactorAgent
 from propflow.bp.engines import (
     SplitEngine,
     DampingEngine,
+    RDampingEngine,
+    QRDampingEngine,
     DiffusionEngine,
     CostReductionOnceEngine,
     DampingCROnceEngine,
@@ -176,6 +178,93 @@ def test_damping_engine():
     verbose_print(f"Actual damped data: {curr_msg.data}")
     np.testing.assert_array_almost_equal(curr_msg.data, expected_data)
     verbose_print("✓ Message correctly damped")
+
+
+def test_rdamping_engine():
+    """Test that RDampingEngine correctly applies damping to R messages."""
+    verbose_print("\n=== Testing RDampingEngine ===")
+
+    # create a simple factor graph
+    fg = create_simple_factor_graph()
+    verbose_print("Created factor graph for testing")
+
+    # create an RDampingEngine with the factor graph
+    damping_factor = 0.5
+    verbose_print(f"Creating RDampingEngine with damping_factor={damping_factor}")
+    engine = RDampingEngine(factor_graph=fg, damping_factor=damping_factor)
+
+    # get a variable and factor for testing
+    var = next(n for n in fg.G.nodes() if isinstance(n, VariableAgent))
+    factor = next(n for n in fg.G.nodes() if isinstance(n, FactorAgent))
+    verbose_print(f"Testing with variable: {var.name} and factor: {factor.name}")
+
+    # create a message from factor to var (R message)
+    prev_msg = Message(
+        data=np.array([1.0, 2.0]),
+        sender=factor,
+        recipient=var,
+    )
+    factor._history = [[prev_msg]]  # set last_iteration
+    verbose_print(f"Previous R-message data: {prev_msg.data}")
+
+    # create a new R message with different data
+    curr_msg = Message(
+        data=np.array([3.0, 4.0]),
+        sender=factor,
+        recipient=var,
+    )
+    factor.mailer.outbox = [curr_msg]
+    verbose_print(f"Current R-message data before damping: {curr_msg.data}")
+
+    # apply damping directly using the post_factor_compute method
+    verbose_print("Applying damping via post_factor_compute...")
+    engine.post_factor_compute(factor, iteration=0)
+
+    # check that the message was damped
+    expected_data = damping_factor * prev_msg.data + (1 - damping_factor) * np.array(
+        [3.0, 4.0]
+    )
+    verbose_print(f"Expected damped data: {expected_data}")
+    verbose_print(f"Actual damped data: {curr_msg.data}")
+    np.testing.assert_array_almost_equal(curr_msg.data, expected_data)
+    verbose_print("✓ R-message correctly damped")
+
+
+def test_qrdamping_engine_damps_q_and_r():
+    """Test that QRDampingEngine correctly applies damping to both Q and R messages."""
+    verbose_print("\n=== Testing QRDampingEngine ===")
+
+    fg = create_simple_factor_graph()
+    q_damping = 0.5
+    r_damping = 0.5
+    engine = QRDampingEngine(
+        factor_graph=fg,
+        q_damping_factor=q_damping,
+        r_damping_factor=r_damping,
+    )
+
+    var = next(n for n in fg.G.nodes() if isinstance(n, VariableAgent))
+    factor = next(n for n in fg.G.nodes() if isinstance(n, FactorAgent))
+
+    # Q damping (var -> factor)
+    prev_q = Message(data=np.array([1.0, 2.0]), sender=var, recipient=factor)
+    var._history = [[prev_q]]
+    curr_q = Message(data=np.array([3.0, 4.0]), sender=var, recipient=factor)
+    var.mailer.outbox = [curr_q]
+
+    engine.post_var_compute(var)
+    expected_q = q_damping * prev_q.data + (1 - q_damping) * np.array([3.0, 4.0])
+    np.testing.assert_array_almost_equal(curr_q.data, expected_q)
+
+    # R damping (factor -> var)
+    prev_r = Message(data=np.array([5.0, 6.0]), sender=factor, recipient=var)
+    factor._history = [[prev_r]]
+    curr_r = Message(data=np.array([7.0, 8.0]), sender=factor, recipient=var)
+    factor.mailer.outbox = [curr_r]
+
+    engine.post_factor_compute(factor, iteration=1)
+    expected_r = r_damping * prev_r.data + (1 - r_damping) * np.array([7.0, 8.0])
+    np.testing.assert_array_almost_equal(curr_r.data, expected_r)
 
 
 def test_damping_scfg_engine():
@@ -398,10 +487,6 @@ def test_damping_cr_once_engine():
     )
 
 
-def test_discount_engine():
-    """Test that DiscountEngine correctly initializes."""
-    # SKIPPED: DiscountEngine removed from codebase
-    return
 
 
 def test_diffusion_engine():
