@@ -51,3 +51,37 @@ AGENT.md
 Dockerfile
 compose.yaml
 /tmp_out
+
+# macOS metadata
+.DS_Store
+
+# uv cache
+.uv-cache/
+
+# propflow_web build/deps artifacts (source itself lives on web-sim)
+src/propflow_web/node_modules/
+src/propflow_web/dist/
+
+# ad-hoc debug scripts (should not be committed)
+/append_cell.py
+/reproduce_issue.py
+/trace_nosplit.py
+/verify_visualizer_changes.py
+
+# ad-hoc debug outputs at repo root
+/output.png
+/output_with_*.png
+/output_without*.png
+
+# personal reference files at repo root
+/excel_to_implement.xlsx
+/experiments to reprodce.pdf
+/חקר שוויון 2024.xlsx
+
+# notebook artifacts (keep notebooks themselves, ignore rendered outputs)
+notebooks/Untitled.png
+notebooks/dampened over time.pdf
+notebooks/dampned message convergance.svg
+
+# legacy generated csv bundle
+experiments/generated_csv.zip
