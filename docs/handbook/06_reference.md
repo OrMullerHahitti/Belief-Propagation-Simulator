@@ -20,7 +20,6 @@
 | Engine | `normalize_messages` | `True` | Whether to min-normalise messages post-cycle. |
 | Engine | `monitor_performance` | `False` | Enables `PerformanceMonitor`. |
 | Engine | `anytime` | `False` | Enables anytime inference updates. |
-| Engine | `use_bct_history` | `False` | Collects detailed BCT data. |
 | Simulator | `default_max_iter` | 5000 | Default iteration cap for simulator runs. |
 | Simulator | `default_log_level` | `"INFORMATIVE"` | Logger default verbosity. |
 | Simulator | `timeout` | 3600 | Multiprocessing get timeout (seconds). |

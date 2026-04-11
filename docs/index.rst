@@ -79,7 +79,6 @@ Key Features
 ------------
 
 * **Belief Propagation Variants**: Min-Sum, Max-Sum, Sum-Product algorithms
-* **Search-Based DCOP Solvers**: DSA, MGM, K-Opt MGM algorithms
 * **Extensible Policy Framework**: Damping, splitting, cost reduction, and more
 * **Dynamic Graph Construction**: Cycle graphs, random graphs, custom topologies
 * **Simulation and Analysis**: Parallel execution and result comparison

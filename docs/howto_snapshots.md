@@ -11,7 +11,7 @@ run it as normal:
 from propflow import BPEngine, FGBuilder
 
 graph = FGBuilder.build_cycle_graph(num_vars=6, domain_size=3, ct_factory="random_int", ct_params={"low": 0, "high": 5})
-engine = BPEngine(graph, use_bct_history=True)
+engine = BPEngine(graph)
 engine.run(max_iter=50)
 ```
 

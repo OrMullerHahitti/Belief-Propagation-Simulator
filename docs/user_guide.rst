@@ -253,9 +253,7 @@ Complement engines with policies and utilities:
   iterations, tolerance, and patience.
 * :func:`propflow.policies.normalize_cost.normalize_inbox` to shift messages and
   avoid numerical blow-ups.
-* Built-in snapshot capture (``engine.snapshots``) to inspect per-step state;
-  set ``use_bct_history=True`` on the engine if you need message traces for BCT
-  tooling.
+* Built-in snapshot capture (``engine.snapshots``) to inspect per-step state.
 
 
 Running a Single Engine
@@ -268,7 +266,6 @@ Running a Single Engine
    engine = BPEngine(
        factor_graph=fg,
        computator=MinSumComputator(),
-       use_bct_history=True,  # optional: retain message traces for BCT tools
    )
 
    engine.run(max_iter=100)
@@ -341,7 +338,7 @@ Example workflow:
    from propflow.snapshots import SnapshotAnalyzer, AnalysisReport
    from propflow.snapshots import SnapshotVisualizer
 
-   engine = BPEngine(fg, use_bct_history=True)
+   engine = BPEngine(fg)
    engine.run(max_iter=75)
 
    snapshots = list(engine.snapshots)

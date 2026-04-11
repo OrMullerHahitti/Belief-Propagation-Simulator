@@ -167,7 +167,7 @@ recorder.
        ct_params={"low": 1, "high": 20},
    )
 
-   engine = BPEngine(fg, use_bct_history=True)
+   engine = BPEngine(fg)
    engine.run(max_iter=80)
 
    payload = [snap.to_dict() for snap in engine.snapshots]  # type: ignore[attr-defined]
