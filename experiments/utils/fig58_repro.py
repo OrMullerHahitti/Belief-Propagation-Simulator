@@ -446,6 +446,165 @@ def find_cases(
     )
 
 
+def derive_tail_examples(
+    base_examples: List[Dict[str, Any]],
+    *,
+    tail_length: int = 2,
+    classify_max_iter: int = 120,
+) -> List[Dict[str, Any]]:
+    """Derive consistent-with-tail examples from consistent-no-tail bases.
+
+    Modifies cost table entries in a chain pattern to create a detour
+    of the specified length before the route takes over.
+
+    chain[0]: F_{0,1}[route_0, alt] = 0  (route-left, alt-right is cheap)
+    chain[k]: F_{k,k+1}[alt, alt] = 0    (alt-left, alt-right is cheap)
+    """
+    derived: List[Dict[str, Any]] = []
+    for base in base_examples:
+        tables_orig = _extract_cost_tables(base)
+        cycle_size = len(tables_orig)
+        domain = int(tables_orig[0].shape[0])
+        classification = base["classification"]
+        route = route_assignment_from_classification(classification)
+
+        success = False
+        for alt_offset in range(1, domain):
+            alt_val = (route[1] + alt_offset) % domain
+            modified = [np.array(ct, dtype=float) for ct in tables_orig]
+
+            # chain[0]: make (x0=route, x1=alt) cheap
+            modified[0][route[0], alt_val] = 0.0
+            # chain[k]: make (xk=alt, x{k+1}=alt) cheap
+            for k in range(1, min(tail_length, cycle_size)):
+                modified[k][alt_val, alt_val] = 0.0
+
+            new_cls = classify_case_cycle(modified, max_iter=classify_max_iter)
+            if new_cls.get(CASE_CONSISTENT_WITH_TAIL, False):
+                example = _format_example_result(
+                    case_name=CASE_CONSISTENT_WITH_TAIL,
+                    seed=base["seed"],
+                    attempt=base["attempt"],
+                    cycle_size=cycle_size,
+                    generation_strategy="derived_tail",
+                    cost_tables=modified,
+                    classification=new_cls,
+                )
+                example["base_seed"] = int(base["seed"])
+                derived.append(example)
+                success = True
+                break
+
+        if not success:
+            print(f"  [derive_tail] skipping seed={base['seed']}: "
+                  f"no alt_val produced a valid tail")
+
+    return derived
+
+
+def construct_consistent_no_tail_examples(
+    n_examples: int,
+    *,
+    cycle_size: int,
+    domain: int = 2,
+    low: int = 0,
+    high: int = 10,
+    seed_start: int = 42,
+    classify_max_iter: int = 60,
+    route_value: int = 0,
+) -> List[Dict[str, Any]]:
+    """Construct consistent-no-tail examples with natural random values.
+
+    Each factor gets random entries in [low, high), then F[a,a] is forced to
+    be the strict minimum. This keeps cost gaps small (important for tail
+    derivation) while guaranteeing route = (a, a, ..., a) from iteration 0.
+    """
+    examples: List[Dict[str, Any]] = []
+    seed = seed_start
+
+    while len(examples) < n_examples:
+        rng = np.random.RandomState(seed)
+        tables: List[np.ndarray] = []
+
+        for _ in range(cycle_size):
+            ct = rng.randint(low, high, size=(domain, domain)).astype(float)
+            # force [route_value, route_value] to be strictly the minimum
+            current_min = ct.min()
+            ct[route_value, route_value] = max(0.0, current_min - 1.0)
+            tables.append(ct)
+
+        cls = classify_case_cycle(tables, max_iter=classify_max_iter)
+        if cls.get(CASE_CONSISTENT_NO_TAIL, False):
+            examples.append(_format_example_result(
+                case_name=CASE_CONSISTENT_NO_TAIL,
+                seed=seed,
+                attempt=1,
+                cycle_size=cycle_size,
+                generation_strategy="constructed_diagonal",
+                cost_tables=tables,
+                classification=cls,
+            ))
+        seed += 1
+
+    return examples
+
+
+def construct_inconsistent_no_tail_examples(
+    n_examples: int,
+    *,
+    cycle_size: int,
+    domain: int = 2,
+    low: int = 1,
+    high: int = 10,
+    seed_start: int = 42,
+    classify_max_iter: int = 120,
+) -> List[Dict[str, Any]]:
+    """Construct Figure 8 examples: one off-diagonal factor + rest diagonal.
+
+    All but the last factor have diagonal minimums (agreement).
+    The last factor has off-diagonal minimums (disagreement).
+    This structural frustration forces immediate oscillation (no tail).
+    """
+    examples: List[Dict[str, Any]] = []
+    seen: set[tuple] = set()
+    seed = seed_start
+
+    while len(examples) < n_examples:
+        rng = np.random.RandomState(seed)
+        tables: List[np.ndarray] = []
+
+        for idx in range(cycle_size):
+            ct = rng.randint(low, high, size=(domain, domain)).astype(float)
+            if idx < cycle_size - 1:
+                # diagonal: same-value preference
+                for v in range(domain):
+                    ct[v, v] = 0.0
+            else:
+                # off-diagonal: different-value preference
+                for v in range(domain):
+                    ct[v, (v + 1) % domain] = 0.0
+            tables.append(ct)
+
+        sig = _cost_tables_signature(tables)
+        if sig not in seen:
+            cls = classify_case_cycle(tables, max_iter=classify_max_iter)
+            if cls.get(CASE_INCONSISTENT_NO_TAIL, False):
+                seen.add(sig)
+                examples.append(_format_example_result(
+                    case_name=CASE_INCONSISTENT_NO_TAIL,
+                    seed=seed,
+                    attempt=1,
+                    cycle_size=cycle_size,
+                    generation_strategy="constructed_off_diagonal",
+                    cost_tables=tables,
+                    classification=cls,
+                ))
+
+        seed += 1
+
+    return examples
+
+
 def run_belief_trace_cycle(
     cost_tables: Sequence[np.ndarray],
     *,

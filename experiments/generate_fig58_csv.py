@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import re
 import sys
-from itertools import count
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Sequence
 
@@ -17,14 +16,13 @@ if __package__ in {None, ""}:
     if str(repo_root) not in sys.path:
         sys.path.insert(0, str(repo_root))
 
-from expiriments.utils.fig58_repro import (
+from experiments.utils.fig58_repro import (
     CASE_CONSISTENT_NO_TAIL,
     CASE_CONSISTENT_WITH_TAIL,
     CASE_INCONSISTENT_NO_TAIL,
-    classify_case_cycle,
-    find_case_cycle,
-    GEN_MOTIF_REPEAT,
-    GEN_RANDOM_FULL,
+    construct_consistent_no_tail_examples,
+    construct_inconsistent_no_tail_examples,
+    derive_tail_examples,
     run_experiment_examples_cycle,
 )
 
@@ -54,36 +52,23 @@ DAMPING_FACTOR = 0.9
 NORMALIZE_MESSAGES = False
 SUBTRACT_INITIAL = False
 
-OUTPUT_ROOT = Path("expiriments/generated_csv")
+OUTPUT_ROOT = Path("experiments/generated_csv")
 
 
 FIGURE_CONFIGS = (
     {
         "figure_id": "figure_5a",
         "case_name": CASE_CONSISTENT_NO_TAIL,
-        "generation_strategy": GEN_RANDOM_FULL,
     },
     {
         "figure_id": "figure_5b",
         "case_name": CASE_CONSISTENT_WITH_TAIL,
-        "generation_strategy": GEN_RANDOM_FULL,
     },
     {
         "figure_id": "figure_8",
         "case_name": CASE_INCONSISTENT_NO_TAIL,
-        "generation_strategy": GEN_MOTIF_REPEAT,
     },
 )
-
-# Curated motif seeds that satisfy strict Figure-8 classification with max_attempts=1.
-CURATED_FIG8_BASE_SEEDS = {
-    3: [488, 619, 781, 1079, 1100, 1244, 1472, 1876],
-    6: [488],
-    9: [488],
-    12: [488],
-}
-
-FIG8_FALLBACK_MAX_ATTEMPTS_PER_SEED = 1_000
 
 
 _SERIES_RE = re.compile(r"^(x\d+)_v(\d+)$")
@@ -198,151 +183,46 @@ def _iter_figure_configs() -> Iterable[Mapping[str, str]]:
         yield cfg
 
 
-def _cost_tables_signature(cost_tables: Sequence[np.ndarray]) -> tuple:
-    return tuple(tuple(np.asarray(ct, dtype=float).reshape(-1).tolist()) for ct in cost_tables)
-
-
-def _swap_binary_tables(cost_tables: Sequence[np.ndarray], swap_mask: Sequence[int]) -> tuple[np.ndarray, ...]:
-    cycle_size = len(cost_tables)
-    swapped: List[np.ndarray] = []
-    for idx, table in enumerate(cost_tables):
-        left_var = idx
-        right_var = (idx + 1) % cycle_size
-        ct = np.array(table, dtype=float)
-        if swap_mask[left_var]:
-            ct = ct[[1, 0], :]
-        if swap_mask[right_var]:
-            ct = ct[:, [1, 0]]
-        swapped.append(ct)
-    return tuple(swapped)
-
-
-def _format_example(
-    *,
-    case_name: str,
-    seed: int,
-    attempt: int,
-    cycle_size: int,
-    generation_strategy: str,
-    cost_tables: Sequence[np.ndarray],
-    classification: Mapping[str, Any],
-) -> Dict[str, Any]:
-    return {
-        "case_name": case_name,
-        "seed": int(seed),
-        "attempt": int(attempt),
-        "cycle_size": int(cycle_size),
-        "generation_strategy": generation_strategy,
-        "cost_tables": tuple(np.asarray(ct, dtype=float) for ct in cost_tables),
-        "classification": dict(classification),
-    }
-
-
-def _collect_examples_figure8(
+def _collect_examples(
     *,
     case_name: str,
     cycle_size: int,
     n_examples: int,
     seed_start: int,
 ) -> List[Dict[str, Any]]:
-    examples: List[Dict[str, Any]] = []
-    seen_signatures: set[tuple] = set()
-    used_base_seeds: set[int] = set()
-
-    curated = list(CURATED_FIG8_BASE_SEEDS.get(cycle_size, []))
-    fallback_seed_iter = count(seed_start, SEED_STEP)
-    curated_idx = 0
-
-    while len(examples) < n_examples:
-        if curated_idx < len(curated):
-            seed = curated[curated_idx]
-            max_attempts = 1
-            curated_idx += 1
-        else:
-            seed = next(fallback_seed_iter)
-            max_attempts = FIG8_FALLBACK_MAX_ATTEMPTS_PER_SEED
-
-        if seed in used_base_seeds:
-            continue
-        used_base_seeds.add(seed)
-
-        try:
-            base = find_case_cycle(
-                case_name=case_name,
-                cycle_size=cycle_size,
-                seed=seed,
-                domain=DOMAIN,
-                low=LOW,
-                high=HIGH,
-                max_attempts=max_attempts,
-                classify_max_iter=CLASSIFY_MAX_ITER,
-                generation_strategy=GEN_MOTIF_REPEAT,
-            )
-        except RuntimeError:
-            continue
-
-        base_tables = base["cost_tables"]
-        # Binary value-label symmetries preserve route structure; still re-validate each variant.
-        for mask_int in range(1 << cycle_size):
-            mask = tuple((mask_int >> bit) & 1 for bit in range(cycle_size))
-            candidate_tables = _swap_binary_tables(base_tables, mask)
-            signature = _cost_tables_signature(candidate_tables)
-            if signature in seen_signatures:
-                continue
-
-            classification = classify_case_cycle(candidate_tables, max_iter=CLASSIFY_MAX_ITER)
-            if not classification.get(case_name, False):
-                continue
-
-            seen_signatures.add(signature)
-            examples.append(
-                _format_example(
-                    case_name=case_name,
-                    seed=int(seed) * 1_000_000 + mask_int,
-                    attempt=int(base["attempt"]),
-                    cycle_size=cycle_size,
-                    generation_strategy=f"{GEN_MOTIF_REPEAT}_swapmask",
-                    cost_tables=candidate_tables,
-                    classification=classification,
-                )
-            )
-            if len(examples) >= n_examples:
-                break
-
-    return examples
-
-
-def _collect_examples_non_figure8(
-    *,
-    case_name: str,
-    cycle_size: int,
-    n_examples: int,
-    seed_start: int,
-    generation_strategy: str,
-) -> List[Dict[str, Any]]:
-    examples: List[Dict[str, Any]] = []
-    seen_signatures: set[tuple] = set()
-    seed = seed_start
-
-    while len(examples) < n_examples:
-        result = find_case_cycle(
-            case_name=case_name,
+    """Dispatch to the appropriate example-generation strategy."""
+    if case_name == CASE_CONSISTENT_NO_TAIL:
+        # 5a: construct directly — F[a,a]=0, rest large
+        return construct_consistent_no_tail_examples(
+            n_examples,
             cycle_size=cycle_size,
-            seed=seed,
+            seed_start=seed_start,
             domain=DOMAIN,
-            low=LOW,
-            high=HIGH,
-            max_attempts=MAX_ATTEMPTS_PER_SEED,
             classify_max_iter=CLASSIFY_MAX_ITER,
-            generation_strategy=generation_strategy,
         )
-        signature = _cost_tables_signature(result["cost_tables"])
-        if signature not in seen_signatures:
-            seen_signatures.add(signature)
-            examples.append(result)
-        seed += SEED_STEP
 
-    return examples
+    if case_name == CASE_CONSISTENT_WITH_TAIL:
+        # 5b: derive from 5a base — generate extra since not all convert to tail
+        base_examples = construct_consistent_no_tail_examples(
+            n_examples * 4,
+            cycle_size=cycle_size,
+            seed_start=seed_start,
+            domain=DOMAIN,
+            classify_max_iter=CLASSIFY_MAX_ITER,
+        )
+        return derive_tail_examples(base_examples, tail_length=2, classify_max_iter=CLASSIFY_MAX_ITER)[:n_examples]
+
+    if case_name == CASE_INCONSISTENT_NO_TAIL:
+        # fig 8: one off-diagonal factor + rest diagonal
+        return construct_inconsistent_no_tail_examples(
+            n_examples,
+            cycle_size=cycle_size,
+            domain=DOMAIN,
+            seed_start=seed_start,
+            classify_max_iter=CLASSIFY_MAX_ITER,
+        )
+
+    raise ValueError(f"Unknown case: {case_name}")
 
 
 def generate_fig58_csv_datasets(
@@ -357,30 +237,21 @@ def generate_fig58_csv_datasets(
     for figure_cfg in _iter_figure_configs():
         figure_id = figure_cfg["figure_id"]
         case_name = figure_cfg["case_name"]
-        generation_strategy = figure_cfg["generation_strategy"]
         max_iter = MAX_ITER_BY_FIGURE[figure_id]
         seed_base = SEED_START_BY_FIGURE[figure_id]
 
-        print(f"[{figure_id}] case={case_name} strategy={generation_strategy}")
+        print(f"[{figure_id}] case={case_name}")
 
         for cycle_size in cycle_sizes:
             seed_start = seed_base + cycle_size * 100_000
             print(f"  - cycle={cycle_size}: collecting {n_examples} examples (seed_start={seed_start})")
-            if figure_id == "figure_8":
-                examples = _collect_examples_figure8(
-                    case_name=case_name,
-                    cycle_size=cycle_size,
-                    n_examples=n_examples,
-                    seed_start=seed_start,
-                )
-            else:
-                examples = _collect_examples_non_figure8(
-                    case_name=case_name,
-                    cycle_size=cycle_size,
-                    n_examples=n_examples,
-                    seed_start=seed_start,
-                    generation_strategy=generation_strategy,
-                )
+
+            examples = _collect_examples(
+                case_name=case_name,
+                cycle_size=cycle_size,
+                n_examples=n_examples,
+                seed_start=seed_start,
+            )
 
             runs = run_experiment_examples_cycle(
                 examples=examples,
