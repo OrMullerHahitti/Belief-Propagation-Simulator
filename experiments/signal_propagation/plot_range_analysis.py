@@ -4,16 +4,20 @@ Reads signal_results_combined.csv and produces plots in subdirectories.
 
 Usage::
 
-    uv run python expiriments/signal_propagation/plot_range_analysis.py
+    uv run python experiments/signal_propagation/plot_range_analysis.py
 """
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from experiments.utils.plot_helpers import remove_frame as _remove_frame  # noqa: E402
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 BASE_OUT = Path(__file__).resolve().parent
@@ -67,6 +71,7 @@ def plot_dynamic_range(df: pd.DataFrame) -> None:
     ax1.set_xlim(0, 1.05)
     bp_range = bp_sorted["q_message_value"].max() - bp_sorted["q_message_value"].min()
     ax1.set_title(f"Undamped\nrange = {bp_range:.2e}", fontsize=11)
+    _remove_frame(ax1)
 
     # right: damped — hatched bars, lighter fill
     ax2.barh(y, damp_norm, color="white", edgecolor="black", linewidth=0.5,
@@ -75,6 +80,7 @@ def plot_dynamic_range(df: pd.DataFrame) -> None:
     ax2.set_xlim(0, 1.05)
     damp_range = damp_ordered["q_message_value"].max() - damp_ordered["q_message_value"].min()
     ax2.set_title(f"Damped\nrange = {damp_range:.2e}", fontsize=11)
+    _remove_frame(ax2)
 
     plt.tight_layout()
 
@@ -109,6 +115,7 @@ def plot_minmax_range(df: pd.DataFrame) -> None:
     for bar, val in zip(bars, [bp_range, damp_range]):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
                 f"{val:.2e}", ha="center", va="bottom", fontsize=9)
+    _remove_frame(ax)
     plt.tight_layout()
     fig.savefig(out_dir / "minmax_range_same_scale.png", dpi=150)
     plt.close(fig)
@@ -122,6 +129,7 @@ def plot_minmax_range(df: pd.DataFrame) -> None:
     ax1.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
     ax1.text(b1[0].get_x() + b1[0].get_width() / 2, bp_range,
              f"{bp_range:.2e}", ha="center", va="bottom", fontsize=9)
+    _remove_frame(ax1)
 
     b2 = ax2.bar(["Damped"], [damp_range], color="white", edgecolor="black",
                  linewidth=1.0, hatch="///", width=0.4)
@@ -129,6 +137,7 @@ def plot_minmax_range(df: pd.DataFrame) -> None:
     ax2.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
     ax2.text(b2[0].get_x() + b2[0].get_width() / 2, damp_range,
              f"{damp_range:.2e}", ha="center", va="bottom", fontsize=9)
+    _remove_frame(ax2)
 
     plt.tight_layout()
     fig.savefig(out_dir / "minmax_range_split.png", dpi=150)
@@ -168,6 +177,7 @@ def plot_per_factor_ratio(df: pd.DataFrame) -> None:
     median_ratio = float(np.median(ratio))
     ax.axvline(median_ratio, color="black", linestyle="--", linewidth=1.0, label=f"median = {median_ratio:.2f}")
     ax.legend(fontsize=9)
+    _remove_frame(ax)
 
     plt.tight_layout()
 
@@ -198,6 +208,7 @@ def plot_signal_uniformity(df: pd.DataFrame) -> None:
     ax.set_xlim(1, len(ranks))
     ax.set_ylim(-0.05, 1.05)
     ax.legend(fontsize=10)
+    _remove_frame(ax)
 
     plt.tight_layout()
 
@@ -209,9 +220,26 @@ def plot_signal_uniformity(df: pd.DataFrame) -> None:
     print(f"[plot] saved {out_path}")
 
 
-def _scatter_stats_text(vals: np.ndarray) -> str:
-    """Format std and range annotation for scatter plots."""
-    return f"std = {np.std(vals):.2e}\nrange = {np.ptp(vals):.2e}"
+def _superscript_int(n: int) -> str:
+    _sup = {
+        "0": "\u2070", "1": "\u00b9", "2": "\u00b2", "3": "\u00b3",
+        "4": "\u2074", "5": "\u2075", "6": "\u2076", "7": "\u2077",
+        "8": "\u2078", "9": "\u2079", "-": "\u207b",
+    }
+    return "".join(_sup.get(c, c) for c in str(n))
+
+
+def _scatter_stats_text(vals: np.ndarray, exponent: int | None = None) -> str:
+    """Format std and range with a shared exponent for easy comparison."""
+    std_val = float(np.std(vals))
+    range_val = float(np.ptp(vals))
+    if exponent is None:
+        max_abs = max(abs(std_val), abs(range_val), 1e-300)
+        exponent = int(np.floor(np.log10(max_abs)))
+    scale = 10.0 ** exponent
+    std_scaled = std_val / scale
+    range_scaled = range_val / scale
+    return f"std = {std_scaled:.2f}\nrange = {range_scaled:.2f}\n(\u00d710{_superscript_int(exponent)})"
 
 
 # ── plot A: scatter undamped only ─────────────────────────────────────────────
@@ -226,11 +254,15 @@ def plot_scatter_undamped(df: pd.DataFrame) -> None:
     fig, ax = plt.subplots(figsize=(4, 6))
     ax.scatter(np.zeros_like(vals), vals, marker="x", color="black", s=30, linewidths=1.0)
     ax.set_xticks([])
-    ax.set_ylabel("Q-message value")
+    ax.set_ylabel("Aggregated coefficients")
     ax.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
-    ax.text(0.95, 0.95, _scatter_stats_text(vals), transform=ax.transAxes,
+    # draw once to let matplotlib pick the axis exponent, then match it
+    fig.canvas.draw()
+    axis_exp = int(ax.yaxis.get_offset_text().get_text().replace("1e", "").replace("\u2212", "-") or "0")
+    ax.text(0.95, 0.95, _scatter_stats_text(vals, exponent=axis_exp), transform=ax.transAxes,
             ha="right", va="top", fontsize=9, family="monospace")
     ax.set_xlabel("Undamped")
+    _remove_frame(ax)
     plt.tight_layout()
     fig.savefig(out_dir / "scatter_undamped.png", dpi=150)
     plt.close(fig)
@@ -249,11 +281,12 @@ def plot_scatter_damped(df: pd.DataFrame) -> None:
     fig, ax = plt.subplots(figsize=(4, 6))
     ax.scatter(np.zeros_like(vals), vals, marker="o", facecolors="none", edgecolors="black", s=30, linewidths=1.0)
     ax.set_xticks([])
-    ax.set_ylabel("Q-message value")
+    ax.set_ylabel("Aggregated coefficients")
     ax.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
     ax.text(0.95, 0.95, _scatter_stats_text(vals), transform=ax.transAxes,
             ha="right", va="top", fontsize=9, family="monospace")
     ax.set_xlabel("Damped")
+    _remove_frame(ax)
     plt.tight_layout()
     fig.savefig(out_dir / "scatter_damped.png", dpi=150)
     plt.close(fig)
@@ -271,12 +304,13 @@ def _plot_scatter_side_by_side(bp_vals, damp_vals, out_path, log_scale=False):
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["Undamped", "Damped"])
     ax.set_xlim(-0.5, 1.5)
-    ax.set_ylabel("Q-message value")
+    ax.set_ylabel("Aggregated coefficients")
     if log_scale:
         ax.set_yscale("log")
     else:
         ax.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
     ax.legend(fontsize=9)
+    _remove_frame(ax)
     plt.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
@@ -306,12 +340,13 @@ def _plot_scatter_overlay(bp_vals, damp_vals, out_path, log_scale=False):
     ax.scatter(jitter_damp, damp_vals, marker="o", facecolors="none", edgecolors="black",
                s=30, linewidths=1.0, label="Damped")
     ax.set_xticks([])
-    ax.set_ylabel("Q-message value")
+    ax.set_ylabel("Aggregated coefficients")
     if log_scale:
         ax.set_yscale("log")
     else:
         ax.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
     ax.legend(fontsize=9)
+    _remove_frame(ax)
     plt.tight_layout()
     fig.savefig(out_path, dpi=150)
     plt.close(fig)

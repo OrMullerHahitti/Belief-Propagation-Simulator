@@ -17,6 +17,7 @@ from matplotlib.cm import ScalarMappable
 from matplotlib.lines import Line2D
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from experiments.utils.plot_helpers import remove_frame as _remove_frame  # noqa: E402
 
 RESULTS_DIR = Path(__file__).resolve().parent / "results"
 PLOTS_DIR = Path(__file__).resolve().parent / "plots"
@@ -152,6 +153,7 @@ def plot_comparison_bars(meta, df_combined, plots_dir):
         ax.set_xlabel("belief at observer (log scale)", fontsize=10)
         ax.set_title(f"{engine_name} — signal at {meta['observer']}",
                      fontsize=11, fontweight="bold")
+        _remove_frame(ax)
 
     plt.tight_layout()
     out = plots_dir / "signal_comparison_bars.png"
