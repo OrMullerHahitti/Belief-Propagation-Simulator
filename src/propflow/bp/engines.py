@@ -1,5 +1,5 @@
 import random
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional, Sequence
 
 import networkx as nx
 import numpy as np
@@ -8,7 +8,7 @@ from ..core.agents import FactorAgent, VariableAgent
 from ..core.components import Message
 from ..policies import damp, damp_factor
 from ..policies.cost_reduction import cost_reduction_all_factors_once
-from ..policies.splitting import split_all_factors
+from ..policies.splitting import split_all_factors, split_factors
 from ..utils.inbox_utils import multiply_messages
 from .engine_base import BPEngine
 
@@ -48,6 +48,194 @@ class SplitEngine(BPEngine):
     def post_init(self) -> None:
         """Applies the factor splitting policy after initialization."""
         split_all_factors(self.graph, self.split_factor)
+
+
+class MidRunSplitEngine(BPEngine):
+    """A BP engine that applies factor splitting at a chosen iteration.
+
+    The engine runs standard BP until ``split_at_iter``. Immediately before
+    that step is computed, it splits the requested factors and either resets
+    messages to zero or transfers current factor-to-variable messages into the
+    split graph.
+
+    The ``transfer`` mode is an empirical heuristic, not a canonical mid-run
+    split. It preserves the aggregate factor-to-variable contribution at the
+    variable inbox boundary (and therefore the variable belief, and the Q
+    messages to unaffected neighbors). It does not preserve the Q messages
+    going into the split clones themselves: each clone's Q picks up the
+    sibling clone's transferred share, so each clone's first outgoing R is
+    not a canonical continuation of the un-split dynamics. Treat the split
+    iteration as a heuristic injection.
+    """
+
+    def __init__(
+        self,
+        *args,
+        split_at_iter: int,
+        split_factor: float = 0.5,
+        split_targets: Sequence[str] | None = None,
+        split_fraction: float | None = None,
+        split_seed: int | None = None,
+        transfer_mode: Literal["reset", "transfer"] = "reset",
+        **kwargs,
+    ) -> None:
+        if split_at_iter < 0:
+            raise ValueError("split_at_iter must be non-negative.")
+        if transfer_mode not in {"reset", "transfer"}:
+            raise ValueError("transfer_mode must be either 'reset' or 'transfer'.")
+
+        self.split_at_iter = int(split_at_iter)
+        self.split_factor = float(split_factor)
+        self.split_targets = list(split_targets) if split_targets is not None else None
+        self.split_fraction = split_fraction
+        self.split_seed = split_seed
+        self.transfer_mode = transfer_mode
+        self.split_mapping: Dict[str, list[FactorAgent]] = {}
+        self.split_events: list[dict] = []
+        self._split_applied = False
+        self._pending_split_event: dict | None = None
+
+        super().__init__(*args, **kwargs)
+        self._name = "MidRunSplitEngine"
+        self._set_name(
+            {
+                "split_at": str(self.split_at_iter),
+                "mode": self.transfer_mode,
+                "split": str(self.split_factor),
+            }
+        )
+
+    def step(self, i: int = 0):
+        if not self._split_applied and i >= self.split_at_iter:
+            self._apply_midrun_split(i)
+
+        step = super().step(i)
+        if self._pending_split_event is not None:
+            snapshot = self._snapshots.get(i)
+            if snapshot is not None:
+                snapshot.metadata["split_event"] = dict(self._pending_split_event)
+            self._pending_split_event = None
+        return step
+
+    def _apply_midrun_split(self, iteration: int) -> None:
+        prior_var_inboxes = self._capture_variable_inboxes()
+
+        self.split_mapping = split_factors(
+            self.graph,
+            self.split_factor,
+            factor_names=self.split_targets,
+            split_fraction=self.split_fraction,
+            seed=self.split_seed,
+        )
+        self._split_applied = True
+        self._refresh_graph_views()
+        self.graph.set_computator(self.computator)
+
+        if self.transfer_mode == "reset":
+            self._reset_messages()
+        elif self.transfer_mode == "transfer":
+            self._transfer_messages(prior_var_inboxes)
+        else:  # pragma: no cover - guarded in __init__
+            raise ValueError(f"Unsupported transfer_mode: {self.transfer_mode}")
+
+        event = {
+            "iteration": int(iteration),
+            "transfer_mode": self.transfer_mode,
+            "split_factor": self.split_factor,
+            "split_targets": self.split_targets,
+            "split_fraction": self.split_fraction,
+            "split_seed": self.split_seed,
+            "split_mapping": {
+                original: [clone.name for clone in clones]
+                for original, clones in self.split_mapping.items()
+            },
+        }
+        self.split_events.append(event)
+        self._pending_split_event = event
+
+    def _refresh_graph_views(self) -> None:
+        var_set, factor_set = nx.bipartite.sets(self.graph.G)
+        self.var_nodes = sorted(var_set, key=lambda node: node.name)
+        self.factor_nodes = sorted(factor_set, key=lambda node: node.name)
+        self.graph_diameter = nx.diameter(self.graph.G)
+
+    def _capture_variable_inboxes(self) -> Dict[str, list[Message]]:
+        captured: Dict[str, list[Message]] = {}
+        for variable in getattr(self, "var_nodes", []):
+            captured[variable.name] = [msg.copy() for msg in variable.mailer.inbox]
+        return captured
+
+    def _clear_agent_state(self) -> None:
+        for node in self.graph.G.nodes():
+            node.empty_mailbox()
+            node.empty_outgoing()
+            if hasattr(node, "_history"):
+                node._history.clear()
+
+    def _reset_messages(self) -> None:
+        self._clear_agent_state()
+        self._initialize_messages()
+
+    def _transfer_messages(self, prior_var_inboxes: Dict[str, list[Message]]) -> None:
+        """Redistribute prior R messages across the split clones.
+
+        For each split factor F with prior message ``R[F->X]``, the variable
+        inbox is rewritten as ``p * R`` from ``F'`` and ``(1 - p) * R`` from
+        ``F''``. This preserves the aggregate contribution
+        ``R[F'->X] + R[F''->X] == R[F->X]_old``, so X's belief and its Q to
+        unaffected neighbors are unchanged on the split iteration.
+
+        The Q messages going into the clones themselves are not preserved:
+        ``Q[X->F']`` excludes only ``F'`` from the inbox, so the sibling's
+        transferred share ``(1 - p) * R_old`` leaks in and is reflected in
+        each clone's first outgoing R. Treat ``transfer`` as a heuristic for
+        preserving variable-side state, not as a canonical mid-run split.
+        """
+        self._clear_agent_state()
+        factor_by_name = {factor.name: factor for factor in self.factor_nodes}
+        variable_by_name = {variable.name: variable for variable in self.var_nodes}
+
+        for variable_name, old_messages in prior_var_inboxes.items():
+            variable = variable_by_name.get(variable_name)
+            if variable is None:
+                continue
+            for message in old_messages:
+                sender_name = getattr(message.sender, "name", "")
+                if sender_name in self.split_mapping:
+                    clones = self.split_mapping[sender_name]
+                    weights = [self.split_factor, 1.0 - self.split_factor]
+                    for clone, weight in zip(clones, weights):
+                        variable.mailer.receive_messages(
+                            Message(
+                                data=np.asarray(message.data, dtype=float) * weight,
+                                sender=clone,
+                                recipient=variable,
+                            )
+                        )
+                elif sender_name in factor_by_name:
+                    variable.mailer.receive_messages(
+                        Message(
+                            data=np.copy(message.data),
+                            sender=factor_by_name[sender_name],
+                            recipient=variable,
+                        )
+                    )
+
+        self._fill_missing_variable_messages()
+
+    def _fill_missing_variable_messages(self) -> None:
+        for variable in self.var_nodes:
+            existing = {message.sender.name for message in variable.mailer.inbox}
+            for neighbor in self.graph.G.neighbors(variable):
+                if neighbor.name in existing:
+                    continue
+                variable.mailer.receive_messages(
+                    Message(
+                        data=np.zeros(variable.domain),
+                        sender=neighbor,
+                        recipient=variable,
+                    )
+                )
 
 
 class CostReductionOnceEngine(BPEngine):
@@ -104,6 +292,7 @@ class DampingEngine(BPEngine):
         damp(var, self.damping_factor)
         var.append_last_iteration()
 
+
 class QRDampingEngine(BPEngine):
     """A BP engine that applies message damping to both Q and R messages.
 
@@ -123,12 +312,17 @@ class QRDampingEngine(BPEngine):
         # Keep a single `damping_factor` attribute for compatibility with
         # snapshot tooling and existing expectations.
         self.damping_factor = (
-            self.q_damping_factor if self.q_damping_factor > 0 else self.r_damping_factor
+            self.q_damping_factor
+            if self.q_damping_factor > 0
+            else self.r_damping_factor
         )
         super().__init__(*args, **kwargs)
         self._name = "QRDampingEngine"
         self._set_name(
-            {"q_damping": str(self.q_damping_factor), "r_damping": str(self.r_damping_factor)}
+            {
+                "q_damping": str(self.q_damping_factor),
+                "r_damping": str(self.r_damping_factor),
+            }
         )
 
     def post_init(self) -> None:
@@ -138,7 +332,13 @@ class QRDampingEngine(BPEngine):
                 if not factor._history:
                     zero_msgs = []
                     for neighbor in self.graph.G.neighbors(factor):
-                        zero_msgs.append(Message(sender=factor, recipient=neighbor, data=np.zeros(factor.domain)))
+                        zero_msgs.append(
+                            Message(
+                                sender=factor,
+                                recipient=neighbor,
+                                data=np.zeros(factor.domain),
+                            )
+                        )
                     factor._history.append(zero_msgs)
 
     def post_var_compute(self, var: VariableAgent) -> None:
@@ -394,7 +594,9 @@ class TRWEngine(BPEngine):
 
         super().__init__(*args, **kwargs)
         self._name = "TRWEngine"
-        suffix = "custom" if self._user_defined_rhos else f"trees-{self.tree_sample_count}"
+        suffix = (
+            "custom" if self._user_defined_rhos else f"trees-{self.tree_sample_count}"
+        )
         self._set_name({"trw": suffix})
 
     def post_init(self) -> None:
@@ -436,7 +638,11 @@ class TRWEngine(BPEngine):
     def _scale_factor_cost_table(self, factor: FactorAgent, rho: float) -> None:
         """Reset to the original cost table (if saved) and divide by rho."""
         factor.save_original()
-        base = factor.original_cost_table if factor.original_cost_table is not None else factor.cost_table
+        base = (
+            factor.original_cost_table
+            if factor.original_cost_table is not None
+            else factor.cost_table
+        )
         if base is None:
             return
         factor.cost_table = base / rho
@@ -475,7 +681,9 @@ class TRWEngine(BPEngine):
 
         return rhos
 
-    def _build_primal_graph(self) -> tuple[nx.Graph, Dict[tuple[str, str], list[FactorAgent]]]:
+    def _build_primal_graph(
+        self,
+    ) -> tuple[nx.Graph, Dict[tuple[str, str], list[FactorAgent]]]:
         """Construct the variable-only graph used for tree sampling."""
         graph = nx.Graph()
         variables = getattr(self.graph, "variables", [])

@@ -14,6 +14,7 @@ from .bp.engines import (
     DampingTRWEngine,
     DiffusionEngine,
     MessagePruningEngine,
+    MidRunSplitEngine,
     QRDampingEngine,
     RDampingEngine,
     SplitEngine,
@@ -58,6 +59,7 @@ __all__ = [
     "DampingSCFGEngine",
     "DampingTRWEngine",
     "MessagePruningEngine",
+    "MidRunSplitEngine",
     "TRWEngine",
     # Computators
     "MinSumComputator",
@@ -79,4 +81,3 @@ __all__ = [
     "AnalysisReport",
     "SnapshotVisualizer",
 ]
-
