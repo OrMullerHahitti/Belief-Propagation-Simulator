@@ -79,6 +79,7 @@ notebook: ## Launch Jupyter Lab inside the uv-managed environment
 
 repl: ## Open a Python REPL with project dependencies via uv
 	$(UV) run python
+<<<<<<< Updated upstream
 
 web-sim: ## Start the PropFlow Web simulator (backend + frontend)
 	@./start_app.sh
@@ -100,3 +101,7 @@ run-experiment: ## Run BP engines on structured-vs-random graphs (step 2)
 
 plot-experiment: ## Plot structured-vs-random results (step 3)
 	$(UV) run python experiments/structured_vs_random/plot_results.py
+=======
+web-sim: ## Start the PropFlow Web simulator (backend + frontend)
+	./start_app.sh
+>>>>>>> Stashed changes

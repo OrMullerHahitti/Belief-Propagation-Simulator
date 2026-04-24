@@ -1,0 +1,60 @@
+graph_name: nonconverging_chain_meeting_template
+
+# Set false for random-graph-only studies. When true, F12 and F23 must be
+# pasted below.
+run_chain: true
+
+# The non-random meeting structure is already symmetrically split at t=0:
+# two parallel copies of F12 connect X1-X2 and two parallel copies of F23
+# connect X2-X3. The copies keep the full pasted table, matching the diagram.
+symmetric_chain_split: true
+symmetric_chain_copies: 2
+symmetric_chain_cost_scale: 1.0
+
+variable_order: ["X1", "X2", "X3"]
+domain_values: [0, 1]
+
+# Paste the exact meeting example here.
+# Required primary structure:
+#   X1 -- F12_1/F12_2 -- X2 -- F23_1/F23_2 -- X3
+# The table axis order is the same as the variables list for each factor.
+cost_tables:
+  - name: F12
+    variables: ["X1", "X2"]
+    table:
+      # Replace null with a 2x2 table, for example:
+      # [[c00, c01],
+      #  [c10, c11]]
+      null
+  - name: F23
+    variables: ["X2", "X3"]
+    table:
+      null
+
+max_iter: 200
+tolerance: 1.0e-9
+split_ratio: 0.5
+split_targets: null
+
+damping_factors: [0.5, 0.9]
+long_damping_max_iter: 10000
+trace_every: 1
+output_dir: results/non_convergence_chain
+seed: 0
+
+random_graph:
+  enabled: false
+  num_vars: 20
+  domain_size: 2
+  density: 0.25
+  ct_factory: random_int
+  ct_params:
+    low: 0
+    high: 10
+  split_at_iters: [20, 40, 60, 80]
+  split_percentages: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+  percentage_split_at_iter: 20
+  run_split_at_sweep: true
+  run_percentage_sweep: true
+  run_combined_sweep: true
+  split_transfer_modes: ["transfer"]
