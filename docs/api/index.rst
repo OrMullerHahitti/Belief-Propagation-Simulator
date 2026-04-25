@@ -3,18 +3,6 @@ API Reference
 
 This section contains the complete API documentation for PropFlow.
 
-.. toctree::
-   :maxdepth: 2
-
-   engines
-   factor_graph
-   agents
-   policies
-   utils
-   computators
-   simulator
-   snapshots
-
 Core Modules
 ------------
 
@@ -35,6 +23,14 @@ Factor Graphs
 ~~~~~~~~~~~~~
 
 .. automodule:: propflow.bp.factor_graph
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Computators
+~~~~~~~~~~~
+
+.. automodule:: propflow.bp.computators
    :members:
    :undoc-members:
    :show-inheritance:
@@ -67,6 +63,14 @@ Utilities
 ~~~~~~~~~
 
 .. automodule:: propflow.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Configuration
+~~~~~~~~~~~~~
+
+.. automodule:: propflow.configs
    :members:
    :undoc-members:
    :show-inheritance:

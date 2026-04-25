@@ -70,7 +70,7 @@ module load python/3.11
 source /path/to/venv/bin/activate
 
 cd /path/to/Belief-Propagation-Simulator
-python scripts/run_batch.py --max-iter 5000 --graphs 50
+python examples/run_simulator.py
 ```
 
 ## 4. Web Service / API Integration

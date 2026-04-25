@@ -1,291 +1,244 @@
-# Belief Propagation Simulator — Architecture & Usage Tree
+# PropFlow Architecture and Usage Tree
 
-This guide maps the full codebase in a tree-like view and explains how the simulator, engines, factor graphs, policies, and utilities compose together. It focuses on practical usage (inputs/outputs), recommended imports, and extension points so you can ship a clean, easy-to-use package.
+This page maps the current `propflow` implementation and the recommended user
+surface.
 
-## High-Level Overview
+## High-Level Flow
 
-- Public API: `propflow` exposes the main classes for most users.
-  - `from propflow import FactorGraph, VariableAgent, FactorAgent, BPEngine, Simulator, FGBuilder, DampingEngine, SplitEngine, MessagePruningEngine, ...`
-- Core flow: create a `FactorGraph` → choose/compose an `Engine` → `engine.run(max_iter=N)` → inspect `engine.history` and (optionally) `engine.latest_snapshot()`.
-- Batch flow: create multiple graphs → define multiple engines → pass both into `Simulator` → run in parallel and plot costs.
+1. Build or load a `FactorGraph`.
+2. Choose a computator and engine.
+3. Run `engine.run(max_iter=N)`.
+4. Inspect `engine.assignments`, `engine.calculate_global_cost()`,
+   `engine.history.costs`, and `engine.snapshots`.
+5. Use `Simulator` for batches and `propflow.snapshots` for analysis.
 
-## Directory Tree (annotated)
+## Package Tree
 
-```
+```text
 src/propflow
-├── __init__.py                   # Public API exports
-├── _version.py                   # Package version
-├── cli.py                        # Console entry-point: `bp-sim`
-├── simulator.py                  # Batch runner over {engines × graphs}
-├── bp/                           # BP algorithms layer
-│   ├── __init__.py
-│   ├── factor_graph.py           # Bipartite factor graph (variables ↔ factors)
-│   ├── engine_base.py            # Base BPEngine (fixed-schedule BP loop)
-│   ├── engines_realizations.py   # Engine variants (damping, splitting, pruning, ...)
-│   ├── computators.py            # Min-sum / Max-sum / Sum-product / Max-product
-│   └── engine_components.py      # Step, Cycle, History (BCT-ready formats)
-├── core/                         # Agents and messaging primitives
-│   ├── __init__.py
-│   ├── agents.py                 # VariableAgent, FactorAgent
-│   ├── components.py             # Message, MailHandler (inbox/outbox), CostTable alias
-│   └── dcop_base.py              # Computator, Agent ABCs
-├── configs/                      # Defaults, registries, logging
-│   ├── __init__.py
-│   ├── global_config_mapping.py  # ENGINE_DEFAULTS, SIMULATOR_DEFAULTS, CT_FACTORY registry
-│   └── loggers.py                # Color/file loggers, log dirs
-├── policies/                     # Optional runtime policies (BP modifiers)
-│   ├── __init__.py               # Re-exports common policies
-│   ├── damping.py                # `damp` (+ TD cycle-based variant)
-│   ├── splitting.py              # Split factor tables (p*C,(1-p)*C)
-│   ├── cost_reduction.py         # Single-pass factor cost discounting
-│   ├── message_pruning.py        # Threshold-based pruning policy (accept/prune)
-│   ├── normalize_cost.py         # Normalization helpers + alt pruning impl
-│   └── convergance.py            # ConvergenceConfig, ConvergenceMonitor
-├── snapshots/                    # Per-step capture + Jacobian/cycle analysis
-│   ├── __init__.py
-│   ├── types.py                  # EngineSnapshot + Jacobian metadata
-│   ├── manager.py                # SnapshotManager (A,P,B, cycles, norms, winners)
-│   └── builder.py                # Extract Q/R, neighborhoods, domains from step
-├── utils/                        # Builders, tools, IO helpers
-│   ├── __init__.py
-│   ├── fg_utils.py               # FGBuilder, helpers, pickle safety
-│   ├── examples.py               # Easy FG creation without pickles
-│   ├── create/
-│   │   ├── create_factor_graph_config.py
-│   │   └── create_factor_graphs_from_config.py
-│   └── tools/ (perf, jacobian viz, figures, etc.)
-└── ... egg-info/ (packaging)
-
-src/propflow/snapshots            # Snapshot capture and analysis toolkit
-├── __init__.py                   # Analysis decorator & helpers exports
-├── snapshot.py, matrices.py, ... # Cycle analysis, invariants, margins, winners
+├── __init__.py                 # Public package exports
+├── _version.py                 # Package version
+├── cli.py                      # bp-sim --version/help
+├── simulator.py                # Batch runner over engine configs and graphs
+├── bp/
+│   ├── computators.py          # BPComputator, Min/Max Sum/Product variants
+│   ├── engine_base.py          # BPEngine synchronous loop
+│   ├── engine_components.py    # Step plus history compatibility view
+│   ├── engines.py              # Engine policy variants
+│   └── factor_graph.py         # FactorGraph wrapper around NetworkX
+├── core/
+│   ├── agents.py               # VariableAgent, FactorAgent
+│   ├── components.py           # Message, MailHandler, CostTable alias
+│   ├── dcop_base.py            # Base Agent / Computator primitives
+│   └── protocols.py            # Protocol definitions
+├── configs/
+│   ├── global_config_mapping.py # Defaults, CT factories, validators
+│   └── loggers.py              # Logger wrapper
+├── policies/
+│   ├── convergance.py          # ConvergenceConfig, ConvergenceMonitor
+│   ├── cost_reduction.py
+│   ├── damping.py
+│   ├── message_pruning.py
+│   ├── normalize_cost.py
+│   └── splitting.py
+├── snapshots/
+│   ├── analyzer.py             # SnapshotAnalyzer, AnalysisReport
+│   ├── builder.py              # Builds EngineSnapshot from a Step
+│   ├── manager.py              # SnapshotManager capture hook
+│   ├── step_formatter.py       # Human-readable snapshot formatting
+│   ├── types.py                # EngineSnapshot, Jacobians, CycleMetrics
+│   ├── utils.py
+│   └── visualizer.py           # SnapshotVisualizer and cost-table plots
+├── utils/
+│   ├── fg_utils.py             # FGBuilder and graph helpers
+│   ├── create/                 # Experimental config/pickle helpers
+│   ├── tools/                  # BCT, performance, drawing, convex hull tools
+│   └── ...
+└── engines/, computators/      # Convenience import packages
 ```
 
-## Data Flow (one run)
+## Public API
 
-1) Build or load a `FactorGraph` with `VariableAgent` and `FactorAgent` nodes and cost tables.
-2) Create a BP `Engine` (e.g., `DampingEngine`) with a `Computator` (default: min-sum).
-3) Call `engine.run(max_iter=N)`; the engine executes synchronized phases per step:
-   - Variables compute Q messages → send → clear → prepare
-   - Factors compute R messages → send → clear → prepare
-   - Compute global cost, track history; optional normalization & convergence checks
-   - Optional: `SnapshotManager` captures Q/R, Jacobians (A,P,B), cycles, winners
-4) Inspect outputs: `engine.history` (costs, beliefs/assignments per cycle), `engine.get_beliefs()`, `engine.assignments`, `engine.latest_snapshot()`.
+Most user code should import from `propflow`:
 
-## Public API (recommended imports)
+```python
+from propflow import (
+    BPEngine,
+    DampingEngine,
+    FactorAgent,
+    FactorGraph,
+    FGBuilder,
+    MinSumComputator,
+    Simulator,
+    VariableAgent,
+)
+```
 
-- Graph & Agents:
-  - `FactorGraph`, `VariableAgent`, `FactorAgent`
-- Engines (BP):
-  - `BPEngine` (base), `DampingEngine`, `SplitEngine`, `CostReductionOnceEngine`, `DampingSCFGEngine`, `DampingCROnceEngine`, `MessagePruningEngine`
-- Batch runner:
-  - `Simulator`
-- Builders:
-  - `FGBuilder` (`build_random_graph`, `build_cycle_graph`), `CTFactory` registry
+Cost-table helpers live in `propflow.configs`:
+
+```python
+from propflow.configs import (
+    CTFactories,
+    create_poisson_table,
+    create_random_int_table,
+    create_uniform_float_table,
+    get_ct_factory,
+)
+```
+
+Snapshot tooling lives in `propflow.snapshots`:
+
+```python
+from propflow.snapshots import AnalysisReport, SnapshotAnalyzer, SnapshotVisualizer
+```
+
 ## Factor Graphs
 
-- Structure: `FactorGraph(variables, factors, edges)` where `edges: {FactorAgent: [VariableAgent, ...]}`.
-- Nodes:
-  - `VariableAgent(name, domain)`: holds domain size, computes Q, tracks belief and current assignment.
-  - `FactorAgent(name, domain, ct_creation_func, param|cost_table)`: holds an n-D cost table; computes R.
-- Internals:
-  - `G`: NetworkX bipartite graph (variables bipartite=0, factors bipartite=1)
-  - `connection_number`: per-factor map of variable name → dimension index (for cost-table broadcasting/order)
-  - `global_cost`: sum of costs using current variable assignments across original factors
-  - `set_computator(...)`: assigns computator to all nodes
-  - Pickle-safe (`__getstate__/__setstate__`) for multiprocessing & persistence
+`FactorGraph(variable_li, factor_li, edges)` stores:
 
-## Engines (BP)
+- `variables`: list of `VariableAgent`
+- `factors`: list of `FactorAgent`
+- `G`: NetworkX bipartite graph
+- `edges`: reconstructed ordered mapping from factors to variables
+- `original_factors`: deep copy used for comparable global-cost evaluation
 
-- Base: `BPEngine(factor_graph, computator=MinSumComputator(), init_normalization=dummy, name="BPEngine", convergence_config=None, monitor_performance=None, normalize_messages=None, anytime=None, snapshot_manager=None)`
-  - Inputs:
-    - Required: `factor_graph`
-    - Optional: `computator` (min-sum/max-sum/sum-product/max-product), convergence & performance configs, normalization flags, snapshots
-  - Step Phases (synchronized): variable Q compute → send; factor R compute → send; cost update → history; optional normalization and convergence; optional snapshot
-  - Outputs: `history` (Step/Cycle, costs, beliefs, assignments), `assignments`, `get_beliefs()`, `latest_snapshot()`
-  - Hooks for variants: `post_init`, `pre/post_factor_compute`, `post_var_compute`, `post_two_cycles`, `post_factor_cycle`
+Manual edge order matters. For `edges={f12: [x1, x2]}`, axis 0 of `f12`'s cost
+table belongs to `x1`, and axis 1 belongs to `x2`.
 
-- Engine Variants (what they add)
-  - `Engine`: alias to base engine
-  - `DampingEngine(damping_factor=0.9)`
-    - Applies `damp(var, x)` after variable compute; stores last iteration per variable
-  - `SplitEngine(split_factor=0.6)`
-    - `post_init` splits every factor into two clones with tables `p*C` and `(1-p)*C`; updates graph and factor list
-  - `CostReductionOnceEngine(reduction_factor=0.5)`
-    - `post_init` single-pass cost reduction across all factors; `post_factor_compute` multiplies factor outbox attentively
-  - `DampingSCFGEngine(damping_factor=0.9, split_factor=0.6)`
-    - Composition of damping + splitting
-  - `DampingCROnceEngine(damping_factor=0.9, reduction_factor=0.5)`
-    - Composition of damping + single-pass cost reduction
-  - `MessagePruningEngine(prune_threshold=1e-4, min_iterations=5, adaptive_threshold=True)`
-    - Initializes a pruning policy to reduce near-duplicate messages (accept/prune by L2-diff); integrate by setting policy on agent mailers if needed
+Prefer `FGBuilder` for standard topologies:
+
+- `build_cycle_graph`
+- `build_random_graph`
+- `build_lemniscate_graph`
+- `build_with_unary_costs`
+
+## Engines
+
+`BPEngine` signature:
+
+```python
+BPEngine(
+    factor_graph,
+    computator=MinSumComputator(),
+    init_normalization=dummy_func,
+    name="BPEngine",
+    convergence_config=None,
+    monitor_performance=None,
+    normalize_messages=None,
+    anytime=None,
+    snapshot_manager=None,
+)
+```
+
+Step phases:
+
+1. Variables compute and send Q messages.
+2. Variable inboxes are cleared/prepared.
+3. Factors compute and send R messages.
+4. Factor inboxes are cleared/prepared.
+5. Global cost is updated.
+6. `SnapshotManager` captures an `EngineSnapshot`.
+7. Convergence checks run at graph-diameter intervals.
+
+Current top-level engine variants:
+
+- `DampingEngine`
+- `RDampingEngine`
+- `QRDampingEngine`
+- `DiffusionEngine`
+- `SplitEngine`
+- `MidRunSplitEngine`
+- `CostReductionOnceEngine`
+- `DampingCROnceEngine`
+- `DampingSCFGEngine`
+- `TRWEngine`
+- `DampingTRWEngine`
+- `MessagePruningEngine`
 
 ## Computators
 
-- `BPComputator` (base): vectorized message operations (dispatch tables for `reduce`/`combine`).
-  - `compute_Q(messages)` → list[Message] from variable to factor
-  - `compute_R(cost_table, incoming_messages)` → list[Message] from factor to variable
-  - `compute_belief(messages, domain)` → np.ndarray
-  - `get_assignment(belief)` → arg-reduce index (e.g., argmin for min-sum)
-- Variants:
-  - `MinSumComputator` (default): reduce=min, combine=add
-  - `MaxSumComputator`: reduce=max, combine=add
-  - `MaxProductComputator`: reduce=max, combine=mul
-  - `SumProductComputator`: reduce=sum, combine=mul
+`BPComputator` implements vectorized Q/R message updates and exposes:
 
-## Policies (optional modifiers)
+- `compute_Q(messages)`
+- `compute_R(cost_table, incoming_messages)`
+- `compute_belief(messages, domain)`
+- `get_assignment(belief)`
 
-- `damping.damp(variable, x=0.9)` and cycle-based `TD(vars, x, diameter)`
-- `splitting.split_all_factors(fg, p=0.5)`
-- `cost_reduction.cost_reduction_all_factors_once(fg, k)` / `discount_attentive`
-- `message_pruning.MessagePruningPolicy(prune_threshold, min_iterations, adaptive)` with `MailHandler.set_pruning_policy(policy)`
-- `normalize_cost.normalize_inbox(variables)` after cycles and other normalization helpers
-- Convergence: `ConvergenceMonitor(ConvergenceConfig)` used by `BPEngine` during cycles
+Provided variants:
 
-## History, Step/Cycle, and Snapshots
+- `MinSumComputator`: reduce by min, combine by add.
+- `MaxSumComputator`: reduce by max, combine by add.
+- `SumProductComputator`: reduce by sum, combine by multiply.
+- `MaxProductComputator`: reduce by max, combine by multiply.
 
-- `engine_components.History` tracks:
-  - `costs`: per-step scalar cost; `beliefs`/`assignments`: per-graph-diameter cycles
-  - Optional BCT mode: step-level `step_beliefs`, `step_messages`, `step_costs` for detailed analysis
-  - `save_results(filename)` / `to_json(path)`
-- `Step`: per-step captured messages
-  - `q_messages`: variable→factor; `r_messages`: factor→variable (used by snapshots)
-- `snapshots.SnapshotManager`
-  - Builds `SnapshotData` with Q/R, neighborhoods, domains; computes Jacobians `(A,P,B)` and optional cycle metrics and block norms; supports `save_step(dir, save=True)` for explicit persistence
+## History and Snapshots
 
-## Simulator (batch)
+`engine.history` is a `SnapshotHistoryView`, not an independent mutable recorder.
+It derives compatibility data from `engine.snapshots`.
 
-- `Simulator(engine_configs: dict, log_level=None)`
-  - `engine_configs` shape:
-    ```python
-    engine_configs = {
-      "DampingEngine": {"class": DampingEngine, "damping_factor": 0.9},
-      "Split": {"class": SplitEngine, "split_factor": 0.6},
-      # ...any engine class with its kwargs
-    }
-    ```
-  - `run_simulations(graphs: list[FactorGraph], max_iter=SIMULATOR_DEFAULTS['default_max_iter'])` → dict[str, list[list[float]]]
-    - Returns: `engine_name -> [cost_series_per_graph]`
-    - Uses multiprocessing with fallbacks; logs per-process; timeouts configurable
-  - `plot_results(max_iter=None, verbose=False)` → inline matplotlib plot (avg ± std if verbose)
-  - `set_log_level(level_str)` to switch logging during a run
+Useful outputs:
 
-## Builders, Configs, and Registries
+- `engine.history.costs`
+- `engine.history.beliefs`
+- `engine.history.assignments`
+- `engine.history.get_bct_data()`
+- `engine.snapshots`
+- `engine.latest_snapshot()`
+- `engine.get_snapshot(step_index)`
+- `engine.snapshot_map`
 
-- `FGBuilder`
-  - `build_random_graph(num_vars, domain_size, ct_factory, ct_params, density)` → `FactorGraph`
-  - `build_cycle_graph(num_vars, domain_size, ct_factory, ct_params, density=1.0)` → `FactorGraph`
-- Config infrastructure (`configs/global_config_mapping.py`)
-  - Defaults: `ENGINE_DEFAULTS`, `POLICY_DEFAULTS`, `CONVERGENCE_DEFAULTS`, `SIMULATOR_DEFAULTS`
-  - CT factories: register via `@ct_factory("name")` and then use `CTFactory.name` or `get_ct_factory("name")`
-  - Graph types registry: `GRAPH_TYPES` → dotted path of builder functions
-  - Logging: `LOGGING_CONFIG`, `Logger`, level names: `HIGH`, `INFORMATIVE`, `VERBOSE`, `MILD`, `MINIMAL`
-- Declarative graph config (optional): `utils/create/*`
-  - `ConfigCreator.create_graph_config(...)` → pickled `GraphConfig`
-  - `FactorGraphBuilder.build_and_return(cfg_path)` or `build_and_save(cfg_path)`
+`SnapshotAnalyzer` computes belief trajectories, difference coordinates,
+Jacobians, block norms, cycle counts, and report exports from the snapshot list.
 
-## CLI & Examples
+## Simulator
 
-- CLI: `bp-sim --version` prints version (more commands can be added later)
-- Examples:
-  - Quick start (`examples/quick_start.py`): minimal 2-variable graph and `DampingEngine`
-  - Simulator run (`examples/run_simulator.py`): builds many random graphs and compares engines with plots
+`Simulator(engine_configs, log_level=None, seed=None)` accepts configs like:
 
-## Typical Usage Patterns
-
-1) Minimal run
 ```python
-from propflow import FactorGraph, VariableAgent, FactorAgent, DampingEngine
-import numpy as np
-
-v1, v2 = VariableAgent("v1", 2), VariableAgent("v2", 2)
-def table(num_vars=None, domain_size=None, **_):
-    return np.array([[0, 1], [1, 0]])
-f = FactorAgent("f", 2, ct_creation_func=table)
-fg = FactorGraph([v1, v2], [f], edges={f: [v1, v2]})
-engine = DampingEngine(factor_graph=fg, damping_factor=0.9)
-engine.run(max_iter=20)
-print(engine.history.costs[-1], engine.assignments)
-```
-
-2) Batch compare engines on random graphs
-```python
-from propflow import Simulator, FGBuilder, DampingEngine, SplitEngine
-from propflow.configs import CTFactory
-
-graphs = [
-  FGBuilder.build_random_graph(
-    num_vars=50, domain_size=10,
-    ct_factory=CTFactory.random_int.fn,
-    ct_params={"low": 100, "high": 200}, density=0.25,
-  ) for _ in range(10)
-]
-
-engines = {
-  "Damping": {"class": DampingEngine, "damping_factor": 0.9},
-  "Split": {"class": SplitEngine, "split_factor": 0.6},
+engine_configs = {
+    "baseline": {"class": BPEngine},
+    "damped": {"class": DampingEngine, "damping_factor": 0.9},
 }
-
-sim = Simulator(engines, log_level="INFORMATIVE")
-results = sim.run_simulations(graphs, max_iter=5000)
-sim.plot_results(verbose=True)
 ```
 
-3) Inspect snapshots post-run
+`run_simulations(graphs, max_iter=None)` returns:
+
 ```python
-from propflow import DampingEngine
-from propflow.snapshots import SnapshotAnalyzer
-
-engine = DampingEngine(factor_graph=fg, damping_factor=0.9)
-engine.run(max_iter=50)
-
-analyzer = SnapshotAnalyzer(engine.snapshots)
-block_norms = analyzer.block_norms(engine.latest_snapshot().step)
-print(block_norms)
+dict[str, list[list[float]]]
 ```
 
-## Inputs/Outputs Summary (engines)
-
-- Common engine inputs
-  - `factor_graph`: `FactorGraph`
-  - `computator`: one of `MinSumComputator` (default), `MaxSumComputator`, `SumProductComputator`, `MaxProductComputator`
-  - Optional: `ConvergenceConfig`, performance monitoring, normalization flags, `snapshot_manager`
-- Common outputs
-  - `history.costs`: list[float]
-  - `history.beliefs[cycle]`: dict[var -> np.ndarray]
-  - `history.assignments[cycle]`: dict[var -> int]
-  - `get_beliefs()`: dict[var -> np.ndarray]
-  - `assignments`: dict[var -> int]
-  - `latest_snapshot()`: `SnapshotRecord | None`
+Each key is an engine name and each value is one global-cost series per graph.
 
 ## Extension Points
 
-- Add a new engine
-  - Subclass `BPEngine`; override hooks (`post_init`, `post_var_compute`, `post_factor_compute`, `post_factor_cycle`) as needed
-  - Add to your app via `engine_configs = {"MyEngine": {"class": MyEngine, ...}}`
-- Add a new computator
-  - Subclass `BPComputator` and define reduce/combine ops; plug into an engine via `computator=YourComputator()`
-- Add a new policy
-  - Implement a callable or `Policy` subclass; apply from engine hooks or set on `MailHandler` (e.g., `set_pruning_policy`)
-- Add a new cost-table factory
-  - Decorate a function with `@ct_factory("my_factory")` in `global_config_mapping.py`
-- Add a new graph topology builder
-  - Implement a builder returning `(variables, factors, edges)`; register in `GRAPH_TYPES`
+- Add a new engine by subclassing `BPEngine` and overriding hooks such as
+  `post_init`, `post_var_compute`, `pre_factor_compute`, or
+  `post_factor_compute`.
+- Add a new computator by implementing the `BPComputator` method surface.
+- Add a new policy under `src/propflow/policies` and invoke it from an engine
+  hook.
+- Add a new cost factory by defining a callable and registering it in
+  `CT_FACTORIES` / `CTFactories`, or pass the callable directly to `FGBuilder`.
+- Add a new topology by extending `FGBuilder` with a helper that returns a fully
+  initialized `FactorGraph`.
 
-## Packaging & Imports (clean user surface)
+## Minimal Run
 
-- Preferred imports for end users (stable):
-  - `from propflow import FactorGraph, VariableAgent, FactorAgent, Simulator, FGBuilder`
-  - `from propflow import DampingEngine, SplitEngine, MessagePruningEngine` (engine variants)
-  - `from propflow.configs import CTFactory` (cost-table factories)
-- CLI: `bp-sim --version`
+```python
+import numpy as np
 
-## Notes & Conventions
+from propflow import BPEngine, FactorAgent, FactorGraph, VariableAgent
 
-- Python 3.10+, type hints, Black formatting, `flake8` max line length 120.
-- Avoid circular imports; use `propflow.__init__` re-exports for end-user code.
-- Deterministic seeds for experiments; keep logs/artifacts under `configs/logs` and results in dedicated folders.
+def table(num_vars: int, domain_size: int, **_):
+    return np.array([[0.0, 1.0], [1.0, 0.0]])
 
----
+x1 = VariableAgent("x1", 2)
+x2 = VariableAgent("x2", 2)
+f12 = FactorAgent("f12", 2, ct_creation_func=table)
 
-If you want this file split into shorter topic pages (Engines, Factor Graphs, Simulator, Snapshots/Analyzer) or need a deeper table of each class’ arguments/returns, tell me and I’ll generate those as well.
+fg = FactorGraph(variable_li=[x1, x2], factor_li=[f12], edges={f12: [x1, x2]})
+engine = BPEngine(fg)
+engine.run(max_iter=20)
+
+print(engine.history.costs[-1], engine.assignments)
+```

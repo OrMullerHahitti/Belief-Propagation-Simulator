@@ -47,7 +47,7 @@ pip install -e .[dev]
 ## 4. Verifying Installation
 1. Activate the environment.
 2. Run `python -c "import propflow; print(propflow.__version__)"` to confirm package import.
-3. Execute `python examples/minsum_basic.py` to ensure engines and graph builders are functional.
+3. Execute `python examples/quick_start.py` to ensure engines and graph builders are functional.
 4. Optionally run `pytest -q` to validate the suite (expect some longer runtimes for heavy graph tests).
 
 ## 5. External Services & Data

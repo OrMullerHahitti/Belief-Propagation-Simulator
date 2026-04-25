@@ -63,12 +63,24 @@ compare plain BP to a damped variant.
 
 .. code-block:: python
 
-   from propflow import DampingEngine, MinSumComputator
+   from copy import deepcopy
 
-   baseline = BPEngine(graph, computator=MinSumComputator())
+   from propflow import DampingEngine, FGBuilder, MinSumComputator
+   from propflow.configs import create_random_int_table
+
+   graph_for_comparison = FGBuilder.build_cycle_graph(
+       num_vars=6,
+       domain_size=3,
+       ct_factory=create_random_int_table,
+       ct_params={"low": 0, "high": 25},
+   )
+   baseline_graph = deepcopy(graph_for_comparison)
+   damped_graph = deepcopy(graph_for_comparison)
+
+   baseline = BPEngine(baseline_graph, computator=MinSumComputator())
    baseline.run(max_iter=50)
 
-   damped = DampingEngine(graph, damping_factor=0.85)
+   damped = DampingEngine(damped_graph, damping_factor=0.85)
    damped.run(max_iter=50)
 
    print("Baseline cost:", baseline.history.costs[-1])
@@ -84,7 +96,7 @@ possible and aggregate cost histories.
 .. code-block:: python
 
    from propflow import Simulator, FGBuilder, BPEngine, DampingEngine
-   from propflow.configs import CTFactory
+   from propflow.configs import CTFactories
 
    configs = {
        "baseline": {"class": BPEngine},
@@ -95,7 +107,7 @@ possible and aggregate cost histories.
        FGBuilder.build_random_graph(
            num_vars=12,
            domain_size=3,
-           ct_factory=CTFactory.random_int.fn,
+           ct_factory=CTFactories.RANDOM_INT,
            ct_params={"low": 5, "high": 30},
            density=0.3,
        )
@@ -149,8 +161,8 @@ Checklist for manual builds:
 Inspecting Runs with Analyzer Tooling
 -------------------------------------
 
-Capture rich per-iteration data by pairing built-in snapshots with the external
-recorder.
+Every engine step captures an ``EngineSnapshot`` automatically. Persist a compact
+trace manually or hand the in-memory snapshots to the analyzer/visualizer.
 
 .. code-block:: python
 
@@ -170,7 +182,15 @@ recorder.
    engine = BPEngine(fg)
    engine.run(max_iter=80)
 
-   payload = [snap.to_dict() for snap in engine.snapshots]  # type: ignore[attr-defined]
+   payload = [
+       {
+           "step": snap.step,
+           "assignments": snap.assignments,
+           "global_cost": snap.global_cost,
+           "metadata": snap.metadata,
+       }
+       for snap in engine.snapshots
+   ]
    out_path = Path("results/demo/run.json")
    out_path.parent.mkdir(parents=True, exist_ok=True)
    out_path.write_text(json.dumps(payload, indent=2))

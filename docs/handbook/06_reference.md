@@ -8,7 +8,7 @@
 | `propflow.bp.engine_base.BPEngine` | Base synchronous BP engine. | Provides step routine, history tracking, convergence checks. |
 | `propflow.bp.engines` | Concrete engine variants (`BPEngine`, `DampingEngine`, `SplitEngine`, etc.). | Mix of damping, cost reduction, splitting strategies. |
 | `propflow.utils.fg_utils.FGBuilder` | Helper for constructing factor graphs. | Supports random graph generation and deterministic setups. |
-| `propflow.configs.global_config_mapping` | Centralised defaults and registries. | Contains `ENGINE_DEFAULTS`, `POLICY_DEFAULTS`, `SIMULATOR_DEFAULTS`, CT factories. |
+| `propflow.configs.global_config_mapping` | Centralised defaults and registries. | Contains `EngineDefaults`, `PolicyDefaults`, `SimulatorDefaults`, CT factories, and validation helpers. |
 | `propflow.snapshots` | Snapshot analyzer and reporting helpers. | Provides `SnapshotAnalyzer` and `AnalysisReport`. |
 | `propflow.snapshots.SnapshotVisualizer` | Plots argmin trajectories and message norms. | Accepts in-memory snapshot lists. |
 
@@ -26,7 +26,7 @@
 | Policy | `damping_factor` | 0.9 | Default damping parameter. |
 | Policy | `split_factor` | 0.5 | Weight for split engines. |
 
-*Override defaults by passing overrides when constructing engines or updating the defaults dictionary.*
+Override defaults by passing explicit constructor arguments or by creating validated config dictionaries with `get_validated_config()`.
 
 ## 3. CLI & Scripts
 
@@ -34,11 +34,11 @@
 | --- | --- |
 | `uv run bp-sim --version` | Prints CLI version. |
 | `uv run python main.py` | Runs bundled random-graph simulation demo. |
-| `uv run python examples/minsum_basic.py` | Demonstrates Min-Sum on a small graph. |
+| `uv run python examples/quick_start.py` | Runs a small two-variable BP example. |
 
 ## 4. Environment Variables
 - `PYTHONPATH` should include `src/` if you are not using editable installs.
-- `PROPLOW_LOG_LEVEL` (custom) can be set before running scripts to override simulator logging (extend `Simulator` to read it if desired).
+- `BP_LOG_LEVEL` controls logger verbosity for the `propflow.bp` convenience module.
 
 ## 5. File & Directory Conventions
 

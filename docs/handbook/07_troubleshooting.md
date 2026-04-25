@@ -15,8 +15,8 @@
 
 ## 2. Runtime Errors
 
-### `RuntimeError: Invalid default configuration: Missing required engine config key`
-- Ensure that `ENGINE_DEFAULTS` contains all keys expected by `validate_engine_config`. Recent updates removed the unused `timeout` key; reinstall or merge latest changes.
+### `RuntimeError: Invalid default configuration`
+- Ensure that `EngineDefaults()` contains all keys expected by `validate_engine_config`. Reinstall or merge the latest package if defaults and validators drift.
 
 ### `ModuleNotFoundError: No module named 'networkx'`
 - Development extras may not be installed. Run `pip install -e .[dev]` or `uv sync` to pull runtime dependencies.
@@ -27,11 +27,11 @@
 ## 3. Performance & Resource Usage
 - **Slow runs**: Reduce graph size (`num_vars`, `density`) or iteration limits (`max_iter`).
 - **High memory**: Large cost tables can be heavy; consider sparse representations or smaller domains.
-- **CPU saturation**: Use `SIMULATOR_DEFAULTS["cpu_count_multiplier"]` to throttle worker count.
+- **CPU saturation**: Reduce the graph batch size or pass smaller workloads to `Simulator.run_simulations()`. `SimulatorDefaults().cpu_count_multiplier` documents the intended throttle, but the current runner uses `multiprocessing.cpu_count()` directly.
 
 ## 4. Visualisation Problems
 - **Matplotlib not installed**: Ensure `matplotlib` is part of the environment (it is in core dependencies).
-- **Plot window not showing**: Use `--no-show` flag in CLI when running headless and rely on `--save` to write files.
+- **Plot window not showing**: Pass `show=False` and `savepath="..."` to `SnapshotVisualizer` plotting methods when running headless.
 - **Mixed domain lengths**: `SnapshotVisualizer` raises `ValueError` if a variable receives messages of differing lengths; inspect your factor graph construction.
 
 ## 5. Snapshot Recorder Questions
@@ -41,7 +41,7 @@
 ## 6. Deployment Questions
 - **How do I keep logs outside the container?** Mount a host volume when running Docker (`-v $(pwd)/logs:/app/configs/logs`).
 - **Can I run on GPU?** Current implementation is CPU-based; GPU acceleration is not supported.
-- **How do I share results?** Export snapshots (`recorder.to_json`), plots, and CSV summaries to `results/` and package them alongside README notes.
+- **How do I share results?** Serialize selected fields from `engine.snapshots`, write analyzer reports with `AnalysisReport.to_csv()`, and store plots under `results/`.
 
 ## 7. Getting Support
 - Check this handbook first.

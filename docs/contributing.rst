@@ -80,10 +80,10 @@ Build documentation locally:
 
 .. code-block:: bash
 
-   cd docs
-   make html
-   open _build/html/index.html  # On Mac
-   # Or: start _build/html/index.html  # On Windows
+   python -m pip install sphinx sphinx-rtd-theme myst-parser sphinx-autodoc-typehints
+   python -m sphinx -b html docs docs/_build/html
+   open docs/_build/html/index.html  # On Mac
+   # Or: start docs/_build/html/index.html  # On Windows
 
 Contribution Guidelines
 -----------------------
