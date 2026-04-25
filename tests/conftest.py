@@ -6,21 +6,19 @@ can be used across multiple test modules to reduce code duplication and
 ensure consistent test data.
 """
 
-import sys
-from pathlib import Path
 
 import pytest
 import numpy as np
 import tempfile
 import os
 import shutil
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Any, Callable
+from unittest.mock import Mock
+from typing import List
 import pickle
 
 # Import main modules for creating fixtures
-from propflow.core.agents import VariableAgent, FactorAgent, FGAgent
-from propflow.core.components import Message, MailHandler, CostTable
+from propflow.core.agents import VariableAgent, FactorAgent
+from propflow.core.components import Message, MailHandler
 from propflow.bp.factor_graph import FactorGraph
 from propflow.bp.computators import MinSumComputator, MaxSumComputator
 from propflow.bp.engines import BPEngine
@@ -670,9 +668,9 @@ def assert_helpers():
             """Assert basic properties of cost tables."""
             assert isinstance(cost_table, np.ndarray), "Cost table must be numpy array"
             assert cost_table.ndim >= 1, "Cost table must have at least 1 dimension"
-            assert np.all(
-                np.isfinite(cost_table)
-            ), "Cost table must contain finite values"
+            assert np.all(np.isfinite(cost_table)), (
+                "Cost table must contain finite values"
+            )
 
         @staticmethod
         def assert_agent_properties(agent, expected_name=None, expected_domain=None):
@@ -694,9 +692,9 @@ def assert_helpers():
             assert hasattr(message, "data"), "Message must have data"
             assert hasattr(message, "sender"), "Message must have sender"
             assert hasattr(message, "recipient"), "Message must have recipient"
-            assert isinstance(
-                message.data, np.ndarray
-            ), "Message data must be numpy array"
+            assert isinstance(message.data, np.ndarray), (
+                "Message data must be numpy array"
+            )
 
             if expected_sender:
                 assert message.sender == expected_sender
@@ -731,9 +729,9 @@ def test_data_validator():
 
             for var_name, assignment in assignments_dict.items():
                 assert isinstance(var_name, str), "Variable names must be strings"
-                assert isinstance(
-                    assignment, (int, np.integer)
-                ), "Assignments must be integers"
+                assert isinstance(assignment, (int, np.integer)), (
+                    "Assignments must be integers"
+                )
 
                 if expected_domain_size:
                     assert 0 <= assignment < expected_domain_size

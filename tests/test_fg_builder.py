@@ -4,7 +4,6 @@ from propflow.utils import FGBuilder
 from propflow.configs import (
     create_random_int_table,
     create_uniform_float_table,
-    create_poisson_table,
 )
 from propflow.utils.create.create_cost_tables import (
     create_uniform_table,

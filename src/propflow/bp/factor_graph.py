@@ -59,7 +59,7 @@ class FactorGraph:
     @property
     def lb(self) -> int | float:
         """The lower bound of the problem, can be set externally."""
-        return self._lb # type: ignore
+        return self._lb  # type: ignore
 
     @lb.setter
     def lb(self, value: int | float) -> None:
@@ -101,7 +101,11 @@ class FactorGraph:
                     valid = False
                     break
             if valid and None not in indices and len(indices) == factor.cost_table.ndim:
-                ct = factor.original_cost_table if factor.original_cost_table is not None else factor.cost_table
+                ct = (
+                    factor.original_cost_table
+                    if factor.original_cost_table is not None
+                    else factor.cost_table
+                )
                 total += ct[tuple(indices)]
         return total
 
@@ -256,9 +260,7 @@ class FactorGraph:
         for factor in self.factors:
             if getattr(factor, "cost_table", None) is None:
                 factor.initiate_cost_table()
-                logger.debug(
-                    "Cost table initialized for factor node: %s", factor.name
-                )
+                logger.debug("Cost table initialized for factor node: %s", factor.name)
             elif getattr(factor, "original_cost_table", None) is None:
                 factor.save_original()
 

@@ -6,6 +6,7 @@ engine configurations across a set of factor graphs in parallel. It uses Python'
 and provides a simple plotting utility to visualize and compare the performance
 of different engines.
 """
+
 import pickle
 import random
 import sys

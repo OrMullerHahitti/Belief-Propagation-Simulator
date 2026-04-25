@@ -8,10 +8,9 @@ message-passing update function.
 """
 
 import numpy as np
-import networkx as nx
 from typing import Dict, List, Tuple, Optional, Any, Union
 from dataclasses import dataclass
-from scipy.sparse import csr_matrix, lil_matrix
+from scipy.sparse import lil_matrix
 from enum import Enum
 import logging
 

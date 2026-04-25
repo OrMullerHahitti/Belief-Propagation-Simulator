@@ -3,6 +3,7 @@
 This module provides high-level helper functions to easily generate or load
 factor graphs for use in demonstrations, tests, or experiments.
 """
+
 import os
 import sys
 from typing import Any, Callable, Dict, Optional

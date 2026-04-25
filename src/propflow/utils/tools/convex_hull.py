@@ -4,15 +4,17 @@ This module provides data structures and functions for computing and visualizing
 the convex hull of cost functions, which is a technique used in hierarchical
 models and for analyzing the behavior of certain message-passing algorithms.
 """
+
 import numpy as np
 from scipy.spatial import ConvexHull
 from scipy.spatial._qhull import QhullError
 from dataclasses import dataclass
-from typing import List, Tuple, Optional, Union, Literal, Any
+from typing import List, Tuple, Optional, Union, Literal
 import math
 
 try:
     import matplotlib.pyplot as plt
+
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
@@ -758,7 +760,7 @@ def plot_envelope_comparison(
                 "-" if j == 0 else "--",
                 color=colors[i],
                 linewidth=2,
-                label=f"{label_prefix} Line {j+1}" if j < 2 else "",
+                label=f"{label_prefix} Line {j + 1}" if j < 2 else "",
             )
         for intercept in find_all_envelope_intercepts(hull):
             if k_min <= intercept.k <= k_max:

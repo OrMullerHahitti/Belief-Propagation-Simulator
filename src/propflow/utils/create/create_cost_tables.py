@@ -4,6 +4,7 @@ This module provides a set of functions to generate numpy arrays that can be
 used as cost tables in factor graphs. It includes a general-purpose creator
 and several convenience wrappers for common random distributions.
 """
+
 from typing import Any, Callable
 
 import numpy as np

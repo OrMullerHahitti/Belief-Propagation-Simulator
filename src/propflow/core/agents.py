@@ -43,7 +43,6 @@ class FGAgent(Agent, ABC):
         """
         self.mailer.receive_messages(message)
 
-
     def empty_mailbox(self) -> None:
         """Clears all messages from the mailer's inbox."""
         self.mailer.clear_inbox()

@@ -7,6 +7,7 @@ same sender and discarding the new one if the change is below a certain
 threshold. This can significantly reduce memory usage and computation time in
 simulations where messages quickly stabilize.
 """
+
 import logging
 from typing import Dict
 

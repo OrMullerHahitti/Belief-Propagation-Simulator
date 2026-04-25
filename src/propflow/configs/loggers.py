@@ -18,7 +18,7 @@ from enum import Enum
 import colorlog
 
 from ..utils.path_utils import find_project_root
-from .global_config_mapping import LoggingDefaults, get_validated_config
+from .global_config_mapping import get_validated_config
 
 
 # Load logging configuration

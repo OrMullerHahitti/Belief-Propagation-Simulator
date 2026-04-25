@@ -5,6 +5,7 @@ random data for a given shape) and factory functions to create random messages
 and cost tables using these policies. This approach allows for easy dependency
 injection of different random generation strategies.
 """
+
 from typing import Callable, Tuple
 
 import numpy as np

@@ -89,7 +89,7 @@ def test_run_experiment_examples_cycle_key_counts():
         subtract_initial=False,
     )
     assert len(runs_5a) == 2
-    assert runs_5a[0]["key_order"] == [f"x{i+1}_route" for i in range(6)]
+    assert runs_5a[0]["key_order"] == [f"x{i + 1}_route" for i in range(6)]
     assert len(runs_5a[0]["records"]) == 6
 
     ex_8 = find_cases_cycle(
@@ -110,7 +110,9 @@ def test_run_experiment_examples_cycle_key_counts():
         subtract_initial=False,
     )
     assert len(runs_8) == 1
-    assert runs_8[0]["key_order"] == [f"x{i+1}_v{v}" for v in range(2) for i in range(6)]
+    assert runs_8[0]["key_order"] == [
+        f"x{i + 1}_v{v}" for v in range(2) for i in range(6)
+    ]
     assert len(runs_8[0]["records"]) == 12
 
 

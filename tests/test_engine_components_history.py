@@ -36,9 +36,6 @@ def test_step_and_cycle_equality():
     assert cycle_1 == cycle_2
 
 
-
-
-
 def test_history_bct_tracking_and_export(tmp_path):
     history = History(engine_type="BCTEngine", use_bct_history=True)
     var, factor = _make_agents()

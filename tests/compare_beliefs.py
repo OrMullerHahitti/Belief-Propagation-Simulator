@@ -1,15 +1,15 @@
-
 import numpy as np
 from propflow import FactorAgent, VariableAgent
 from propflow.policies import split_specific_factors
 from propflow.utils.fg_utils import FGBuilder
 from propflow.engines import RDampingEngine
 
+
 def run_all_scenarios():
     # --- Common setup ---
     num_iterations = 15
     damping_factor = 0.5
-    
+
     C12_split = np.array([[4, 10], [16, 8]]).T  # [[4, 16], [10, 8]]
     C12_full = np.array([[8, 20], [32, 16]]).T  # [[8, 32], [20, 16]]
     C23_unary = np.array([[10, 10], [0, 10]])
@@ -81,14 +81,16 @@ def run_all_scenarios():
             engine.step(i)
 
     # Print X1 belief iteration by iteration
-    print(f"{'Iter':>4} | {'1. Split+Damp':>25} | {'2. Damp Only':>25} | {'3. Split Only':>25} | {'4. Baseline':>25}")
+    print(
+        f"{'Iter':>4} | {'1. Split+Damp':>25} | {'2. Damp Only':>25} | {'3. Split Only':>25} | {'4. Baseline':>25}"
+    )
     print("-" * 115)
 
     for i in range(num_iterations):
         row = [f"{i:>4}"]
         for name, engine in engines:
             snap = engine.snapshots[i]
-            belief = snap.beliefs.get('X1')
+            belief = snap.beliefs.get("X1")
             if belief is not None:
                 # show delta = b[1] - b[0]
                 delta = belief[1] - belief[0]
@@ -96,6 +98,7 @@ def run_all_scenarios():
             else:
                 row.append(f"{'N/A':>25}")
         print(" | ".join(row))
+
 
 if __name__ == "__main__":
     run_all_scenarios()

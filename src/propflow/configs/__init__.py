@@ -1,4 +1,5 @@
 """Configuration helpers for the belief propagation simulator."""
+
 from .loggers import Logger
 from .global_config_mapping import (
     CT_FACTORIES,

@@ -72,11 +72,11 @@ class BPEngine:
             normalize_messages
             if normalize_messages is not None
             else EngineDefaults().normalize_messages
-        ) # type: ignore
+        )  # type: ignore
         self.graph = factor_graph
         self.post_init()
         self._initialize_messages()
-        self.graph.set_computator(self.computator) # type: ignore
+        self.graph.set_computator(self.computator)  # type: ignore
         var_set, factor_set = nx.bipartite.sets(self.graph.G)
         self.var_nodes = sorted(var_set, key=lambda node: node.name)
         self.factor_nodes = sorted(factor_set, key=lambda node: node.name)
@@ -410,7 +410,11 @@ class BPEngine:
             return
 
         formatter = StepByStepFormatter(self.snapshots)
-        print(formatter.format_all_steps(include_cost_tables=include_cost_tables, show=show))
+        print(
+            formatter.format_all_steps(
+                include_cost_tables=include_cost_tables, show=show
+            )
+        )
 
     def normalize_inbox(self) -> None:
         """Manually normalizes messages in the system.

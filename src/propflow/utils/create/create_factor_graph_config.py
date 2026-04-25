@@ -4,6 +4,7 @@ This module provides dataclasses (`GraphConfig`, `EngineConfig`) to represent
 configurations in a structured way and a `ConfigCreator` class to validate,
 build, and save these configurations as pickle files.
 """
+
 from __future__ import annotations
 
 import inspect

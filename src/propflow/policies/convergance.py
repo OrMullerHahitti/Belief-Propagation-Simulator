@@ -5,6 +5,7 @@ simulation and determine if it has converged. Convergence is typically
 assessed by checking if the beliefs and variable assignments have stabilized
 over a certain number of iterations.
 """
+
 import logging
 from dataclasses import dataclass
 from typing import Dict, Optional

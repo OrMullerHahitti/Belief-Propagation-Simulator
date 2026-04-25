@@ -1,6 +1,6 @@
 """Type stub file for IDE type inference and hover information."""
+
 from typing import Callable, Dict, Any, Optional
-import numpy as np
 from numpy.typing import NDArray
 
 # Cost table factory functions with full signatures

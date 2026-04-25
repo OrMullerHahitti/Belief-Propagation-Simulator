@@ -5,6 +5,7 @@ messages within the belief propagation framework. Normalization is often crucial
 for preventing numerical instability and ensuring that costs or probabilities
 remain in a manageable range.
 """
+
 from typing import List
 
 import numpy as np

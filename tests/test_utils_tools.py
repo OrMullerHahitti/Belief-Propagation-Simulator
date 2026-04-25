@@ -143,8 +143,14 @@ def test_snapshot_bct_builder_creates_cost_leaves():
     snapshot = _make_snapshot(
         0,
         lambda_=0.0,
-        q_messages={("x1", "f"): np.array([0.0, 0.5]), ("x2", "f"): np.array([0.0, 0.2])},
-        r_messages={("f", "x1"): np.array([1.0, 2.0]), ("f", "x2"): np.array([1.0, 0.5])},
+        q_messages={
+            ("x1", "f"): np.array([0.0, 0.5]),
+            ("x2", "f"): np.array([0.0, 0.2]),
+        },
+        r_messages={
+            ("f", "x1"): np.array([1.0, 2.0]),
+            ("f", "x2"): np.array([1.0, 0.5]),
+        },
         assignments={"x1": 0, "x2": 1},
         cost_table=np.array([[1.0, 2.0], [3.0, 0.5]]),
     )
@@ -160,16 +166,28 @@ def test_snapshot_bct_builder_handles_damping():
     base = _make_snapshot(
         0,
         lambda_=0.0,
-        q_messages={("x1", "f"): np.array([0.0, 0.0]), ("x2", "f"): np.array([0.0, 0.0])},
-        r_messages={("f", "x1"): np.array([0.0, 0.0]), ("f", "x2"): np.array([0.0, 0.0])},
+        q_messages={
+            ("x1", "f"): np.array([0.0, 0.0]),
+            ("x2", "f"): np.array([0.0, 0.0]),
+        },
+        r_messages={
+            ("f", "x1"): np.array([0.0, 0.0]),
+            ("f", "x2"): np.array([0.0, 0.0]),
+        },
         assignments={"x1": 0, "x2": 0},
         cost_table=np.array([[1.0, 2.0], [3.0, 0.5]]),
     )
     damped = _make_snapshot(
         1,
         lambda_=0.5,
-        q_messages={("x1", "f"): np.array([1.0, 0.0]), ("x2", "f"): np.array([0.5, 0.0])},
-        r_messages={("f", "x1"): np.array([0.2, 0.1]), ("f", "x2"): np.array([0.3, 0.7])},
+        q_messages={
+            ("x1", "f"): np.array([1.0, 0.0]),
+            ("x2", "f"): np.array([0.5, 0.0]),
+        },
+        r_messages={
+            ("f", "x1"): np.array([0.2, 0.1]),
+            ("f", "x2"): np.array([0.3, 0.7]),
+        },
         assignments={"x1": 0, "x2": 0},
         cost_table=np.array([[1.0, 2.0], [3.0, 0.5]]),
     )
@@ -184,8 +202,14 @@ def test_bct_creator_visualizes_graph(monkeypatch):
     snapshot = _make_snapshot(
         0,
         lambda_=0.0,
-        q_messages={("x1", "f"): np.array([0.0, 0.0]), ("x2", "f"): np.array([0.0, 0.0])},
-        r_messages={("f", "x1"): np.array([0.0, 0.0]), ("f", "x2"): np.array([0.0, 0.0])},
+        q_messages={
+            ("x1", "f"): np.array([0.0, 0.0]),
+            ("x2", "f"): np.array([0.0, 0.0]),
+        },
+        r_messages={
+            ("f", "x1"): np.array([0.0, 0.0]),
+            ("f", "x2"): np.array([0.0, 0.0]),
+        },
         assignments={"x1": 0, "x2": 0},
         cost_table=np.array([[1.0, 2.0], [3.0, 0.5]]),
     )

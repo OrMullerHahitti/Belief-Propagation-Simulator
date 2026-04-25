@@ -26,7 +26,7 @@ def _chain_graph():
 
 def _four_factor_graph():
     variables = [VariableAgent(f"X{i}", 2) for i in range(1, 5)]
-    factors = [_factor(f"F{i}{i+1}") for i in range(1, 4)]
+    factors = [_factor(f"F{i}{i + 1}") for i in range(1, 4)]
     factors.append(_factor("F41"))
     edges = {
         factors[0]: [variables[0], variables[1]],

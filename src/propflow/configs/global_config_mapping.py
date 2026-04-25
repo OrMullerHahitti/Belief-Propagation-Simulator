@@ -14,6 +14,7 @@ Key Sections:
 - Registries and Factories: Mappings for dynamically loading graph builders,
   computators, and cost table factories.
 """
+
 import logging
 from dataclasses import asdict, dataclass, field
 from string import ascii_lowercase
@@ -30,7 +31,10 @@ from ..utils.path_utils import find_project_root
 MESSAGE_DOMAIN_SIZE = 3
 
 # Map domain indices to readable letter labels (1 -> "a", 2 -> "b", etc.)
-DOMAIN_VALUE_LABELS: Dict[int, str] = {idx + 1: letter for idx, letter in enumerate(ascii_lowercase)}
+DOMAIN_VALUE_LABELS: Dict[int, str] = {
+    idx + 1: letter for idx, letter in enumerate(ascii_lowercase)
+}
+
 
 # Convert a positive domain index to a lowercase alphabetic label (1→a, 2→b, ..., 27→aa).
 def domain_value_to_label(index: int) -> str:
@@ -47,6 +51,7 @@ def domain_value_to_label(index: int) -> str:
             break
         n -= 1
     return "".join(reversed(chars))
+
 
 # Default computator instance used across the application.
 COMPUTATOR = MinSumComputator()
@@ -74,10 +79,12 @@ class Dirs:
 # ---- Engine Configuration -------------------------------------------
 ########################################################################
 
+
 # Default parameters for the belief propagation engine.
 @dataclass
 class EngineDefaults:
     """Default parameters for the belief propagation engine."""
+
     max_iterations: int = 2000
     normalize_messages: bool = True
     monitor_performance: bool = False
@@ -88,6 +95,7 @@ class EngineDefaults:
 @dataclass
 class LoggingDefaults:
     """Default configuration for the logging system."""
+
     default_level: int = logging.INFO
     verbose_logging: bool = False
     file_logging: bool = True
@@ -95,13 +103,15 @@ class LoggingDefaults:
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     console_format: str = "%(log_color)s%(asctime)s - %(name)s - %(message)s"
     file_format: str = "%(asctime)s - %(name)s  - %(message)s"
-    console_colors: Dict[str, str] = field(default_factory=lambda: {
-        "DEBUG": "cyan",
-        "INFO": "green",
-        "WARNING": "yellow",
-        "ERROR": "red",
-        "CRITICAL": "red,bg_white",
-    })
+    console_colors: Dict[str, str] = field(
+        default_factory=lambda: {
+            "DEBUG": "cyan",
+            "INFO": "green",
+            "WARNING": "yellow",
+            "ERROR": "red",
+            "CRITICAL": "red,bg_white",
+        }
+    )
 
 
 LOG_LEVELS: Dict[str, int] = {
@@ -125,6 +135,7 @@ LOG_LEVELS: Dict[str, int] = {
 @dataclass
 class ConvergenceDefaults:
     """Default parameters for the convergence monitor."""
+
     belief_threshold: float = 1e-6
     assignment_threshold: int = 0
     min_iterations: int = 0
@@ -141,6 +152,7 @@ class ConvergenceDefaults:
 @dataclass
 class PolicyDefaults:
     """Default parameters for various belief propagation policies."""
+
     damping_factor: float = 0.9
     damping_diameter: int = 1
     split_factor: float = 0.5
@@ -158,6 +170,7 @@ class PolicyDefaults:
 @dataclass
 class SimulatorDefaults:
     """Default parameters for the multi-simulation runner."""
+
     default_max_iter: int = 5000
     default_log_level: str = "INFORMATIVE"
     timeout: int = 3600
@@ -250,7 +263,7 @@ def get_validated_config(
         "simulator": asdict(SimulatorDefaults()),
         "logging": asdict(LoggingDefaults()),
     }
-    
+
     if config_type not in base_configs:
         raise ValueError(f"Unknown config type: {config_type}")
 

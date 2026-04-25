@@ -6,7 +6,6 @@ import pytest
 from propflow import FGBuilder, BPEngine, MinSumComputator
 from propflow.configs import create_random_int_table
 from propflow.snapshots import StepByStepFormatter
-from propflow.bp.factor_graph import FactorGraph
 
 
 class TestStepByStepFormatter:
@@ -127,9 +126,7 @@ class TestUnaryFactorSupport:
     def test_unary_invalid_variable_raises(self, base_graph):
         """build_with_unary_costs raises for unknown variable."""
         with pytest.raises(ValueError, match="not found"):
-            FGBuilder.build_with_unary_costs(
-                base_graph, {"x99": np.array([0, 1])}
-            )
+            FGBuilder.build_with_unary_costs(base_graph, {"x99": np.array([0, 1])})
 
     def test_unary_wrong_dimension_raises(self, base_graph):
         """build_with_unary_costs raises for 2D array."""
@@ -142,7 +139,8 @@ class TestUnaryFactorSupport:
         """build_with_unary_costs raises for wrong array size."""
         with pytest.raises(ValueError, match="length"):
             FGBuilder.build_with_unary_costs(
-                base_graph, {"x1": np.array([0, 1, 2, 3])}  # domain is 2, not 4
+                base_graph,
+                {"x1": np.array([0, 1, 2, 3])},  # domain is 2, not 4
             )
 
     def test_bp_runs_with_unary_factors(self, base_graph):

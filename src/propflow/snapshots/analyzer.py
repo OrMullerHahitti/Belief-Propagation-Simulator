@@ -3,12 +3,13 @@
 This module provides analysis tools for examining convergence properties,
 dependency structures, and cycle metrics from simulation snapshots.
 """
+
 from __future__ import annotations
 
 import csv
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Dict, List, Mapping, Sequence, Tuple, Any
+from typing import Dict, List, Mapping, Sequence, Any
 
 import networkx as nx
 import numpy as np

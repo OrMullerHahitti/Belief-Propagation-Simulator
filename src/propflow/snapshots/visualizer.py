@@ -1,4 +1,5 @@
 """Visualization utilities for belief propagation snapshot trajectories."""
+
 from __future__ import annotations
 
 import math
@@ -40,11 +41,13 @@ class CostTablePlotter:
             return sorted_vars[0][0], sorted_vars[1][0]
 
         # Fallback: prompt user
-        print(
-            f"Factor '{agent.name}' does not have explicit row/col connection info."
+        print(f"Factor '{agent.name}' does not have explicit row/col connection info.")
+        row_var = getpass.getpass(
+            f"Enter name for ROW variable (axis 0) of {agent.name}: "
         )
-        row_var = getpass.getpass(f"Enter name for ROW variable (axis 0) of {agent.name}: ")
-        col_var = getpass.getpass(f"Enter name for COL variable (axis 1) of {agent.name}: ")
+        col_var = getpass.getpass(
+            f"Enter name for COL variable (axis 1) of {agent.name}: "
+        )
         return row_var, col_var
 
     @staticmethod
@@ -54,23 +57,27 @@ class CostTablePlotter:
     ) -> Tuple[np.ndarray, List[str], List[str], str, str]:
         """Prepare cost display data directly from a FactorAgent."""
         if agent.cost_table is None:
-            raise ValueError(f"FactorAgent '{agent.name}' has no cost table initialized.")
-        
+            raise ValueError(
+                f"FactorAgent '{agent.name}' has no cost table initialized."
+            )
+
         matrix = np.asarray(agent.cost_table, dtype=float)
         if matrix.ndim != 2:
-             raise ValueError(
+            raise ValueError(
                 f"Factor '{agent.name}' cost table has shape {matrix.shape}; only 2D tables are supported for plotting."
             )
 
-        row_var, col_var = CostTablePlotter.get_agent_connection_info(agent, connections)
-        
+        row_var, col_var = CostTablePlotter.get_agent_connection_info(
+            agent, connections
+        )
+
         # Generate generic labels based on shape
         row_labels = list(range(matrix.shape[0]))
         col_labels = list(range(matrix.shape[1]))
 
         row_labels = CostTablePlotter.human_domain_labels(row_labels)
         col_labels = CostTablePlotter.human_domain_labels(col_labels)
-        
+
         return matrix, row_labels, col_labels, row_var, col_var
 
     @staticmethod
@@ -117,7 +124,11 @@ class CostTablePlotter:
         value_strings = [[fmt.format(val) for val in row] for row in matrix]
         widths: List[int] = []
         widths.append(
-            max(len(f"{row_var} \\ {col_var}"), len(row_var), max(len(r) for r in row_names))
+            max(
+                len(f"{row_var} \\ {col_var}"),
+                len(row_var),
+                max(len(r) for r in row_names),
+            )
         )
         for col_idx in range(len(col_names)):
             col_width = len(col_names[col_idx])
@@ -204,11 +215,10 @@ class SnapshotVisualizer:
     def variables(self) -> List[str]:
         """Return sorted list of all variables in the snapshots."""
         return sorted(self._variables)
-   
+
     def steps(self) -> List[int]:
         """Return the ordered simulation steps captured in the snapshots."""
         return list(self._steps)
-
 
     def argmin_series(
         self, vars_filter: List[str] | None = None
@@ -314,7 +324,6 @@ class SnapshotVisualizer:
         ]
         return row_labels, col_labels
 
-
     @staticmethod
     def plot_agent_cost_table(
         agent: FactorAgent,
@@ -343,8 +352,8 @@ class SnapshotVisualizer:
         Returns:
             The formatted table string (if plot=False) or a matplotlib Figure (if plot=True).
         """
-        matrix, row_labels, col_labels, row_var, col_var = CostTablePlotter.prepare_from_agent(
-            agent, connections
+        matrix, row_labels, col_labels, row_var, col_var = (
+            CostTablePlotter.prepare_from_agent(agent, connections)
         )
 
         # Always format and print the table string, regardless of plotting
@@ -465,19 +474,21 @@ class SnapshotVisualizer:
             raise ValueError(f"No cost tables available at step {target_step}")
 
         if factor is not None:
-             return self._handle_single_factor_plot(
-                 factor,
-                 tables,
-                 target_step,
-                 fmt,
-                 connections,
-                 cmap=cmap,
-                 annotate=annotate,
-                 show=show,
-                 savepath=savepath,
-             )
+            return self._handle_single_factor_plot(
+                factor,
+                tables,
+                target_step,
+                fmt,
+                connections,
+                cmap=cmap,
+                annotate=annotate,
+                show=show,
+                savepath=savepath,
+            )
 
-        return self._plot_cost_table_grid(tables, target_step, cmap, annotate, fmt, show, savepath)
+        return self._plot_cost_table_grid(
+            tables, target_step, cmap, annotate, fmt, show, savepath
+        )
 
     def plot_factor_costs(
         self,
@@ -779,12 +790,16 @@ class SnapshotVisualizer:
 
         label_lookup = self._determine_assignment_labels(value_labels, matrix)
 
-        fig, ax = plt.subplots(figsize=self._calculate_heatmap_figsize(steps, target_vars))
+        fig, ax = plt.subplots(
+            figsize=self._calculate_heatmap_figsize(steps, target_vars)
+        )
 
         im = self._draw_assignment_heatmap(ax, matrix, steps, target_vars, cmap)
 
         if annotate:
-            self._annotate_assignment_heatmap(ax, matrix, target_vars, steps, im, label_lookup)
+            self._annotate_assignment_heatmap(
+                ax, matrix, target_vars, steps, im, label_lookup
+            )
 
         self._add_colorbar(fig, ax, im, label_lookup, matrix)
         fig.tight_layout()
@@ -840,9 +855,20 @@ class SnapshotVisualizer:
             raise ValueError("No steps to plot")
 
         if layout_choice == "combined" or len(target_vars) > self._SMALL_PLOT_THRESHOLD:
-            self._plot_combined_argmin(target_vars, series, steps, figsize, savepath, combined_savepath, show, layout_choice)
+            self._plot_combined_argmin(
+                target_vars,
+                series,
+                steps,
+                figsize,
+                savepath,
+                combined_savepath,
+                show,
+                layout_choice,
+            )
         else:
-            self._plot_separate_argmin(target_vars, series, steps, figsize, savepath, combined_savepath, show)
+            self._plot_separate_argmin(
+                target_vars, series, steps, figsize, savepath, combined_savepath, show
+            )
 
     def _save_figure(self, path, fig):
         save_path = Path(path)
@@ -966,7 +992,9 @@ class SnapshotVisualizer:
 
         return fig
 
-    def _plot_cost_table_grid(self, tables, target_step, cmap, annotate, fmt, show, savepath):
+    def _plot_cost_table_grid(
+        self, tables, target_step, cmap, annotate, fmt, show, savepath
+    ):
         factors = sorted(tables.keys())
         ncols = min(3, len(factors))
         nrows = math.ceil(len(factors) / ncols)
@@ -981,10 +1009,12 @@ class SnapshotVisualizer:
         ims: List[plt.AxesImage] = []
 
         for ax, factor_name in zip(flat_axes, factors):
-            matrix, row_labels, col_labels, row_var, col_var = self._prepare_cost_display(
-                np.asarray(tables[factor_name], dtype=float),
-                factor_name,
-                target_step,
+            matrix, row_labels, col_labels, row_var, col_var = (
+                self._prepare_cost_display(
+                    np.asarray(tables[factor_name], dtype=float),
+                    factor_name,
+                    target_step,
+                )
             )
             im = CostTablePlotter.draw_heatmap(
                 ax,
@@ -1067,19 +1097,18 @@ class SnapshotVisualizer:
             elif isinstance(value_labels, Sequence) and not isinstance(
                 value_labels, (str, bytes)
             ):
-                label_lookup = {
-                    idx: str(name) for idx, name in enumerate(value_labels)
-                }
+                label_lookup = {idx: str(name) for idx, name in enumerate(value_labels)}
             else:
                 raise TypeError(
                     "value_labels must be a mapping or a sequence of labels"
                 )
         else:
             present_values = {
-                int(round(v))
-                for v in np.unique(matrix[~np.isnan(matrix)])
+                int(round(v)) for v in np.unique(matrix[~np.isnan(matrix)])
             }
-            label_lookup = {val: CostTablePlotter.value_label(val) for val in present_values}
+            label_lookup = {
+                val: CostTablePlotter.value_label(val) for val in present_values
+            }
         return label_lookup
 
     def _calculate_heatmap_figsize(self, steps, target_vars):
@@ -1098,7 +1127,9 @@ class SnapshotVisualizer:
         ax.set_title("Assignment heatmap")
         return im
 
-    def _annotate_assignment_heatmap(self, ax, matrix, target_vars, steps, im, label_lookup):
+    def _annotate_assignment_heatmap(
+        self, ax, matrix, target_vars, steps, im, label_lookup
+    ):
         norm = im.norm
         cmap_fn = im.cmap
         for row in range(len(target_vars)):
@@ -1107,7 +1138,9 @@ class SnapshotVisualizer:
                 if np.isnan(value):
                     continue
                 int_value = int(round(value))
-                label = label_lookup.get(int_value, CostTablePlotter.value_label(int_value))
+                label = label_lookup.get(
+                    int_value, CostTablePlotter.value_label(int_value)
+                )
                 rgba = cmap_fn(norm(value))
                 r, g, b = rgba[:3]
                 luminance = 0.299 * r + 0.587 * g + 0.114 * b
@@ -1127,10 +1160,7 @@ class SnapshotVisualizer:
         cbar = fig.colorbar(im, ax=ax, shrink=0.85)
         if label_lookup:
             unique_values = sorted(
-                {
-                    int(round(v))
-                    for v in np.unique(matrix[~np.isnan(matrix)])
-                }
+                {int(round(v)) for v in np.unique(matrix[~np.isnan(matrix)])}
             )
             cbar.set_ticks(unique_values)
             cbar.set_ticklabels(
@@ -1143,7 +1173,17 @@ class SnapshotVisualizer:
         else:
             cbar.set_label("Assignment index")
 
-    def _plot_combined_argmin(self, target_vars, series, steps, figsize, savepath, combined_savepath, show, layout_choice):
+    def _plot_combined_argmin(
+        self,
+        target_vars,
+        series,
+        steps,
+        figsize,
+        savepath,
+        combined_savepath,
+        show,
+        layout_choice,
+    ):
         fig, ax = plt.subplots(figsize=figsize or (12, 6))
         color_cycle = plt.rcParams.get("axes.prop_cycle")
         palette = (
@@ -1213,7 +1253,9 @@ class SnapshotVisualizer:
             label=label,
         )
 
-    def _plot_separate_argmin(self, target_vars, series, steps, figsize, savepath, combined_savepath, show):
+    def _plot_separate_argmin(
+        self, target_vars, series, steps, figsize, savepath, combined_savepath, show
+    ):
         per_var_fig, axes = plt.subplots(
             len(target_vars), 1, figsize=figsize or (10, 3 * len(target_vars))
         )
@@ -1232,7 +1274,9 @@ class SnapshotVisualizer:
         else:
             plt.close(per_var_fig)
 
-    def _prepare_factor_panel_data(self, from_variable: str, factor: FactorLike, step: int):
+    def _prepare_factor_panel_data(
+        self, from_variable: str, factor: FactorLike, step: int
+    ):
         factor_name = self._factor_name(factor)
         record = self._snapshot_by_step(step)
         neighbours = record.N_fac.get(factor_name, [])
@@ -1263,7 +1307,7 @@ class SnapshotVisualizer:
             raise ValueError(
                 f"Factor '{factor_name}' cost table has shape {matrix.shape}; only 2D tables are supported."
             )
-            
+
         row_labels = record.dom.get(from_variable)
         col_labels = record.dom.get(other_variable)
         if not row_labels or not col_labels:
@@ -1274,11 +1318,21 @@ class SnapshotVisualizer:
         row_labels = CostTablePlotter.human_domain_labels(row_labels)
         col_labels = CostTablePlotter.human_domain_labels(col_labels)
 
-        return factor_name, record, target_index, other_variable, matrix, row_labels, col_labels
+        return (
+            factor_name,
+            record,
+            target_index,
+            other_variable,
+            matrix,
+            row_labels,
+            col_labels,
+        )
 
-    def _calculate_effective_cost(self, matrix, record, from_variable, factor_name, target_index, row_labels, mode):
+    def _calculate_effective_cost(
+        self, matrix, record, from_variable, factor_name, target_index, row_labels, mode
+    ):
         aligned = matrix if target_index == 0 else np.swapaxes(matrix, 0, 1)
-        
+
         # Get Q message from from_variable only (not both variables)
         from_q_message = record.Q.get((from_variable, factor_name))
         from_msg = (
@@ -1300,10 +1354,12 @@ class SnapshotVisualizer:
             if mode == "min"
             else np.max(effective, axis=reduce_axis)
         )
-        
+
         return effective, r_message, aligned
 
-    def _compute_winners(self, effective, r_message, target_index, row_labels, col_labels, mode):
+    def _compute_winners(
+        self, effective, r_message, target_index, row_labels, col_labels, mode
+    ):
         # Determine tolerance for comparisons
         tol = 1e-12 + 1e-9 * max(1.0, np.ptp(effective))
 
@@ -1328,10 +1384,26 @@ class SnapshotVisualizer:
         else:  # R is per column
             for j in r_best_indices:
                 best_winners[:, j] = winners[:, j]
-                
+
         return winners, best_winners
 
-    def _draw_factor_panel_heatmap(self, ax, aligned, factor_name, step, row_labels, col_labels, from_variable, other_variable, cmap, winners, best_winners, annotate, text_color, fmt):
+    def _draw_factor_panel_heatmap(
+        self,
+        ax,
+        aligned,
+        factor_name,
+        step,
+        row_labels,
+        col_labels,
+        from_variable,
+        other_variable,
+        cmap,
+        winners,
+        best_winners,
+        annotate,
+        text_color,
+        fmt,
+    ):
         # Draw heatmap showing original cost table (not effective cost)
         im = CostTablePlotter.draw_heatmap(
             ax,
@@ -1465,12 +1537,16 @@ class SnapshotVisualizer:
         highlight_color: str,
         text_color: str,
         fmt: str,
-    ) -> Tuple[
-        np.ndarray, np.ndarray, plt.AxesImage
-    ]:  # pyright: ignore[reportPrivateImportUsage]
-        factor_name, record, target_index, other_variable, matrix, row_labels, col_labels = self._prepare_factor_panel_data(
-            from_variable, factor, step
-        )
+    ) -> Tuple[np.ndarray, np.ndarray, plt.AxesImage]:  # pyright: ignore[reportPrivateImportUsage]
+        (
+            factor_name,
+            record,
+            target_index,
+            other_variable,
+            matrix,
+            row_labels,
+            col_labels,
+        ) = self._prepare_factor_panel_data(from_variable, factor, step)
 
         effective, r_message, aligned = self._calculate_effective_cost(
             matrix, record, from_variable, factor_name, target_index, row_labels, mode
@@ -1690,4 +1766,3 @@ class SnapshotVisualizer:
         return self._bct_builder
 
     __all__ = ["SnapshotVisualizer"]
-

@@ -4,6 +4,7 @@ This module provides a set of utility functions to easily retrieve snapshot
 records and their computed artifacts (like Jacobians and cycle metrics) from
 a simulation engine instance that has a `SnapshotManager` attached.
 """
+
 from __future__ import annotations
 from typing import Optional, Any
 from .types import EngineSnapshot, Jacobians, CycleMetrics

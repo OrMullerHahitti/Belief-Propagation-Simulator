@@ -329,17 +329,17 @@ class History:
         """
         data = self.get_bct_data()
         if not data and not self.use_bct_history:
-             # Fallback to legacy serialization
-             data = {
-                 "cycles": self._serialize_cycles(),
-                 "beliefs": self._serialize_beliefs(),
-                 "assignments": self._serialize_assignments(),
-                 "costs": self.costs,
-                 "metadata": {
-                     "engine_type": self.engine_type,
-                     "use_bct_history": False,
-                 }
-             }
+            # Fallback to legacy serialization
+            data = {
+                "cycles": self._serialize_cycles(),
+                "beliefs": self._serialize_beliefs(),
+                "assignments": self._serialize_assignments(),
+                "costs": self.costs,
+                "metadata": {
+                    "engine_type": self.engine_type,
+                    "use_bct_history": False,
+                },
+            }
         Path(filepath).parent.mkdir(parents=True, exist_ok=True)
 
         def convert_numpy(obj):

@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from propflow.configs.global_config_mapping import (
-    CT_FACTORIES,
     CTFactories,
     EngineDefaults,
     get_ct_factory,
