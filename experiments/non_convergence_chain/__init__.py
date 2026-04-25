@@ -1,1 +1,1 @@
-"""Diagnostics for symmetric chain and random-graph non-convergence studies."""
+"""Minimal standard Min-Sum diagnostics for the symmetric chain study."""
