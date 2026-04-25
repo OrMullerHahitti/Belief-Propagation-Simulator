@@ -7,7 +7,7 @@ UV ?= uv
 VERSION_FILE := src/propflow/_version.py
 VERSION := $(shell sed -n 's/__version__ = "\(.*\)"/\1/p' $(VERSION_FILE))
 
-.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example start-python notebook repl bump bump-patch bump-minor bump-major tag web-sim repro-5a repro-5b repro-8 gen-graphs run-experiment plot-experiment
+.PHONY: help venv install sync sync-dev precommit ci fmt fmt-check lint type test cov build check-dist publish-test publish release clean distclean docs-example start-python notebook repl bump bump-patch bump-minor bump-major tag web-sim repro-5a repro-5b repro-8 gen-graphs run-experiment plot-experiment style style-check
 
 help: ; @grep -E '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS=":.*## "} {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}' ## Show this help
 
@@ -32,6 +32,10 @@ fmt: ; $(PYTHON) -m black src tests ## Format code with black
 fmt-check: ; $(PYTHON) -m black --check src tests ## Check formatting
 
 lint: ; $(PYTHON) -m flake8 ## Lint with flake8
+
+style: ; uvx ruff format src tests && uvx ruff check --fix src tests ## Style code with ruff (format + lint-fix)
+
+style-check: ; uvx ruff format --check src tests && uvx ruff check src tests ## Check ruff style without modifying files
 
 type: ; $(PYTHON) -m mypy src ## Type-check with mypy
 
@@ -79,7 +83,6 @@ notebook: ## Launch Jupyter Lab inside the uv-managed environment
 
 repl: ## Open a Python REPL with project dependencies via uv
 	$(UV) run python
-<<<<<<< Updated upstream
 
 web-sim: ## Start the PropFlow Web simulator (backend + frontend)
 	@./start_app.sh
@@ -101,7 +104,3 @@ run-experiment: ## Run BP engines on structured-vs-random graphs (step 2)
 
 plot-experiment: ## Plot structured-vs-random results (step 3)
 	$(UV) run python experiments/structured_vs_random/plot_results.py
-=======
-web-sim: ## Start the PropFlow Web simulator (backend + frontend)
-	./start_app.sh
->>>>>>> Stashed changes
