@@ -2500,7 +2500,7 @@ wheels = [
 
 [[package]]
 name = "propflow"
-version = "2.1.0"
+version = "3.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "colorlog" },
