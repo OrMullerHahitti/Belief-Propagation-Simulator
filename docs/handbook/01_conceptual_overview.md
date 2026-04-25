@@ -9,10 +9,10 @@ PropFlow is a belief propagation (BP) experimentation platform. It builds factor
 | --- | --- |
 | **Factor Graph** | Bipartite graph of `VariableAgent` and `FactorAgent` nodes. Variables carry domains; factors encode local cost tables. Defined in `src/propflow/bp/factor_graph.py` and constructed via helpers in `src/propflow/utils/fg_utils.py`. |
 | **Message** | Directed data structure (`src/propflow/core/components.py`) representing variable→factor (Q) or factor→variable (R) updates. Messages contain NumPy vectors aligned to variable domains. |
-| **Engine** | Implementation of the BP update loop (`src/propflow/bp/engine_base.py` and concrete classes in `src/propflow/bp/engines.py`). Engines orchestrate the six-phase synchronous schedule: variable compute, send, factor compute, send, pruning, and convergence evaluation. |
+| **Engine** | Implementation of the BP update loop (`src/propflow/bp/engine_base.py` and concrete classes in `src/propflow/bp/engines.py`). Engines orchestrate the synchronous schedule: variable compute/send, factor compute/send, cost and snapshot capture, and convergence evaluation. |
 | **Policy** | Optional behaviours applied during message computation: damping, splitting, cost reduction, pruning. Policies live under `src/propflow/policies`. |
 | **Simulator** | High-level runner (`src/propflow/simulator.py`) that executes batches of engine configurations over a set of factor graphs, collects cost trajectories, and handles multiprocessing. |
-| **History & Snapshots** | Built-in engine history stores coarse metrics; detailed per-step data lives in `engine.snapshots` and can be serialised to JSON for later analysis. |
+| **History & Snapshots** | `engine.history` is a compatibility view over automatic per-step `engine.snapshots`; snapshots can be serialized to JSON for later analysis. |
 | **Analyzer Utilities** | Use `propflow.snapshots.SnapshotAnalyzer` and `propflow.snapshots.SnapshotVisualizer` to interpret minimisers over time. |
 
 ## 3. Creation Pipeline (Top-Down)
@@ -69,7 +69,7 @@ configs/           # Logs and generated artefacts (excluded from version control
 2. **Variable Send & Reset**: Messages are dispatched; inboxes are cleared in preparation for the next iteration.
 3. **Factor Phase**: Factor agents assemble incoming Q-messages and cost tables to compute R-messages back to neighbours.
 4. **Factor Send & Reset**: R-messages are sent, and mailboxes are cleared.
-5. **Bookkeeping**: Engine updates the global cost, logs history, and (optionally) emits snapshot records via `SnapshotManager` or external recorders.
+5. **Bookkeeping**: Engine updates the global cost and captures an `EngineSnapshot` through `SnapshotManager`.
 6. **Convergence Checks**: Using `ConvergenceMonitor` and the configured thresholds, engines decide whether to halt.
 
 This loop repeats for each iteration until convergence or the configured maximum is reached.
@@ -77,7 +77,7 @@ This loop repeats for each iteration until convergence or the configured maximum
 ## 6. Extensibility Points
 - **Custom Engines**: Subclass `BPEngine` and override hooks (`post_var_compute`, `pre_factor_compute`, etc.). Register the class in simulation configs for reuse.
 - **Policies**: Implement new policies under `src/propflow/policies` and wire them into engines or simulator configs.
-- **Cost Table Factories**: Extend `CTFactory` registries in `src/propflow/configs/global_config_mapping.py` to generate domain-specific cost tables.
+- **Cost Table Factories**: Extend `CT_FACTORIES` and `CTFactories` in `src/propflow/configs/global_config_mapping.py` to generate domain-specific cost tables.
 - **Analysis**: Use `propflow.snapshots` utilities to capture structured outputs suitable for dashboards, machine learning pipelines, or audits.
 
 ## 7. Operational Roles

@@ -32,6 +32,13 @@ To install with development dependencies:
 
 This includes testing tools (pytest), linting (black, flake8), and documentation tools.
 
+To build the Sphinx documentation locally, also ensure the documentation theme
+and Markdown/type-hint extensions are present:
+
+.. code-block:: bash
+
+   pip install sphinx sphinx-rtd-theme myst-parser sphinx-autodoc-typehints
+
 Requirements
 ------------
 

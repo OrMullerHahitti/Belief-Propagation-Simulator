@@ -1,5 +1,5 @@
 PropFlow Documentation
-=====================
+======================
 
 **PropFlow** is a Python toolkit for building and experimenting with belief propagation
 and other distributed constraint optimization (DCOP) algorithms on factor graphs.
@@ -78,11 +78,11 @@ runtime:
 Key Features
 ------------
 
-* **Belief Propagation Variants**: Min-Sum, Max-Sum, Sum-Product algorithms
-* **Extensible Policy Framework**: Damping, splitting, cost reduction, and more
-* **Dynamic Graph Construction**: Cycle graphs, random graphs, custom topologies
-* **Simulation and Analysis**: Parallel execution and result comparison
-* **Visualization Tools**: Factor graph plotting and analysis visualization
+* **Belief propagation variants**: Min-Sum, Max-Sum, Sum-Product, and Max-Product computators
+* **Policy engines**: damping, Q/R damping, splitting, mid-run splitting, cost reduction, diffusion, pruning, and TRW
+* **Dynamic graph construction**: cycle, random, lemniscate, unary-augmented, and manual factor graphs
+* **Simulation and analysis**: multiprocessing-backed comparisons through ``Simulator``
+* **Snapshot tooling**: automatic ``EngineSnapshot`` capture plus analyzer and visualizer helpers
 
 Indices and tables
 ==================

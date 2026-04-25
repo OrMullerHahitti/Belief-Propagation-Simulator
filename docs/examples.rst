@@ -4,17 +4,17 @@ Examples
 These end-to-end snippets mirror the recommended top-down pipeline and extend
 the :doc:`quickstart` with richer scenarios.
 
-Basic Graph Coloring
---------------------
+Basic Cycle Graph
+-----------------
 
-Solve a simple graph coloring problem using belief propagation:
+Build a cycle graph with random integer pairwise costs and run belief propagation:
 
 .. code-block:: python
 
    from propflow import FGBuilder, BPEngine
    from propflow.configs import create_random_int_table
 
-   # Create a cycle graph (each node must differ from neighbors)
+   # Create a cycle graph with random pairwise costs.
    fg = FGBuilder.build_cycle_graph(
        num_vars=6,
        domain_size=3,  # 3 colors
@@ -26,7 +26,7 @@ Solve a simple graph coloring problem using belief propagation:
    engine = BPEngine(fg)
    engine.run(max_iter=30)
 
-   print("Color assignments:", engine.assignments)
+   print("Assignments:", engine.assignments)
    print("Total cost:", engine.graph.global_cost)
 
 Comparing Engine Variants
@@ -40,14 +40,14 @@ Compare different BP variants on the same problem:
        Simulator, FGBuilder, BPEngine,
        DampingEngine, SplitEngine
    )
-   from propflow.configs import CTFactory
+   from propflow.configs import CTFactories
 
    # Create test graphs
    graphs = [
        FGBuilder.build_cycle_graph(
            num_vars=15,
            domain_size=4,
-           ct_factory=CTFactory.random_int.fn,
+           ct_factory=CTFactories.RANDOM_INT,
            ct_params={'low': 1, 'high': 100}
        ) for _ in range(10)
    ]
@@ -127,13 +127,13 @@ Handle larger problems efficiently:
 
    from propflow import FGBuilder, DampingEngine
    from propflow.policies import ConvergenceConfig
-   from propflow.configs import CTFactory
+   from propflow.configs import CTFactories
 
    # Create large random graph
    fg = FGBuilder.build_random_graph(
        num_vars=50,
        domain_size=10,
-       ct_factory=CTFactory.random_int.fn,
+       ct_factory=CTFactories.RANDOM_INT,
        ct_params={'low': 100, 'high': 200},
        density=0.25  # 25% of possible edges
    )

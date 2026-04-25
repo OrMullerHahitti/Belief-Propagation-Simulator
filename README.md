@@ -1,166 +1,166 @@
-# Belief Propagation Simulator - **PropFlow**
+# Belief Propagation Simulator - PropFlow
 
-**PropFlow** is a Python toolkit for building and experimenting with belief propagation and other distributed constraint optimization (DCOP) algorithms on factor graphs. It was designed for research and education, providing a flexible framework for implementing and testing new policies and engine variants.
-## for more comprehensive documentation, please click [here](https://ormullerhahitti.github.io/Belief-Propagation-Simulator/index.html)
+PropFlow is a Python toolkit for building factor graphs, running belief
+propagation variants, comparing engine policies, and inspecting per-iteration
+snapshots. The public package is `propflow`; the core runtime lives under
+`src/propflow`.
+
+Full documentation is published at
+[ormullerhahitti.github.io/Belief-Propagation-Simulator](https://ormullerhahitti.github.io/Belief-Propagation-Simulator/index.html).
+
 ## Key Features
 
-- **Belief Propagation Variants**: Simulates a variety of belief propagation algorithms, including Min-Sum, Max-Sum, and Sum-Product.
-- **Search-Based DCOP Solvers**: Implements local search algorithms like the Distributed Stochastic Algorithm (DSA) and Maximum Gain Message (MGM).
-- **Extensible Policy Framework**: A modular system for applying policies like message damping, factor splitting, and cost reduction to alter the behavior of the core algorithms.
-- **Dynamic Graph Construction**: Tools for programmatically creating factor graphs with different topologies (e.g., cycles, random graphs) and custom cost functions.
-- **Simulation and Analysis**: A `Simulator` class for running multiple engine configurations in parallel and collecting results for comparison.
-- **Debugging and Visualization**: Integrated logging and tools for visualizing factor graphs and analysis results.
+- **Belief propagation engines**: synchronous BP with Min-Sum, Max-Sum,
+  Sum-Product, and Max-Product computators.
+- **Policy engines**: damping, Q/R damping, factor splitting, mid-run splitting,
+  cost reduction, diffusion, message pruning, tree-reweighted BP, and combined
+  damping/TRW or damping/splitting variants.
+- **Graph construction helpers**: `FGBuilder` builds cycle, random, lemniscate,
+  and unary-augmented factor graphs.
+- **Cost-table factories**: use `create_random_int_table`,
+  `create_uniform_float_table`, `create_poisson_table`, `CTFactories`, or
+  `get_ct_factory`.
+- **Simulation runner**: `Simulator` runs multiple engine configurations across
+  multiple graphs with multiprocessing fallbacks.
+- **Snapshots and analysis**: every engine step captures an `EngineSnapshot`;
+  use `SnapshotAnalyzer`, `AnalysisReport`, and `SnapshotVisualizer` for cost,
+  assignment, message, and Jacobian-style diagnostics.
 
 ## Installation
 
-### Install from PyPI (Recommended)
-
-PropFlow is now available on PyPI! Install it with pip:
+Install the published package:
 
 ```bash
 pip install propflow
 ```
 
-**PyPI Package**: https://pypi.org/project/propflow/
-
-### Install from Source (Development)
-
-For development or to get the latest changes, clone the repository and install in editable mode:
+For development from this repository:
 
 ```bash
 git clone https://github.com/OrMullerHahitti/Belief-Propagation-Simulator.git
 cd Belief-Propagation-Simulator
-pip install -e .
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
 ```
 
-## Getting Started: A Complete Example
+The CLI currently exposes a version/help entry point:
 
-Here's how to create a simple factor graph, run a Min-Sum engine, and get the results.
+```bash
+bp-sim --version
+```
+
+## Quick Start
+
+```python
+from propflow import BPEngine, FGBuilder, MinSumComputator
+from propflow.configs import CTFactories
+
+graph = FGBuilder.build_random_graph(
+    num_vars=50,
+    domain_size=10,
+    ct_factory=CTFactories.RANDOM_INT,
+    ct_params={"low": 100, "high": 200},
+    density=0.25,
+    seed=42,
+)
+
+engine = BPEngine(
+    factor_graph=graph,
+    computator=MinSumComputator(),
+)
+engine.run(max_iter=100)
+
+print("Final assignments:", engine.assignments)
+print("Final global cost:", engine.calculate_global_cost())
+print("Iterations captured:", engine.iteration_count)
+```
+
+## Manual Factor Graphs
+
+Use `FGBuilder` first when possible. If you construct a graph manually, every
+factor must appear once in `factor_li` and once as a key in `edges`; each edge
+list is ordered and defines the axes of the factor cost table.
 
 ```python
 import numpy as np
-from propflow import (
-    FactorGraph,
-    VariableAgent,
-    FactorAgent,
-    BPEngine,
-    MinSumComputator,
-    create_random_int_table,
-)
 
-# 1. get the ct_factory you want (from which function to create the cost table) using
-from propflow.utils import CTFactory
-ct_factory_fn = CTFactory.random_int.fn
+from propflow import BPEngine, FactorAgent, FactorGraph, VariableAgent
 
+def prefer_equal(num_vars: int, domain_size: int, **_):
+    table = np.ones((domain_size,) * num_vars)
+    np.fill_diagonal(table, 0)
+    return table
 
-# 2. Use FGBuilder class to easily create all sorts of factor graphs
-factor_graph = FGBuilder.build_random_graph(
-            num_vars=50,
-            domain_size=10,
-            ct_factory=ct_factory_fn,
-            ct_params={"low": 100, "high": 200},
-            density=0.25,
-        )
+x1 = VariableAgent("x1", domain=3)
+x2 = VariableAgent("x2", domain=3)
+f12 = FactorAgent("f12", domain=3, ct_creation_func=prefer_equal)
 
-
-# 3. Initialize and Run the Engine
-# The engine orchestrates the message-passing process.
-engine = BPEngine(
-    factor_graph=factor_graph,
-    computator=MinSumComputator() # Use the Min-Sum algorithm
-)
-engine.run(max_iter=10)
-
-# 4. View the Results
-print(f"Final Assignments: {engine.assignments}")
-print(f"Final Global Cost: {engine.calculate_global_cost()}")
+graph = FactorGraph(variable_li=[x1, x2], factor_li=[f12], edges={f12: [x1, x2]})
+engine = BPEngine(graph)
+engine.run(max_iter=20)
+print(engine.assignments, engine.calculate_global_cost())
 ```
 
-## Advanced Usage
-
-### Search-Based Algorithms
-
-PropFlow also supports local search algorithms for DCOPs.
-
-- **DSA (Distributed Stochastic Algorithm)**: A simple and distributed algorithm where agents make independent, probabilistic decisions.
-- **MGM (Maximum Gain Message)**: A coordinated algorithm where only the agent with the maximum potential cost reduction is allowed to change its value.
+## Engine Variants
 
 ```python
-from propflow.search import DSAEngine, DSAComputator
+from propflow import DampingEngine, SplitEngine, TRWEngine
 
-# Use the same factor_graph from the previous example
-dsa_computator = DSAComputator(probability=0.8)
-dsa_engine = DSAEngine(factor_graph=factor_graph, computator=dsa_computator)
-results = dsa_engine.run(max_iter=50)
-
-print(f"DSA Best Assignment: {results['best_assignment']}")
-print(f"DSA Best Cost: {results['best_cost']}")
+damped = DampingEngine(factor_graph=graph, damping_factor=0.9)
+split = SplitEngine(factor_graph=graph, split_factor=0.5)
+trw = TRWEngine(factor_graph=graph, tree_sample_count=250, tree_sampler_seed=42)
 ```
 
-### Policies
+Available top-level engine exports include `BPEngine`, `DampingEngine`,
+`RDampingEngine`, `QRDampingEngine`, `DiffusionEngine`, `SplitEngine`,
+`MidRunSplitEngine`, `CostReductionOnceEngine`, `DampingCROnceEngine`,
+`DampingSCFGEngine`, `TRWEngine`, `DampingTRWEngine`, and
+`MessagePruningEngine`.
 
-You can modify the behavior of an engine by applying different policies. Policies are implemented as specialized engine classes.
-
-- **Damping**: Smooths messages over iterations to prevent oscillations. Use `DampingEngine`.
-- **Factor Splitting**: Splits factors into two to alter message flow. Use `SplitEngine`.
-- **Cost Reduction**: Applies a one-time discount to costs. Use `CostReductionOnceEngine`.
-
-```python
-from propflow import DampingEngine, MinSumComputator
-
-# Apply damping to the standard BP engine
-damped_engine = DampingEngine(
-    factor_graph=factor_graph,
-    computator=MinSumComputator(),
-    damping_factor=0.9
-)
-damped_engine.run(max_iter=20)
-print(f"Damped Assignments: {damped_engine.assignments}")
-```
-
-### Running Experiments
-
-The `Simulator` class is designed to run experiments comparing multiple engine configurations across one or more graphs.
+## Running Experiments
 
 ```python
-from propflow import (
-    Simulator,
-    FGBuilder,
-    BPEngine,
-    DampingEngine,
-    SplitEngine,
-    MinSumComputator,
-    CTFactory,
-)
+from propflow import BPEngine, DampingEngine, FGBuilder, Simulator, SplitEngine
+from propflow.configs import create_random_int_table
 
-# 1. Define Engine Configurations
-engine_configs = {
-    "Standard BP": {"class": BPEngine, "computator": MinSumComputator()},
-    "Damped BP": {"class": DampingEngine, "computator": MinSumComputator(), "damping_factor": 0.5},
-    "Split Factor BP": {"class": SplitEngine, "computator": MinSumComputator(), "split_factor": 0.6},
+configs = {
+    "baseline": {"class": BPEngine},
+    "damped": {"class": DampingEngine, "damping_factor": 0.85},
+    "split": {"class": SplitEngine, "split_factor": 0.6},
 }
 
-# 2. Create a list of graphs for the experiment
 graphs = [
     FGBuilder.build_cycle_graph(
-        num_vars=10,
+        num_vars=12,
         domain_size=3,
-        ct_factory=CTFactory.random_int.fn,
-        ct_params={"low": 0, "high": 100}
-    ) for _ in range(5)
+        ct_factory=create_random_int_table,
+        ct_params={"low": 0, "high": 30},
+    )
+    for _ in range(5)
 ]
 
-# 3. Run the simulations in parallel
-simulator = Simulator(engine_configs)
-results = simulator.run_simulations(graphs, max_iter=100)
-
-# 4. Plot the average cost convergence
+simulator = Simulator(configs, seed=42)
+results = simulator.run_simulations(graphs, max_iter=200)
 simulator.plot_results(verbose=True)
 ```
 
-## Preliminary Results
+## Snapshot Analysis
 
-> Results for 3 different variants of Min-Sum - regular, dampened, and using damping + splitting for 30 problems each, 90 simulations overall, with each one running 5000 steps (iterations).
-> Using the following parameters: only binary constraints, domain size -10, density - 0.25, 50 Variable Nodes (approximately 306 Factor Nodes), and cost table generated from a uniform integer function with range [100, 200].
+Snapshots are captured automatically during `run()` and `step()`.
 
-![image](https://github.com/user-attachments/assets/f9b3c0a6-0059-43a2-9eed-c23b6e06c369)
+```python
+from propflow.snapshots import AnalysisReport, SnapshotAnalyzer, SnapshotVisualizer
+
+snapshots = list(engine.snapshots)
+latest = engine.latest_snapshot()
+print(latest.step, latest.global_cost, latest.metadata)
+
+visualizer = SnapshotVisualizer(snapshots)
+_, cost_data = visualizer.plot_global_cost(show=False, return_data=True)
+
+analyzer = SnapshotAnalyzer(snapshots)
+report = AnalysisReport(analyzer)
+summary = report.to_json(step_idx=len(snapshots) - 1)
+print(summary["block_norms"])
+```

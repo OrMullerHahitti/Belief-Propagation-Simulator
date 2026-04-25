@@ -9,8 +9,14 @@ run it as normal:
 
 ```python
 from propflow import BPEngine, FGBuilder
+from propflow.configs import create_random_int_table
 
-graph = FGBuilder.build_cycle_graph(num_vars=6, domain_size=3, ct_factory="random_int", ct_params={"low": 0, "high": 5})
+graph = FGBuilder.build_cycle_graph(
+    num_vars=6,
+    domain_size=3,
+    ct_factory=create_random_int_table,
+    ct_params={"low": 0, "high": 5},
+)
 engine = BPEngine(graph)
 engine.run(max_iter=50)
 ```
@@ -67,8 +73,8 @@ viz = SnapshotVisualizer(engine.snapshots)
 fig, payload = viz.plot_global_cost(show=False, return_data=True)
 
 # Inspect cost tables (rows/cols labeled with variable names)
-viz.show_cost_tables(factor="F12", step=10)   # pretty-printed single factor
-viz.show_cost_tables(show=True, annotate=True)  # grid plot for all factors at last step
+viz.plot_cost_tables(factor="f12", step=10, show=False)  # single factor
+viz.plot_cost_tables(show=True, annotate=True)  # grid plot for all factors at last step
 ```
 
 ## 6. BCT Data

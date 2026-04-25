@@ -13,7 +13,7 @@ uv run python main.py
 
 What it does:
 - Builds 10 random factor graphs (`FGBuilder.build_random_graph`) with 50 variables, domain size 10, density 0.25.
-- Configures `BPEngine`, `DampingSCFGEngine`, and `SplitEngine` variants using defaults from `ENGINE_DEFAULTS` / `POLICY_DEFAULTS`.
+- Configures `BPEngine`, `DampingSCFGEngine`, `SplitEngine`, and TRW variants using defaults from `EngineDefaults`, `PolicyDefaults`, and `SimulatorDefaults`.
 - Runs the `Simulator` across each engine/graph combination, timing total runtimes.
 - Plots aggregated cost trajectories if results are available.
 
@@ -23,16 +23,14 @@ What it does:
 `Simulator` (`src/propflow/simulator.py`) accepts a dict of engine configurations and a list of factor graphs.
 
 ```python
-from propflow.simulator import Simulator
-from propflow.utils import FGBuilder
-from propflow.bp.engines import BPEngine
-from propflow.configs import CTFactory
+from propflow import BPEngine, FGBuilder, Simulator
+from propflow.configs import CTFactories
 
 engines = {"baseline": {"class": BPEngine}}
 fg = FGBuilder.build_random_graph(
     num_vars=20,
     domain_size=5,
-    ct_factory=CTFactory.random_int.fn,
+    ct_factory=CTFactories.RANDOM_INT,
     ct_params={"low": 0, "high": 25},
     density=0.3,
 )
@@ -43,7 +41,7 @@ sim.plot_results()
 ```
 
 Key kwargs:
-- `max_iter`: Defaults to `SIMULATOR_DEFAULTS["default_max_iter"]` (5000).
+- `max_iter`: Defaults to `SimulatorDefaults().default_max_iter` (5000).
 - `log_level`: Accepts symbolic levels (`"INFORMATIVE"`, `"HIGH"`, etc.).
 - Internally, `Simulator` parallelises runs via `multiprocessing.Pool` with graceful fallbacks to sequential execution when necessary.
 
@@ -92,13 +90,14 @@ summary = report.to_json(step_idx=len(snapshots) - 1)
 ```
 
 ## 5. Examples Directory
-- `examples/minsum_basic.py`: step-by-step min-sum demonstration.
-- `examples/analyzer_ring_demo.py`: runs a 4-variable ring, records snapshots, and generates per-variable and combined argmin plots via the visualiser.
-- Use these scripts to validate installation or to template new experiments.
+- `examples/quick_start.py`: minimal two-variable graph and damped BP run.
+- `examples/run_simulator.py`: random graph batch comparison with `Simulator`.
+- `examples/test_diffusion_engine.py`: demonstrates spatial diffusion behaviour.
+- Use these scripts as templates, but keep problem sizes small when validating an installation.
 
 Run any example with:
 ```bash
-uv run python examples/minsum_basic.py
+uv run python examples/quick_start.py
 ```
 
 ## 6. Testing & Validation
@@ -107,7 +106,7 @@ uv run python examples/minsum_basic.py
 ```bash
 uv run python -m pytest -q
 ```
-Focus areas: BP engine behaviour, policies, utilities, and search components.
+Focus areas: BP engine behaviour, policies, utilities, snapshots, and simulator orchestration.
 
 ### Coverage
 ```bash

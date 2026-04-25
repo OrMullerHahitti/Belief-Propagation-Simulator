@@ -142,24 +142,22 @@ Other helpers such as :meth:`propflow.utils.fg_utils.FGBuilder.build_random_grap
 return fully initialised :class:`FactorGraph` objects as well.
 
 
-Config-Driven Graphs
+Cost-Table Factories
 ~~~~~~~~~~~~~~~~~~~~
 
-For reproducible benchmarks, create a :class:`propflow.utils.create.GraphConfig`
-and hand it to :class:`propflow.utils.create.FactorGraphBuilder`:
+Cost-table factories can be passed as raw callables, registry strings, or members
+of :class:`propflow.configs.CTFactories`.
 
 .. code-block:: python
 
-   from pathlib import Path
-   from propflow.utils.create import FactorGraphBuilder
+   from propflow.configs import CTFactories, get_ct_factory
 
-   cfg_path = Path("configs/factor_graphs/cycle_demo.pkl")
-   builder = FactorGraphBuilder()
-   fg = builder.build_and_return(cfg_path)
+   random_int = CTFactories.RANDOM_INT
+   uniform = get_ct_factory("uniform_float")
 
-The builder loads the config, resolves registered graph/cost factories, and
-produces a :class:`FactorGraph`. Use :meth:`FactorGraphBuilder.build_and_save`
-to persist generated graphs for later reuse.
+Built-in registry keys are ``"random_int"``, ``"uniform_float"``, and
+``"poisson"``. Custom factories should accept ``(num_vars, domain_size,
+**kwargs)`` and return a NumPy array shaped ``(domain_size,) * num_vars``.
 
 
 Manual Graph Assembly
@@ -211,7 +209,8 @@ Core responsibilities:
 * Assign the chosen :class:`propflow.core.dcop_base.Computator` to every agent.
 * Seed inboxes with zero-messages so computation can start immediately.
 * Execute ``step`` loops until convergence or a maximum iteration cap.
-* Record costs, beliefs, and assignments in :class:`propflow.bp.engine_components.History`.
+* Record costs, beliefs, assignments, and messages through automatic snapshots
+  exposed via a read-only history compatibility view.
 * Expose hook methods (``pre_factor_compute`` etc.) that subclasses override to
   implement policies.
 
@@ -240,12 +239,16 @@ Engine Variants and Policies
 
 Specialised engines extend ``BPEngine`` with additional behaviour:
 
-* :class:`propflow.bp.engines.DampingEngine` – smooths messages.
-* :class:`propflow.bp.engines.SplitEngine` – splits factors to alter dynamics.
-* :class:`propflow.bp.engines.CostReductionOnceEngine` – reduces costs once at
-  startup.
-* :class:`propflow.bp.engines.MessagePruningEngine` – prunes messages using
-  policies.
+* :class:`propflow.bp.engines.DampingEngine` – damps variable-to-factor Q messages.
+* :class:`propflow.bp.engines.RDampingEngine` – damps factor-to-variable R messages.
+* :class:`propflow.bp.engines.QRDampingEngine` – damps Q and R messages independently.
+* :class:`propflow.bp.engines.DiffusionEngine` – spatially blends same-neighbourhood messages.
+* :class:`propflow.bp.engines.SplitEngine` – splits factors at initialization.
+* :class:`propflow.bp.engines.MidRunSplitEngine` – applies factor splitting during a run.
+* :class:`propflow.bp.engines.CostReductionOnceEngine` – reduces costs once at startup.
+* :class:`propflow.bp.engines.TRWEngine` – applies tree-reweighted Min-Sum scaling.
+* :class:`propflow.bp.engines.DampingTRWEngine` – combines damping with TRW scaling.
+* :class:`propflow.bp.engines.MessagePruningEngine` – initializes a message-pruning policy.
 
 Complement engines with policies and utilities:
 
@@ -379,7 +382,7 @@ Use this checklist when building your own experiments:
 3. **Pick an engine configuration**
 
    - Select a ``computator`` and, if needed, an engine variant with policies.
-   - Enable snapshots or convergence rules to match your evaluation criteria.
+   - Configure convergence rules to match your evaluation criteria.
 4. **Run experiments**
 
    - Call :meth:`BPEngine.run` for single cases.
