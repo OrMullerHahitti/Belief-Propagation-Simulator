@@ -17,13 +17,15 @@ from .types import EngineSnapshot
 
 def _letter_label(idx: int) -> str:
     """Convert numeric index to letter label (0->a, 1->b, etc.)."""
-    return chr(ord('a') + idx)
+    return chr(ord("a") + idx)
 
 
 def _format_array(arr: np.ndarray, precision: int = 3) -> str:
     """Format array as comma-separated values."""
-    values = [f"{v:.{precision}g}" if isinstance(v, float) else str(int(v)) 
-              for v in arr.flatten()]
+    values = [
+        f"{v:.{precision}g}" if isinstance(v, float) else str(int(v))
+        for v in arr.flatten()
+    ]
     return ", ".join(values)
 
 
@@ -43,9 +45,13 @@ def _render_table(headers: Sequence[str], rows: Iterable[Sequence[str]]) -> List
             col_widths[idx] = max(col_widths[idx], len(value))
 
     def _format_row(values: Sequence[str]) -> str:
-        return "| " + " | ".join(
-            value.ljust(col_widths[idx]) for idx, value in enumerate(values)
-        ) + " |"
+        return (
+            "| "
+            + " | ".join(
+                value.ljust(col_widths[idx]) for idx, value in enumerate(values)
+            )
+            + " |"
+        )
 
     header_row = _format_row(headers)
     sep_row = "|-" + "-|-".join("-" * width for width in col_widths) + "-|"
@@ -75,7 +81,7 @@ def _infer_route_order(variable_names: Sequence[str]) -> List[str]:
 
 class StepByStepFormatter:
     """Formats BP simulation steps in Excel-like tabular format.
-    
+
     This class takes a sequence of EngineSnapshots and provides methods to
     format them as readable step-by-step output showing:
     - Cost tables for all factors
@@ -83,13 +89,13 @@ class StepByStepFormatter:
     - R messages (factor -> variable) per iteration
     - Variable assignments and beliefs per iteration
     - Solution cost per iteration
-    
+
     Example:
         >>> from propflow.snapshots import StepByStepFormatter
         >>> formatter = StepByStepFormatter(engine.snapshot_manager.snapshots)
         >>> print(formatter.format_all_steps())
     """
-    
+
     def __init__(
         self,
         snapshots: Sequence[EngineSnapshot],
@@ -99,7 +105,7 @@ class StepByStepFormatter:
         ignore_pairs: Optional[Sequence[Tuple[str, str]]] = None,
     ) -> None:
         """Initialize formatter with snapshot records.
-        
+
         Args:
             snapshots: A sequence of EngineSnapshot objects from a BP simulation.
             normalize_messages: If True, normalize Q/R messages by subtracting
@@ -111,13 +117,13 @@ class StepByStepFormatter:
                 is inferred from variable names.
             ignore_pairs: Optional list of ``(sender, recipient)`` message pairs
                 to omit from both Q and R output.
-            
+
         Raises:
             ValueError: If snapshots is empty.
         """
         if not snapshots:
             raise ValueError("Cannot format empty snapshot sequence")
-        
+
         self._snapshots = list(snapshots)
         self._sorted_steps = sorted(s.step for s in self._snapshots)
         self._step_to_snapshot = {s.step: s for s in self._snapshots}
@@ -126,7 +132,7 @@ class StepByStepFormatter:
         self._ignore_pairs = set(ignore_pairs or [])
         if self._route_filter not in {"both", "cw", "ccw"}:
             raise ValueError("route_filter must be 'both', 'cw', or 'ccw'")
-        
+
         # extract variable and factor names from first snapshot
         first = self._snapshots[0]
         self._variables = sorted(first.dom.keys())
@@ -156,23 +162,25 @@ class StepByStepFormatter:
             self._factor_neighbors = {
                 name: list(neighbors) for name, neighbors in first.N_fac.items()
             }
-    
+
     @property
     def variables(self) -> List[str]:
         """List of variable names in the problem."""
         return list(self._variables)
-    
+
     @property
     def factors(self) -> List[str]:
         """List of factor names in the problem."""
         return list(self._factors)
-    
+
     @property
     def steps(self) -> List[int]:
         """List of step numbers available."""
         return list(self._sorted_steps)
 
-    def _route_direction(self, var_name: str, factor_name: str) -> Literal["cw", "ccw", "both"]:
+    def _route_direction(
+        self, var_name: str, factor_name: str
+    ) -> Literal["cw", "ccw", "both"]:
         neighbors = self._factor_neighbors.get(factor_name, [])
         if var_name not in neighbors or len(neighbors) != 2:
             return "both"
@@ -229,7 +237,9 @@ class StepByStepFormatter:
         for (sender, recipient), data in sorted(messages.items()):
             if (sender, recipient) in self._ignore_pairs:
                 continue
-            if not self._route_allows_message(kind=kind, sender=sender, recipient=recipient):
+            if not self._route_allows_message(
+                kind=kind, sender=sender, recipient=recipient
+            ):
                 continue
             arr = np.asarray(data)
             if self._normalize_messages:
@@ -244,44 +254,45 @@ class StepByStepFormatter:
         if first.dom:
             return len(next(iter(first.dom.values())))
         return 0
-    
+
     def format_cost_tables(self, use_letters: bool = True) -> str:
         """Format cost tables for all factors.
-        
+
         Args:
             use_letters: If True, use letter labels (a, b, ...) instead of numbers.
-            
+
         Returns:
             Formatted string showing all cost tables.
         """
         first = self._snapshots[0]
         if not first.cost_tables:
             return "No cost tables available\n"
-        
+
         lines = ["=" * 60, "COST TABLES", "=" * 60, ""]
-        
+
         for factor_name in self._factors:
             table = first.cost_tables.get(factor_name)
             labels = first.cost_labels.get(factor_name, [])
-            
+
             if table is None:
                 continue
-            
+
             lines.append(f"Factor: {factor_name.upper()}")
             if labels:
                 lines.append(f"  Connected variables: {', '.join(labels)}")
-            
+
             # format as 2D table if binary factor
             if table.ndim == 2:
                 domain = table.shape[0]
-                row_labels = [_letter_label(i) if use_letters else str(i) 
-                             for i in range(domain)]
+                row_labels = [
+                    _letter_label(i) if use_letters else str(i) for i in range(domain)
+                ]
                 col_labels = row_labels.copy()
-                
+
                 # header row
                 header = "     " + "  ".join(f"{lbl:>5}" for lbl in col_labels)
                 lines.append(header)
-                
+
                 # data rows
                 for i, row_label in enumerate(row_labels):
                     row_vals = "  ".join(f"{table[i, j]:>5.3g}" for j in range(domain))
@@ -289,15 +300,20 @@ class StepByStepFormatter:
             else:
                 # 1D unary factor
                 domain = table.shape[0]
-                labels_str = [_letter_label(i) if use_letters else str(i) 
-                              for i in range(domain)]
-                lines.append("  " + "  ".join(f"{lbl}: {table[i]:.3g}" 
-                                              for i, lbl in enumerate(labels_str)))
-            
+                labels_str = [
+                    _letter_label(i) if use_letters else str(i) for i in range(domain)
+                ]
+                lines.append(
+                    "  "
+                    + "  ".join(
+                        f"{lbl}: {table[i]:.3g}" for i, lbl in enumerate(labels_str)
+                    )
+                )
+
             lines.append("")
-        
+
         return "\n".join(lines)
-    
+
     def format_iteration(
         self,
         step: int,
@@ -305,22 +321,22 @@ class StepByStepFormatter:
         show: Literal["text", "table"] = "text",
     ) -> str:
         """Format Q/R messages, assignments, and cost for one iteration.
-        
+
         Args:
             step: The step number to format.
             use_letters: If True, use letter labels for domain values.
             show: ``"text"`` (default) prints the existing format; ``"table"``
                 renders Q/R messages in a tabular layout.
-            
+
         Returns:
             Formatted string for the iteration.
         """
         if step not in self._step_to_snapshot:
             return f"Step {step} not found\n"
-        
+
         snapshot = self._step_to_snapshot[step]
         lines = ["-" * 60, f"ITERATION {step}", "-" * 60, ""]
-        
+
         # q messages (variable -> factor)
         lines.append("Q Messages (Variable -> Factor):")
         if show == "table":
@@ -331,15 +347,17 @@ class StepByStepFormatter:
                 lines.append("  (no Q messages)")
         else:
             wrote_q = False
-            for sender, recipient, formatted in self._iter_messages(snapshot.Q, kind="Q"):
+            for sender, recipient, formatted in self._iter_messages(
+                snapshot.Q, kind="Q"
+            ):
                 lines.append(f"  {sender} -> {recipient}: [{formatted}]")
                 wrote_q = True
-        
+
         if show != "table" and not wrote_q:
             lines.append("  (no Q messages)")
-        
+
         lines.append("")
-        
+
         # r messages (factor -> variable)
         lines.append("R Messages (Factor -> Variable):")
         if show == "table":
@@ -350,15 +368,17 @@ class StepByStepFormatter:
                 lines.append("  (no R messages)")
         else:
             wrote_r = False
-            for sender, recipient, formatted in self._iter_messages(snapshot.R, kind="R"):
+            for sender, recipient, formatted in self._iter_messages(
+                snapshot.R, kind="R"
+            ):
                 lines.append(f"  {sender} -> {recipient}: [{formatted}]")
                 wrote_r = True
-        
+
         if show != "table" and not wrote_r:
             lines.append("  (no R messages)")
-        
+
         lines.append("")
-        
+
         # assignments
         lines.append("Assignments:")
         for var_name in self._variables:
@@ -368,9 +388,9 @@ class StepByStepFormatter:
             else:
                 assignment_label = str(assignment)
             lines.append(f"  {var_name} = {assignment_label}")
-        
+
         lines.append("")
-        
+
         # beliefs (optional)
         if snapshot.beliefs:
             lines.append("Beliefs:")
@@ -380,37 +400,37 @@ class StepByStepFormatter:
                     formatted = _format_array(np.asarray(belief))
                     lines.append(f"  {var_name}: [{formatted}]")
             lines.append("")
-        
+
         # global cost
         if snapshot.global_cost is not None:
             lines.append(f"Solution Cost: {snapshot.global_cost:.3g}")
         else:
             lines.append("Solution Cost: (not computed)")
-        
+
         # damping factor
         if snapshot.lambda_ != 0:
             lines.append(f"Damping Factor: {snapshot.lambda_:.3g}")
-        
+
         lines.append("")
         return "\n".join(lines)
-    
+
     def format_all_steps(
         self,
         include_cost_tables: bool = True,
         show: Literal["text", "table"] = "text",
     ) -> str:
         """Return complete step-by-step output.
-        
+
         Args:
             include_cost_tables: If True, include cost tables at the beginning.
             show: ``"text"`` (default) prints the existing format; ``"table"``
                 renders Q/R messages in a tabular layout.
-            
+
         Returns:
             Complete formatted output for all iterations.
         """
         parts = []
-        
+
         # header
         parts.append("=" * 60)
         parts.append("BELIEF PROPAGATION STEP-BY-STEP OUTPUT")
@@ -420,34 +440,34 @@ class StepByStepFormatter:
         parts.append(f"Total iterations: {len(self._sorted_steps)}")
         parts.append("=" * 60)
         parts.append("")
-        
+
         # cost tables
         if include_cost_tables:
             parts.append(self.format_cost_tables())
-        
+
         # iterations
         for step in self._sorted_steps:
             parts.append(self.format_iteration(step, show=show))
-        
+
         return "\n".join(parts)
-    
+
     def format_summary(self) -> str:
         """Return a compact summary of the simulation.
-        
+
         Returns:
             Summary string with initial/final costs and assignments.
         """
         lines = ["SIMULATION SUMMARY", "-" * 40]
-        
+
         if self._sorted_steps:
             first_snapshot = self._step_to_snapshot[self._sorted_steps[0]]
             last_snapshot = self._step_to_snapshot[self._sorted_steps[-1]]
-            
+
             initial_cost = first_snapshot.global_cost
             final_cost = last_snapshot.global_cost
-            
+
             lines.append(f"Total iterations: {len(self._sorted_steps)}")
-            
+
             if initial_cost is not None:
                 lines.append(f"Initial cost: {initial_cost:.3g}")
             if final_cost is not None:
@@ -455,13 +475,15 @@ class StepByStepFormatter:
             if initial_cost is not None and final_cost is not None:
                 improvement = initial_cost - final_cost
                 lines.append(f"Cost improvement: {improvement:.3g}")
-            
+
             lines.append("")
             lines.append("Final assignments:")
             for var_name in self._variables:
                 assignment = last_snapshot.assignments.get(var_name, "?")
-                lines.append(f"  {var_name} = {_letter_label(assignment) if isinstance(assignment, int) else assignment}")
-        
+                lines.append(
+                    f"  {var_name} = {_letter_label(assignment) if isinstance(assignment, int) else assignment}"
+                )
+
         return "\n".join(lines)
 
 

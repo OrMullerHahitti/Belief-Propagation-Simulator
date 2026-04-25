@@ -5,6 +5,7 @@ tasks related to factor graphs, such as building graphs with specific
 topologies (random, cycle), calculating bounds, and safely handling pickled
 graph objects.
 """
+
 import pickle
 import random
 import sys
@@ -289,6 +290,7 @@ class FGBuilder:
             def make_unary_ct(costs_array):
                 def ct_func(num_vars, domain_size, **kwargs):
                     return costs_array.copy()
+
                 return ct_func
 
             unary_factor = FactorAgent(
@@ -301,7 +303,6 @@ class FGBuilder:
             edges[unary_factor] = [var]
 
         return FactorGraph(variables, factors, edges)
-
 
 
 def get_message_shape(domain_size: int, connections: int = 2) -> tuple[int, ...]:
@@ -361,7 +362,7 @@ class SafeUnpickler(pickle.Unpickler):
         module = module_mapping.get(module, module)
         # handle renamed experiments directory (was "expiriments")
         if module.startswith("expiriments."):
-            module = "experiments." + module[len("expiriments."):]
+            module = "experiments." + module[len("expiriments.") :]
         try:
             return super().find_class(module, name)
         except (ImportError, AttributeError) as e:

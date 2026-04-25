@@ -5,7 +5,6 @@ from propflow.utils import FGBuilder
 from propflow.configs import create_random_int_table, create_uniform_float_table
 from propflow.bp.factor_graph import FactorGraph
 from propflow.core.agents import VariableAgent, FactorAgent
-from propflow.core.components import Message
 
 
 class TestFactorGraph:

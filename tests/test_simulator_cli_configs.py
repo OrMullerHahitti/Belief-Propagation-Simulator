@@ -2,7 +2,6 @@ import pickle
 import sys
 from types import SimpleNamespace
 
-import pytest
 
 from propflow.cli import main as cli_main
 from propflow.computators import COMPUTATORS

@@ -83,9 +83,13 @@ class BCTGraph:
     def ensure_message_node(self, key: MessageKey, **metadata: Any) -> MessageKey:
         node_meta = dict(metadata)
         node_meta.setdefault("iteration", getattr(key, "iteration", 0))
-        node_meta.setdefault("message_role", "variable" if key.direction == "Q" else "factor")
+        node_meta.setdefault(
+            "message_role", "variable" if key.direction == "Q" else "factor"
+        )
         if key not in self.nodes:
-            self.nodes[key] = BCTNode(key=key, kind="message", label=key.label(), metadata=node_meta)
+            self.nodes[key] = BCTNode(
+                key=key, kind="message", label=key.label(), metadata=node_meta
+            )
         else:
             self.nodes[key].metadata.update(node_meta)
         return key
@@ -94,7 +98,9 @@ class BCTGraph:
         node_meta = dict(metadata)
         node_meta.setdefault("iteration", metadata.get("iteration", 0))
         if key not in self.nodes:
-            self.nodes[key] = BCTNode(key=key, kind="cost", label=key.label(), metadata=node_meta)
+            self.nodes[key] = BCTNode(
+                key=key, kind="cost", label=key.label(), metadata=node_meta
+            )
         else:
             self.nodes[key].metadata.update(node_meta)
         return key
@@ -103,7 +109,9 @@ class BCTGraph:
         node_meta = dict(metadata)
         node_meta.setdefault("iteration", getattr(key, "iteration", 0))
         if key not in self.nodes:
-            self.nodes[key] = BCTNode(key=key, kind="belief", label=key.label(), metadata=node_meta)
+            self.nodes[key] = BCTNode(
+                key=key, kind="belief", label=key.label(), metadata=node_meta
+            )
         else:
             self.nodes[key].metadata.update(node_meta)
         return key
@@ -123,7 +131,9 @@ class BCTGraph:
         if abs(weight) <= 0.0:
             return
         if source not in self.nodes or target not in self.nodes:
-            raise KeyError("Both source and target nodes must exist before adding an edge")
+            raise KeyError(
+                "Both source and target nodes must exist before adding an edge"
+            )
         bucket = self._edges[source]
         new_weight = bucket.get(target, 0.0) + float(weight)
         bucket[target] = new_weight
@@ -182,7 +192,9 @@ class SnapshotBCTBuilder:
         self._factor_cache: Dict[Tuple[int, str], Optional[_FactorContext]] = {}
         self._steps = [rec.step for rec in self._records]
         self._snapshots_by_step = {rec.step: rec for rec in self._records}
-        self._assignments_by_step = {rec.step: dict(getattr(rec, "assignments", {})) for rec in self._records}
+        self._assignments_by_step = {
+            rec.step: dict(getattr(rec, "assignments", {})) for rec in self._records
+        }
         self._build()
 
     # ------------------------------------------------------------------
@@ -209,7 +221,9 @@ class SnapshotBCTBuilder:
     def belief_root(self, variable: str, step: int, value_index: int) -> BeliefKey:
         key = BeliefKey(variable=variable, iteration=step, value_index=value_index)
         if key not in self.graph.nodes:
-            raise ValueError(f"Belief node for {variable} at step {step} is not available")
+            raise ValueError(
+                f"Belief node for {variable} at step {step} is not available"
+            )
         return key
 
     # ------------------------------------------------------------------
@@ -230,7 +244,9 @@ class SnapshotBCTBuilder:
             arr = np.asarray(values, dtype=float).ravel()
             for value_index, _ in enumerate(arr):
                 key = MessageKey("Q", var_name, factor_name, snapshot.step, value_index)
-                parent_value = float(arr[value_index]) if value_index < len(arr) else 0.0
+                parent_value = (
+                    float(arr[value_index]) if value_index < len(arr) else 0.0
+                )
                 node_meta = {
                     "variable": var_name,
                     "factor": factor_name,
@@ -238,7 +254,9 @@ class SnapshotBCTBuilder:
                 }
                 self.graph.ensure_message_node(key, **node_meta)
                 if lambda_coeff > 0.0 and prev_step is not None:
-                    prev_key = MessageKey("Q", var_name, factor_name, prev_step, value_index)
+                    prev_key = MessageKey(
+                        "Q", var_name, factor_name, prev_step, value_index
+                    )
                     if prev_key in self.graph.nodes:
                         self.graph.add_edge(
                             key,
@@ -266,7 +284,9 @@ class SnapshotBCTBuilder:
                     prev_arr = np.asarray(prev_array, dtype=float).ravel()
                     if value_index >= len(prev_arr):
                         continue
-                    child_key = MessageKey("R", neighbor_name, var_name, prev_step, value_index)
+                    child_key = MessageKey(
+                        "R", neighbor_name, var_name, prev_step, value_index
+                    )
                     child_value = float(prev_arr[value_index])
                     contribs.append(
                         {
@@ -307,7 +327,9 @@ class SnapshotBCTBuilder:
                 # Create placeholder node so belief edges can attach even if cost tables were missing
                 arr = np.asarray(values, dtype=float).ravel()
                 for value_index, value in enumerate(arr):
-                    key = MessageKey("R", factor_name, var_name, snapshot.step, value_index)
+                    key = MessageKey(
+                        "R", factor_name, var_name, snapshot.step, value_index
+                    )
                     self.graph.ensure_message_node(
                         key,
                         variable=var_name,
@@ -342,9 +364,13 @@ class SnapshotBCTBuilder:
                 if len(assignments) > 1:
                     self.graph.nodes[key].metadata["has_ties"] = True
                 for assignment in assignments:
-                    assignment_tuple: Tuple[int, ...] = tuple(int(x) for x in assignment)
+                    assignment_tuple: Tuple[int, ...] = tuple(
+                        int(x) for x in assignment
+                    )
                     cost_key = CostKey(factor=factor_name, assignment=assignment_tuple)
-                    assignment_map = {labels[i]: assignment_tuple[i] for i in range(len(labels))}
+                    assignment_map = {
+                        labels[i]: assignment_tuple[i] for i in range(len(labels))
+                    }
                     cost_value = float(context.cost_table[assignment_tuple])
                     cost_metadata = {
                         "factor": factor_name,
@@ -385,11 +411,15 @@ class SnapshotBCTBuilder:
                         if neighbor == var_name:
                             continue
                         assigned_value = assignment_tuple[idx]
-                        child_key = MessageKey("Q", neighbor, factor_name, snapshot.step, assigned_value)
+                        child_key = MessageKey(
+                            "Q", neighbor, factor_name, snapshot.step, assigned_value
+                        )
                         child_value_vector = snapshot.Q.get((neighbor, factor_name))
                         value_payload = 0.0
                         if child_value_vector is not None:
-                            arr_child = np.asarray(child_value_vector, dtype=float).ravel()
+                            arr_child = np.asarray(
+                                child_value_vector, dtype=float
+                            ).ravel()
                             if assigned_value < len(arr_child):
                                 value_payload = float(arr_child[assigned_value])
                         self.graph.ensure_message_node(
@@ -428,7 +458,9 @@ class SnapshotBCTBuilder:
                 belief_np = np.asarray(belief_arr, dtype=float)
                 if int(value_index) < len(belief_np):
                     belief_value = float(belief_np[int(value_index)])
-            key = BeliefKey(variable=var_name, iteration=snapshot.step, value_index=int(value_index))
+            key = BeliefKey(
+                variable=var_name, iteration=snapshot.step, value_index=int(value_index)
+            )
             extra_meta = {}
             if belief_value is not None:
                 extra_meta["value"] = belief_value
@@ -441,7 +473,9 @@ class SnapshotBCTBuilder:
                 arr = np.asarray(r_values, dtype=float).ravel()
                 if value_index >= len(arr):
                     continue
-                child_key = MessageKey("R", factor_label, var_name, snapshot.step, int(value_index))
+                child_key = MessageKey(
+                    "R", factor_label, var_name, snapshot.step, int(value_index)
+                )
                 child_value = float(arr[int(value_index)])
                 self.graph.ensure_message_node(
                     child_key,
@@ -461,7 +495,9 @@ class SnapshotBCTBuilder:
                 )
 
     # ------------------------------------------------------------------
-    def _factor_context(self, snapshot: Any, factor_name: str) -> Optional[_FactorContext]:
+    def _factor_context(
+        self, snapshot: Any, factor_name: str
+    ) -> Optional[_FactorContext]:
         cache_key = (snapshot.step, factor_name)
         if cache_key in self._factor_cache:
             return self._factor_cache[cache_key]
@@ -488,7 +524,13 @@ class SnapshotBCTBuilder:
             broadcasts.append(broadcast)
             q_vectors[var_name] = vector
             agg = agg + broadcast
-        context = _FactorContext(cost_table=table, labels=list(labels), aggregate=agg, broadcasts=broadcasts, q_vectors=q_vectors)
+        context = _FactorContext(
+            cost_table=table,
+            labels=list(labels),
+            aggregate=agg,
+            broadcasts=broadcasts,
+            q_vectors=q_vectors,
+        )
         self._factor_cache[cache_key] = context
         return context
 
@@ -544,7 +586,9 @@ class BCTCreator:
             raise ValueError("BCT root has no reachable nodes")
         positions: Dict[Hashable, Tuple[float, float]] = {}
         labels: Dict[Hashable, str] = {}
-        node_meta: Dict[Hashable, BCTNode] = {node: self.graph.nodes[node] for node in reachable}
+        node_meta: Dict[Hashable, BCTNode] = {
+            node: self.graph.nodes[node] for node in reachable
+        }
 
         def _child_nodes(node_key: Hashable) -> List[Hashable]:
             children = [
@@ -637,7 +681,9 @@ class BCTCreator:
         def _format_edge_label(meta: Dict[str, Any], weight: float | None) -> str:
             lines: List[str] = []
             if "assignment" in meta:
-                assignments = ", ".join(f"{k}={v}" for k, v in sorted(meta["assignment"].items()))
+                assignments = ", ".join(
+                    f"{k}={v}" for k, v in sorted(meta["assignment"].items())
+                )
                 lines.append(assignments)
             if "message_value" in meta:
                 lines.append(f"belief={float(meta['message_value']):.3f}")
@@ -654,7 +700,12 @@ class BCTCreator:
                         pieces.append(str(item))
                 if pieces:
                     lines.append("sum: " + " + ".join(pieces))
-            if not verbose and not lines and weight is not None and abs(weight - 1.0) > 1e-9:
+            if (
+                not verbose
+                and not lines
+                and weight is not None
+                and abs(weight - 1.0) > 1e-9
+            ):
                 lines.append(f"w={weight:.3f}")
             return "\n".join(lines)
 
@@ -673,7 +724,9 @@ class BCTCreator:
                 depth_to_y[depth_map[node]].append(visible_positions[node][1])
             for depth, ys in depth_to_y.items():
                 level_y = sum(ys) / len(ys)
-                ax.axhline(y=level_y, color="#e6e6e6", linestyle="--", linewidth=0.8, zorder=0)
+                ax.axhline(
+                    y=level_y, color="#e6e6e6", linestyle="--", linewidth=0.8, zorder=0
+                )
                 ax.text(
                     min_x - 0.5,
                     level_y,
@@ -775,4 +828,12 @@ class BCTCreator:
             offset = 3.0
         return depth * 4.0 + offset
 
-__all__ = ["BCTGraph", "BCTCreator", "SnapshotBCTBuilder", "MessageKey", "BeliefKey", "CostKey"]
+
+__all__ = [
+    "BCTGraph",
+    "BCTCreator",
+    "SnapshotBCTBuilder",
+    "MessageKey",
+    "BeliefKey",
+    "CostKey",
+]

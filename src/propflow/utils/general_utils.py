@@ -4,6 +4,7 @@ This module contains miscellaneous helper functions that are used across
 various parts of the PropFlow library, such as a dummy function for placeholders
 and a profiling decorator for performance analysis.
 """
+
 from functools import wraps
 from typing import Any, Callable
 

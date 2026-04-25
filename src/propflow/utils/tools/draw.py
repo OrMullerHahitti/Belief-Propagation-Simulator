@@ -3,6 +3,7 @@
 This module provides a convenient way to draw a `FactorGraph` object,
 distinguishing between variable and factor nodes by color and shape.
 """
+
 from typing import Any
 import networkx as nx
 import matplotlib.pyplot as plt

@@ -4,6 +4,7 @@ This module provides functions that implement message damping, a technique used
 to stabilize belief propagation by preventing oscillations. Damping works by
 blending a newly computed message with the message from a previous iteration.
 """
+
 from typing import List
 
 from ..configs.global_config_mapping import PolicyDefaults
@@ -69,4 +70,3 @@ def damp(agent, x: float = None) -> None:
 
 # backwards-compatible alias
 damp_factor = damp
-

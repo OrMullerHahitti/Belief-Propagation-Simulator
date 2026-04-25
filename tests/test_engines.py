@@ -8,11 +8,9 @@ from propflow.bp.engines import (
     RDampingEngine,
     QRDampingEngine,
     DiffusionEngine,
-    CostReductionOnceEngine,
     DampingCROnceEngine,
     DampingSCFGEngine,
     DampingTRWEngine,
-    MessagePruningEngine,
     TRWEngine,
 )
 from propflow.core import Message
@@ -61,7 +59,9 @@ def create_simple_factor_graph():
     return fg
 
 
-def _pairwise_cost_table(num_vars: int | None = None, domain_size: int | None = None, **kwargs):
+def _pairwise_cost_table(
+    num_vars: int | None = None, domain_size: int | None = None, **kwargs
+):
     """Deterministic binary cost table for TRW tests."""
     n_vars = num_vars or 2
     domain = domain_size or 2
@@ -116,9 +116,9 @@ def test_split_engine():
     verbose_print(f"Factor count after splitting: {len(fg.factors)}")
 
     # Check that the number of factors has doubled (splitting was applied in post_init)
-    assert (
-        len(fg.factors) == original_factor_count * 2
-    ), "SplitEngine should double the number of factors"
+    assert len(fg.factors) == original_factor_count * 2, (
+        "SplitEngine should double the number of factors"
+    )
     verbose_print("✓ Number of factors successfully doubled")
 
     # Check that the factors have the correct names
@@ -291,9 +291,9 @@ def test_damping_scfg_engine():
     verbose_print(f"New factor count: {len(fg.factors)}")
 
     # Check that the number of factors has doubled (splitting was applied in post_init)
-    assert (
-        len(fg.factors) == original_factor_count * 2
-    ), "DampingSCFGEngine should double the number of factors"
+    assert len(fg.factors) == original_factor_count * 2, (
+        "DampingSCFGEngine should double the number of factors"
+    )
     verbose_print("✓ Number of factors successfully doubled")
 
     # Check that the factors have the correct names
@@ -485,8 +485,6 @@ def test_damping_cr_once_engine():
     verbose_print(
         "✓ DampingCROnceEngine correctly implements both cost reduction and damping"
     )
-
-
 
 
 def test_diffusion_engine():

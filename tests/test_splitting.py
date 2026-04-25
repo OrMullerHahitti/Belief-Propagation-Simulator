@@ -54,24 +54,24 @@ def test_split_all_factors():
     split_all_factors(fg, p)
 
     # Check that the number of factors has doubled
-    assert (
-        len(fg.factors) == original_factor_count * 2
-    ), "Number of factors should double after splitting"
+    assert len(fg.factors) == original_factor_count * 2, (
+        "Number of factors should double after splitting"
+    )
 
     # Check that the original factor is removed
     for name in original_factor_names:
-        assert not any(
-            f.name == name for f in fg.factors
-        ), f"Original factor {name} should be removed"
+        assert not any(f.name == name for f in fg.factors), (
+            f"Original factor {name} should be removed"
+        )
 
     # Check that the new factors have the correct names
     for name in original_factor_names:
-        assert any(
-            f.name == f"{name}'" for f in fg.factors
-        ), f"New factor {name}' should exist"
-        assert any(
-            f.name == f"{name}''" for f in fg.factors
-        ), f"New factor {name}'' should exist"
+        assert any(f.name == f"{name}'" for f in fg.factors), (
+            f"New factor {name}' should exist"
+        )
+        assert any(f.name == f"{name}''" for f in fg.factors), (
+            f"New factor {name}'' should exist"
+        )
 
     # Check that the cost tables are correctly scaled
     for f in fg.factors:

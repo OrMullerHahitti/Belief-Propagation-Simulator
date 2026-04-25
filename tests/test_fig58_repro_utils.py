@@ -80,7 +80,11 @@ def test_run_belief_trace_and_slope_stats_for_consistent_case():
         normalize_messages=False,
     )
 
-    assert set(records.keys()) == {f"x1_v{route[0]}", f"x2_v{route[1]}", f"x3_v{route[2]}"}
+    assert set(records.keys()) == {
+        f"x1_v{route[0]}",
+        f"x2_v{route[1]}",
+        f"x3_v{route[2]}",
+    }
     assert all(len(v) == 70 for v in records.values())
 
     stats = compute_slope_stats(records, 50, 70)
@@ -178,7 +182,14 @@ def test_run_experiment_examples_key_alignment():
         subtract_initial=False,
     )
     assert len(runs_8) == 2
-    assert runs_8[0]["key_order"] == ["x1_v0", "x2_v0", "x3_v0", "x1_v1", "x2_v1", "x3_v1"]
+    assert runs_8[0]["key_order"] == [
+        "x1_v0",
+        "x2_v0",
+        "x3_v0",
+        "x1_v1",
+        "x2_v1",
+        "x3_v1",
+    ]
     assert set(runs_8[0]["records"].keys()) == {
         "x1_v0",
         "x2_v0",
@@ -205,7 +216,9 @@ def test_aggregate_example_records_shapes():
         normalize_messages=False,
         subtract_initial=False,
     )
-    agg = aggregate_example_records(runs, key_order=["x1_route", "x2_route", "x3_route"])
+    agg = aggregate_example_records(
+        runs, key_order=["x1_route", "x2_route", "x3_route"]
+    )
     assert agg["n_examples"] == 3
     assert list(agg["mean_records"].keys()) == ["x1_route", "x2_route", "x3_route"]
     assert list(agg["std_records"].keys()) == ["x1_route", "x2_route", "x3_route"]

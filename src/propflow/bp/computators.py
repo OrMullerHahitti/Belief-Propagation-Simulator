@@ -240,7 +240,11 @@ class BPComputator(Computator):
         if cache_key in self._connection_cache:
             return self._connection_cache[cache_key]
 
-        if hasattr(factor, "connection_number") and factor.connection_number and node.name in factor.connection_number:
+        if (
+            hasattr(factor, "connection_number")
+            and factor.connection_number
+            and node.name in factor.connection_number
+        ):
             dim = factor.connection_number[node.name]
             self._connection_cache[cache_key] = dim
             return dim

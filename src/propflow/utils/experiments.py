@@ -76,12 +76,12 @@ def run_baseline_comparison() -> dict:
 
     # Print comparison
     print("\n=== BASELINE COMPARISON ===")
-    print(f"Regular Engine:")
+    print("Regular Engine:")
     print(f"  Total messages: {results['regular'].get('total_messages', 'N/A')}")
     print(f"  Total time: {results['regular'].get('total_time', 0.0):.3f}s")
     print(f"  Avg memory: {results['regular'].get('avg_memory_mb', 'N/A')} MB")
 
-    print(f"\nPruning Engine:")
+    print("\nPruning Engine:")
     print(f"  Total messages: {results['pruning'].get('total_messages', 'N/A')}")
     print(f"  Pruned messages: {results['pruning'].get('pruned_messages', 'N/A')}")
     print(f"  Pruning rate: {results['pruning'].get('pruning_rate', 0.0):.2%}")

@@ -6,6 +6,7 @@ a `FactorGraph` object. It relies on registries of graph builders and cost
 table factories to dynamically create graphs with different topologies and
 cost structures.
 """
+
 from __future__ import annotations
 
 import os

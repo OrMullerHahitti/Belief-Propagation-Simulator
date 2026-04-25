@@ -98,9 +98,9 @@ class TestBPEngine:
     def convergence_is_valid(self, engine):
         """Check if engine convergence results are valid."""
         # Should have some iterations
-        assert (
-            engine.iteration_count > 0
-        ), "Engine should perform at least one iteration"
+        assert engine.iteration_count > 0, (
+            "Engine should perform at least one iteration"
+        )
 
         # Should have values for all variables
         assignments = engine.assignments
@@ -134,9 +134,9 @@ class TestBPEngine:
         # Check that assignments are within domain
         for var_name, value in assignments.items():
             var = next(v for v in bp_engine.graph.variables if v.name == var_name)
-            assert (
-                0 <= value < var.domain
-            ), f"Assignment {value} for {var_name} outside domain {var.domain}"
+            assert 0 <= value < var.domain, (
+                f"Assignment {value} for {var_name} outside domain {var.domain}"
+            )
 
         # Check that beliefs were computed
         beliefs = bp_engine.get_beliefs()
@@ -158,15 +158,15 @@ class TestBPEngine:
 
         # Run a single iteration
         engine.run(max_iter=1)
-        assert (
-            engine.iteration_count >= 1
-        ), "Iteration count should be at least 1 after running"
+        assert engine.iteration_count >= 1, (
+            "Iteration count should be at least 1 after running"
+        )
 
         # Check for message passing - variables should have assignments
         for var in engine.graph.variables:
-            assert (
-                var.curr_assignment is not None
-            ), f"Variable {var.name} should have assignment"
+            assert var.curr_assignment is not None, (
+                f"Variable {var.name} should have assignment"
+            )
 
         # Note: BPEngine doesn't have a reset() method
 
@@ -194,14 +194,14 @@ class TestBPEngine:
         engine = BPEngine(factor_graph, convergence_config=convergence_config)
 
         # Check engine has correct factor graph
-        assert (
-            engine.graph == factor_graph
-        ), "Engine should have the provided factor graph"
+        assert engine.graph == factor_graph, (
+            "Engine should have the provided factor graph"
+        )
 
         # Check convergence config was set
-        assert (
-            engine.convergence_monitor.config == convergence_config
-        ), "Engine should have the provided convergence config"
+        assert engine.convergence_monitor.config == convergence_config, (
+            "Engine should have the provided convergence config"
+        )
 
         # Check initial state
         assert engine.iteration_count == 0, "Initial iteration count should be 0"
@@ -225,16 +225,16 @@ class TestBPEngine:
         engine = BPEngine(
             factor_graph_with_different_tables, convergence_config=convergence_config
         )
-        assert self.engine_runs_correctly(
-            engine
-        ), "Engine run failed with custom cost tables"
+        assert self.engine_runs_correctly(engine), (
+            "Engine run failed with custom cost tables"
+        )
 
     def test_bp_engine_energy_minimization(self, factor_graph, convergence_config):
         """BP engine correctly minimizes energy."""
         engine = BPEngine(factor_graph, convergence_config=convergence_config)
-        assert self.bp_engine_produces_reasonable_results(
-            engine
-        ), "Energy minimization failed"
+        assert self.bp_engine_produces_reasonable_results(engine), (
+            "Energy minimization failed"
+        )
 
     def test_bp_engine_disconnected_graph_constructs(self, convergence_config):
         """Disconnected graphs should be constructible (bipartite sets resolved via node attributes)."""

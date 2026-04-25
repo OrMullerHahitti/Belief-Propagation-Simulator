@@ -5,6 +5,7 @@ or multiple simulation runs. It includes an `EnhancedSaveModule` class that can
 extract and persist detailed analysis of engine performance, convergence behavior,
 and cost progression, in both JSON and CSV formats.
 """
+
 import csv
 import json
 import os
@@ -36,7 +37,7 @@ def save_simulation_data(engine: Any, filepath: str) -> str:
             else [str(val) for val in agent.domain]
         )
         agents_data.append(
-            {"id": f"agent{idx+1}", "name": agent.name, "domain": domain_values}
+            {"id": f"agent{idx + 1}", "name": agent.name, "domain": domain_values}
         )
 
     factors_data = []
@@ -54,7 +55,7 @@ def save_simulation_data(engine: Any, filepath: str) -> str:
         )
         factors_data.append(
             {
-                "id": f"factor{idx+1}",
+                "id": f"factor{idx + 1}",
                 "name": factor.name,
                 "connectedAgents": connected_agents,
                 "type": factor_type,
@@ -400,9 +401,9 @@ class EnhancedSaveModule:
             and hasattr(engine, "convergence_monitor")
             and engine.convergence_monitor
         ):
-            enhanced_data[
-                "detailed_convergence_analysis"
-            ] = self._analyze_convergence_details(engine)
+            enhanced_data["detailed_convergence_analysis"] = (
+                self._analyze_convergence_details(engine)
+            )
         if (
             hasattr(engine, "history")
             and engine.history
@@ -411,9 +412,7 @@ class EnhancedSaveModule:
             enhanced_data["cost_analysis"] = self._analyze_cost_progression(
                 engine.history.costs
             )
-        if hasattr(engine, "history") and hasattr(
-            engine.history, "step_messages"
-        ):
+        if hasattr(engine, "history") and hasattr(engine.history, "step_messages"):
             enhanced_data["message_analysis"] = self._analyze_message_patterns(
                 engine.history
             )

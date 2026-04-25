@@ -511,7 +511,7 @@ class DampingSCFGEngine(DampingEngine, SplitEngine):
         self._name = "DampingSCFG"
         self._set_name(
             {
-                "split": f"{self.split_factor}-{1-self.split_factor}",
+                "split": f"{self.split_factor}-{1 - self.split_factor}",
                 "damping": str(self.damping_factor),
             }
         )
@@ -538,7 +538,7 @@ class DampingCROnceEngine(DampingEngine, CostReductionOnceEngine):
         self._name = "DampingCROnceEngine"
         self._set_name(
             {
-                "reduction": f"{self.reduction_factor}-{1-self.reduction_factor}",
+                "reduction": f"{self.reduction_factor}-{1 - self.reduction_factor}",
                 "damping": str(self.damping_factor),
             }
         )
