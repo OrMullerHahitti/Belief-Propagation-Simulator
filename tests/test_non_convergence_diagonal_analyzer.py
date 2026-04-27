@@ -1,4 +1,4 @@
-from experiments.non_convergence_chain.diagonal_analyzer import (
+from experiments.other.non_convergence_chain.code.diagonal_analyzer import (
     binary_diagonal_orientation,
     generalized_selected_entry_signature,
 )

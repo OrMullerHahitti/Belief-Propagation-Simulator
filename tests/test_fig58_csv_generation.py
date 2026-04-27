@@ -1,11 +1,11 @@
 import pandas as pd
 
-from experiments.generate_fig58_csv import (
+from experiments.aij.code.generate_fig58_csv import (
     build_examples_dataframe,
     build_traces_dataframe,
     generate_fig58_csv_datasets,
 )
-from experiments.utils.fig58_repro import (
+from experiments.aij.code.utils.fig58_repro import (
     CASE_CONSISTENT_NO_TAIL,
     CASE_CONSISTENT_WITH_TAIL,
     CASE_INCONSISTENT_NO_TAIL,

@@ -1,64 +1,57 @@
 # Experiments
 
-Source code for the experiments in the paper. All experiments use [PropFlow](https://github.com/or-muller/propflow) (`propflow` package) for belief propagation on factor graphs.
+Source code and outputs for the experiments in the paper. All experiments use [PropFlow](https://github.com/or-muller/propflow) (`propflow` package) for belief propagation on factor graphs.
+
+## Layout
+
+```
+experiments/
+├── aij/        # paper bundle: signal propagation, structured-vs-random, fig 5a/5b/8
+│   ├── code/   # all scripts (flat, files renamed for collision-free coexistence)
+│   ├── plots/  # final PDFs / PNGs + the JSONs that produced fig5/8 plots
+│   └── data/   # examples, traces, graph metadata, raw run results
+├── other/      # one-off / supplementary experiments, each self-contained
+│   ├── non_convergence_chain/{code,config,data,plots}
+│   └── seed0_identity_timing_diagnostic/{code,config,data,plots}
+└── archive/    # superseded plots kept for comparison/rollback
+```
 
 ## Setup
 
 ```bash
-pip install propflow matplotlib pandas numpy
+uv pip install -e ".[dev]"
 ```
 
-## Experiments
+## aij/ — paper experiments
 
-### 1. Figures 5a, 5b, 8 — Belief Traces on Cycle Graphs
-
-Reproduces belief-trace figures from Zivan et al. Runs damped Min-Sum BP (damping=0.9) on binary-domain cycle graphs and plots per-variable belief trajectories over iterations.
-
-- **Figure 5a** — consistent assignment, no tail (period-1 route from iteration 0)
-- **Figure 5b** — consistent assignment, with tail (transient before locking)
-- **Figure 8** — inconsistent assignment, no tail (variables cycle through all domain values)
-
-**Generate all 12 plots (3 figures x 4 cycle sizes):**
+See `aij/README.md` for details. Quick reference:
 
 ```bash
-python reproduce_figure.py --batch-bw --n-examples 10
+# fig 5a / 5b / 8 — replay BP at the configured iteration count using saved cost tables
+uv run python experiments/aij/code/reproduce_figure.py --batch-bw --replay
+# (writes PDFs into experiments/aij/plots/)
+
+# regenerate the fig5/8 example datasets (slow — rejection sampling)
+uv run python experiments/aij/code/generate_fig58_csv.py
+
+# signal propagation
+uv run python experiments/aij/code/run_signal_propagation.py
+uv run python experiments/aij/code/plot_signal_propagation.py
+uv run python experiments/aij/code/plot_signal_range_analysis.py
+
+# structured vs random
+uv run python experiments/aij/code/generate_structured_vs_random_graphs.py
+uv run python experiments/aij/code/run_structured_vs_random.py
+uv run python experiments/aij/code/plot_structured_vs_random.py
 ```
 
-**Single figure:**
+## other/ — supplementary experiments
 
-```bash
-python reproduce_figure.py --figure 5a --cycle-size 3
-```
+Each has its own `README.md` and self-contained `code/ config/ data/ plots/` subdirs.
 
-**Generate CSV datasets (50 examples per configuration):**
+- `other/non_convergence_chain/` — chain-graph non-convergence study (oscillation detection, route analysis, midrun-split, long-damping)
+- `other/seed0_identity_timing_diagnostic/` — diagnostic for seed-0 identity / timing
 
-```bash
-python generate_fig58_csv.py
-```
+## archive/
 
-Output: `generated_csv/{figure_5a,figure_5b,figure_8}/cycle_{3,6,9,12}/` with `examples.csv` (graph metadata) and `traces.csv` (per-iteration beliefs).
-
-### 2. Signal Propagation
-
-Measures how a single activated factor's signal reaches a distant observer variable through BP message passing. For each factor in a random graph (20 vars, density 0.25), sets its cost table to ones (all others zero) and records the final Q-message at a fixed observer after 50 iterations. Compares undamped BP vs damped BP (damping=0.9).
-
-```bash
-cd signal_propagation
-python run_experiment.py
-python plot_results.py
-```
-
-Output: `results/signal_results_combined.csv`, scatter plots in `scatter_distributions/`.
-
-### 3. Structured vs Random Cost Tables
-
-Evaluates how replacing structured cost tables with random ones affects BP convergence. Structured tables have a single zero-cost cell at `[0,0]` (one clear preferred assignment) with all other entries in [100, 200). Random tables have all entries in [100, 200) with no preferred assignment. Generates 11 graph variants from a fixed topology (100 vars, density 0.7), progressively replacing 0%–100% of the structured factors with random ones in 10% steps, then runs both undamped and damped BP for 200 iterations each.
-
-```bash
-cd structured_vs_random
-python generate_graphs.py
-python run_experiment.py
-python plot_results.py
-```
-
-Output: per-graph CSVs in `results/`, cost-curve and final-cost plots in `plots/`.
+Old fig5a/5b PDFs at 100 iterations and the original combined `cost_curves_bw.png` (one figure with both engines as subplots). Superseded by the latest split versions in `aij/plots/`.

@@ -1,6 +1,6 @@
 import numpy as np
 
-from experiments.utils.fig58_repro import (
+from experiments.aij.code.utils.fig58_repro import (
     aggregate_example_records,
     CASE_CONSISTENT_NO_TAIL,
     CASE_CONSISTENT_WITH_TAIL,
