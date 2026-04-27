@@ -1,0 +1,6 @@
+run_name,classification,tail_start,residual_1_inf_last,residual_2_inf_last,mean_active_minimizer_change_last20,mean_active_minimizer_evenodd_change_last20,mean_min_belief_margin_last20,assignment_period2_start,minimizer_period2_start,minimizer_freeze_start
+baseline_no_split_instrumented,no_clear_classification,,15.0,16.0,1670.2,1687.1,0.05,,,
+split_pct_60_at_0_transfer_instrumented,transient_then_oscillation,27,16.0,0.0,2900.0,0.0,1.5,29,34,
+split_pct_70_at_0_transfer_instrumented,converged,18,0.0,0.0,0.0,0.0,0.0,20,23,22
+split_all_at_20_transfer_instrumented,converged,29,0.0,0.0,0.0,0.0,0.0,31,33,32
+split_all_at_40_transfer_instrumented,transient_then_oscillation,75,8.0,0.0,1058.0,0.0,1.5,77,79,
