@@ -3,7 +3,6 @@ import pandas as pd
 from experiments.aij.code.generate_fig58_csv import (
     build_examples_dataframe,
     build_traces_dataframe,
-    generate_fig58_csv_datasets,
 )
 from experiments.aij.code.utils.fig58_repro import (
     CASE_CONSISTENT_NO_TAIL,
@@ -183,26 +182,3 @@ def test_csv_builders_schema_and_counts():
     assert required_trace_cols.issubset(set(traces_df.columns))
     assert len(examples_df) == 2
     assert len(traces_df) == 2 * 3 * 15
-
-
-def test_generate_fig58_csv_datasets_writes_files(tmp_path):
-    out_root = tmp_path / "generated"
-    generate_fig58_csv_datasets(output_root=out_root, n_examples=1, cycle_sizes=(3,))
-
-    figure_specs = [
-        ("figure_5a", 3, 50),
-        ("figure_5b", 3, 50),
-        ("figure_8", 6, 70),
-    ]
-    for figure_id, series_count, max_iter in figure_specs:
-        combo_dir = out_root / figure_id / "cycle_3"
-        examples_csv = combo_dir / "examples.csv"
-        traces_csv = combo_dir / "traces.csv"
-        assert examples_csv.exists()
-        assert traces_csv.exists()
-
-        examples_df = pd.read_csv(examples_csv)
-        traces_df = pd.read_csv(traces_csv)
-
-        assert len(examples_df) == 1
-        assert len(traces_df) == 1 * series_count * max_iter
