@@ -76,7 +76,6 @@ class NonConvergenceConfig:
     split_ratio: float = 0.5
     split_targets: list[str] | None = None
     damping_factors: list[float] = field(default_factory=lambda: [0.5, 0.9])
-    long_damping_max_iter: int = 10_000
     trace_every: int = 1
     save_snapshots: bool = True
     output_dir: str = "results/non_convergence_chain"
@@ -212,7 +211,6 @@ def load_config(
             else [str(v) for v in raw.get("split_targets", [])]
         ),
         damping_factors=[float(v) for v in raw.get("damping_factors", [0.5, 0.9])],
-        long_damping_max_iter=int(raw.get("long_damping_max_iter", 10_000)),
         trace_every=max(1, int(raw.get("trace_every", 1))),
         save_snapshots=bool(raw.get("save_snapshots", True)),
         output_dir=str(
