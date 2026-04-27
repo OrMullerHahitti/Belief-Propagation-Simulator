@@ -1,6 +1,6 @@
 import numpy as np
 
-from experiments.non_convergence_chain.route_analyzer import analyze_routes_from_graph
+from experiments.other.non_convergence_chain.code.route_analyzer import analyze_routes_from_graph
 from propflow import FactorAgent, FGBuilder, VariableAgent
 
 

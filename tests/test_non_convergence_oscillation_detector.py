@@ -1,4 +1,4 @@
-from experiments.non_convergence_chain.oscillation_detector import (
+from experiments.other.non_convergence_chain.code.oscillation_detector import (
     classify_run,
     detect_assignment_convergence,
     detect_period,

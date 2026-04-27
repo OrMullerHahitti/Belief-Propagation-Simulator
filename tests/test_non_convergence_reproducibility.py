@@ -1,6 +1,6 @@
-from experiments.non_convergence_chain.config import load_config
-from experiments.non_convergence_chain.run_non_convergence_study import _run_standard
-from experiments.non_convergence_chain.config import build_chain_graph
+from experiments.other.non_convergence_chain.code.config import load_config
+from experiments.other.non_convergence_chain.code.run_non_convergence_study import _run_standard
+from experiments.other.non_convergence_chain.code.config import build_chain_graph
 
 
 def test_chain_config_builds_symmetric_parallel_factor_copies(tmp_path):
