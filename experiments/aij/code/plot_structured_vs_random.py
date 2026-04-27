@@ -99,7 +99,7 @@ def plot_cost_curves_bw(df: pd.DataFrame, plots_dir: Path) -> None:
                 label=f"{pct}%",
             )
 
-        ax.set_title(engine_name)
+        ax.set_title(_ENGINE_TITLE.get(engine_name, engine_name))
         ax.set_xlabel("Iteration")
         ax.set_ylabel("Cost")
         ax.legend(
@@ -122,6 +122,9 @@ def plot_cost_curves_bw(df: pd.DataFrame, plots_dir: Path) -> None:
 
 
 # ── plot B: B&W final cost ───────────────────────────────────────────────────
+
+_ENGINE_TITLE = {"BPEngine": "MS", "DampingEngine": "DMS"}
+
 
 _ENGINE_BW_STYLES = [
     {"linestyle": "-", "linewidth": 2.0, "marker": "x", "markersize": 7},
@@ -149,7 +152,7 @@ def plot_final_cost_bw(df: pd.DataFrame, plots_dir: Path) -> None:
             final["pct_random"],
             final["cost"],
             color="black",
-            label=engine_name,
+            label=_ENGINE_TITLE.get(engine_name, engine_name),
             **style,
         )
 

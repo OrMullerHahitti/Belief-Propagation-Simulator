@@ -34,8 +34,8 @@ TOPOLOGY_SEED    = 1234   # controls which variable pairs connect (erdos-renyi)
 REPLACEMENT_SEED = 5678   # controls which factors get swapped per variant
 RANDOM_CT_SEED   = 9999   # controls random cost-table values for replaced factors
 
-NUM_VARS         = 100
-DOMAIN           = 0.2
+NUM_VARS         = 40
+DOMAIN           = 10
 DENSITY          = 0.7    # dense random graph → many short cycles
 
 N_VARIANTS       = 10     # 10 steps of 10% each: 0%, 10%, …, 100% randomised
