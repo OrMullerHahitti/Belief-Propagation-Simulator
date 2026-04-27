@@ -65,19 +65,17 @@ _COST_CURVE_PCT_SHOW = {0, 10, 30, 49, 59, 69, 79, 89, 99}
 # ── plot A: B&W cost curves ──────────────────────────────────────────────────
 
 def plot_cost_curves_bw(df: pd.DataFrame, plots_dir: Path) -> None:
-    """One subplot per engine; filtered B&W lines with dash patterns."""
+    """One PNG per engine; filtered B&W lines with dash patterns and side legend."""
     engines = sorted(df["engine"].unique())
     all_pct = sorted(df["pct_random"].unique())
     # pick the closest available values to our desired set
     pct_show = sorted(p for p in all_pct if p in _COST_CURVE_PCT_SHOW)
 
-    fig, axes = plt.subplots(1, len(engines), figsize=(7 * len(engines), 4.5), sharey=False)
-    if len(engines) == 1:
-        axes = [axes]
-
     max_iter = int(df["iteration"].max())
 
-    for ax, engine_name in zip(axes, engines):
+    for engine_name in engines:
+        fig, ax = plt.subplots(figsize=(8, 4.5))
+
         for i, pct in enumerate(pct_show):
             subset = df[(df["engine"] == engine_name) & (df["pct_random"] == pct)]
             if subset.empty:
@@ -100,17 +98,27 @@ def plot_cost_curves_bw(df: pd.DataFrame, plots_dir: Path) -> None:
                 linewidth=lw,
                 label=f"{pct}%",
             )
+
         ax.set_title(engine_name)
         ax.set_xlabel("Iteration")
         ax.set_ylabel("Cost")
-        ax.legend(fontsize=7, ncol=2, loc="best")
+        ax.legend(
+            fontsize=9,
+            loc="upper left",
+            bbox_to_anchor=(1.02, 1.0),
+            borderaxespad=0.0,
+            ncol=1,
+            title="% random",
+        )
 
-    plt.tight_layout()
+        fig.tight_layout()
+        # reserve room on the right for the outside legend
+        fig.subplots_adjust(right=0.82)
 
-    out_path = plots_dir / "cost_curves_bw.png"
-    fig.savefig(out_path, dpi=150)
-    print(f"[plot_results] saved {out_path}")
-    plt.close(fig)
+        out_path = plots_dir / f"cost_curves_bw_{engine_name}.png"
+        fig.savefig(out_path, dpi=150)
+        print(f"[plot_results] saved {out_path}")
+        plt.close(fig)
 
 
 # ── plot B: B&W final cost ───────────────────────────────────────────────────
