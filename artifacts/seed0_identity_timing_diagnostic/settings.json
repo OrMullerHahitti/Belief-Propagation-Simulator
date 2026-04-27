@@ -1,0 +1,16 @@
+{
+  "ct_factory": "random_int",
+  "ct_high": 10,
+  "ct_low": 0,
+  "density": 0.5,
+  "domain_size": 2,
+  "max_iter": 200,
+  "normalize_messages": true,
+  "num_vars": 100,
+  "output_dir": "artifacts/seed0_identity_timing_diagnostic",
+  "save_snapshots": false,
+  "seed": 0,
+  "split_ratio": 0.5,
+  "trace_every": 1,
+  "transfer_mode": "transfer"
+}

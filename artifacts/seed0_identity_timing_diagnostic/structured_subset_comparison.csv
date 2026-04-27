@@ -1,0 +1,5 @@
+run_name,classification,tail_start,mean_active_minimizer_change_last20,mean_active_minimizer_evenodd_change_last20,mean_residual2_last20,mean_min_belief_margin_last20
+split_pct60_topswitch_pre40_at_0_transfer,transient_then_oscillation,8,3146.0,0.0,0.0,1.0
+split_pct70_topswitch_pre40_at_0_transfer,converged,19,0.0,0.0,0.0,0.0
+split_pct60_lowswitch_pre40_at_0_transfer,no_clear_classification,,2242.0,2280.3,14.2,0.2
+split_pct70_lowswitch_pre40_at_0_transfer,no_clear_classification,,2256.7,1461.4,12.0,0.4
