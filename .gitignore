@@ -82,6 +82,7 @@ src/propflow_web/dist/
 notebooks/Untitled.png
 notebooks/dampened over time.pdf
 notebooks/dampned message convergance.svg
+notebooks/.cache/
 
 # legacy generated csv bundle
 experiments/generated_csv.zip
