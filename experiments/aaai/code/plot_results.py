@@ -38,7 +38,6 @@ LABELS = {
     "DMS_split_at_300": "DMS + split@300",
     "DMS_split_at_500": "DMS + split@500",
     "DMS_split_at_1000": "DMS + split@1000",
-    "Attentive": "Attentive",
     "MS_split_0.5": "MS + split 0.5",
     "MS_split_MGM_200": "MS + split + MGM@200",
     "MS_split_opt_200": "MS + split + optimal@200",

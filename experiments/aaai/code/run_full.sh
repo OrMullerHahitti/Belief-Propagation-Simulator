@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../../.."
 
 NO_OPT="DMS DMS_split_0.5 DMS_split_0.4_0.6 DMS_split_at_50 DMS_split_at_100 \
-DMS_split_at_300 DMS_split_at_500 DMS_split_at_1000 Attentive \
+DMS_split_at_300 DMS_split_at_500 DMS_split_at_1000 \
 MS_split_0.5 MS_split_MGM_200 MS_split_opt_200"
 
 uv run python experiments/aaai/code/run_experiments.py \

@@ -109,10 +109,13 @@ def make_engine(label: str, fg, seed: int):
     raise ValueError(f"unknown engine label: {label}")
 
 
+# note: "Attentive" (item 2e) is left out for now — the intended algorithm is
+# not yet defined (the repo's discount_attentive policy was rejected). the
+# AttentiveEngine scaffold remains in engines.py; once defined, add the label
+# back here and wire it in make_engine.
 ENGINE_LABELS = (
     ["DMS", "DMS_split_0.5", "DMS_split_0.4_0.6"]
     + [f"DMS_split_at_{k}" for k in SPLIT_AT_ITERS]
-    + ["Attentive"]
 )
 ALL_LABELS = ENGINE_LABELS + [SPLIT_MS_LABEL, MGM_LABEL, OPT_MERGE_LABEL, OPTIMAL_LABEL]
 
