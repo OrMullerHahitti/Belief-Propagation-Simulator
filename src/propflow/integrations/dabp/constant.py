@@ -5,6 +5,8 @@ Ported from ``DABP-main/alg/constant.py`` with two changes:
 - dtype is chosen per device because MPS does not support float64
 """
 
+import os
+
 import torch
 
 # node-feature prefix one-hot identifiers (see DABP model)
@@ -22,7 +24,11 @@ SPLIT_RATIO = 0.95
 
 
 def select_device(prefer: str | None = None) -> torch.device:
-    """pick a torch device: explicit override, else cuda > mps > cpu."""
+    """pick a torch device: explicit arg, else PROPFLOW_DABP_DEVICE env, else
+    cuda > mps > cpu. (on small graphs cpu often beats mps due to launch
+    overhead, so the env var lets experiments force it without code changes.)"""
+    if prefer is None:
+        prefer = os.environ.get("PROPFLOW_DABP_DEVICE") or None
     if prefer is not None:
         return torch.device(prefer)
     if torch.cuda.is_available():
