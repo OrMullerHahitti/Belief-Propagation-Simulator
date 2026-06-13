@@ -23,8 +23,33 @@ from ..bp.engines import (
     SplitEngine,
 )
 
+
+def _load_dabp_engine():
+    """lazily import DABPEngine (needs the optional 'dabp' extra: torch + PyG)."""
+    try:
+        from ..integrations.dabp import DABPEngine
+    except ImportError as exc:  # torch / torch-geometric not installed
+        raise ImportError(
+            "DABPEngine requires the optional 'dabp' extra. Install it with: "
+            "uv pip install -e '.[dabp]'"
+        ) from exc
+    return DABPEngine
+
+
+class _LazyEngines(dict):
+    """engine registry that resolves the optional DABPEngine on first access,
+    so importing this module never pulls in torch."""
+
+    def __missing__(self, key):
+        if key == "DABPEngine":
+            engine = _load_dabp_engine()
+            self[key] = engine
+            return engine
+        raise KeyError(key)
+
+
 # Optional convenience registry
-ENGINES = {
+ENGINES = _LazyEngines({
     "BPEngine": BPEngine,
     "Engine": Engine,
     "SplitEngine": SplitEngine,
@@ -37,7 +62,15 @@ ENGINES = {
     "DampingSCFGEngine": DampingSCFGEngine,
     "MessagePruningEngine": MessagePruningEngine,
     "MidRunSplitEngine": MidRunSplitEngine,
-}
+})
+
+
+def __getattr__(name):
+    # `from propflow.engines import DABPEngine` without forcing torch otherwise
+    if name == "DABPEngine":
+        return _load_dabp_engine()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "BPEngine",

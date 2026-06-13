@@ -81,5 +81,13 @@ server = [
     "pydantic>=2.12.5",
 ]
 
+# optional: DABP (Deep Attentive Belief Propagation) engine
+# torch-geometric provides GATConv + the segment-scatter ops we wrap, so the
+# hard-to-install torch-scatter package is not required.
+dabp = [
+    "torch>=2.0",
+    "torch-geometric>=2.4",
+]
+
 [project.scripts]
 bp-sim = "propflow.cli:main"

@@ -6,7 +6,9 @@ Algorithms (professor's list):
   c. DMS_split_0.4_0.6         DMS on a random SCFG, per-entry split in [0.4, 0.6)
   d. DMS_split_at_{K}          DMS that splits all factors at iteration K,
                                K in {50, 100, 300, 500, 1000} (transfer mode)
-  e. Attentive                 min-sum with degree-inverse inbox discounting
+  e. Attentive                 DABP (Deep Attentive Belief Propagation): a
+                               graph-attention network trained per instance,
+                               driven one BP iteration per step
   f. Optimal                   branch and bound (reported only when it completes
                                within the time limit)
   g. MS_split_0.5              undamped min-sum on an SCFG (0.5/0.5)
@@ -109,13 +111,12 @@ def make_engine(label: str, fg, seed: int):
     raise ValueError(f"unknown engine label: {label}")
 
 
-# note: "Attentive" (item 2e) is left out for now — the intended algorithm is
-# not yet defined (the repo's discount_attentive policy was rejected). the
-# AttentiveEngine scaffold remains in engines.py; once defined, add the label
-# back here and wire it in make_engine.
+# "Attentive" (item 2e) is DABP, wired via AttentiveEngine in engines.py. It needs
+# the optional 'dabp' extra (torch + torch-geometric); the other families do not.
 ENGINE_LABELS = (
     ["DMS", "DMS_split_0.5", "DMS_split_0.4_0.6"]
     + [f"DMS_split_at_{k}" for k in SPLIT_AT_ITERS]
+    + ["Attentive"]
 )
 ALL_LABELS = ENGINE_LABELS + [SPLIT_MS_LABEL, MGM_LABEL, OPT_MERGE_LABEL, OPTIMAL_LABEL]
 

@@ -81,3 +81,14 @@ __all__ = [
     "AnalysisReport",
     "SnapshotVisualizer",
 ]
+
+
+def __getattr__(name):
+    # `from propflow import DABPEngine` resolves lazily so the optional torch /
+    # torch-geometric dependency is only required when DABP is actually used.
+    # Kept out of __all__ so `from propflow import *` never forces the import.
+    if name == "DABPEngine":
+        from .engines import _load_dabp_engine
+
+        return _load_dabp_engine()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

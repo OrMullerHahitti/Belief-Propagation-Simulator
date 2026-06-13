@@ -14,7 +14,6 @@ import numpy as np
 from propflow.bp.engine_base import BPEngine
 from propflow.bp.engines import DampingEngine, MidRunSplitEngine
 from propflow.bp.factor_graph import FactorGraph
-from propflow.policies.cost_reduction import discount_attentive
 from propflow.policies.damping import damp
 
 
@@ -106,14 +105,17 @@ class DampedMidRunSplitEngine(MidRunSplitEngine):
         var.append_last_iteration()
 
 
-class AttentiveEngine(BPEngine):
-    """min-sum where, each iteration, every variable discounts its incoming
-    messages by the inverse of its degree before computing (the repo's
-    `discount_attentive` policy)."""
+def AttentiveEngine(*args, **kwargs):
+    """DABP (Deep Attentive Belief Propagation) as the AAAI 'Attentive' family.
 
-    def step(self, i: int = 0):
-        discount_attentive(self.graph)
-        return super().step(i)
+    Thin factory over ``propflow.integrations.dabp.DABPEngine``; imported lazily
+    so the other algorithm families don't require the optional torch /
+    torch-geometric extra. DABP trains a graph-attention network per instance and
+    is driven one BP iteration per ``engine.step(i)`` (see DABPEngine)."""
+
+    from propflow.integrations.dabp import DABPEngine
+
+    return DABPEngine(*args, **kwargs)
 
 
 def run_full_horizon(engine: BPEngine, max_iter: int) -> list[float]:
