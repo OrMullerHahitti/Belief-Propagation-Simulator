@@ -41,6 +41,7 @@ LABELS = {
     "MS_split_0.5": "MS + split 0.5",
     "MS_split_MGM_200": "MS + split + MGM@200",
     "MS_split_opt_200": "MS + split + optimal@200",
+    "Attentive": "Attentive (DABP)",
 }
 ORDER = list(LABELS)
 
