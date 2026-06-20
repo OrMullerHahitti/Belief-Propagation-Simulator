@@ -62,6 +62,9 @@ from problems import BENCHMARKS, capture_original
 
 DAMPING = 0.9
 SPLIT_AT_ITERS = (50, 100, 300, 500, 1000)
+# opt-in split points, NOT part of the "all" expansion. run them only where
+# requested explicitly (e.g. split@1500 on the dense benchmark via run_full.sh)
+EXTRA_SPLIT_AT_ITERS = (1500,)
 
 SPLIT_MS_LABEL = "MS_split_0.5"
 MGM_LABEL = "MS_split_MGM_200"
@@ -118,7 +121,12 @@ ENGINE_LABELS = (
     + [f"DMS_split_at_{k}" for k in SPLIT_AT_ITERS]
     + ["Attentive"]
 )
+# extra engine columns that build a normal task but are excluded from "all"
+EXTRA_ENGINE_LABELS = [f"DMS_split_at_{k}" for k in EXTRA_SPLIT_AT_ITERS]
+# what "--algorithms all" expands to (unchanged: no opt-in extras)
 ALL_LABELS = ENGINE_LABELS + [SPLIT_MS_LABEL, MGM_LABEL, OPT_MERGE_LABEL, OPTIMAL_LABEL]
+# everything a user may name explicitly via --algorithms (for validation)
+KNOWN_LABELS = ALL_LABELS + EXTRA_ENGINE_LABELS
 
 
 def run_engine_task(benchmark: str, seed: int, label: str, max_iter: int) -> list[dict]:
@@ -282,7 +290,7 @@ def run_task(task: tuple) -> list[dict]:
 def build_tasks(benchmark: str, args, labels: set[str]) -> list[tuple]:
     tasks = []
     for seed in range(args.seed_start, args.seed_start + args.n_problems):
-        for label in ENGINE_LABELS:
+        for label in ENGINE_LABELS + EXTRA_ENGINE_LABELS:
             if label in labels:
                 tasks.append(
                     ("engine", benchmark, seed, {"label": label, "max_iter": args.max_iter})
@@ -399,9 +407,9 @@ def main() -> None:
         raise SystemExit(f"unknown benchmarks: {sorted(unknown)}")
 
     labels = set(ALL_LABELS) if args.algorithms == ["all"] else set(args.algorithms)
-    unknown = labels - set(ALL_LABELS)
+    unknown = labels - set(KNOWN_LABELS)
     if unknown:
-        raise SystemExit(f"unknown algorithms: {sorted(unknown)}; known: {ALL_LABELS}")
+        raise SystemExit(f"unknown algorithms: {sorted(unknown)}; known: {KNOWN_LABELS}")
 
     if args.merge_at < 2 or args.merge_at > args.max_iter:
         raise SystemExit("--merge-at must be in [2, --max-iter]")

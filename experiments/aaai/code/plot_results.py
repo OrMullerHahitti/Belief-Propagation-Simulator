@@ -38,12 +38,36 @@ LABELS = {
     "DMS_split_at_300": "DMS + split@300",
     "DMS_split_at_500": "DMS + split@500",
     "DMS_split_at_1000": "DMS + split@1000",
+    "DMS_split_at_1500": "DMS + split@1500",
     "MS_split_0.5": "MS + split 0.5",
     "MS_split_MGM_200": "MS + split + MGM@200",
     "MS_split_opt_200": "MS + split + optimal@200",
     "Attentive": "Attentive (DABP)",
 }
 ORDER = list(LABELS)
+
+ATTENTIVE = "Attentive"
+
+
+def load_ratios(data_dir: Path) -> dict[str, float]:
+    """benchmark -> DABP/DMS per-iteration time ratio, written by time_dabp.py.
+
+    used to stretch the DABP curve onto a wall-clock-equivalent x-axis. a
+    missing file or a non-finite ratio falls back to 1.0 (no stretch).
+    """
+    path = data_dir / "dabp_timing.csv"
+    if not path.exists():
+        return {}
+    df = pd.read_csv(path)
+    ratios: dict[str, float] = {}
+    for _, row in df.iterrows():
+        try:
+            ratio = float(row["ratio"])
+        except (TypeError, ValueError):
+            continue
+        if np.isfinite(ratio) and ratio > 0:
+            ratios[str(row["benchmark"])] = ratio
+    return ratios
 
 
 def padded_runs(group: pd.DataFrame, horizon: int) -> np.ndarray:
@@ -59,45 +83,49 @@ def padded_runs(group: pd.DataFrame, horizon: int) -> np.ndarray:
     return np.asarray(runs)
 
 
-def plot_benchmark(benchmark: str, data_dir: Path, plots_dir: Path) -> None:
+def plot_benchmark(
+    benchmark: str, data_dir: Path, plots_dir: Path, ratios: dict[str, float]
+) -> None:
     raw = pd.read_csv(data_dir / f"{benchmark}_raw_costs.csv")
     final = pd.read_csv(data_dir / f"{benchmark}_final_costs.csv")
     horizon = int(raw["iteration"].max()) + 1
+    ratio = ratios.get(benchmark, 1.0)
 
     optimal = final.loc[final["algorithm"] == "Optimal", "final_cost"].dropna()
 
-    for kind in ("cost", "anytime"):
-        fig, ax = plt.subplots(figsize=(9, 5))
-        for algorithm in ORDER:
-            group = raw[raw["algorithm"] == algorithm]
-            if group.empty:
-                continue
-            runs = padded_runs(group, horizon)
-            if kind == "anytime":
-                runs = np.minimum.accumulate(runs, axis=1)
-            ax.plot(
-                np.arange(horizon),
-                runs.mean(axis=0),
-                lw=1.4,
-                label=LABELS.get(algorithm, algorithm),
-            )
-        if len(optimal):
-            ax.axhline(
-                optimal.mean(),
-                color="black",
-                ls="--",
-                lw=1.6,
-                label=f"Optimal (n={len(optimal)})",
-            )
-        ax.set_xlabel("Iteration")
-        ax.set_ylabel("Mean solution cost")
-        remove_frame(ax)
-        ax.legend(fontsize=8, frameon=False, loc="upper right", ncol=2)
-        fig.tight_layout()
-        out = plots_dir / f"{benchmark}_{kind}.pdf"
-        fig.savefig(out, dpi=150)
-        plt.close(fig)
-        print(f"wrote {out}")
+    fig, ax = plt.subplots(figsize=(9, 5))
+    for algorithm in ORDER:
+        group = raw[raw["algorithm"] == algorithm]
+        if group.empty:
+            continue
+        mean = padded_runs(group, horizon).mean(axis=0)
+        # stretch DABP onto a wall-clock-equivalent axis: iteration k of DABP
+        # costs `ratio` plain-BP iterations, so plot it at x = ratio * k
+        xs = (ratio if algorithm == ATTENTIVE else 1.0) * np.arange(len(mean))
+        label = LABELS.get(algorithm, algorithm)
+        if algorithm == ATTENTIVE and ratio != 1.0:
+            label = f"{label} x{ratio:.1f}"
+        ax.plot(xs, mean, lw=1.4, label=label)
+    if len(optimal):
+        ax.axhline(
+            optimal.mean(),
+            color="black",
+            ls="--",
+            lw=1.6,
+            label=f"Optimal (n={len(optimal)})",
+        )
+    # keep the standard horizon so DABP is read as "where it reaches within the
+    # wall-clock budget of `horizon` plain-BP iterations"
+    ax.set_xlim(0, horizon - 1)
+    ax.set_xlabel("Iteration")
+    ax.set_ylabel("Mean solution cost")
+    remove_frame(ax)
+    ax.legend(fontsize=8, frameon=False, loc="upper right", ncol=2)
+    fig.tight_layout()
+    out = plots_dir / f"{benchmark}_cost.pdf"
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+    print(f"wrote {out}")
 
 
 def main() -> None:
@@ -121,8 +149,11 @@ def main() -> None:
     if not files:
         raise SystemExit(f"no *_raw_costs.csv files found in {data_dir}")
 
+    ratios = load_ratios(data_dir)
     for path in files:
-        plot_benchmark(path.name.replace("_raw_costs.csv", ""), data_dir, plots_dir)
+        plot_benchmark(
+            path.name.replace("_raw_costs.csv", ""), data_dir, plots_dir, ratios
+        )
 
 
 if __name__ == "__main__":

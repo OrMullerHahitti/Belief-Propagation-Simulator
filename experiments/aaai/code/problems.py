@@ -19,11 +19,12 @@ convergence of Max-sum on DCOPs through damping and splitting", AIJ 279
                        the number of overbooked (shared) agents
 
 All problems additionally receive tiny random unary value preferences
-(uniform [0, 1e-6)) for tie breaking, as done in all Max-sum versions in the
+(uniform [0, 1e-2)) for tie breaking, as done in all Max-sum versions in the
 AIJ paper (following Farinelli et al. 2008). Without them, perfectly
 symmetric problems (graph coloring in particular) make min-sum degenerate.
-Their total mass (<= 50 * 1e-6) cannot change which assignment is optimal
-since all structural costs are integers.
+Their total mass (<= 50 * 1e-2 = 0.5) stays below the smallest structural cost
+gap (1 for the random/meeting benchmarks, 10 for coloring), so it cannot change
+which assignment is optimal.
 """
 
 from __future__ import annotations
@@ -38,7 +39,7 @@ from propflow.bp.factor_graph import FactorGraph
 from propflow.core.agents import FactorAgent, VariableAgent
 
 NUM_AGENTS = 50
-PREF_SCALE = 1e-6
+PREF_SCALE = 1e-2
 
 SCALE_FREE_INITIAL_AGENTS = 7
 SCALE_FREE_ATTACH = 3
@@ -101,7 +102,7 @@ def build_graph_coloring(seed: int) -> FactorGraph:
         domain_size=3,
         ct_factory=create_coloring_table,
         ct_params={"cost": 10.0},
-        density=0.05,
+        density=0.1,
         seed=seed,
     )
     return _with_tiebreak_prefs(fg, np.random.default_rng(seed))
@@ -142,6 +143,9 @@ def build_scale_free(seed: int) -> FactorGraph:
 
 
 def build_meeting_scheduling(seed: int) -> FactorGraph:
+    # EAV (events-as-variables) formulation: each meeting is a single shared
+    # variable whose value is its time slot, with a binary constraint between
+    # meetings that share agents (not the PEAV private-copy-per-agent model)
     rng = np.random.default_rng(seed)
 
     # each agent participates in two random meetings; shared[i, j] counts the
