@@ -1,0 +1,6 @@
+benchmark,dms_s_per_iter,dabp_s_per_iter,ratio
+random_sparse,0.005484,0.139695,25.4717
+random_dense,0.036923,0.601260,16.2842
+graph_coloring,0.006667,0.129372,19.4053
+scale_free,0.006010,0.204469,34.0242
+meeting_scheduling,0.005529,0.152802,27.6373
