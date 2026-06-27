@@ -9,11 +9,14 @@ unchanged.
 DABP only supports **binary** (arity-2) factors with a single uniform domain. We
 validate both and raise a clear error otherwise. Costs are divided by ``scale``
 (training magnitude only — reported cost is always evaluated on PropFlow's
-original tables), and every factor is split into two clones distributing the
-cost via ``split_ratio`` (DABP's built-in SCFG step).
+original tables). By default, every factor is split into two clones distributing
+the cost via ``split_ratio`` (DABP's built-in SCFG step); callers can disable
+that expansion to build one DABP factor per original binary factor.
 """
 
 from __future__ import annotations
+
+from typing import Any
 
 import numpy as np
 
@@ -34,7 +37,13 @@ def label_variables(adj_list: dict) -> dict:
     return labels
 
 
-def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_ratio: float = SPLIT_RATIO):
+def build_dabp_inputs(
+    fg,
+    node_embed_dim: int = 12,
+    scale: float = SCALE,
+    split_ratio: float = SPLIT_RATIO,
+    factor_splitting_enabled: bool = True,
+):
     """build the DABP input dict from a FactorGraph.
 
     Returns ``(data, ordered_names, domain)`` where ``data`` feeds
@@ -44,7 +53,9 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
     variables = list(fg.variables)
     domains = {v.domain for v in variables}
     if len(domains) != 1:
-        raise ValueError(f"DABP requires a single uniform variable domain; got {sorted(domains)}")
+        raise ValueError(
+            f"DABP requires a single uniform variable domain; got {sorted(domains)}"
+        )
     domain = domains.pop()
     max_dom_size = domain
     ordered_names = [v.name for v in variables]
@@ -53,7 +64,7 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
     # DABP only models binary factors. Unary factors (e.g. tie-break prefs) are
     # folded into one incident binary factor so the total cost is preserved.
     unary = {name: np.zeros(domain, dtype=float) for name in ordered_names}
-    base = []  # mutable [matrix(scaled), row_name, col_name]
+    base: list[list[Any]] = []  # mutable [matrix(scaled), row_name, col_name]
     for f in fg.factors:
         cn = getattr(f, "connection_number", {}) or {}
         if f.cost_table is None or not cn:
@@ -66,7 +77,10 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
             inv = {dim: name for name, dim in cn.items()}
             base.append([ct / scale, inv[0], inv[1]])
         else:
-            raise ValueError(f"DABP supports only unary/binary factors; factor '{f.name}' " f"has arity {len(cn)}")
+            raise ValueError(
+                f"DABP supports only unary/binary factors; factor '{f.name}' "
+                f"has arity {len(cn)}"
+            )
 
     # fold each variable's accumulated unary cost into one incident binary factor
     folded = set()
@@ -83,13 +97,17 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
     missing = [n for n in ordered_names if np.any(unary[n]) and n not in folded]
     if missing:
         raise ValueError(
-            f"DABP: variables {missing} carry unary costs but have no incident " "binary factor to fold them into."
+            f"DABP: variables {missing} carry unary costs but have no incident "
+            "binary factor to fold them into."
         )
 
-    all_matrix = []
+    all_matrix: list[tuple[np.ndarray, str, str]] = []
     for m, row, col in base:
-        all_matrix.append((m * split_ratio, row, col))
-        all_matrix.append((m * (1.0 - split_ratio), row, col))
+        if factor_splitting_enabled:
+            all_matrix.append((m * split_ratio, row, col))
+            all_matrix.append((m * (1.0 - split_ratio), row, col))
+        else:
+            all_matrix.append((m, row, col))
 
     NV = len(variables)
     NF = len(all_matrix)
@@ -116,7 +134,10 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
         cv_idxes.append(var_index[col])
 
     if len(set(rv_idxes + cv_idxes)) != NV:
-        raise ValueError("DABP requires every variable to appear in at least one factor " "(no isolated variables).")
+        raise ValueError(
+            "DABP requires every variable to appear in at least one factor "
+            "(no isolated variables)."
+        )
 
     vn_color_dict = label_variables(adj_list)
     var_embed = [vn_color_dict[vn] for vn in ordered_names]
@@ -125,8 +146,8 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
     func_embed = [FUN_ID + padding for _ in range(NF)]
 
     # ---------------- message buffers & per-direction indices -----------------
-    msg_hidden = [[], []]
-    msgs = []
+    msg_hidden: list[list[list[int]]] = [[], []]
+    msgs: list[list[int]] = []
     msg_rv2f_idxes, msg_cv2f_idxes, msg_f2rv_idxes, msg_f2cv_idxes = [], [], [], []
     i = 0
     for _ in range(NF):
@@ -187,14 +208,14 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
 
     # ---------------- attention target/source + belief scatter indices --------
     msg_trg_idxes = []
-    msg_src_idxes = []
+    msg_src_idx_groups: list[list[int]] = []
     embed_trg_idxes = []
-    embed_src_idxes = []
-    v2f_scatter_idxes = []
+    embed_src_idx_groups: list[list[int]] = []
+    v2f_scatter_idx_groups: list[list[int]] = []
     trg_scatter_idx = 0
 
-    msg_f2v_per_v_idxes = []
-    f2v_per_v_scatter_idxes = []
+    msg_f2v_per_v_idx_groups: list[list[int]] = []
+    f2v_per_v_scatter_idx_groups: list[list[int]] = []
     f2v_per_v_scatter_idx = 0
 
     degrees = []
@@ -211,8 +232,10 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
                 assert col == vn
                 msg_vn2f_idxes.append(fn_idx + NF)  # cv -> f
                 msg_f2vn_idxes.append(fn_idx + 3 * NF)  # f -> cv
-        msg_f2v_per_v_idxes.append(msg_f2vn_idxes)
-        f2v_per_v_scatter_idxes.append([f2v_per_v_scatter_idx] * len(msg_f2vn_idxes))
+        msg_f2v_per_v_idx_groups.append(msg_f2vn_idxes)
+        f2v_per_v_scatter_idx_groups.append(
+            [f2v_per_v_scatter_idx] * len(msg_f2vn_idxes)
+        )
         f2v_per_v_scatter_idx += 1
 
         func_list = adj_func_list[vn]
@@ -225,19 +248,21 @@ def build_dabp_inputs(fg, node_embed_dim: int = 12, scale: float = SCALE, split_
             msg_trg_idxes.append(msg_vn2f_idxes[j])
             tmp = list(msg_f2vn_idxes)
             tmp.pop(j)
-            msg_src_idxes.append(tmp)
+            msg_src_idx_groups.append(tmp)
 
             fn_idx = func_list[j]
             embed_trg_idxes.append(fn_idx + NV)
-            embed_src_idxes.append([t + NV for t in func_list if t != fn_idx])
-            v2f_scatter_idxes.append([trg_scatter_idx] * len(embed_src_idxes[-1]))
+            embed_src_idx_groups.append([t + NV for t in func_list if t != fn_idx])
+            v2f_scatter_idx_groups.append(
+                [trg_scatter_idx] * len(embed_src_idx_groups[-1])
+            )
             trg_scatter_idx += 1
 
-    msg_src_idxes = [j for sub in msg_src_idxes for j in sub]
-    embed_src_idxes = [j for sub in embed_src_idxes for j in sub]
-    v2f_scatter_idxes = [j for sub in v2f_scatter_idxes for j in sub]
-    msg_f2v_per_v_idxes = [j for sub in msg_f2v_per_v_idxes for j in sub]
-    f2v_per_v_scatter_idxes = [j for sub in f2v_per_v_scatter_idxes for j in sub]
+    msg_src_idxes = [j for sub in msg_src_idx_groups for j in sub]
+    embed_src_idxes = [j for sub in embed_src_idx_groups for j in sub]
+    v2f_scatter_idxes = [j for sub in v2f_scatter_idx_groups for j in sub]
+    msg_f2v_per_v_idxes = [j for sub in msg_f2v_per_v_idx_groups for j in sub]
+    f2v_per_v_scatter_idxes = [j for sub in f2v_per_v_scatter_idx_groups for j in sub]
 
     # ---------------- padded cost tensors -------------------------------------
     cost_tensors = np.empty((NF, max_dom_size, max_dom_size), dtype=float)

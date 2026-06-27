@@ -249,6 +249,8 @@ Specialised engines extend ``BPEngine`` with additional behaviour:
 * :class:`propflow.bp.engines.TRWEngine` – applies tree-reweighted Min-Sum scaling.
 * :class:`propflow.bp.engines.DampingTRWEngine` – combines damping with TRW scaling.
 * :class:`propflow.bp.engines.MessagePruningEngine` – initializes a message-pruning policy.
+* ``DABPEngine`` – optional learned DABP solver with DABP's built-in factor splitting.
+* ``DABPEngineNoSplit`` – optional DABP variant with one DABP factor tensor per original binary factor.
 
 Complement engines with policies and utilities:
 

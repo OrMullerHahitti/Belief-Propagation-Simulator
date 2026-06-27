@@ -118,6 +118,10 @@ Available top-level engine exports include `BPEngine`, `DampingEngine`,
 `DampingSCFGEngine`, `TRWEngine`, `DampingTRWEngine`, and
 `MessagePruningEngine`.
 
+Optional DABP engines are available when installed with the `dabp` extra:
+`DABPEngine` keeps DABP's built-in factor splitting, while
+`DABPEngineNoSplit` builds one DABP factor tensor per original binary factor.
+
 ## Running Experiments
 
 ```python

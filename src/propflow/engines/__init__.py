@@ -24,16 +24,19 @@ from ..bp.engines import (
 )
 
 
-def _load_dabp_engine():
-    """lazily import DABPEngine (needs the optional 'dabp' extra: torch + PyG)."""
+_DABP_ENGINE_NAMES = {"DABPEngine", "DABPEngineNoSplit", "DABPEngine_No_Split"}
+
+
+def _load_dabp_engine(name: str = "DABPEngine"):
+    """lazily import a DABP engine (needs the optional 'dabp' extra: torch + PyG)."""
     try:
-        from ..integrations.dabp import DABPEngine
+        from ..integrations import dabp as dabp_module
     except ImportError as exc:  # torch / torch-geometric not installed
         raise ImportError(
-            "DABPEngine requires the optional 'dabp' extra. Install it with: "
+            f"{name} requires the optional 'dabp' extra. Install it with: "
             "uv pip install -e '.[dabp]'"
         ) from exc
-    return DABPEngine
+    return getattr(dabp_module, name)
 
 
 class _LazyEngines(dict):
@@ -41,34 +44,36 @@ class _LazyEngines(dict):
     so importing this module never pulls in torch."""
 
     def __missing__(self, key):
-        if key == "DABPEngine":
-            engine = _load_dabp_engine()
+        if key in _DABP_ENGINE_NAMES:
+            engine = _load_dabp_engine(key)
             self[key] = engine
             return engine
         raise KeyError(key)
 
 
 # Optional convenience registry
-ENGINES = _LazyEngines({
-    "BPEngine": BPEngine,
-    "Engine": Engine,
-    "SplitEngine": SplitEngine,
-    "DampingEngine": DampingEngine,
-    "QRDampingEngine": QRDampingEngine,
-    "RDampingEngine": RDampingEngine,
-    "DiffusionEngine": DiffusionEngine,
-    "CostReductionOnceEngine": CostReductionOnceEngine,
-    "DampingCROnceEngine": DampingCROnceEngine,
-    "DampingSCFGEngine": DampingSCFGEngine,
-    "MessagePruningEngine": MessagePruningEngine,
-    "MidRunSplitEngine": MidRunSplitEngine,
-})
+ENGINES = _LazyEngines(
+    {
+        "BPEngine": BPEngine,
+        "Engine": Engine,
+        "SplitEngine": SplitEngine,
+        "DampingEngine": DampingEngine,
+        "QRDampingEngine": QRDampingEngine,
+        "RDampingEngine": RDampingEngine,
+        "DiffusionEngine": DiffusionEngine,
+        "CostReductionOnceEngine": CostReductionOnceEngine,
+        "DampingCROnceEngine": DampingCROnceEngine,
+        "DampingSCFGEngine": DampingSCFGEngine,
+        "MessagePruningEngine": MessagePruningEngine,
+        "MidRunSplitEngine": MidRunSplitEngine,
+    }
+)
 
 
 def __getattr__(name):
     # `from propflow.engines import DABPEngine` without forcing torch otherwise
-    if name == "DABPEngine":
-        return _load_dabp_engine()
+    if name in _DABP_ENGINE_NAMES:
+        return _load_dabp_engine(name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

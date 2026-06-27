@@ -46,12 +46,15 @@ class DABPEngine(BPEngine):
             cuda > mps > cpu when None.
     """
 
+    engine_name = "DABPEngine"
+    factor_splitting_enabled = True
+
     def __init__(
         self,
         *args,
         num_head: int = 4,
         update_interval: int = 20,
-        restart_period: int = 1000,
+        restart_period: int = 2000,
         eff_iterations: int = 2,
         lr: float = 1e-4,
         scale: float = SCALE,
@@ -67,7 +70,7 @@ class DABPEngine(BPEngine):
         self._device_pref = device
         self._abp: AttentiveBP | None = None
         super().__init__(*args, **kwargs)
-        self._name = "DABPEngine"
+        self._name = self.engine_name
         self._set_name({"heads": str(self.num_head), "ui": str(self.update_interval)})
 
     # ------------------------------------------------------------------ setup
@@ -75,8 +78,17 @@ class DABPEngine(BPEngine):
         """build the DABP tensors, model and optimizer from the factor graph."""
         self.device = select_device(self._device_pref)
         self.dtype = dtype_for_device(self.device)
-        self._data, self._ordered_names, self._domain = build_dabp_inputs(self.graph, scale=self.scale)
-        self._abp = AttentiveBP(in_channels=12, out_channels=16, num_heads=self.num_head, msg_dim=self._domain)
+        self._data, self._ordered_names, self._domain = build_dabp_inputs(
+            self.graph,
+            scale=self.scale,
+            factor_splitting_enabled=self.factor_splitting_enabled,
+        )
+        self._abp = AttentiveBP(
+            in_channels=12,
+            out_channels=16,
+            num_heads=self.num_head,
+            msg_dim=self._domain,
+        )
         self._abp.configure(self.device, self.dtype)
         self._abp.to(device=self.device, dtype=self.dtype)
         self._optimizer = AdamW(self._abp.parameters(), lr=self.lr, weight_decay=5e-5)
@@ -101,21 +113,22 @@ class DABPEngine(BPEngine):
         return step
 
     def _dabp_iterate(self, i: int) -> None:
+        abp = self._require_abp()
         local = i % self.restart_period
         phase_pos = local % self.update_interval
 
         if local == 0:
             # restart: reset message/hidden state, keep learned weights
-            self._abp.preprocess_single(self._data)
+            abp.preprocess_single(self._data)
         if phase_pos == 0:
             # new training window: cut the autograd graph, clear accumulators
-            self._abp.detach_state()
+            abp.detach_state()
             self._optimizer.zero_grad()
             self._phase_losses = []
             self._phase_costs = []
 
         first_iter = phase_pos == 0
-        loss, cost_internal, beliefs = self._abp.step_once(first_iter)
+        loss, cost_internal, beliefs = abp.step_once(first_iter)
         if not first_iter:
             self._phase_losses.append(loss)
             self._phase_costs.append(cost_internal)
@@ -128,6 +141,7 @@ class DABPEngine(BPEngine):
 
     def _train_phase(self) -> None:
         """backprop the top-eff_iterations cheapest losses, then step the optimizer."""
+        abp = self._require_abp()
         losses = self._phase_losses
         costs = self._phase_costs
         k = min(self.eff_iterations, len(losses))
@@ -136,9 +150,14 @@ class DABPEngine(BPEngine):
         top_k_loss.backward()
         self._optimizer.step()
         self._optimizer.zero_grad()
-        self._abp.detach_state()
+        abp.detach_state()
         self._phase_losses = []
         self._phase_costs = []
+
+    def _require_abp(self) -> AttentiveBP:
+        if self._abp is None:
+            raise RuntimeError("DABP model is not initialized.")
+        return self._abp
 
     # ------------------------------------------------------------- readouts
     def _update_assignment(self, beliefs: np.ndarray) -> None:
@@ -183,3 +202,13 @@ class DABPEngine(BPEngine):
         # DABP does not use the NumPy mailers; skip normalization/convergence so
         # every run covers the full horizon, one DABP iteration per step.
         return None
+
+
+class DABPEngineNoSplit(DABPEngine):
+    """DABP variant that builds one DABP factor per original binary factor."""
+
+    engine_name = "DABPEngineNoSplit"
+    factor_splitting_enabled = False
+
+
+DABPEngine_No_Split = DABPEngineNoSplit

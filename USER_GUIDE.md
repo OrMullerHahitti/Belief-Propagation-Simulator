@@ -146,6 +146,10 @@ Engine variants exported from `propflow`:
 - `TRWEngine`: tree-reweighted Min-Sum with sampled or explicit factor rhos.
 - `DampingTRWEngine`: combines damping and TRW.
 - `MessagePruningEngine`: initializes a pruning policy for message filtering.
+- `DABPEngine`: optional learned DABP solver with DABP's built-in factor
+  splitting, available with the `dabp` extra.
+- `DABPEngineNoSplit`: optional DABP variant that builds one DABP factor tensor
+  per original binary factor.
 
 Convergence can be configured with `ConvergenceConfig`:
 

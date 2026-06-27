@@ -87,8 +87,8 @@ def __getattr__(name):
     # `from propflow import DABPEngine` resolves lazily so the optional torch /
     # torch-geometric dependency is only required when DABP is actually used.
     # Kept out of __all__ so `from propflow import *` never forces the import.
-    if name == "DABPEngine":
+    if name in {"DABPEngine", "DABPEngineNoSplit", "DABPEngine_No_Split"}:
         from .engines import _load_dabp_engine
 
-        return _load_dabp_engine()
+        return _load_dabp_engine(name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
