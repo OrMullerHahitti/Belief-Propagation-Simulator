@@ -1,6 +1,7 @@
 """Run the AAAI experiments: 5 benchmarks x algorithms x N problem instances.
 
-Algorithms (professor's list):
+Algorithms (professor's list + plain min-sum baseline):
+  baseline. MS                       normal undamped min-sum on original graph
   a. DMS                       damped min-sum, lambda = 0.9
   b. DMS_split_0.5             DMS on an SCFG, constant symmetric split (0.5/0.5)
   c. DMS_split_0.4_0.6         DMS on a random SCFG, per-entry split in [0.4, 0.6)
@@ -48,6 +49,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import numpy as np
 
 from propflow.bp.computators import MinSumComputator
+from propflow.bp.engine_base import BPEngine
 from propflow.bp.engines import DampingEngine, DampingSCFGEngine, SplitEngine
 
 from engines import (
@@ -70,6 +72,7 @@ SPLIT_MS_LABEL = "MS_split_0.5"
 MGM_LABEL = "MS_split_MGM_200"
 OPT_MERGE_LABEL = "MS_split_opt_200"
 OPTIMAL_LABEL = "Optimal"
+PLAIN_MS_LABEL = "MS"
 
 
 def _common_kwargs() -> dict:
@@ -82,6 +85,8 @@ def _common_kwargs() -> dict:
 
 
 def make_engine(label: str, fg, seed: int):
+    if label == PLAIN_MS_LABEL:
+        return BPEngine(factor_graph=fg, **_common_kwargs())
     if label == "DMS":
         return DampingEngine(factor_graph=fg, damping_factor=DAMPING, **_common_kwargs())
     if label == "DMS_split_0.5":
@@ -117,7 +122,7 @@ def make_engine(label: str, fg, seed: int):
 # "Attentive" (item 2e) is DABP, wired via AttentiveEngine in engines.py. It needs
 # the optional 'dabp' extra (torch + torch-geometric); the other families do not.
 ENGINE_LABELS = (
-    ["DMS", "DMS_split_0.5", "DMS_split_0.4_0.6"]
+    [PLAIN_MS_LABEL, "DMS", "DMS_split_0.5", "DMS_split_0.4_0.6"]
     + [f"DMS_split_at_{k}" for k in SPLIT_AT_ITERS]
     + ["Attentive"]
 )

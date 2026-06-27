@@ -30,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utils.plot_helpers import remove_frame  # noqa: E402
 
 LABELS = {
+    "MS": "MS",
     "DMS": "DMS",
     "DMS_split_0.5": "DMS + split 0.5",
     "DMS_split_0.4_0.6": "DMS + split 0.4-0.6",

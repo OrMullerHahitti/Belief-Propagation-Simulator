@@ -1,6 +1,6 @@
 # AAAI paper experiments
 
-Five DCOP benchmarks x nine algorithm families, 50 problem instances each,
+Five DCOP benchmarks x ten algorithm families, 50 problem instances each,
 reporting mean cost and paired statistical significance. Layout follows
 `experiments/aij/`: scripts in `code/`, CSVs in `data/`, PDFs in `plots/`.
 
@@ -28,6 +28,7 @@ components force-connected — engines require a connected graph).
 
 | Label | Item | Description |
 |---|---|---|
+| `MS` | baseline | `BPEngine`, normal undamped min-sum on the original factor graph |
 | `DMS` | 2a | `DampingEngine`, lambda = 0.9 |
 | `DMS_split_0.5` | 2b | `DampingSCFGEngine`, constant symmetric split (0.5/0.5) |
 | `DMS_split_0.4_0.6` | 2c | DMS on a *random* SCFG: each cost-table entry c is split into u·c / (1-u)·c with u ~ U[0.4, 0.6) — the "0.4-0.6" version of the AIJ paper (§6.2), which it found best |
