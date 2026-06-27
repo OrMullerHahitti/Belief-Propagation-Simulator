@@ -1,6 +1,6 @@
-benchmark,dms_s_per_iter,dabp_s_per_iter,ratio
-random_sparse,0.005484,0.139695,25.4717
-random_dense,0.036923,0.601260,16.2842
-graph_coloring,0.006667,0.129372,19.4053
-scale_free,0.006010,0.204469,34.0242
-meeting_scheduling,0.005529,0.152802,27.6373
+benchmark,dms_s_per_iter,dabp_s_per_iter,ratio,dabp_nosplit_s_per_iter,nosplit_ratio
+random_sparse,0.004789,0.059030,12.3268,0.031688,6.6173
+random_dense,0.029019,0.475978,16.4022,0.161341,5.5598
+graph_coloring,0.005996,0.061023,10.1765,0.039944,6.6612
+scale_free,0.006241,0.046304,7.4197,0.036335,5.8222
+meeting_scheduling,0.004590,0.044597,9.7162,0.022637,4.9319

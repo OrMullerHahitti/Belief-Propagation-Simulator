@@ -1,0 +1,98 @@
+
+=== graph_coloring (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+          Optimal            11.64           10.14 21              11.64             10.14
+ DMS_split_at_300            30.62           19.69 50              29.22             18.77
+ DMS_split_at_100            30.82           18.79 50              29.82             17.84
+DMS_split_at_1000            31.63           21.29 50              28.61             18.23
+ DMS_split_at_500            33.02           24.34 50              29.02             18.59
+    DMS_split_0.5            34.42           18.20 50              32.61             17.91
+DMS_split_0.4_0.6            34.82           19.19 50              32.61             17.91
+  DMS_split_at_50            35.62           21.02 50              32.62             16.61
+        Attentive            39.24           44.38 50              24.23             16.66
+ MS_split_opt_200            83.19           44.77 50              83.19             44.77
+ MS_split_MGM_200            98.19           49.81 50              98.19             49.81
+Attentive_NoSplit           136.41           85.28 50              33.01             22.77
+              DMS           138.81           93.68 50              33.21             21.88
+               MS           666.19          164.25 50             238.18             78.28
+     MS_split_0.5           668.61          264.72 50             278.99            107.66
+wrote graph_coloring_summary.csv, graph_coloring_significance.csv
+
+=== meeting_scheduling (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+ DMS_split_at_100             7.82            1.66 50               7.70              1.31
+  DMS_split_at_50             7.98            1.62 50               7.76              1.29
+ DMS_split_at_500             8.00            1.55 50               7.84              1.33
+DMS_split_at_1000             8.04            1.58 50               7.76              1.38
+ DMS_split_at_300             8.06            1.77 50               7.86              1.39
+    DMS_split_0.5             8.10            1.57 50               7.90              1.31
+DMS_split_0.4_0.6             8.94            2.39 50               7.86              1.29
+ MS_split_opt_200            20.14            3.89 50              20.14              3.89
+              DMS            20.70            8.80 50               8.90              1.99
+ MS_split_MGM_200            20.98            4.18 50              20.98              4.18
+Attentive_NoSplit            24.00           11.42 50               8.83              2.23
+        Attentive            27.22           25.43 50               9.90              7.08
+     MS_split_0.5            81.80           14.69 50              45.36              8.15
+               MS            87.77            7.37 50              41.86              6.95
+          Optimal              NaN             NaN  0                NaN               NaN
+wrote meeting_scheduling_summary.csv, meeting_scheduling_significance.csv
+
+=== random_dense (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+        Attentive         99223.68         2402.16 50           99144.20           2399.04
+Attentive_NoSplit        100309.79         3232.38 50           99119.83           2403.94
+DMS_split_at_1000        101335.62         2497.43 50          100930.92           2466.81
+DMS_split_at_1500        101432.89         2584.55 50          100923.35           2444.67
+ DMS_split_at_500        101444.82         2582.59 50          101090.86           2503.61
+ DMS_split_at_300        101479.44         2594.51 50          101194.94           2551.18
+  DMS_split_at_50        101530.32         2526.31 50          101393.68           2543.78
+ DMS_split_at_100        101539.80         2645.07 50          101360.10           2622.82
+ MS_split_opt_200        101561.58         2604.13 50          101560.52           2605.56
+ MS_split_MGM_200        101561.58         2604.13 50          101560.52           2605.56
+    DMS_split_0.5        101571.10         2592.26 50          101463.08           2588.40
+DMS_split_0.4_0.6        101583.42         2609.96 50          101452.72           2572.39
+              DMS        101904.84         3146.30 50          100865.18           2444.11
+     MS_split_0.5        107330.16         3541.80 50          105969.24           3090.00
+               MS        108076.51         2888.13 50          104562.65           2675.56
+wrote random_dense_summary.csv, random_dense_significance.csv
+
+=== random_sparse (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+        Attentive         14519.01         1432.23 50           14513.81           1429.32
+Attentive_NoSplit         15108.47         1618.24 50           14516.65           1438.29
+ MS_split_opt_200         15243.23         1437.19 50           15241.33           1439.47
+ MS_split_MGM_200         15288.05         1426.17 50           15285.23           1429.61
+DMS_split_at_1000         15330.27         1489.29 50           15179.89           1444.98
+ DMS_split_at_100         15342.59         1476.77 50           15279.64           1463.34
+DMS_split_0.4_0.6         15344.65         1450.81 50           15263.35           1461.28
+  DMS_split_at_50         15346.22         1472.65 50           15315.98           1463.78
+    DMS_split_0.5         15357.87         1523.09 50           15322.31           1514.84
+ DMS_split_at_500         15371.09         1502.84 50           15208.49           1472.70
+ DMS_split_at_300         15387.48         1497.81 50           15244.62           1460.40
+              DMS         15749.35         1526.55 50           15144.27           1427.27
+     MS_split_0.5         17288.43         1626.53 50           16718.49           1650.31
+               MS         17611.47         1656.40 50           16184.93           1472.22
+wrote random_sparse_summary.csv, random_sparse_significance.csv
+
+=== scale_free (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+        Attentive         16628.46          275.42 50           16621.28            277.77
+Attentive_NoSplit         17088.25          754.59 50           16584.39            268.93
+ MS_split_opt_200         17663.82          379.98 50           17663.82            379.98
+ MS_split_MGM_200         17701.06          379.82 50           17701.06            379.82
+DMS_split_at_1000         17900.34          443.09 50           17733.34            414.13
+  DMS_split_at_50         17910.70          434.69 50           17864.54            427.64
+ DMS_split_at_500         17938.06          438.36 50           17781.94            403.53
+ DMS_split_at_300         17943.34          457.15 50           17796.14            421.21
+    DMS_split_0.5         17952.74          401.15 50           17894.40            391.31
+ DMS_split_at_100         17959.88          453.93 50           17867.48            418.75
+DMS_split_0.4_0.6         18011.40          434.33 50           17895.70            415.80
+              DMS         18229.40          668.55 50           17727.02            415.43
+     MS_split_0.5         19703.28          686.61 50           19310.42            559.71
+               MS         19924.49          734.50 50           18495.09            462.49
+wrote scale_free_summary.csv, scale_free_significance.csv
+wrote C:\Users\ormul\Desktop\Belief-Propagation-Simulator\experiments\aaai\plots\graph_coloring_cost.pdf
+wrote C:\Users\ormul\Desktop\Belief-Propagation-Simulator\experiments\aaai\plots\meeting_scheduling_cost.pdf
+wrote C:\Users\ormul\Desktop\Belief-Propagation-Simulator\experiments\aaai\plots\random_dense_cost.pdf
+wrote C:\Users\ormul\Desktop\Belief-Propagation-Simulator\experiments\aaai\plots\random_sparse_cost.pdf
+wrote C:\Users\ormul\Desktop\Belief-Propagation-Simulator\experiments\aaai\plots\scale_free_cost.pdf

@@ -1,0 +1,29 @@
+START random_dense: 50 tasks on 6 workers (mode=append)
+  random_dense: 10/50 tasks (29.4 min)
+  random_dense: 20/50 tasks (51.0 min)
+  random_dense: 30/50 tasks (74.2 min)
+  random_dense: 40/50 tasks (99.7 min)
+  random_dense: 50/50 tasks (118.6 min)
+DONE random_dense in 118.6 min
+START graph_coloring: 50 tasks on 6 workers (mode=append)
+  graph_coloring: 10/50 tasks (5.4 min)
+  graph_coloring: 20/50 tasks (9.8 min)
+  graph_coloring: 30/50 tasks (12.6 min)
+  graph_coloring: 40/50 tasks (16.5 min)
+  graph_coloring: 50/50 tasks (20.0 min)
+DONE graph_coloring in 20.0 min
+START scale_free: 50 tasks on 6 workers (mode=append)
+  scale_free: 10/50 tasks (5.0 min)
+  scale_free: 20/50 tasks (9.7 min)
+  scale_free: 30/50 tasks (14.5 min)
+  scale_free: 40/50 tasks (19.4 min)
+  scale_free: 50/50 tasks (22.6 min)
+DONE scale_free in 22.6 min
+START meeting_scheduling: 50 tasks on 6 workers (mode=append)
+  meeting_scheduling: 10/50 tasks (4.0 min)
+  meeting_scheduling: 20/50 tasks (7.4 min)
+  meeting_scheduling: 30/50 tasks (10.1 min)
+  meeting_scheduling: 40/50 tasks (14.1 min)
+  meeting_scheduling: 50/50 tasks (17.6 min)
+DONE meeting_scheduling in 17.6 min
+RUN2_EXIT=0

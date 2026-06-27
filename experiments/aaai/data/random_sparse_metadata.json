@@ -15,6 +15,7 @@
   "opt_time_limit_s": 60.0,
   "algorithms": [
     "Attentive",
+    "Attentive_NoSplit",
     "DMS",
     "DMS_split_0.4_0.6",
     "DMS_split_0.5",
@@ -23,9 +24,10 @@
     "DMS_split_at_300",
     "DMS_split_at_50",
     "DMS_split_at_500",
+    "MS",
     "MS_split_0.5",
     "MS_split_MGM_200",
     "MS_split_opt_200"
   ],
-  "elapsed_s": 3809.4
+  "elapsed_s": 7827.5
 }
