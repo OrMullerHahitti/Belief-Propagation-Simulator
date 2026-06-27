@@ -54,6 +54,7 @@ from propflow.bp.engines import DampingEngine, DampingSCFGEngine, SplitEngine
 
 from engines import (
     AttentiveEngine,
+    AttentiveNoSplitEngine,
     CostOnlySnapshotManager,
     DampedMidRunSplitEngine,
     DampingRandomSplitEngine,
@@ -63,6 +64,9 @@ from merge import branch_and_bound, mgm1_binary_merge, score_assignment
 from problems import BENCHMARKS, capture_original
 
 DAMPING = 0.9
+# how many times to re-run tasks whose worker died (self-healing pool); the
+# first attempt plus this many retries on progressively smaller pools.
+MAX_PASSES = 4
 SPLIT_AT_ITERS = (50, 100, 300, 500, 1000)
 # opt-in split points, NOT part of the "all" expansion. run them only where
 # requested explicitly (e.g. split@1500 on the dense benchmark via run_full.sh)
@@ -73,6 +77,8 @@ MGM_LABEL = "MS_split_MGM_200"
 OPT_MERGE_LABEL = "MS_split_opt_200"
 OPTIMAL_LABEL = "Optimal"
 PLAIN_MS_LABEL = "MS"
+ATTENTIVE_LABEL = "Attentive"
+ATTENTIVE_NOSPLIT_LABEL = "Attentive_NoSplit"
 
 
 def _common_kwargs() -> dict:
@@ -112,8 +118,10 @@ def make_engine(label: str, fg, seed: int):
             transfer_mode="transfer",
             **_common_kwargs(),
         )
-    if label == "Attentive":
+    if label == ATTENTIVE_LABEL:
         return AttentiveEngine(factor_graph=fg, **_common_kwargs())
+    if label == ATTENTIVE_NOSPLIT_LABEL:
+        return AttentiveNoSplitEngine(factor_graph=fg, **_common_kwargs())
     if label == SPLIT_MS_LABEL:
         return SplitEngine(factor_graph=fg, split_factor=0.5, **_common_kwargs())
     raise ValueError(f"unknown engine label: {label}")
@@ -124,7 +132,7 @@ def make_engine(label: str, fg, seed: int):
 ENGINE_LABELS = (
     [PLAIN_MS_LABEL, "DMS", "DMS_split_0.5", "DMS_split_0.4_0.6"]
     + [f"DMS_split_at_{k}" for k in SPLIT_AT_ITERS]
-    + ["Attentive"]
+    + [ATTENTIVE_LABEL, ATTENTIVE_NOSPLIT_LABEL]
 )
 # extra engine columns that build a normal task but are excluded from "all"
 EXTRA_ENGINE_LABELS = [f"DMS_split_at_{k}" for k in EXTRA_SPLIT_AT_ITERS]
@@ -321,59 +329,15 @@ def build_tasks(benchmark: str, args, labels: set[str]) -> list[tuple]:
     return tasks
 
 
-def run_benchmark(benchmark: str, args, labels: set[str]) -> None:
-    out_dir = Path(args.out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    final_path = out_dir / f"{benchmark}_final_costs.csv"
-    raw_path = out_dir / f"{benchmark}_raw_costs.csv"
+def _write_metadata(out_dir: Path, benchmark: str, args, labels: set[str], elapsed: float) -> None:
+    """write (or, in --append mode, union into) the per-benchmark metadata.
 
-    tasks = build_tasks(benchmark, args, labels)
-    print(f"START {benchmark}: {len(tasks)} tasks on {args.jobs} workers", flush=True)
-    started = time.time()
-
-    with final_path.open("w", newline="") as final_handle, raw_path.open(
-        "w", newline=""
-    ) as raw_handle:
-        final_writer = csv.writer(final_handle)
-        final_writer.writerow(["algorithm", "seed", "final_cost", "anytime_cost"])
-        raw_writer = csv.writer(raw_handle)
-        raw_writer.writerow(["algorithm", "seed", "iteration", "cost"])
-
-        done = 0
-        with ProcessPoolExecutor(max_workers=args.jobs) as pool:
-            futures = {pool.submit(run_task, task): task for task in tasks}
-            for future in as_completed(futures):
-                kind, bench, seed, _ = futures[future]
-                try:
-                    rows = future.result()
-                except Exception as exc:  # noqa: BLE001
-                    print(f"FAILED {bench} seed={seed} kind={kind}: {exc!r}", flush=True)
-                    rows = []
-                for row in rows:
-                    final_writer.writerow(
-                        [
-                            row["algorithm"],
-                            row["seed"],
-                            f"{row['final_cost']:.6f}",
-                            f"{row['anytime_cost']:.6f}",
-                        ]
-                    )
-                    for it, cost in enumerate(row["costs"]):
-                        raw_writer.writerow(
-                            [row["algorithm"], row["seed"], it, f"{cost:.4f}"]
-                        )
-                final_handle.flush()
-                raw_handle.flush()
-                done += 1
-                if done % 10 == 0 or done == len(tasks):
-                    elapsed = time.time() - started
-                    print(
-                        f"  {benchmark}: {done}/{len(tasks)} tasks "
-                        f"({elapsed / 60:.1f} min)",
-                        flush=True,
-                    )
-
-    metadata = {
+    Appending keeps the existing run parameters and only extends the recorded
+    ``algorithms`` list with the newly appended labels, so a metadata file is
+    never silently clobbered when adding a column to a completed benchmark.
+    """
+    meta_path = out_dir / f"{benchmark}_metadata.json"
+    base: dict = {
         "benchmark": benchmark,
         "n_problems": args.n_problems,
         "seed_start": args.seed_start,
@@ -383,10 +347,123 @@ def run_benchmark(benchmark: str, args, labels: set[str]) -> None:
         "split_at_iters": list(SPLIT_AT_ITERS),
         "opt_time_limit_s": args.opt_time_limit,
         "algorithms": sorted(labels),
-        "elapsed_s": round(time.time() - started, 1),
+        "elapsed_s": round(elapsed, 1),
     }
-    (out_dir / f"{benchmark}_metadata.json").write_text(json.dumps(metadata, indent=2))
-    print(f"DONE {benchmark} in {metadata['elapsed_s'] / 60:.1f} min", flush=True)
+    if args.append and meta_path.exists():
+        existing = json.loads(meta_path.read_text())
+        merged = dict(existing)
+        merged["algorithms"] = sorted(set(existing.get("algorithms", [])) | labels)
+        appends = list(existing.get("appends", []))
+        appends.append(
+            {"algorithms": sorted(labels), "elapsed_s": round(elapsed, 1)}
+        )
+        merged["appends"] = appends
+        meta_path.write_text(json.dumps(merged, indent=2))
+    else:
+        meta_path.write_text(json.dumps(base, indent=2))
+
+
+def run_benchmark(benchmark: str, args, labels: set[str]) -> None:
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    final_path = out_dir / f"{benchmark}_final_costs.csv"
+    raw_path = out_dir / f"{benchmark}_raw_costs.csv"
+
+    # append rows to existing CSVs (adding an algorithm column to a completed
+    # benchmark) only when both files already exist; otherwise fall back to a
+    # fresh write so a first run still produces headers.
+    appending = args.append and final_path.exists() and raw_path.exists()
+    mode = "a" if appending else "w"
+
+    tasks = build_tasks(benchmark, args, labels)
+    total = len(tasks)
+    print(
+        f"START {benchmark}: {total} tasks on {args.jobs} workers "
+        f"(mode={'append' if appending else 'write'})",
+        flush=True,
+    )
+    started = time.time()
+
+    with final_path.open(mode, newline="") as final_handle, raw_path.open(
+        mode, newline=""
+    ) as raw_handle:
+        final_writer = csv.writer(final_handle)
+        raw_writer = csv.writer(raw_handle)
+        if not appending:
+            final_writer.writerow(["algorithm", "seed", "final_cost", "anytime_cost"])
+            raw_writer.writerow(["algorithm", "seed", "iteration", "cost"])
+
+        def _write_rows(rows: list[dict]) -> None:
+            for row in rows:
+                final_writer.writerow(
+                    [
+                        row["algorithm"],
+                        row["seed"],
+                        f"{row['final_cost']:.6f}",
+                        f"{row['anytime_cost']:.6f}",
+                    ]
+                )
+                for it, cost in enumerate(row["costs"]):
+                    raw_writer.writerow(
+                        [row["algorithm"], row["seed"], it, f"{cost:.4f}"]
+                    )
+            final_handle.flush()
+            raw_handle.flush()
+
+        # Self-healing execution: run the tasks in passes, each on a FRESH pool.
+        # A worker that dies (OOM / native crash) surfaces as a per-future
+        # exception -- with no max_tasks_per_child the executor cleanly marks the
+        # pool broken instead of deadlocking on a recycle -- so the offending
+        # tasks are collected and retried on a smaller pool. Only completed tasks
+        # write rows, so retries never duplicate output.
+        pending = list(tasks)
+        done = 0
+        for attempt in range(MAX_PASSES):
+            if not pending:
+                break
+            jobs = args.jobs if attempt == 0 else max(1, args.jobs // 2)
+            if attempt > 0:
+                print(
+                    f"  {benchmark}: retry pass {attempt} for {len(pending)} "
+                    f"failed task(s) on {jobs} workers",
+                    flush=True,
+                )
+            failed: list[tuple] = []
+            with ProcessPoolExecutor(max_workers=jobs) as pool:
+                futures = {pool.submit(run_task, task): task for task in pending}
+                for future in as_completed(futures):
+                    kind, bench, seed, _ = futures[future]
+                    try:
+                        rows = future.result()
+                    except Exception as exc:  # noqa: BLE001
+                        print(
+                            f"FAILED {bench} seed={seed} kind={kind} "
+                            f"(pass {attempt}): {exc!r}",
+                            flush=True,
+                        )
+                        failed.append(futures[future])
+                        continue
+                    _write_rows(rows)
+                    done += 1
+                    if done % 10 == 0 or done == total:
+                        elapsed = time.time() - started
+                        print(
+                            f"  {benchmark}: {done}/{total} tasks "
+                            f"({elapsed / 60:.1f} min)",
+                            flush=True,
+                        )
+            pending = failed
+
+        if pending:
+            print(
+                f"WARNING {benchmark}: {len(pending)} task(s) still failing after "
+                f"{MAX_PASSES} passes; their rows are missing",
+                flush=True,
+            )
+
+    elapsed = time.time() - started
+    _write_metadata(out_dir, benchmark, args, labels, elapsed)
+    print(f"DONE {benchmark} in {elapsed / 60:.1f} min", flush=True)
 
 
 def main() -> None:
@@ -399,6 +476,13 @@ def main() -> None:
     parser.add_argument("--merge-at", type=int, default=200)
     parser.add_argument("--opt-time-limit", type=float, default=60.0)
     parser.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 4) - 2))
+    parser.add_argument(
+        "--append",
+        action="store_true",
+        help="append rows to existing {benchmark}_{final,raw}_costs.csv instead "
+        "of overwriting them (for adding an algorithm column to a completed "
+        "benchmark); metadata's algorithm list is unioned, not replaced",
+    )
     parser.add_argument(
         "--out-dir", default=str(Path(__file__).resolve().parents[1] / "data")
     )

@@ -44,30 +44,41 @@ LABELS = {
     "MS_split_MGM_200": "MS + split + MGM@200",
     "MS_split_opt_200": "MS + split + optimal@200",
     "Attentive": "Attentive (DABP)",
+    "Attentive_NoSplit": "Attentive (DABP, no split)",
 }
 ORDER = list(LABELS)
 
-ATTENTIVE = "Attentive"
+# DABP variants whose curve is stretched onto the wall-clock axis, mapped to the
+# per-iteration time-ratio column written by time_dabp.py.
+STRETCH_RATIO_COLUMNS = {
+    "Attentive": "ratio",
+    "Attentive_NoSplit": "nosplit_ratio",
+}
 
 
-def load_ratios(data_dir: Path) -> dict[str, float]:
-    """benchmark -> DABP/DMS per-iteration time ratio, written by time_dabp.py.
+def load_ratios(data_dir: Path) -> dict[str, dict[str, float]]:
+    """benchmark -> {algorithm -> DABP/DMS per-iteration time ratio}.
 
-    used to stretch the DABP curve onto a wall-clock-equivalent x-axis. a
-    missing file or a non-finite ratio falls back to 1.0 (no stretch).
+    Written by time_dabp.py; used to stretch each DABP curve onto a
+    wall-clock-equivalent x-axis. A missing file, missing column, or non-finite
+    ratio falls back to 1.0 (no stretch) for that algorithm.
     """
     path = data_dir / "dabp_timing.csv"
     if not path.exists():
         return {}
     df = pd.read_csv(path)
-    ratios: dict[str, float] = {}
+    ratios: dict[str, dict[str, float]] = {}
     for _, row in df.iterrows():
-        try:
-            ratio = float(row["ratio"])
-        except (TypeError, ValueError):
-            continue
-        if np.isfinite(ratio) and ratio > 0:
-            ratios[str(row["benchmark"])] = ratio
+        bench = str(row["benchmark"])
+        for algorithm, column in STRETCH_RATIO_COLUMNS.items():
+            if column not in row:
+                continue
+            try:
+                ratio = float(row[column])
+            except (TypeError, ValueError):
+                continue
+            if np.isfinite(ratio) and ratio > 0:
+                ratios.setdefault(bench, {})[algorithm] = ratio
     return ratios
 
 
@@ -85,12 +96,12 @@ def padded_runs(group: pd.DataFrame, horizon: int) -> np.ndarray:
 
 
 def plot_benchmark(
-    benchmark: str, data_dir: Path, plots_dir: Path, ratios: dict[str, float]
+    benchmark: str, data_dir: Path, plots_dir: Path, ratios: dict[str, dict[str, float]]
 ) -> None:
     raw = pd.read_csv(data_dir / f"{benchmark}_raw_costs.csv")
     final = pd.read_csv(data_dir / f"{benchmark}_final_costs.csv")
     horizon = int(raw["iteration"].max()) + 1
-    ratio = ratios.get(benchmark, 1.0)
+    bench_ratios = ratios.get(benchmark, {})
 
     optimal = final.loc[final["algorithm"] == "Optimal", "final_cost"].dropna()
 
@@ -100,12 +111,13 @@ def plot_benchmark(
         if group.empty:
             continue
         mean = padded_runs(group, horizon).mean(axis=0)
-        # stretch DABP onto a wall-clock-equivalent axis: iteration k of DABP
-        # costs `ratio` plain-BP iterations, so plot it at x = ratio * k
-        xs = (ratio if algorithm == ATTENTIVE else 1.0) * np.arange(len(mean))
+        # stretch each DABP variant onto a wall-clock-equivalent axis: iteration
+        # k costs `stretch` plain-BP iterations, so plot it at x = stretch * k
+        stretch = bench_ratios.get(algorithm, 1.0)
+        xs = stretch * np.arange(len(mean))
         label = LABELS.get(algorithm, algorithm)
-        if algorithm == ATTENTIVE and ratio != 1.0:
-            label = f"{label} x{ratio:.1f}"
+        if stretch != 1.0:
+            label = f"{label} x{stretch:.1f}"
         ax.plot(xs, mean, lw=1.4, label=label)
     if len(optimal):
         ax.axhline(

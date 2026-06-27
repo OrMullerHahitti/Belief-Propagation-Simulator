@@ -118,6 +118,18 @@ def AttentiveEngine(*args, **kwargs):
     return DABPEngine(*args, **kwargs)
 
 
+def AttentiveNoSplitEngine(*args, **kwargs):
+    """DABP no-split variant: one DABP factor tensor per original binary factor.
+
+    Same network and driver as ``AttentiveEngine`` but skips DABP's built-in
+    factor-splitting (SCFG) step, so the message graph is half the size. Lazily
+    imported for the same reason as ``AttentiveEngine``."""
+
+    from propflow.integrations.dabp import DABPEngineNoSplit
+
+    return DABPEngineNoSplit(*args, **kwargs)
+
+
 def run_full_horizon(engine: BPEngine, max_iter: int) -> list[float]:
     """step the engine for exactly max_iter iterations, preserving the cycle
     events (message normalization) but ignoring convergence stops so every run

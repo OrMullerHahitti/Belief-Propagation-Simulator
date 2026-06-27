@@ -59,25 +59,37 @@ def _time_steps(engine, n_warmup: int, n_timed: int) -> float:
     return (time.perf_counter() - start) / n_timed
 
 
+def _time_dabp_variant(label: str, benchmark: str, seed: int, dms: float) -> tuple[float, float]:
+    """per-iteration seconds and DABP/DMS ratio for one DABP engine label."""
+    try:
+        secs = _time_steps(
+            make_engine(label, BENCHMARKS[benchmark](seed), seed), N_WARMUP, N_TIMED
+        )
+        ratio = secs / dms if dms > 0 else float("nan")
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"  {benchmark}: {label} timing failed ({exc!r}); ratio left blank",
+            flush=True,
+        )
+        secs, ratio = float("nan"), float("nan")
+    return secs, ratio
+
+
 def time_benchmark(benchmark: str, seed: int) -> dict:
     dms = _time_steps(
         make_engine("DMS", BENCHMARKS[benchmark](seed), seed), N_WARMUP, N_TIMED
     )
-    try:
-        dabp = _time_steps(
-            make_engine("Attentive", BENCHMARKS[benchmark](seed), seed),
-            N_WARMUP,
-            N_TIMED,
-        )
-        ratio = dabp / dms if dms > 0 else float("nan")
-    except Exception as exc:  # noqa: BLE001
-        print(f"  {benchmark}: DABP timing failed ({exc!r}); ratio left blank", flush=True)
-        dabp, ratio = float("nan"), float("nan")
+    dabp, ratio = _time_dabp_variant("Attentive", benchmark, seed, dms)
+    nosplit, nosplit_ratio = _time_dabp_variant(
+        "Attentive_NoSplit", benchmark, seed, dms
+    )
     return {
         "benchmark": benchmark,
         "dms_s_per_iter": dms,
         "dabp_s_per_iter": dabp,
         "ratio": ratio,
+        "dabp_nosplit_s_per_iter": nosplit,
+        "nosplit_ratio": nosplit_ratio,
     }
 
 
@@ -102,8 +114,9 @@ def main() -> None:
         rows.append(row)
         print(
             f"  DMS {row['dms_s_per_iter'] * 1e3:.2f} ms/iter, "
-            f"DABP {row['dabp_s_per_iter'] * 1e3:.2f} ms/iter, "
-            f"ratio {row['ratio']:.2f}",
+            f"DABP {row['dabp_s_per_iter'] * 1e3:.2f} ms/iter (ratio {row['ratio']:.2f}), "
+            f"DABP-no-split {row['dabp_nosplit_s_per_iter'] * 1e3:.2f} ms/iter "
+            f"(ratio {row['nosplit_ratio']:.2f})",
             flush=True,
         )
 
@@ -111,7 +124,16 @@ def main() -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with out_path.open("w", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["benchmark", "dms_s_per_iter", "dabp_s_per_iter", "ratio"])
+        writer.writerow(
+            [
+                "benchmark",
+                "dms_s_per_iter",
+                "dabp_s_per_iter",
+                "ratio",
+                "dabp_nosplit_s_per_iter",
+                "nosplit_ratio",
+            ]
+        )
         for row in rows:
             writer.writerow(
                 [
@@ -119,6 +141,8 @@ def main() -> None:
                     f"{row['dms_s_per_iter']:.6f}",
                     f"{row['dabp_s_per_iter']:.6f}",
                     f"{row['ratio']:.4f}",
+                    f"{row['dabp_nosplit_s_per_iter']:.6f}",
+                    f"{row['nosplit_ratio']:.4f}",
                 ]
             )
     print(f"wrote {out_path}", flush=True)
