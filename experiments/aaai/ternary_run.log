@@ -1,0 +1,120 @@
+START random_sparse_ternary: 500 tasks on 26 workers (mode=write)
+  random_sparse_ternary: 10/500 tasks (0.4 min)
+  random_sparse_ternary: 20/500 tasks (0.5 min)
+  random_sparse_ternary: 30/500 tasks (0.7 min)
+  random_sparse_ternary: 40/500 tasks (0.9 min)
+  random_sparse_ternary: 50/500 tasks (1.0 min)
+  random_sparse_ternary: 60/500 tasks (1.2 min)
+  random_sparse_ternary: 70/500 tasks (1.4 min)
+  random_sparse_ternary: 80/500 tasks (1.5 min)
+  random_sparse_ternary: 90/500 tasks (1.7 min)
+  random_sparse_ternary: 100/500 tasks (1.9 min)
+  random_sparse_ternary: 110/500 tasks (2.1 min)
+  random_sparse_ternary: 120/500 tasks (2.3 min)
+  random_sparse_ternary: 130/500 tasks (2.5 min)
+  random_sparse_ternary: 140/500 tasks (2.7 min)
+  random_sparse_ternary: 150/500 tasks (2.9 min)
+  random_sparse_ternary: 160/500 tasks (3.1 min)
+  random_sparse_ternary: 170/500 tasks (3.4 min)
+  random_sparse_ternary: 180/500 tasks (3.6 min)
+  random_sparse_ternary: 190/500 tasks (3.8 min)
+  random_sparse_ternary: 200/500 tasks (4.0 min)
+  random_sparse_ternary: 210/500 tasks (4.3 min)
+  random_sparse_ternary: 220/500 tasks (4.4 min)
+  random_sparse_ternary: 230/500 tasks (4.5 min)
+  random_sparse_ternary: 240/500 tasks (4.8 min)
+  random_sparse_ternary: 250/500 tasks (5.0 min)
+  random_sparse_ternary: 260/500 tasks (5.2 min)
+  random_sparse_ternary: 270/500 tasks (5.3 min)
+  random_sparse_ternary: 280/500 tasks (5.6 min)
+  random_sparse_ternary: 290/500 tasks (5.8 min)
+WARNING: optimal merge hit its time limit (random_sparse_ternary seed=3); reporting best bound found
+  random_sparse_ternary: 300/500 tasks (5.9 min)
+  random_sparse_ternary: 310/500 tasks (6.2 min)
+  random_sparse_ternary: 320/500 tasks (6.4 min)
+  random_sparse_ternary: 330/500 tasks (6.6 min)
+  random_sparse_ternary: 340/500 tasks (6.9 min)
+  random_sparse_ternary: 350/500 tasks (7.0 min)
+  random_sparse_ternary: 360/500 tasks (7.4 min)
+  random_sparse_ternary: 370/500 tasks (7.4 min)
+  random_sparse_ternary: 380/500 tasks (7.8 min)
+  random_sparse_ternary: 390/500 tasks (7.9 min)
+  random_sparse_ternary: 400/500 tasks (8.3 min)
+  random_sparse_ternary: 410/500 tasks (8.4 min)
+  random_sparse_ternary: 420/500 tasks (8.8 min)
+  random_sparse_ternary: 430/500 tasks (8.8 min)
+  random_sparse_ternary: 440/500 tasks (9.2 min)
+  random_sparse_ternary: 450/500 tasks (9.4 min)
+  random_sparse_ternary: 460/500 tasks (9.7 min)
+WARNING: optimal merge hit its time limit (random_sparse_ternary seed=23); reporting best bound found
+  random_sparse_ternary: 470/500 tasks (9.8 min)
+WARNING: optimal merge hit its time limit (random_sparse_ternary seed=24); reporting best bound found
+  random_sparse_ternary: 480/500 tasks (10.1 min)
+  random_sparse_ternary: 490/500 tasks (10.2 min)
+WARNING: optimal merge hit its time limit (random_sparse_ternary seed=26); reporting best bound found
+WARNING: optimal merge hit its time limit (random_sparse_ternary seed=27); reporting best bound found
+  random_sparse_ternary: 500/500 tasks (14.4 min)
+DONE random_sparse_ternary in 14.4 min
+BACKUP existing CSVs -> experiments/aaai/backups/data_before_run_20260629_190926
+SKIP random_dense_ternary: unsupported algorithm(s) ['DMS_split_at_1500']; supported: ['DMS', 'DMS_split_0.4_0.6', 'DMS_split_0.5', 'DMS_split_at_100', 'DMS_split_at_1000', 'DMS_split_at_300', 'DMS_split_at_50', 'DMS_split_at_500', 'MS', 'MS_split_0.5', 'MS_split_MGM_200', 'MS_split_opt_200', 'Optimal']
+START random_dense_ternary: 500 tasks on 26 workers (mode=write)
+  random_dense_ternary: 10/500 tasks (2.6 min)
+  random_dense_ternary: 20/500 tasks (2.8 min)
+  random_dense_ternary: 30/500 tasks (3.9 min)
+  random_dense_ternary: 40/500 tasks (5.4 min)
+  random_dense_ternary: 50/500 tasks (6.5 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=1); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=0); reporting best bound found
+  random_dense_ternary: 60/500 tasks (7.1 min)
+  random_dense_ternary: 70/500 tasks (8.5 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=2); reporting best bound found
+  random_dense_ternary: 80/500 tasks (9.6 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=3); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=4); reporting best bound found
+  random_dense_ternary: 90/500 tasks (10.7 min)
+  random_dense_ternary: 100/500 tasks (12.0 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=5); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=6); reporting best bound found
+  random_dense_ternary: 110/500 tasks (12.8 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=7); reporting best bound found
+  random_dense_ternary: 120/500 tasks (14.1 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=8); reporting best bound found
+  random_dense_ternary: 130/500 tasks (15.0 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=9); reporting best bound found
+  random_dense_ternary: 140/500 tasks (16.4 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=10); reporting best bound found
+  random_dense_ternary: 150/500 tasks (17.5 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=11); reporting best bound found
+  random_dense_ternary: 160/500 tasks (18.9 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=12); reporting best bound found
+  random_dense_ternary: 170/500 tasks (19.8 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=13); reporting best bound found
+  random_dense_ternary: 180/500 tasks (20.9 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=14); reporting best bound found
+  random_dense_ternary: 190/500 tasks (22.0 min)
+  random_dense_ternary: 200/500 tasks (23.4 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=15); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=16); reporting best bound found
+  random_dense_ternary: 210/500 tasks (24.6 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=17); reporting best bound found
+  random_dense_ternary: 220/500 tasks (25.5 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=18); reporting best bound found
+  random_dense_ternary: 230/500 tasks (26.9 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=19); reporting best bound found
+  random_dense_ternary: 240/500 tasks (28.0 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=20); reporting best bound found
+  random_dense_ternary: 250/500 tasks (29.4 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=21); reporting best bound found
+  random_dense_ternary: 260/500 tasks (30.3 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=22); reporting best bound found
+  random_dense_ternary: 270/500 tasks (31.6 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=23); reporting best bound found
+  random_dense_ternary: 280/500 tasks (32.7 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=24); reporting best bound found
+  random_dense_ternary: 290/500 tasks (34.1 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=25); reporting best bound found
+  random_dense_ternary: 300/500 tasks (35.1 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=26); reporting best bound found
+  random_dense_ternary: 310/500 tasks (36.3 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=27); reporting best bound found
+  random_dense_ternary: 320/500 tasks (37.3 min)

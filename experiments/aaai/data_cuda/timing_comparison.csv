@@ -1,0 +1,6 @@
+benchmark,dabp_ms_cuda,dabp_ms_cpu,dabp_ms_old,nosplit_ms_cuda,nosplit_ms_cpu,cuda_vs_cpu_speedup,nosplit_cuda_vs_cpu_speedup
+random_sparse,23.76,15.76,59.03,11.72,11.81,0.66,1.01
+random_dense,52.23,135.53,475.98,28.29,28.82,2.59,1.02
+graph_coloring,18.68,15.75,61.02,14.17,14.55,0.84,1.03
+scale_free,17.09,14.90,46.30,12.35,14.39,0.87,1.17
+meeting_scheduling,12.75,16.51,44.60,9.87,7.18,1.29,0.73
