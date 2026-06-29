@@ -1,6 +1,6 @@
 # AAAI paper experiments
 
-Five DCOP benchmarks x ten algorithm families, 50 problem instances each,
+Six DCOP benchmarks x algorithm families, 50 problem instances each,
 reporting mean cost and paired statistical significance. Layout follows
 `experiments/aij/`: scripts in `code/`, CSVs in `data/`, PDFs in `plots/`.
 
@@ -10,6 +10,7 @@ reporting mean cost and paired statistical significance. Layout follows
 |---|---|
 | `random_sparse` | 50 agents, domain 10, p1 = 0.1, integer costs U[100, 200) |
 | `random_dense` | 50 agents, domain 10, p1 = 0.6, integer costs U[100, 200) |
+| `random_ternary` | 50 agents, domain 10, true arity-3 factors with p3 = 2 * 0.1 / (50 - 2), integer costs U[100, 200); only `DMS_split_0.5` is run |
 | `graph_coloring` | 50 agents, 3 colors, p1 = 0.1, not-equal constraints: equal = 10, else 0 |
 | `scale_free` | Barabasi-Albert per Cohen, Galiki & Zivan (AIJ 2020) §6: 7 initial agents randomly connected, each new agent attaches preferentially to 3 existing agents, n = 50, domain 10, integer costs U[100, 200) (the §6.2 cost range used for the splitting experiments; §6.1 used U[0, 100)) |
 | `meeting_scheduling` | Cohen et al. (AIJ 2020) §6: 90 agents schedule 20 meetings into 20 time slots; each agent participates in two random meetings; per constrained meeting pair travel time ~ U{6..10}; cost = number of overbooked (shared) agents when the slot difference is below the travel time |
@@ -22,7 +23,9 @@ is optimal; without them min-sum is degenerate on the symmetric problems (graph
 coloring especially).
 
 Random/coloring topologies use `FGBuilder.build_random_graph` (Erdos-Renyi,
-components force-connected — engines require a connected graph).
+components force-connected — engines require a connected graph). The ternary
+benchmark builds true 3-variable factors directly because `FGBuilder`'s random
+helper is binary-only.
 
 ## Algorithms
 
@@ -42,6 +45,8 @@ components force-connected — engines require a connected graph).
 
 `MS_split_0.5`, `MS_split_MGM_200` and `MS_split_opt_200` share one engine run
 per instance, so all three see exactly the same oscillation branches.
+`random_ternary` is intentionally narrower and runs only `DMS_split_0.5`; DABP
+is excluded because the integration supports only unary/binary factors.
 
 ## Running
 
@@ -56,12 +61,17 @@ uv run python experiments/aaai/code/run_experiments.py \
 # means + paired t-tests + Wilcoxon signed-rank (per benchmark)
 uv run python experiments/aaai/code/analyze_results.py
 
-# DABP/DMS per-iteration time ratio (one instance each) -> data/dabp_timing.csv
+# DABP/DMS per-iteration time ratio (one instance each, DABP-supported benchmarks only) -> data/dabp_timing.csv
 uv run python experiments/aaai/code/time_dabp.py
 
 # mean per-iteration cost curves, DABP stretched onto the time axis (PDF)
+# also writes zoom PDFs for crowded lower-cost curve clusters
 uv run python experiments/aaai/code/plot_results.py
 ```
+
+CSV-writing scripts back up existing `data/*.csv` files to
+`backups/data_before_*_<timestamp>/` before modifying outputs. Pass
+`--skip-backup` only when running against disposable data.
 
 ## Outputs
 
@@ -70,8 +80,9 @@ uv run python experiments/aaai/code/plot_results.py
 - `data/{benchmark}_metadata.json` — run parameters
 - `data/{benchmark}_summary.csv` — per-algorithm mean/std (final + anytime)
 - `data/{benchmark}_significance.csv` — pairwise paired t-test + Wilcoxon p-values on both metrics, computed over the common solved seeds (AIJ 2020 reported paired t-tests on final and anytime results)
-- `data/dabp_timing.csv` — per-benchmark DABP/DMS per-iteration time ratio (from `time_dabp.py`), used to stretch the DABP curve
+- `data/dabp_timing.csv` — per-benchmark DABP/DMS per-iteration time ratio (from `time_dabp.py`, excluding `random_ternary`), used to stretch the DABP curve
 - `plots/{benchmark}_cost.pdf` — colored mean per-iteration cost (the only plot; anytime and B&W variants are no longer generated)
+- `plots/{benchmark}_cost_zoom.pdf` — tail-window close-up of the crowded lower-cost curve cluster, generated from the same CSV data when a separated cluster is detected
 
 ## Notes / interpretation decisions
 
