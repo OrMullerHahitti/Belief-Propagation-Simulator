@@ -1,4 +1,4 @@
-"""Run the AAAI experiments: 5 benchmarks x algorithms x N problem instances.
+"""Run the AAAI experiments: benchmarks x algorithms x N problem instances.
 
 Algorithms (professor's list + plain min-sum baseline):
   baseline. MS                       normal undamped min-sum on original graph
@@ -52,6 +52,7 @@ from propflow.bp.computators import MinSumComputator
 from propflow.bp.engine_base import BPEngine
 from propflow.bp.engines import DampingEngine, DampingSCFGEngine, SplitEngine
 
+from csv_backups import backup_existing_csvs
 from engines import (
     AttentiveEngine,
     AttentiveNoSplitEngine,
@@ -79,6 +80,8 @@ OPTIMAL_LABEL = "Optimal"
 PLAIN_MS_LABEL = "MS"
 ATTENTIVE_LABEL = "Attentive"
 ATTENTIVE_NOSPLIT_LABEL = "Attentive_NoSplit"
+RANDOM_TERNARY_BENCHMARK = "random_ternary"
+RANDOM_TERNARY_LABELS = {"DMS_split_0.5"}
 
 
 def _common_kwargs() -> dict:
@@ -94,10 +97,15 @@ def make_engine(label: str, fg, seed: int):
     if label == PLAIN_MS_LABEL:
         return BPEngine(factor_graph=fg, **_common_kwargs())
     if label == "DMS":
-        return DampingEngine(factor_graph=fg, damping_factor=DAMPING, **_common_kwargs())
+        return DampingEngine(
+            factor_graph=fg, damping_factor=DAMPING, **_common_kwargs()
+        )
     if label == "DMS_split_0.5":
         return DampingSCFGEngine(
-            factor_graph=fg, damping_factor=DAMPING, split_factor=0.5, **_common_kwargs()
+            factor_graph=fg,
+            damping_factor=DAMPING,
+            split_factor=0.5,
+            **_common_kwargs(),
         )
     if label == "DMS_split_0.4_0.6":
         return DampingRandomSplitEngine(
@@ -140,6 +148,24 @@ EXTRA_ENGINE_LABELS = [f"DMS_split_at_{k}" for k in EXTRA_SPLIT_AT_ITERS]
 ALL_LABELS = ENGINE_LABELS + [SPLIT_MS_LABEL, MGM_LABEL, OPT_MERGE_LABEL, OPTIMAL_LABEL]
 # everything a user may name explicitly via --algorithms (for validation)
 KNOWN_LABELS = ALL_LABELS + EXTRA_ENGINE_LABELS
+
+
+def labels_for_benchmark(
+    benchmark: str, requested: set[str], *, all_requested: bool
+) -> tuple[set[str], set[str]]:
+    """Resolve benchmark-specific algorithm support.
+
+    ``random_ternary`` is a targeted high-arity DMS+split experiment, not a full
+    sweep over every AAAI family. The rest of the benchmarks keep the existing
+    label behavior.
+    """
+    if benchmark != RANDOM_TERNARY_BENCHMARK:
+        return set(requested), set()
+    if all_requested:
+        return set(RANDOM_TERNARY_LABELS), set()
+    resolved = requested & RANDOM_TERNARY_LABELS
+    skipped = requested - resolved
+    return resolved, skipped
 
 
 def run_engine_task(benchmark: str, seed: int, label: str, max_iter: int) -> list[dict]:
@@ -222,9 +248,7 @@ def run_split_ms_task(
         )
 
     if OPT_MERGE_LABEL in wanted:
-        menus = {
-            v: sorted({int(branch1[v]), int(branch2[v])}) for v in var_names
-        }
+        menus = {v: sorted({int(branch1[v]), int(branch2[v])}) for v in var_names}
         # condition every table on the menus (np.ix_ keeps singleton axes) so
         # the bounds are tight and only disagreement variables actually branch;
         # the unconditioned tables make branch and bound blow up on the
@@ -306,7 +330,12 @@ def build_tasks(benchmark: str, args, labels: set[str]) -> list[tuple]:
         for label in ENGINE_LABELS + EXTRA_ENGINE_LABELS:
             if label in labels:
                 tasks.append(
-                    ("engine", benchmark, seed, {"label": label, "max_iter": args.max_iter})
+                    (
+                        "engine",
+                        benchmark,
+                        seed,
+                        {"label": label, "max_iter": args.max_iter},
+                    )
                 )
         wanted = labels & {SPLIT_MS_LABEL, MGM_LABEL, OPT_MERGE_LABEL}
         if wanted:
@@ -329,7 +358,9 @@ def build_tasks(benchmark: str, args, labels: set[str]) -> list[tuple]:
     return tasks
 
 
-def _write_metadata(out_dir: Path, benchmark: str, args, labels: set[str], elapsed: float) -> None:
+def _write_metadata(
+    out_dir: Path, benchmark: str, args, labels: set[str], elapsed: float
+) -> None:
     """write (or, in --append mode, union into) the per-benchmark metadata.
 
     Appending keeps the existing run parameters and only extends the recorded
@@ -354,9 +385,7 @@ def _write_metadata(out_dir: Path, benchmark: str, args, labels: set[str], elaps
         merged = dict(existing)
         merged["algorithms"] = sorted(set(existing.get("algorithms", [])) | labels)
         appends = list(existing.get("appends", []))
-        appends.append(
-            {"algorithms": sorted(labels), "elapsed_s": round(elapsed, 1)}
-        )
+        appends.append({"algorithms": sorted(labels), "elapsed_s": round(elapsed, 1)})
         merged["appends"] = appends
         meta_path.write_text(json.dumps(merged, indent=2))
     else:
@@ -384,9 +413,10 @@ def run_benchmark(benchmark: str, args, labels: set[str]) -> None:
     )
     started = time.time()
 
-    with final_path.open(mode, newline="") as final_handle, raw_path.open(
-        mode, newline=""
-    ) as raw_handle:
+    with (
+        final_path.open(mode, newline="") as final_handle,
+        raw_path.open(mode, newline="") as raw_handle,
+    ):
         final_writer = csv.writer(final_handle)
         raw_writer = csv.writer(raw_handle)
         if not appending:
@@ -468,8 +498,12 @@ def run_benchmark(benchmark: str, args, labels: set[str]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--benchmarks", nargs="+", default=["all"], help="benchmark names or 'all'")
-    parser.add_argument("--algorithms", nargs="+", default=["all"], help="algorithm labels or 'all'")
+    parser.add_argument(
+        "--benchmarks", nargs="+", default=["all"], help="benchmark names or 'all'"
+    )
+    parser.add_argument(
+        "--algorithms", nargs="+", default=["all"], help="algorithm labels or 'all'"
+    )
     parser.add_argument("--n-problems", type=int, default=50)
     parser.add_argument("--seed-start", type=int, default=0)
     parser.add_argument("--max-iter", type=int, default=2000)
@@ -484,27 +518,52 @@ def main() -> None:
         "benchmark); metadata's algorithm list is unioned, not replaced",
     )
     parser.add_argument(
+        "--skip-backup",
+        action="store_true",
+        help="do not copy existing CSVs to experiments/aaai/backups before writing",
+    )
+    parser.add_argument(
         "--out-dir", default=str(Path(__file__).resolve().parents[1] / "data")
     )
     args = parser.parse_args()
 
-    benchmarks = (
-        list(BENCHMARKS) if args.benchmarks == ["all"] else args.benchmarks
-    )
+    benchmarks = list(BENCHMARKS) if args.benchmarks == ["all"] else args.benchmarks
     unknown = set(benchmarks) - set(BENCHMARKS)
     if unknown:
         raise SystemExit(f"unknown benchmarks: {sorted(unknown)}")
 
-    labels = set(ALL_LABELS) if args.algorithms == ["all"] else set(args.algorithms)
+    all_requested = args.algorithms == ["all"]
+    labels = set(ALL_LABELS) if all_requested else set(args.algorithms)
     unknown = labels - set(KNOWN_LABELS)
     if unknown:
-        raise SystemExit(f"unknown algorithms: {sorted(unknown)}; known: {KNOWN_LABELS}")
+        raise SystemExit(
+            f"unknown algorithms: {sorted(unknown)}; known: {KNOWN_LABELS}"
+        )
 
     if args.merge_at < 2 or args.merge_at > args.max_iter:
         raise SystemExit("--merge-at must be in [2, --max-iter]")
 
+    if not args.skip_backup:
+        backup_dir = backup_existing_csvs(Path(args.out_dir), label="data_before_run")
+        if backup_dir is not None:
+            print(f"BACKUP existing CSVs -> {backup_dir}", flush=True)
+
     for benchmark in benchmarks:
-        run_benchmark(benchmark, args, labels)
+        benchmark_labels, skipped = labels_for_benchmark(
+            benchmark, labels, all_requested=all_requested
+        )
+        if skipped:
+            print(
+                f"SKIP {benchmark}: unsupported algorithm(s) {sorted(skipped)}; "
+                f"supported: {sorted(RANDOM_TERNARY_LABELS)}",
+                flush=True,
+            )
+        if not benchmark_labels:
+            raise SystemExit(
+                f"no supported algorithms requested for {benchmark}; "
+                f"supported: {sorted(RANDOM_TERNARY_LABELS)}"
+            )
+        run_benchmark(benchmark, args, benchmark_labels)
 
 
 if __name__ == "__main__":

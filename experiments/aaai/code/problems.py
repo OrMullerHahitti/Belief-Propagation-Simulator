@@ -1,12 +1,14 @@
 """Benchmark problem generators for the AAAI experiments.
 
-Five benchmarks, following the professor's spec; scale-free nets and meeting
+Benchmarks follow the professor's spec; scale-free nets and meeting
 scheduling follow the descriptions in Cohen, Galiki & Zivan, "Governing
 convergence of Max-sum on DCOPs through damping and splitting", AIJ 279
 (2020), Section 6:
 
 - random_sparse:       50 agents, domain 10, p1 = 0.1, integer costs U[100, 200)
 - random_dense:        50 agents, domain 10, p1 = 0.6, integer costs U[100, 200)
+- random_ternary:      50 agents, domain 10, true arity-3 constraints,
+                       p3 = 2 * 0.1 / (50 - 2), integer costs U[100, 200)
 - graph_coloring:      50 agents, domain 3 (colors), p1 = 0.05, equal = 10, else 0
 - scale_free:          Barabasi-Albert: 7 initial agents randomly connected, each
                        new agent attaches to 3 existing agents preferentially,
@@ -29,6 +31,7 @@ which assignment is optimal.
 
 from __future__ import annotations
 
+from itertools import combinations
 from typing import Callable, Dict, List, Tuple
 
 import networkx as nx
@@ -40,6 +43,8 @@ from propflow.core.agents import FactorAgent, VariableAgent
 
 NUM_AGENTS = 50
 PREF_SCALE = 1e-2
+RANDOM_SPARSE_DENSITY = 0.1
+RANDOM_TERNARY_DENSITY = 2 * RANDOM_SPARSE_DENSITY / (NUM_AGENTS - 2)
 
 SCALE_FREE_INITIAL_AGENTS = 7
 SCALE_FREE_ATTACH = 3
@@ -88,11 +93,65 @@ def _random_uniform(seed: int, density: float) -> FactorGraph:
 
 
 def build_random_sparse(seed: int) -> FactorGraph:
-    return _random_uniform(seed, density=0.1)
+    return _random_uniform(seed, density=RANDOM_SPARSE_DENSITY)
 
 
 def build_random_dense(seed: int) -> FactorGraph:
     return _random_uniform(seed, density=0.6)
+
+
+def _add_primal_edges(primal: nx.Graph, triple: Tuple[int, int, int]) -> None:
+    """Add the pairwise primal edges induced by one ternary factor."""
+    primal.add_edges_from(combinations(triple, 2))
+
+
+def _sample_connected_triples(
+    num_agents: int, density: float, rng: np.random.Generator
+) -> List[Tuple[int, int, int]]:
+    """Sample ternary factors and force their induced primal graph connected."""
+    triples = {
+        triple
+        for triple in combinations(range(num_agents), 3)
+        if rng.random() < density
+    }
+
+    primal = nx.Graph()
+    primal.add_nodes_from(range(num_agents))
+    for triple in triples:
+        _add_primal_edges(primal, triple)
+
+    while not nx.is_connected(primal):
+        components = [tuple(comp) for comp in nx.connected_components(primal)]
+        comp_a, comp_b = components[0], components[1]
+        u = int(rng.choice(comp_a))
+        v = int(rng.choice(comp_b))
+        candidates = [idx for idx in range(num_agents) if idx not in {u, v}]
+        w = int(rng.choice(candidates))
+        triple = tuple(sorted((u, v, w)))
+        triples.add(triple)
+        _add_primal_edges(primal, triple)
+
+    return sorted(triples)
+
+
+def build_random_ternary(seed: int) -> FactorGraph:
+    """50-agent random benchmark with true arity-3 cost-table constraints."""
+    rng = np.random.default_rng(seed)
+    variables = [VariableAgent(name=f"x{i + 1}", domain=10) for i in range(NUM_AGENTS)]
+
+    edges: Dict[FactorAgent, List[VariableAgent]] = {}
+    for triple in _sample_connected_triples(NUM_AGENTS, RANDOM_TERNARY_DENSITY, rng):
+        ct = rng.integers(100, 200, size=(10, 10, 10)).astype(float)
+        factor = FactorAgent(
+            name=f"f{triple[0] + 1}_{triple[1] + 1}_{triple[2] + 1}",
+            domain=10,
+            ct_creation_func=FixedCostTable(ct),
+            param={},
+        )
+        edges[factor] = [variables[idx] for idx in triple]
+
+    fg = FactorGraph(variables, list(edges.keys()), edges)
+    return _with_tiebreak_prefs(fg, rng)
 
 
 def build_graph_coloring(seed: int) -> FactorGraph:
@@ -166,7 +225,8 @@ def build_meeting_scheduling(seed: int) -> FactorGraph:
         raise RuntimeError("failed to sample a connected meeting graph")
 
     variables = [
-        VariableAgent(name=f"x{i + 1}", domain=MS_TIME_SLOTS) for i in range(MS_MEETINGS)
+        VariableAgent(name=f"x{i + 1}", domain=MS_TIME_SLOTS)
+        for i in range(MS_MEETINGS)
     ]
     slots = np.arange(MS_TIME_SLOTS)
     slot_diff = np.abs(np.subtract.outer(slots, slots))
@@ -197,13 +257,16 @@ def capture_original(
     """
     var_names = [v.name for v in fg.variables]
     factor_vars = {f.name: [v.name for v in vs] for f, vs in fg.edges.items()}
-    tables = {f.name: np.array(f.cost_table, dtype=float, copy=True) for f in fg.factors}
+    tables = {
+        f.name: np.array(f.cost_table, dtype=float, copy=True) for f in fg.factors
+    }
     return var_names, factor_vars, tables
 
 
 BENCHMARKS: Dict[str, Callable[[int], FactorGraph]] = {
     "random_sparse": build_random_sparse,
     "random_dense": build_random_dense,
+    "random_ternary": build_random_ternary,
     "graph_coloring": build_graph_coloring,
     "scale_free": build_scale_free,
     "meeting_scheduling": build_meeting_scheduling,

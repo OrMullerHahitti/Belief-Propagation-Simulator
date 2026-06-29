@@ -24,6 +24,12 @@ uv run python experiments/aaai/code/run_experiments.py \
     --algorithms $NO_OPT DMS_split_at_1500 \
     "$@"
 
+# true arity-3 benchmark: targeted DMS + split 0.5 only
+uv run python experiments/aaai/code/run_experiments.py \
+    --benchmarks random_ternary \
+    --algorithms DMS_split_0.5 \
+    "$@"
+
 # coloring / meeting: full set including Optimal (branch and bound completes)
 uv run python experiments/aaai/code/run_experiments.py \
     --benchmarks graph_coloring meeting_scheduling \

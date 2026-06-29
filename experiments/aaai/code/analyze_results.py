@@ -23,6 +23,11 @@ import numpy as np
 import pandas as pd
 from scipy import stats
 
+try:
+    from csv_backups import backup_existing_csvs
+except ModuleNotFoundError:  # package-style import from tests or notebooks
+    from .csv_backups import backup_existing_csvs
+
 METRICS = ("final_cost", "anytime_cost")
 
 
@@ -79,14 +84,28 @@ def main() -> None:
         "--data-dir", default=str(Path(__file__).resolve().parents[1] / "data")
     )
     parser.add_argument("--benchmarks", nargs="+", default=["all"])
+    parser.add_argument(
+        "--skip-backup",
+        action="store_true",
+        help="do not copy existing CSVs to experiments/aaai/backups before writing",
+    )
     args = parser.parse_args()
 
     data_dir = Path(args.data_dir)
     files = sorted(data_dir.glob("*_final_costs.csv"))
     if args.benchmarks != ["all"]:
-        files = [f for f in files if f.name.replace("_final_costs.csv", "") in args.benchmarks]
+        files = [
+            f
+            for f in files
+            if f.name.replace("_final_costs.csv", "") in args.benchmarks
+        ]
     if not files:
         raise SystemExit(f"no *_final_costs.csv files found in {data_dir}")
+
+    if not args.skip_backup:
+        backup_dir = backup_existing_csvs(data_dir, label="data_before_analysis")
+        if backup_dir is not None:
+            print(f"BACKUP existing CSVs -> {backup_dir}")
 
     for path in files:
         benchmark = path.name.replace("_final_costs.csv", "")

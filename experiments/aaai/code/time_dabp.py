@@ -3,7 +3,8 @@
 DABP runs a full graph-attention forward pass (and a periodic backward +
 optimizer step) per BP iteration, so it is far more expensive per iteration
 than min-sum. This script times one instance (seed 0) of each benchmark for
-both engines and writes the per-iteration ratio to ``data/dabp_timing.csv``.
+both engines for DABP-supported benchmarks and writes the per-iteration ratio
+to ``data/dabp_timing.csv``.
 
 The plotter (``plot_results.py``) reads that ratio and stretches the DABP curve
 onto a wall-clock-equivalent x-axis: DABP iteration ``k`` is drawn at
@@ -30,8 +31,9 @@ os.environ.setdefault("MPLBACKEND", "Agg")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from csv_backups import backup_existing_csvs
 from problems import BENCHMARKS
-from run_experiments import make_engine
+from run_experiments import RANDOM_TERNARY_BENCHMARK, make_engine
 
 N_WARMUP = 5
 N_TIMED = 40
@@ -59,7 +61,9 @@ def _time_steps(engine, n_warmup: int, n_timed: int) -> float:
     return (time.perf_counter() - start) / n_timed
 
 
-def _time_dabp_variant(label: str, benchmark: str, seed: int, dms: float) -> tuple[float, float]:
+def _time_dabp_variant(
+    label: str, benchmark: str, seed: int, dms: float
+) -> tuple[float, float]:
     """per-iteration seconds and DABP/DMS ratio for one DABP engine label."""
     try:
         secs = _time_steps(
@@ -100,12 +104,28 @@ def main() -> None:
     parser.add_argument(
         "--out-dir", default=str(Path(__file__).resolve().parents[1] / "data")
     )
+    parser.add_argument(
+        "--skip-backup",
+        action="store_true",
+        help="do not copy existing CSVs to experiments/aaai/backups before writing",
+    )
     args = parser.parse_args()
 
     benchmarks = list(BENCHMARKS) if args.benchmarks == ["all"] else args.benchmarks
     unknown = set(benchmarks) - set(BENCHMARKS)
     if unknown:
         raise SystemExit(f"unknown benchmarks: {sorted(unknown)}")
+
+    unsupported = [b for b in benchmarks if b == RANDOM_TERNARY_BENCHMARK]
+    for benchmark in unsupported:
+        print(
+            f"skipping {benchmark}: DABP supports only unary/binary factors",
+            flush=True,
+        )
+    benchmarks = [b for b in benchmarks if b not in unsupported]
+    if not benchmarks:
+        print("no DABP-supported benchmarks requested; nothing to time", flush=True)
+        return
 
     rows = []
     for benchmark in benchmarks:
@@ -122,6 +142,10 @@ def main() -> None:
 
     out_path = Path(args.out_dir) / "dabp_timing.csv"
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    if not args.skip_backup:
+        backup_dir = backup_existing_csvs(out_path.parent, label="data_before_timing")
+        if backup_dir is not None:
+            print(f"BACKUP existing CSVs -> {backup_dir}", flush=True)
     with out_path.open("w", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(
