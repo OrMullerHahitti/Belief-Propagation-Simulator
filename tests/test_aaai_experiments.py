@@ -226,6 +226,29 @@ def test_aaai_ternary_skips_dabp_when_named_explicitly():
     assert skipped == {"Attentive", "Attentive_NoSplit"}
 
 
+def test_aaai_ternary_allows_explicit_opt_in_extra_split_point():
+    # DMS_split_at_1500 is an opt-in extra (not part of "all"); naming it
+    # explicitly for a ternary benchmark must be honored, like the binary suite.
+    labels, skipped = run_experiments.labels_for_benchmark(
+        "random_dense_ternary",
+        {"MS", "DMS_split_at_1500"},
+        all_requested=False,
+    )
+
+    assert labels == {"MS", "DMS_split_at_1500"}
+    assert skipped == set()
+
+
+def test_aaai_ternary_all_excludes_opt_in_extras():
+    labels, _ = run_experiments.labels_for_benchmark(
+        "random_dense_ternary",
+        set(run_experiments.ALL_LABELS),
+        all_requested=True,
+    )
+
+    assert "DMS_split_at_1500" not in labels
+
+
 @pytest.mark.parametrize("label", ["MS", "DMS", "DMS_split_0.5", "MS_split_0.5"])
 def test_aaai_ternary_engines_smoke_run(label):
     graph = problems_ternary.build_graph_coloring_ternary(seed=0)

@@ -162,7 +162,13 @@ KNOWN_LABELS = ALL_LABELS + EXTRA_ENGINE_LABELS
 # (it self-limits via the time cap and is only meaningfully attempted on the
 # low-domain ternary benchmarks; see run_full_ternary.sh).
 DABP_LABELS = {ATTENTIVE_LABEL, ATTENTIVE_NOSPLIT_LABEL}
+# what "--algorithms all" expands to for a ternary benchmark (mirrors binary
+# "all": ALL_LABELS, i.e. no opt-in extras), minus DABP.
 TERNARY_SUPPORTED_LABELS = set(ALL_LABELS) - DABP_LABELS
+# what a ternary benchmark accepts when labels are named explicitly: every known
+# label (including opt-in extras like DMS_split_at_1500) except DABP, matching the
+# binary benchmarks which apply no gating to explicitly-named labels.
+TERNARY_KNOWN_LABELS = set(KNOWN_LABELS) - DABP_LABELS
 
 
 def supported_labels_for(benchmark: str) -> set[str]:
@@ -170,7 +176,7 @@ def supported_labels_for(benchmark: str) -> set[str]:
     if benchmark == RANDOM_TERNARY_BENCHMARK:
         return set(RANDOM_TERNARY_LABELS)
     if benchmark in TERNARY_SUITE:
-        return set(TERNARY_SUPPORTED_LABELS)
+        return set(TERNARY_KNOWN_LABELS)
     return set(KNOWN_LABELS)
 
 
@@ -192,7 +198,8 @@ def labels_for_benchmark(
     if benchmark in TERNARY_SUITE:
         if all_requested:
             return set(TERNARY_SUPPORTED_LABELS), set()
-        resolved = requested & TERNARY_SUPPORTED_LABELS
+        # explicit labels: allow any known label (incl. opt-in extras) except DABP
+        resolved = requested & TERNARY_KNOWN_LABELS
         return resolved, requested - resolved
     return set(requested), set()
 
