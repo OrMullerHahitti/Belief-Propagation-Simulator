@@ -1,0 +1,24 @@
+[2026-06-29 19:22:45] === MGM + B&B merge-timing eval started (host iem-c57pc04) ===
+[2026-06-29 19:22:51] Step 1: timing MGM + B&B binary-menu merges (seed 0, DMS baseline from data_cuda/dabp_timing.csv)
+[2026-06-29 19:22:51] NOTE: random_dense B&B cannot prove optimality (high induced width) -> expect ~300s time cap there
+[2026-06-29 19:29:15] Step 1 DONE: merge timing took 384s (rc=0) -> experiments/aaai/data_cuda/merge_timing.csv
+[2026-06-29 19:29:15] merge_timing.csv:
+benchmark,dms_s_per_iter,mgm_s,bnb_s,mgm_ratio,bnb_ratio,bnb_complete
+random_sparse,0.003561,0.006852,0.443912,1.9242,124.6593,1
+random_dense,0.015892,0.068452,299.864103,4.3073,18868.8713,0
+graph_coloring,0.002882,0.007575,22.177896,2.6285,7695.3145,1
+scale_free,0.002842,0.007182,30.453141,2.5271,10715.3908,1
+meeting_scheduling,0.001657,0.003804,0.465666,2.2956,281.0295,1
+[2026-06-29 19:29:15] Step 2: regenerating plots_cuda with ALL stretches (DABP CUDA + MGM + B&B)
+[19:29:32] wrote experiments/aaai/plots_cuda/graph_coloring_cost.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/graph_coloring_cost_zoom.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/meeting_scheduling_cost.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/meeting_scheduling_cost_zoom.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/random_dense_cost.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/random_dense_cost_zoom.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/random_sparse_cost.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/random_sparse_cost_zoom.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/scale_free_cost.pdf
+[19:29:32] wrote experiments/aaai/plots_cuda/scale_free_cost_zoom.pdf
+[2026-06-29 19:29:32] Step 2 DONE: plots regenerated (took 17s, rc=0) -> experiments/aaai/plots_cuda
+[2026-06-29 19:29:32] === ALL MERGE STEPS DONE ===

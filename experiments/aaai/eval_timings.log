@@ -1,0 +1,36 @@
+[2026-06-29 17:55:23] === DABP CUDA eval started (host iem-c57pc04) ===
+[2026-06-29 17:55:23] Step 0: waiting for venv install to finish (tailing /tmp/dabp_install.log)
+[2026-06-29 18:00:28] Step 0 DONE: install exit=0 (Installed 80 packages in 5m 08s)
+[2026-06-29 18:00:28] Step 1: verifying torch sees CUDA
+torch 2.12.1+cu130 | cuda build 13.0 | available True
+device NVIDIA GeForce RTX 4090
+[2026-06-29 18:00:49] Step 1 DONE: CUDA is available
+[2026-06-29 18:00:49] Step: time_dabp on CUDA -> experiments/aaai/data_cuda (per-line timestamps in experiments/aaai/time_dabp_cuda.log)
+[2026-06-29 18:02:09] Step DONE: CUDA timing run took 80s (rc=0) -> experiments/aaai/data_cuda/dabp_timing.csv
+[2026-06-29 18:02:09] Step: time_dabp on CPU -> experiments/aaai/data_cpu (per-line timestamps in experiments/aaai/time_dabp_cpu.log)
+[2026-06-29 18:02:53] Step DONE: CPU timing run took 44s (rc=0) -> experiments/aaai/data_cpu/dabp_timing.csv
+[2026-06-29 18:02:53] Step 4: building timing_comparison.csv (CUDA vs CPU vs old)
+wrote experiments/aaai/data_cuda/timing_comparison.csv
+
+benchmark              CUDA ms    CPU ms    old ms  CUDA<CPU x
+--------------------------------------------------------------
+random_sparse            23.76     15.76     59.03        0.66
+random_dense             52.23    135.53    475.98        2.59
+graph_coloring           18.68     15.75     61.02        0.84
+scale_free               17.09     14.90     46.30        0.87
+meeting_scheduling       12.75     16.51     44.60        1.29
+[2026-06-29 18:02:53] Step 4 DONE: comparison written
+[2026-06-29 18:02:53] Step 5: staging cost CSVs + regenerating CUDA-stretched plots -> experiments/aaai/plots_cuda
+[18:03:09] wrote experiments/aaai/plots_cuda/graph_coloring_cost.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/graph_coloring_cost_zoom.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/meeting_scheduling_cost.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/meeting_scheduling_cost_zoom.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/random_dense_cost.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/random_dense_cost_zoom.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/random_sparse_cost.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/random_sparse_cost_zoom.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/scale_free_cost.pdf
+[18:03:09] wrote experiments/aaai/plots_cuda/scale_free_cost_zoom.pdf
+[2026-06-29 18:03:09] Step 5 DONE: plots regenerated in experiments/aaai/plots_cuda (took 16s, rc=0)
+[2026-06-29 18:03:09] === ALL STEPS DONE ===
+[2026-06-29 18:03:09] Per-step durations recorded above in experiments/aaai/eval_timings.log
