@@ -118,3 +118,158 @@ WARNING: optimal merge hit its time limit (random_dense_ternary seed=26); report
   random_dense_ternary: 310/500 tasks (36.3 min)
 WARNING: optimal merge hit its time limit (random_dense_ternary seed=27); reporting best bound found
   random_dense_ternary: 320/500 tasks (37.3 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=28); reporting best bound found
+  random_dense_ternary: 330/500 tasks (38.7 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=29); reporting best bound found
+  random_dense_ternary: 340/500 tasks (39.7 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=30); reporting best bound found
+  random_dense_ternary: 350/500 tasks (40.8 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=31); reporting best bound found
+  random_dense_ternary: 360/500 tasks (42.0 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=32); reporting best bound found
+  random_dense_ternary: 370/500 tasks (43.1 min)
+  random_dense_ternary: 380/500 tasks (44.4 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=33); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=34); reporting best bound found
+  random_dense_ternary: 390/500 tasks (45.2 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=35); reporting best bound found
+  random_dense_ternary: 400/500 tasks (46.4 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=36); reporting best bound found
+  random_dense_ternary: 410/500 tasks (47.6 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=37); reporting best bound found
+  random_dense_ternary: 420/500 tasks (48.8 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=38); reporting best bound found
+  random_dense_ternary: 430/500 tasks (49.7 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=39); reporting best bound found
+  random_dense_ternary: 440/500 tasks (50.9 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=40); reporting best bound found
+  random_dense_ternary: 450/500 tasks (52.1 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=41); reporting best bound found
+  random_dense_ternary: 460/500 tasks (53.2 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=42); reporting best bound found
+  random_dense_ternary: 470/500 tasks (54.3 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=43); reporting best bound found
+  random_dense_ternary: 480/500 tasks (55.4 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=44); reporting best bound found
+  random_dense_ternary: 490/500 tasks (56.6 min)
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=45); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=46); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=47); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=48); reporting best bound found
+WARNING: optimal merge hit its time limit (random_dense_ternary seed=49); reporting best bound found
+  random_dense_ternary: 500/500 tasks (61.5 min)
+DONE random_dense_ternary in 61.5 min
+BACKUP existing CSVs -> experiments/aaai/backups/data_before_run_20260629_201102
+START meeting_scheduling_ternary: 550 tasks on 26 workers (mode=write)
+  meeting_scheduling_ternary: 10/550 tasks (0.7 min)
+  meeting_scheduling_ternary: 20/550 tasks (0.8 min)
+  meeting_scheduling_ternary: 30/550 tasks (1.2 min)
+  meeting_scheduling_ternary: 40/550 tasks (1.6 min)
+  meeting_scheduling_ternary: 50/550 tasks (1.8 min)
+  meeting_scheduling_ternary: 60/550 tasks (2.3 min)
+  meeting_scheduling_ternary: 70/550 tasks (2.5 min)
+  meeting_scheduling_ternary: 80/550 tasks (3.0 min)
+  meeting_scheduling_ternary: 90/550 tasks (3.3 min)
+  meeting_scheduling_ternary: 100/550 tasks (3.8 min)
+  meeting_scheduling_ternary: 110/550 tasks (4.1 min)
+  meeting_scheduling_ternary: 120/550 tasks (4.8 min)
+  meeting_scheduling_ternary: 130/550 tasks (5.2 min)
+  meeting_scheduling_ternary: 140/550 tasks (5.7 min)
+  meeting_scheduling_ternary: 150/550 tasks (6.1 min)
+  meeting_scheduling_ternary: 160/550 tasks (6.6 min)
+  meeting_scheduling_ternary: 170/550 tasks (7.0 min)
+  meeting_scheduling_ternary: 180/550 tasks (7.4 min)
+  meeting_scheduling_ternary: 190/550 tasks (7.7 min)
+  meeting_scheduling_ternary: 200/550 tasks (8.2 min)
+  meeting_scheduling_ternary: 210/550 tasks (8.5 min)
+  meeting_scheduling_ternary: 220/550 tasks (9.0 min)
+  meeting_scheduling_ternary: 230/550 tasks (9.4 min)
+  meeting_scheduling_ternary: 240/550 tasks (9.9 min)
+  meeting_scheduling_ternary: 250/550 tasks (10.2 min)
+  meeting_scheduling_ternary: 260/550 tasks (10.7 min)
+  meeting_scheduling_ternary: 270/550 tasks (11.1 min)
+  meeting_scheduling_ternary: 280/550 tasks (11.6 min)
+  meeting_scheduling_ternary: 290/550 tasks (12.0 min)
+  meeting_scheduling_ternary: 300/550 tasks (12.3 min)
+  meeting_scheduling_ternary: 310/550 tasks (12.7 min)
+  meeting_scheduling_ternary: 320/550 tasks (13.0 min)
+  meeting_scheduling_ternary: 330/550 tasks (13.5 min)
+  meeting_scheduling_ternary: 340/550 tasks (13.9 min)
+  meeting_scheduling_ternary: 350/550 tasks (14.3 min)
+  meeting_scheduling_ternary: 360/550 tasks (14.8 min)
+  meeting_scheduling_ternary: 370/550 tasks (15.2 min)
+  meeting_scheduling_ternary: 380/550 tasks (15.7 min)
+  meeting_scheduling_ternary: 390/550 tasks (16.1 min)
+  meeting_scheduling_ternary: 400/550 tasks (16.5 min)
+  meeting_scheduling_ternary: 410/550 tasks (16.8 min)
+  meeting_scheduling_ternary: 420/550 tasks (17.2 min)
+  meeting_scheduling_ternary: 430/550 tasks (17.6 min)
+  meeting_scheduling_ternary: 440/550 tasks (18.0 min)
+  meeting_scheduling_ternary: 450/550 tasks (18.5 min)
+  meeting_scheduling_ternary: 460/550 tasks (18.9 min)
+  meeting_scheduling_ternary: 470/550 tasks (19.3 min)
+  meeting_scheduling_ternary: 480/550 tasks (19.8 min)
+  meeting_scheduling_ternary: 490/550 tasks (20.2 min)
+  meeting_scheduling_ternary: 500/550 tasks (20.6 min)
+  meeting_scheduling_ternary: 510/550 tasks (21.0 min)
+  meeting_scheduling_ternary: 520/550 tasks (21.4 min)
+  meeting_scheduling_ternary: 530/550 tasks (21.7 min)
+  meeting_scheduling_ternary: 540/550 tasks (22.1 min)
+  meeting_scheduling_ternary: 550/550 tasks (26.5 min)
+DONE meeting_scheduling_ternary in 26.5 min
+BACKUP existing CSVs -> experiments/aaai/backups/data_before_analysis_20260629_203740
+
+=== meeting_scheduling_ternary (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+  DMS_split_at_50            62.85            5.50 50              60.70              4.98
+              DMS            62.87            5.64 50              59.32              4.49
+DMS_split_at_1000            62.95            5.55 50              59.38              4.46
+ DMS_split_at_300            63.00            5.67 50              59.50              4.51
+ DMS_split_at_500            63.02            5.58 50              59.44              4.45
+DMS_split_0.4_0.6            63.02            5.74 50              60.12              4.59
+    DMS_split_0.5            63.05            5.29 50              61.35              4.48
+ DMS_split_at_100            63.47            5.15 50              60.29              4.77
+ MS_split_opt_200            86.21           11.58 50              85.98             11.40
+ MS_split_MGM_200            88.09           11.97 50              87.79             11.77
+     MS_split_0.5           254.98           12.55 50             109.03             10.92
+               MS           256.79            8.17 50             108.93             11.24
+          Optimal              NaN             NaN  0                NaN               NaN
+wrote meeting_scheduling_ternary_summary.csv, meeting_scheduling_ternary_significance.csv
+
+=== random_dense_ternary (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+DMS_split_0.4_0.6         67899.16         3101.19 50           67665.60           3091.62
+ DMS_split_at_500         67976.19         3208.30 50           67509.41           3072.40
+DMS_split_at_1000         68036.17         3102.46 50           67452.51           3108.14
+ DMS_split_at_100         68103.21         3214.81 50           67786.43           3173.99
+ DMS_split_at_300         68104.01         3209.59 50           67675.47           3159.30
+    DMS_split_0.5         68136.21         3140.04 50           67842.23           3115.99
+  DMS_split_at_50         68239.13         3103.44 50           67920.15           3131.73
+ MS_split_MGM_200         68610.09         3136.95 50           68610.09           3136.95
+ MS_split_opt_200         68610.09         3136.95 50           68610.09           3136.95
+              DMS         70533.85         3758.82 50           67350.79           3128.81
+     MS_split_0.5         73206.15         3358.24 50           70933.21           3200.96
+               MS         73275.35         3276.04 50           70921.77           3114.88
+wrote random_dense_ternary_summary.csv, random_dense_ternary_significance.csv
+
+=== random_sparse_ternary (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+DMS_split_0.4_0.6         10316.51         1265.97 50           10239.25           1256.47
+DMS_split_at_1000         10382.05         1300.78 50           10215.13           1238.59
+ DMS_split_at_300         10382.61         1271.04 50           10280.53           1243.21
+ DMS_split_at_500         10387.43         1274.23 50           10288.27           1244.38
+  DMS_split_at_50         10398.61         1249.39 50           10320.07           1220.02
+    DMS_split_0.5         10408.87         1267.84 50           10329.33           1262.46
+ DMS_split_at_100         10430.15         1252.24 50           10348.27           1225.18
+ MS_split_opt_200         10474.95         1252.26 50           10474.95           1252.26
+ MS_split_MGM_200         10589.83         1242.11 50           10589.83           1242.11
+              DMS         11556.97         1548.28 50           10204.03           1227.67
+     MS_split_0.5         12332.33         1321.64 50           11377.65           1295.49
+               MS         12345.97         1396.06 50           11391.39           1287.54
+wrote random_sparse_ternary_summary.csv, random_sparse_ternary_significance.csv
+wrote experiments/aaai/ternary_plots/meeting_scheduling_ternary_cost.pdf
+wrote experiments/aaai/ternary_plots/meeting_scheduling_ternary_cost_zoom.pdf
+wrote experiments/aaai/ternary_plots/random_dense_ternary_cost.pdf
+wrote experiments/aaai/ternary_plots/random_dense_ternary_cost_zoom.pdf
+wrote experiments/aaai/ternary_plots/random_sparse_ternary_cost.pdf
+wrote experiments/aaai/ternary_plots/random_sparse_ternary_cost_zoom.pdf
