@@ -2,12 +2,18 @@ from itertools import combinations
 
 import networkx as nx
 import numpy as np
+import pytest
 
 from propflow import FGBuilder
 from propflow.bp.engine_base import BPEngine
 from propflow.configs import create_random_int_table
 
-from experiments.aaai.code import plot_results, problems, run_experiments
+from experiments.aaai.code import (
+    plot_results,
+    problems,
+    problems_ternary,
+    run_experiments,
+)
 from experiments.aaai.code.csv_backups import backup_existing_csvs
 
 
@@ -128,6 +134,102 @@ def test_aaai_random_ternary_skips_unsupported_explicit_labels():
 def test_aaai_random_ternary_dms_split_smoke_run():
     graph = problems.build_random_ternary(seed=0)
     engine = run_experiments.make_engine("DMS_split_0.5", graph, seed=0)
+
+    costs = run_experiments.run_full_horizon(engine, max_iter=2)
+
+    assert len(costs) == 2
+    assert np.isfinite(costs).all()
+
+
+# --- ternary suite (problems_ternary) ---------------------------------------
+
+TERNARY_SHAPES = {
+    "random_sparse_ternary": (10, problems.NUM_AGENTS),
+    "random_dense_ternary": (10, problems.NUM_AGENTS),
+    "graph_coloring_ternary": (3, problems.NUM_AGENTS),
+    "scale_free_ternary": (10, problems.NUM_AGENTS),
+    "meeting_scheduling_ternary": (problems.MS_TIME_SLOTS, problems.MS_MEETINGS),
+}
+
+
+def _assert_true_ternary(graph, domain, num_vars):
+    assert len(graph.variables) == num_vars
+    assert {v.domain for v in graph.variables} == {domain}
+
+    primal = nx.Graph()
+    primal.add_nodes_from(v.name for v in graph.variables)
+    ternary_factors = []
+    for factor, variables in graph.edges.items():
+        arity = len(variables)
+        if arity == 1:  # tie-break unary preference
+            assert factor.cost_table.shape == (domain,)
+            continue
+        assert arity == 3
+        assert factor.cost_table.shape == (domain, domain, domain)
+        ternary_factors.append(factor)
+        primal.add_edges_from(combinations((v.name for v in variables), 2))
+
+    assert ternary_factors
+    assert nx.is_connected(primal)
+
+
+@pytest.mark.parametrize("benchmark", sorted(TERNARY_SHAPES))
+def test_aaai_ternary_builders_make_connected_arity_three_graphs(benchmark):
+    domain, num_vars = TERNARY_SHAPES[benchmark]
+    graph = problems_ternary.TERNARY_BENCHMARKS[benchmark](seed=0)
+    _assert_true_ternary(graph, domain, num_vars)
+
+
+def test_aaai_ternary_builders_are_deterministic_per_seed():
+    a = problems_ternary.build_scale_free_ternary(seed=3)
+    b = problems_ternary.build_scale_free_ternary(seed=3)
+    assert sorted(f.name for f in a.factors) == sorted(f.name for f in b.factors)
+
+
+def test_aaai_ternary_coloring_table_is_equal_pair_penalty():
+    table = problems_ternary.create_ternary_coloring_table(domain=3, cost=10.0)
+    assert table.shape == (3, 3, 3)
+    assert table[0, 0, 0] == 30.0  # all three equal -> 3 equal pairs
+    assert table[0, 0, 1] == 10.0  # one equal pair
+    assert table[0, 1, 2] == 0.0  # all distinct
+
+
+def test_aaai_ternary_suite_is_registered_but_excluded_from_binary_all():
+    for name in TERNARY_SHAPES:
+        assert name in run_experiments.BENCHMARK_BUILDERS
+        assert name in run_experiments.TERNARY_SUITE
+        # the binary "all" expansion must NOT pull in the ternary suite
+        assert name not in problems.BENCHMARKS
+
+
+def test_aaai_ternary_all_resolves_to_full_family_minus_dabp():
+    labels, skipped = run_experiments.labels_for_benchmark(
+        "random_dense_ternary",
+        set(run_experiments.ALL_LABELS),
+        all_requested=True,
+    )
+
+    assert labels == run_experiments.TERNARY_SUPPORTED_LABELS
+    assert "MS" in labels and "DMS_split_0.5" in labels and "Optimal" in labels
+    assert run_experiments.DABP_LABELS.isdisjoint(labels)
+    assert skipped == set()
+
+
+def test_aaai_ternary_skips_dabp_when_named_explicitly():
+    labels, skipped = run_experiments.labels_for_benchmark(
+        "scale_free_ternary",
+        {"MS", "DMS", "Attentive", "Attentive_NoSplit"},
+        all_requested=False,
+    )
+
+    assert labels == {"MS", "DMS"}
+    assert skipped == {"Attentive", "Attentive_NoSplit"}
+
+
+@pytest.mark.parametrize("label", ["MS", "DMS", "DMS_split_0.5", "MS_split_0.5"])
+def test_aaai_ternary_engines_smoke_run(label):
+    graph = problems_ternary.build_graph_coloring_ternary(seed=0)
+    engine = run_experiments.make_engine(label, graph, seed=0)
 
     costs = run_experiments.run_full_horizon(engine, max_iter=2)
 

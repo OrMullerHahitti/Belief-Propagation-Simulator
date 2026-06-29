@@ -63,6 +63,7 @@ from engines import (
 )
 from merge import branch_and_bound, mgm1_binary_merge, score_assignment
 from problems import BENCHMARKS, capture_original
+from problems_ternary import TERNARY_BENCHMARKS
 
 DAMPING = 0.9
 # how many times to re-run tasks whose worker died (self-healing pool); the
@@ -82,6 +83,13 @@ ATTENTIVE_LABEL = "Attentive"
 ATTENTIVE_NOSPLIT_LABEL = "Attentive_NoSplit"
 RANDOM_TERNARY_BENCHMARK = "random_ternary"
 RANDOM_TERNARY_LABELS = {"DMS_split_0.5"}
+
+# The parallel arity-3 suite (problems_ternary). Builders are looked up alongside
+# the binary benchmarks, but the ternary names are kept OUT of the default "all"
+# expansion so the binary suite and run_full.sh behave exactly as before; opt in
+# with explicit names or `--benchmarks all_ternary`.
+BENCHMARK_BUILDERS = {**BENCHMARKS, **TERNARY_BENCHMARKS}
+TERNARY_SUITE = set(TERNARY_BENCHMARKS)
 
 
 def _common_kwargs() -> dict:
@@ -149,27 +157,48 @@ ALL_LABELS = ENGINE_LABELS + [SPLIT_MS_LABEL, MGM_LABEL, OPT_MERGE_LABEL, OPTIMA
 # everything a user may name explicitly via --algorithms (for validation)
 KNOWN_LABELS = ALL_LABELS + EXTRA_ENGINE_LABELS
 
+# DABP (Attentive) supports only unary/binary factors, so the ternary suite runs
+# the full AAAI family minus the two DABP variants. Optimal is kept in the set
+# (it self-limits via the time cap and is only meaningfully attempted on the
+# low-domain ternary benchmarks; see run_full_ternary.sh).
+DABP_LABELS = {ATTENTIVE_LABEL, ATTENTIVE_NOSPLIT_LABEL}
+TERNARY_SUPPORTED_LABELS = set(ALL_LABELS) - DABP_LABELS
+
+
+def supported_labels_for(benchmark: str) -> set[str]:
+    """Algorithm labels a benchmark accepts (for SKIP/error messages)."""
+    if benchmark == RANDOM_TERNARY_BENCHMARK:
+        return set(RANDOM_TERNARY_LABELS)
+    if benchmark in TERNARY_SUITE:
+        return set(TERNARY_SUPPORTED_LABELS)
+    return set(KNOWN_LABELS)
+
 
 def labels_for_benchmark(
     benchmark: str, requested: set[str], *, all_requested: bool
 ) -> tuple[set[str], set[str]]:
     """Resolve benchmark-specific algorithm support.
 
-    ``random_ternary`` is a targeted high-arity DMS+split experiment, not a full
-    sweep over every AAAI family. The rest of the benchmarks keep the existing
-    label behavior.
+    The binary-suite ``random_ternary`` is a targeted high-arity DMS+split
+    experiment (only ``DMS_split_0.5``). The dedicated ternary suite
+    (``problems_ternary``) instead runs the full AAAI family minus DABP. Every
+    other benchmark keeps the existing label behavior.
     """
-    if benchmark != RANDOM_TERNARY_BENCHMARK:
-        return set(requested), set()
-    if all_requested:
-        return set(RANDOM_TERNARY_LABELS), set()
-    resolved = requested & RANDOM_TERNARY_LABELS
-    skipped = requested - resolved
-    return resolved, skipped
+    if benchmark == RANDOM_TERNARY_BENCHMARK:
+        if all_requested:
+            return set(RANDOM_TERNARY_LABELS), set()
+        resolved = requested & RANDOM_TERNARY_LABELS
+        return resolved, requested - resolved
+    if benchmark in TERNARY_SUITE:
+        if all_requested:
+            return set(TERNARY_SUPPORTED_LABELS), set()
+        resolved = requested & TERNARY_SUPPORTED_LABELS
+        return resolved, requested - resolved
+    return set(requested), set()
 
 
 def run_engine_task(benchmark: str, seed: int, label: str, max_iter: int) -> list[dict]:
-    fg = BENCHMARKS[benchmark](seed)
+    fg = BENCHMARK_BUILDERS[benchmark](seed)
     engine = make_engine(label, fg, seed)
     costs = run_full_horizon(engine, max_iter)
     return [
@@ -187,7 +216,7 @@ def run_split_ms_task(
     benchmark: str, seed: int, max_iter: int, merge_at: int, wanted: set[str]
 ) -> list[dict]:
     """one split-only min-sum run serving MS_split_0.5 and both merge variants."""
-    fg = BENCHMARKS[benchmark](seed)
+    fg = BENCHMARK_BUILDERS[benchmark](seed)
     var_names, factor_vars, tables = capture_original(fg)
 
     engine = make_engine(SPLIT_MS_LABEL, fg, seed)
@@ -293,7 +322,7 @@ def run_split_ms_task(
 
 
 def run_optimal_task(benchmark: str, seed: int, time_limit_s: float) -> list[dict]:
-    fg = BENCHMARKS[benchmark](seed)
+    fg = BENCHMARK_BUILDERS[benchmark](seed)
     var_names, factor_vars, tables = capture_original(fg)
     domains = {v.name: list(range(v.domain)) for v in fg.variables}
     cost, _, stats = branch_and_bound(
@@ -499,7 +528,10 @@ def run_benchmark(benchmark: str, args, labels: set[str]) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--benchmarks", nargs="+", default=["all"], help="benchmark names or 'all'"
+        "--benchmarks",
+        nargs="+",
+        default=["all"],
+        help="benchmark names, 'all' (binary suite) or 'all_ternary' (arity-3 suite)",
     )
     parser.add_argument(
         "--algorithms", nargs="+", default=["all"], help="algorithm labels or 'all'"
@@ -527,8 +559,13 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    benchmarks = list(BENCHMARKS) if args.benchmarks == ["all"] else args.benchmarks
-    unknown = set(benchmarks) - set(BENCHMARKS)
+    if args.benchmarks == ["all"]:
+        benchmarks = list(BENCHMARKS)
+    elif args.benchmarks == ["all_ternary"]:
+        benchmarks = list(TERNARY_BENCHMARKS)
+    else:
+        benchmarks = args.benchmarks
+    unknown = set(benchmarks) - set(BENCHMARK_BUILDERS)
     if unknown:
         raise SystemExit(f"unknown benchmarks: {sorted(unknown)}")
 
@@ -552,16 +589,17 @@ def main() -> None:
         benchmark_labels, skipped = labels_for_benchmark(
             benchmark, labels, all_requested=all_requested
         )
+        supported = supported_labels_for(benchmark)
         if skipped:
             print(
                 f"SKIP {benchmark}: unsupported algorithm(s) {sorted(skipped)}; "
-                f"supported: {sorted(RANDOM_TERNARY_LABELS)}",
+                f"supported: {sorted(supported)}",
                 flush=True,
             )
         if not benchmark_labels:
             raise SystemExit(
                 f"no supported algorithms requested for {benchmark}; "
-                f"supported: {sorted(RANDOM_TERNARY_LABELS)}"
+                f"supported: {sorted(supported)}"
             )
         run_benchmark(benchmark, args, benchmark_labels)
 

@@ -104,3 +104,89 @@ CSV-writing scripts back up existing `data/*.csv` files to
   has all 2000 iterations; anytime = running best of the per-iteration costs.
 - Iteration counts follow the AIJ 2020 splitting experiments (50 instances,
   2000 iterations); K = 1000 still leaves 1000 post-split iterations.
+
+## Ternary suite (arity-3)
+
+A parallel suite of **true arity-3** benchmarks (`code/problems_ternary.py`),
+run through the same machinery and written to `ternary_data/` + `ternary_plots/`
+so the binary suite under `data/`/`plots/` is untouched. The question is *not*
+binary-vs-ternary; it is whether the binary phenomena (damping helps, the 0.5
+split helps, mid-run split timing, the MGM/optimal split merges) **reappear when
+every constraint is genuinely ternary**. DABP (`Attentive`) is excluded — its
+integration supports only unary/binary factors — so the suite runs the full
+family minus the two DABP variants. Everything else (MS, DMS, all DMS/MS splits,
+both merge variants, Optimal) is arity-generic and runs unchanged.
+
+### Benchmarks (50 instances each, seeds 0-49)
+
+| Name | Binary analog | Construction | Fit |
+|---|---|---|---|
+| `random_sparse_ternary` | `random_sparse` | arity-3 random factors, p3 = 2·0.1/(n−2) (== `build_random_ternary`) | **faithful** (exact expected-degree match) |
+| `random_dense_ternary` | `random_dense` | same, dense degree p3 = 2·0.6/(n−2) | **faithful**, but **heaviest** (~490 arity-3 factors) |
+| `meeting_scheduling_ternary` | `meeting_scheduling` | each agent is in **three** meetings → one ternary "no two of my meetings too close" constraint | **faithful** (the natural arity-3 generalization) |
+| `graph_coloring_ternary` | `graph_coloring` | each factor = the **triangle of pairwise not-equals**, cost = 10·(#equal pairs), domain 3 | **constructed** — no canonical ternary coloring; this is the natural graded generalization |
+| `scale_free_ternary` | `scale_free` | **preferential-attachment hypergraph**: each new agent forms one ternary hyperedge with two existing agents chosen ∝ hyperdegree (arity-3 Barabási–Albert) | **constructed** — no canonical scale-free hypergraph |
+
+Densities reuse the expected-degree match already used by the binary→ternary
+sparse benchmark: a variable's expected incident-triple count p3·C(n−1,2) is set
+equal to the binary expected degree p1·(n−1), giving p3 = 2·p1/(n−2). The
+tie-break unary preferences (U[0,1e-2)) carry over unchanged; their total mass
+(≤0.5) still sits below the smallest structural cost gap (1 for random/meeting,
+10 for coloring).
+
+### What doesn't fit
+
+- **DABP / `Attentive`** — unary/binary only; omitted from the whole suite.
+- **Exact `Optimal` (branch and bound)** on the **domain-10** ternary benchmarks
+  (`random_sparse_ternary`, `random_dense_ternary`, `scale_free_ternary`) —
+  10^50 states, same as their binary analogs; omitted there.
+- **Exact `Optimal` is also harder than in binary** on `graph_coloring_ternary`
+  and `meeting_scheduling_ternary`: each ternary factor is a *triangle* of primal
+  edges, so the primal graph is denser (higher induced width) than the binary
+  version. B&B is attempted with the 300 s/instance cap but may solve **fewer
+  instances** than binary (it solved none of a 2-seed coloring smoke at a 20 s
+  cap); the Optimal reference line is drawn only over instances that completed,
+  so a sparse or absent line there is expected, not a bug.
+- `MS_split_opt_200` on `random_dense_ternary` is *not* exact (as in binary
+  dense): the menu-conditioned subproblem is too wide, so the 300 s cap returns
+  the best menu merge found (warm-started from MGM, so ≤ `MS_split_MGM_200`).
+
+The two **constructed** families (`graph_coloring_ternary`, `scale_free_ternary`)
+fit computationally but have no canonical ternary form, so `run_full_ternary.sh`
+runs only the **three faithful analogs** (sparse, dense, meeting) by default. The
+constructed builders stay available by name or via `--benchmarks all_ternary` if
+you want them.
+
+### Running
+
+```bash
+# the three faithful analogs (sparse, dense, meeting) x full family minus DABP
+# x 50 problems x 2000 iters — hours; random_dense_ternary dominates the wall
+# time (~490 arity-3 factors). The constructed coloring/scale-free benchmarks
+# are excluded here (add them via the all_ternary form below).
+bash experiments/aaai/code/run_full_ternary.sh
+
+# smoke test (fast): one cheap benchmark, a few iterations
+uv run python experiments/aaai/code/run_experiments.py \
+    --benchmarks graph_coloring_ternary --algorithms all \
+    --n-problems 5 --max-iter 200 --merge-at 100 --opt-time-limit 60 \
+    --out-dir experiments/aaai/ternary_data
+
+# any ternary benchmark by name, or the whole set via the all_ternary sentinel
+uv run python experiments/aaai/code/run_experiments.py \
+    --benchmarks all_ternary --algorithms MS DMS DMS_split_0.5 \
+    --out-dir experiments/aaai/ternary_data
+
+# analysis + plots point at the ternary dirs (no time_dabp.py: no DABP curve)
+uv run python experiments/aaai/code/analyze_results.py --data-dir experiments/aaai/ternary_data
+uv run python experiments/aaai/code/plot_results.py \
+    --data-dir experiments/aaai/ternary_data --plots-dir experiments/aaai/ternary_plots
+```
+
+`--benchmarks all` is unchanged (the binary six); `all_ternary` expands to the
+five ternary benchmarks. For a ternary benchmark, `--algorithms all` resolves to
+the full family minus DABP, and naming a DABP label is reported as skipped.
+Outputs mirror the binary suite (`{benchmark}_final_costs.csv`,
+`_raw_costs.csv`, `_summary.csv`, `_significance.csv`, `_metadata.json`, and the
+`{benchmark}_cost.pdf` / `_cost_zoom.pdf` plots), just under `ternary_data/` and
+`ternary_plots/`.
