@@ -1,0 +1,9 @@
+AAAI full run started at Sat Jun 27 12:22:37 IDT 2026
+log: experiments/aaai/logs/run_full_20260627_122237.log
+attach: tmux attach -t propflow_aaai_full
+
+START random_sparse: 550 tasks on 8 workers
+  random_sparse: 10/550 tasks (0.4 min)
+  random_sparse: 20/550 tasks (0.7 min)
+  random_sparse: 30/550 tasks (1.1 min)
+  random_sparse: 40/550 tasks (1.6 min)

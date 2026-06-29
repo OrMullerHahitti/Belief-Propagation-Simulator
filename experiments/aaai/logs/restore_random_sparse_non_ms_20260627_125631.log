@@ -1,0 +1,10 @@
+AAAI random_sparse non-MS restore started at Sat Jun 27 12:56:31 IDT 2026
+output: tmp_out/aaai_random_sparse_restore_20260627_125631/data
+backup before restore: experiments/aaai/backups/random_sparse_before_restore_20260627_125631
+attach: tmux attach -t propflow_restore_random_sparse
+
+START random_sparse: 500 tasks on 8 workers
+  random_sparse: 10/500 tasks (0.5 min)
+  random_sparse: 20/500 tasks (0.8 min)
+  random_sparse: 30/500 tasks (1.2 min)
+  random_sparse: 40/500 tasks (1.8 min)

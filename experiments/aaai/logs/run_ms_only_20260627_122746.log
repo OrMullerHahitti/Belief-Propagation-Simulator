@@ -1,0 +1,149 @@
+AAAI MS-only run started at Sat Jun 27 12:27:46 IDT 2026
+output: tmp_out/aaai_ms_only_20260627_122746/data
+backup before merge: experiments/aaai/backups/data_before_ms_merge_20260627_122746
+attach: tmux attach -t propflow_aaai_ms
+
+START random_sparse: 50 tasks on 8 workers
+  random_sparse: 10/50 tasks (0.2 min)
+  random_sparse: 20/50 tasks (0.3 min)
+  random_sparse: 30/50 tasks (0.4 min)
+  random_sparse: 40/50 tasks (0.6 min)
+  random_sparse: 50/50 tasks (0.7 min)
+DONE random_sparse in 0.7 min
+START random_dense: 50 tasks on 8 workers
+  random_dense: 10/50 tasks (6.0 min)
+  random_dense: 20/50 tasks (6.5 min)
+  random_dense: 30/50 tasks (7.2 min)
+  random_dense: 40/50 tasks (7.8 min)
+  random_dense: 50/50 tasks (8.7 min)
+DONE random_dense in 8.7 min
+START graph_coloring: 50 tasks on 8 workers
+  graph_coloring: 10/50 tasks (0.2 min)
+  graph_coloring: 20/50 tasks (0.3 min)
+  graph_coloring: 30/50 tasks (0.4 min)
+  graph_coloring: 40/50 tasks (0.5 min)
+  graph_coloring: 50/50 tasks (0.7 min)
+DONE graph_coloring in 0.7 min
+START scale_free: 50 tasks on 8 workers
+  scale_free: 10/50 tasks (0.3 min)
+  scale_free: 20/50 tasks (0.4 min)
+  scale_free: 30/50 tasks (0.5 min)
+  scale_free: 40/50 tasks (0.6 min)
+  scale_free: 50/50 tasks (0.8 min)
+DONE scale_free in 0.8 min
+START meeting_scheduling: 50 tasks on 8 workers
+  meeting_scheduling: 10/50 tasks (0.1 min)
+  meeting_scheduling: 20/50 tasks (0.2 min)
+  meeting_scheduling: 30/50 tasks (0.3 min)
+  meeting_scheduling: 40/50 tasks (0.3 min)
+  meeting_scheduling: 50/50 tasks (0.4 min)
+DONE meeting_scheduling in 0.4 min
+
+Backing up existing AAAI cost CSVs...
+Merging only MS rows into experiments/aaai/data...
+random_sparse_final_costs: kept 48 existing non-MS rows, merged 50 MS rows
+random_sparse_raw_costs: kept 81608 existing non-MS rows, merged 100000 MS rows
+random_dense_final_costs: kept 650 existing non-MS rows, merged 50 MS rows
+random_dense_raw_costs: kept 1120100 existing non-MS rows, merged 100000 MS rows
+graph_coloring_final_costs: kept 650 existing non-MS rows, merged 50 MS rows
+graph_coloring_raw_costs: kept 1020100 existing non-MS rows, merged 100000 MS rows
+scale_free_final_costs: kept 600 existing non-MS rows, merged 50 MS rows
+scale_free_raw_costs: kept 1020100 existing non-MS rows, merged 100000 MS rows
+meeting_scheduling_final_costs: kept 650 existing non-MS rows, merged 50 MS rows
+meeting_scheduling_raw_costs: kept 1020100 existing non-MS rows, merged 100000 MS rows
+
+Recomputing summaries and existing color cost plots...
+
+=== graph_coloring (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+          Optimal            11.64           10.14 21              11.64             10.14
+ DMS_split_at_300            30.62           19.69 50              29.22             18.77
+ DMS_split_at_100            30.82           18.79 50              29.82             17.84
+DMS_split_at_1000            31.63           21.29 50              28.61             18.23
+ DMS_split_at_500            33.02           24.34 50              29.02             18.59
+    DMS_split_0.5            34.42           18.20 50              32.61             17.91
+DMS_split_0.4_0.6            34.82           19.19 50              32.61             17.91
+  DMS_split_at_50            35.62           21.02 50              32.62             16.61
+        Attentive            39.24           44.38 50              24.23             16.66
+ MS_split_opt_200            83.19           44.77 50              83.19             44.77
+ MS_split_MGM_200            98.19           49.81 50              98.19             49.81
+              DMS           138.81           93.68 50              33.21             21.88
+               MS           666.19          164.25 50             238.18             78.28
+     MS_split_0.5           668.61          264.72 50             278.99            107.66
+wrote graph_coloring_summary.csv, graph_coloring_significance.csv
+
+=== meeting_scheduling (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+ DMS_split_at_100             7.82            1.66 50               7.70              1.31
+  DMS_split_at_50             7.98            1.62 50               7.76              1.29
+ DMS_split_at_500             8.00            1.55 50               7.84              1.33
+DMS_split_at_1000             8.04            1.58 50               7.76              1.38
+ DMS_split_at_300             8.06            1.77 50               7.86              1.39
+    DMS_split_0.5             8.10            1.57 50               7.90              1.31
+DMS_split_0.4_0.6             8.94            2.39 50               7.86              1.29
+ MS_split_opt_200            20.14            3.89 50              20.14              3.89
+              DMS            20.70            8.80 50               8.90              1.99
+ MS_split_MGM_200            20.98            4.18 50              20.98              4.18
+        Attentive            27.22           25.43 50               9.90              7.08
+     MS_split_0.5            81.80           14.69 50              45.36              8.15
+               MS            87.77            7.37 50              41.86              6.95
+          Optimal              NaN             NaN  0                NaN               NaN
+wrote meeting_scheduling_summary.csv, meeting_scheduling_significance.csv
+
+=== random_dense (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+        Attentive         99223.68         2402.16 50           99144.20           2399.04
+DMS_split_at_1000        101335.62         2497.43 50          100930.92           2466.81
+DMS_split_at_1500        101432.89         2584.55 50          100923.35           2444.67
+ DMS_split_at_500        101444.82         2582.59 50          101090.86           2503.61
+ DMS_split_at_300        101479.44         2594.51 50          101194.94           2551.18
+  DMS_split_at_50        101530.32         2526.31 50          101393.68           2543.78
+ DMS_split_at_100        101539.80         2645.07 50          101360.10           2622.82
+ MS_split_MGM_200        101561.58         2604.13 50          101560.52           2605.56
+ MS_split_opt_200        101561.58         2604.13 50          101560.52           2605.56
+    DMS_split_0.5        101571.10         2592.26 50          101463.08           2588.40
+DMS_split_0.4_0.6        101583.42         2609.96 50          101452.72           2572.39
+              DMS        101904.84         3146.30 50          100865.18           2444.11
+     MS_split_0.5        107330.16         3541.80 50          105969.24           3090.00
+               MS        108076.51         2888.13 50          104562.65           2675.56
+wrote random_dense_summary.csv, random_dense_significance.csv
+
+=== random_sparse (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+ MS_split_opt_200         15324.72         1850.73  4           15324.72           1850.73
+ MS_split_MGM_200         15357.22         1819.17  4           15357.22           1819.17
+ DMS_split_at_100         15387.99         1843.37  4           15314.49           1891.94
+DMS_split_at_1000         15408.26         1783.94  4           15243.24           1849.14
+ DMS_split_at_500         15467.25         1777.57  4           15291.51           1844.82
+ DMS_split_at_300         15511.73         1752.05  4           15360.22           1838.71
+DMS_split_0.4_0.6         15514.85         1437.56  5           15393.85           1548.66
+  DMS_split_at_50         15560.65         1521.29  5           15534.85           1527.67
+    DMS_split_0.5         15572.64         1659.36  5           15495.04           1701.03
+              DMS         15657.24         1566.82  5           15287.04           1551.30
+     MS_split_0.5         17318.22         1349.22  4           16830.24           1606.10
+               MS         17558.87         1577.29 50           16023.95           1530.84
+wrote random_sparse_summary.csv, random_sparse_significance.csv
+
+=== scale_free (n problems per algorithm in 'n') ===
+        algorithm  final_cost_mean  final_cost_std  n  anytime_cost_mean  anytime_cost_std
+        Attentive         16628.46          275.42 50           16621.28            277.77
+ MS_split_opt_200         17663.82          379.98 50           17663.82            379.98
+ MS_split_MGM_200         17701.06          379.82 50           17701.06            379.82
+DMS_split_at_1000         17900.34          443.09 50           17733.34            414.13
+  DMS_split_at_50         17910.70          434.69 50           17864.54            427.64
+ DMS_split_at_500         17938.06          438.36 50           17781.94            403.53
+ DMS_split_at_300         17943.34          457.15 50           17796.14            421.21
+    DMS_split_0.5         17952.74          401.15 50           17894.40            391.31
+ DMS_split_at_100         17959.88          453.93 50           17867.48            418.75
+DMS_split_0.4_0.6         18011.40          434.33 50           17895.70            415.80
+              DMS         18229.40          668.55 50           17727.02            415.43
+     MS_split_0.5         19703.28          686.61 50           19310.42            559.71
+               MS         19924.49          734.50 50           18495.09            462.49
+wrote scale_free_summary.csv, scale_free_significance.csv
+wrote experiments/aaai/plots/graph_coloring_cost.pdf
+wrote experiments/aaai/plots/meeting_scheduling_cost.pdf
+wrote experiments/aaai/plots/random_dense_cost.pdf
+wrote experiments/aaai/plots/random_sparse_cost.pdf
+wrote experiments/aaai/plots/scale_free_cost.pdf
+
+AAAI MS-only run finished at Sat Jun 27 12:39:16 IDT 2026
