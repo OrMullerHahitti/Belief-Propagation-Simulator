@@ -44,6 +44,7 @@ LABELS = {
     "DMS_split_at_1500": "DMS + split@1500",
     "MS_split_0.5": "MS + split 0.5",
     "MS_split_MGM_200": "MS + split + MGM@200",
+    "MS_split_MGM_inverted_200": "MS + split + MGM inverted@200",
     "MS_split_opt_200": "MS + split + optimal@200",
     "Attentive": "Attentive (DABP)",
     "Attentive_NoSplit": "Attentive (DABP, no split)",
@@ -62,6 +63,7 @@ COLORS = {
     "DMS_split_at_1500": "#88CCEE",
     "MS_split_0.5": "#44AA99",
     "MS_split_MGM_200": "#117733",
+    "MS_split_MGM_inverted_200": "#DDCC77",
     "MS_split_opt_200": "#882255",
     "Attentive": "#000000",
     "Attentive_NoSplit": "#BBBBBB",
@@ -79,6 +81,7 @@ STRETCH_RATIO_COLUMNS = {
 # merge, so only the final point shifts -- not the whole curve.
 MERGE_STRETCH_COLUMNS = {
     "MS_split_MGM_200": "mgm_ratio",
+    "MS_split_MGM_inverted_200": "mgm_ratio",
     "MS_split_opt_200": "bnb_ratio",
 }
 MERGE_STRETCH_ALGOS = set(MERGE_STRETCH_COLUMNS)

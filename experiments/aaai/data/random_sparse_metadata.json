@@ -27,7 +27,16 @@
     "MS",
     "MS_split_0.5",
     "MS_split_MGM_200",
+    "MS_split_MGM_inverted_200",
     "MS_split_opt_200"
   ],
-  "elapsed_s": 7827.5
+  "elapsed_s": 7827.5,
+  "appends": [
+    {
+      "algorithms": [
+        "MS_split_MGM_inverted_200"
+      ],
+      "elapsed_s": 10.7
+    }
+  ]
 }

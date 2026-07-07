@@ -15,6 +15,7 @@ from experiments.aaai.code import (
     run_experiments,
 )
 from experiments.aaai.code.csv_backups import backup_existing_csvs
+from experiments.aaai.code.merge import invert_binary_menu_assignment
 
 
 def test_aaai_plain_min_sum_is_in_all_algorithm_sets():
@@ -22,6 +23,8 @@ def test_aaai_plain_min_sum_is_in_all_algorithm_sets():
     assert run_experiments.ENGINE_LABELS[0] == "MS"
     assert "MS" in run_experiments.ALL_LABELS
     assert "MS" in run_experiments.KNOWN_LABELS
+    assert run_experiments.MGM_INVERTED_LABEL in run_experiments.ALL_LABELS
+    assert run_experiments.MGM_INVERTED_LABEL in run_experiments.KNOWN_LABELS
 
 
 def test_aaai_plain_min_sum_factory_builds_base_engine():
@@ -42,10 +45,49 @@ def test_aaai_plain_min_sum_factory_builds_base_engine():
 def test_aaai_plain_min_sum_is_plotted():
     assert plot_results.LABELS["MS"] == "MS"
     assert plot_results.ORDER[0] == "MS"
+    assert run_experiments.MGM_INVERTED_LABEL in plot_results.ORDER
 
 
 def test_aaai_plotted_algorithms_have_fixed_colors():
     assert set(plot_results.ORDER) <= set(plot_results.COLORS)
+
+
+def test_aaai_inverted_mgm_flips_disagreement_menu_values():
+    branch1 = {"x1": 0, "x2": 3, "x3": 4}
+    branch2 = {"x1": 1, "x2": 3, "x3": 9}
+    assignment = {"x1": 1, "x2": 3, "x3": 4}
+
+    inverted = invert_binary_menu_assignment(
+        assignment, branch1, branch2, ["x1", "x2", "x3"]
+    )
+
+    assert inverted == {"x1": 0, "x2": 3, "x3": 9}
+
+
+def test_aaai_inverted_mgm_schedules_split_merge_task():
+    class Args:
+        seed_start = 0
+        n_problems = 1
+        max_iter = 200
+        merge_at = 100
+        opt_time_limit = 1.0
+
+    tasks = run_experiments.build_tasks(
+        "graph_coloring", Args, {run_experiments.MGM_INVERTED_LABEL}
+    )
+
+    assert tasks == [
+        (
+            "split_ms",
+            "graph_coloring",
+            0,
+            {
+                "max_iter": 200,
+                "merge_at": 100,
+                "wanted": {run_experiments.MGM_INVERTED_LABEL},
+            },
+        )
+    ]
 
 
 def test_aaai_zoom_selection_keeps_crowded_lower_cluster():

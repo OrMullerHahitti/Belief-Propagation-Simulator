@@ -42,6 +42,7 @@ STYLES = {
     "DMS_split_at_1000": ("black", "-", "D"),
     "MS_split_0.5": ("0.45", "-", None),
     "MS_split_MGM_200": ("0.45", "--", "x"),
+    "MS_split_MGM_inverted_200": ("0.45", ":", "d"),
     "MS_split_opt_200": ("0.45", "-.", "+"),
     "Attentive": ("0.0", "-", "*"),
 }
@@ -112,7 +113,9 @@ def main() -> None:
 
     files = sorted(data_dir.glob("*_raw_costs.csv"))
     if args.benchmarks != ["all"]:
-        files = [f for f in files if f.name.replace("_raw_costs.csv", "") in args.benchmarks]
+        files = [
+            f for f in files if f.name.replace("_raw_costs.csv", "") in args.benchmarks
+        ]
     if not files:
         raise SystemExit(f"no *_raw_costs.csv files found in {data_dir}")
 

@@ -41,10 +41,12 @@ helper is binary-only.
 | `Optimal` | 2f | depth-first branch and bound on the original tables, 60 s/instance limit; reported only for instances where the search completed (expect graph_coloring and meeting_scheduling; the domain-10 benchmarks generally won't finish) |
 | `MS_split_0.5` | 2g | undamped min-sum on a 0.5/0.5 SCFG |
 | `MS_split_MGM_200` | 2h | the two assignments at iterations 198/199 of the `MS_split_0.5` run (its period-2 oscillation branches = "the two options after 200 iterations") merged with MGM-1 restricted to the per-variable binary menu {b1[v], b2[v]}; run from both seeds, best kept |
+| `MS_split_MGM_inverted_200` | 2h+ | same best MGM merge as `MS_split_MGM_200`, then every disagreement variable is flipped to the other value in its binary menu before scoring; agreement variables remain fixed |
 | `MS_split_opt_200` | 2i | same two options merged *optimally*: branch and bound over the binary menus, on tables conditioned on the menus (300 s cap). Exact on every benchmark except `random_dense`, where the conditioned subproblem has induced width ~25-36 (30-46 disagreeing variables on a dense graph) and proving optimality is infeasible — there the reported value is the best menu merge found within the cap, warm-started from the MGM result (so always <= `MS_split_MGM_200`); the run log counts these instances |
 
-`MS_split_0.5`, `MS_split_MGM_200` and `MS_split_opt_200` share one engine run
-per instance, so all three see exactly the same oscillation branches.
+`MS_split_0.5`, `MS_split_MGM_200`, `MS_split_MGM_inverted_200` and
+`MS_split_opt_200` share one engine run per instance, so all four see exactly
+the same oscillation branches.
 `random_ternary` is intentionally narrower and runs only `DMS_split_0.5`; DABP
 is excluded because the integration supports only unary/binary factors.
 

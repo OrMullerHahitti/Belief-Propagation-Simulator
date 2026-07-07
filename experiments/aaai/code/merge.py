@@ -136,6 +136,35 @@ def mgm1_binary_merge(
     return assignment, history, moves_per_round
 
 
+def invert_binary_menu_assignment(
+    assignment: Dict[str, int],
+    branch1: Dict[str, int],
+    branch2: Dict[str, int],
+    var_names: List[str],
+) -> Dict[str, int]:
+    """Flip a binary-menu assignment to the other branch value per variable.
+
+    The MGM merge works over the per-variable menu ``{branch1[v], branch2[v]}``.
+    For disagreement variables this returns the complementary menu decision; for
+    agreement variables the value is frozen and therefore unchanged.
+    """
+    inverted: Dict[str, int] = {}
+    for v in var_names:
+        a, b = int(branch1[v]), int(branch2[v])
+        value = int(assignment[v])
+        if a == b:
+            inverted[v] = a
+        elif value == a:
+            inverted[v] = b
+        elif value == b:
+            inverted[v] = a
+        else:
+            raise ValueError(
+                f"assignment for {v}={value} is outside the binary menu {(a, b)}"
+            )
+    return inverted
+
+
 def branch_and_bound(
     var_names: List[str],
     factor_vars: Dict[str, List[str]],
@@ -172,16 +201,19 @@ def branch_and_bound(
     assignment: Dict[str, int] = {}
 
     start = time.time()
-    stats: Dict[str, object] = {"nodes": 0, "prunes": 0, "complete": False, "elapsed_s": 0.0}
+    stats: Dict[str, object] = {
+        "nodes": 0,
+        "prunes": 0,
+        "complete": False,
+        "elapsed_s": 0.0,
+    }
 
     def factor_min_given_partial(fname: str) -> float:
         vs = factor_vars[fname]
         tbl = tables[fname]
         if all(v in assignment for v in vs):
             return float(tbl[tuple(assignment[v] for v in vs)])
-        slicer = tuple(
-            assignment[v] if v in assignment else slice(None) for v in vs
-        )
+        slicer = tuple(assignment[v] if v in assignment else slice(None) for v in vs)
         return float(tbl[slicer].min())
 
     def search(depth: int, bound_in: float) -> None:

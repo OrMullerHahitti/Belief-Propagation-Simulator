@@ -15,10 +15,12 @@ Algorithms (professor's list + plain min-sum baseline):
   g. MS_split_0.5              undamped min-sum on an SCFG (0.5/0.5)
   h. MS_split_MGM_200          the two assignments at iterations 198/199 of (g)
                                merged with MGM-1 restricted to the binary menu
-  i. MS_split_opt_200          same two assignments merged optimally (branch and
+  i. MS_split_MGM_inverted_200 same MGM result, but each disagreement variable's
+                               binary-menu decision is inverted before scoring
+  j. MS_split_opt_200          same two assignments merged optimally (branch and
                                bound over the binary menu)
 
-g, h and i share a single engine run per instance: the "two options after 200
+g, h, i and j share a single engine run per instance: the "two options after 200
 iterations" are the assignments at the last two iterations before the merge
 point of the split-only run (its period-2 oscillation branches).
 
@@ -61,7 +63,12 @@ from engines import (
     DampingRandomSplitEngine,
     run_full_horizon,
 )
-from merge import branch_and_bound, mgm1_binary_merge, score_assignment
+from merge import (
+    branch_and_bound,
+    invert_binary_menu_assignment,
+    mgm1_binary_merge,
+    score_assignment,
+)
 from problems import BENCHMARKS, capture_original
 from problems_ternary import TERNARY_BENCHMARKS
 
@@ -76,6 +83,7 @@ EXTRA_SPLIT_AT_ITERS = (1500,)
 
 SPLIT_MS_LABEL = "MS_split_0.5"
 MGM_LABEL = "MS_split_MGM_200"
+MGM_INVERTED_LABEL = "MS_split_MGM_inverted_200"
 OPT_MERGE_LABEL = "MS_split_opt_200"
 OPTIMAL_LABEL = "Optimal"
 PLAIN_MS_LABEL = "MS"
@@ -153,7 +161,13 @@ ENGINE_LABELS = (
 # extra engine columns that build a normal task but are excluded from "all"
 EXTRA_ENGINE_LABELS = [f"DMS_split_at_{k}" for k in EXTRA_SPLIT_AT_ITERS]
 # what "--algorithms all" expands to (unchanged: no opt-in extras)
-ALL_LABELS = ENGINE_LABELS + [SPLIT_MS_LABEL, MGM_LABEL, OPT_MERGE_LABEL, OPTIMAL_LABEL]
+ALL_LABELS = ENGINE_LABELS + [
+    SPLIT_MS_LABEL,
+    MGM_LABEL,
+    MGM_INVERTED_LABEL,
+    OPT_MERGE_LABEL,
+    OPTIMAL_LABEL,
+]
 # everything a user may name explicitly via --algorithms (for validation)
 KNOWN_LABELS = ALL_LABELS + EXTRA_ENGINE_LABELS
 
@@ -230,7 +244,8 @@ def run_split_ms_task(
     engine.convergence_monitor.reset()
     branch_iters = (merge_at - 2, merge_at - 1)
     branches: dict[int, dict[str, int]] = {}
-    for i in range(max_iter):
+    run_limit = max_iter if SPLIT_MS_LABEL in wanted else merge_at
+    for i in range(run_limit):
         engine.step(i)
         try:
             engine._handle_cycle_events(i)
@@ -238,7 +253,7 @@ def run_split_ms_task(
             pass
         if i in branch_iters:
             branches[i] = {k: int(v) for k, v in engine.assignments.items()}
-    costs = [float(engine._snapshots[i].global_cost) for i in range(max_iter)]
+    costs = [float(engine._snapshots[i].global_cost) for i in range(run_limit)]
 
     rows = []
     if SPLIT_MS_LABEL in wanted:
@@ -258,7 +273,7 @@ def run_split_ms_task(
     score2 = score_assignment(branch2, tables, factor_vars)
 
     best_merge: tuple[dict, float] | None = None
-    if MGM_LABEL in wanted or OPT_MERGE_LABEL in wanted:
+    if MGM_LABEL in wanted or MGM_INVERTED_LABEL in wanted or OPT_MERGE_LABEL in wanted:
         merged_a, _, _ = mgm1_binary_merge(
             branch1, branch2, "branch1", var_names, factor_vars, tables
         )
@@ -280,6 +295,23 @@ def run_split_ms_task(
                 "final_cost": merged_cost,
                 "anytime_cost": min(min(pre_merge), merged_cost),
                 "costs": pre_merge + [merged_cost],
+            }
+        )
+
+    if MGM_INVERTED_LABEL in wanted:
+        if best_merge is None:
+            raise RuntimeError("MGM merge result was not computed")
+        inverted = invert_binary_menu_assignment(
+            best_merge[0], branch1, branch2, var_names
+        )
+        inverted_cost = score_assignment(inverted, tables, factor_vars)
+        rows.append(
+            {
+                "algorithm": MGM_INVERTED_LABEL,
+                "seed": seed,
+                "final_cost": inverted_cost,
+                "anytime_cost": min(min(pre_merge), inverted_cost),
+                "costs": pre_merge + [inverted_cost],
             }
         )
 
@@ -373,7 +405,12 @@ def build_tasks(benchmark: str, args, labels: set[str]) -> list[tuple]:
                         {"label": label, "max_iter": args.max_iter},
                     )
                 )
-        wanted = labels & {SPLIT_MS_LABEL, MGM_LABEL, OPT_MERGE_LABEL}
+        wanted = labels & {
+            SPLIT_MS_LABEL,
+            MGM_LABEL,
+            MGM_INVERTED_LABEL,
+            OPT_MERGE_LABEL,
+        }
         if wanted:
             tasks.append(
                 (

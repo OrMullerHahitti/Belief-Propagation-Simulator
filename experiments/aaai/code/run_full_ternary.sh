@@ -29,7 +29,7 @@ TERNARY_PLOTS="experiments/aaai/ternary_plots"
 # domain-10 ternary benchmarks: no Optimal (exact search infeasible), no DABP.
 NO_OPT="MS DMS DMS_split_0.5 DMS_split_0.4_0.6 DMS_split_at_50 DMS_split_at_100 \
 DMS_split_at_300 DMS_split_at_500 DMS_split_at_1000 \
-MS_split_0.5 MS_split_MGM_200 MS_split_opt_200"
+MS_split_0.5 MS_split_MGM_200 MS_split_MGM_inverted_200 MS_split_opt_200"
 
 # sparse ternary: standard split points
 uv run python experiments/aaai/code/run_experiments.py \
