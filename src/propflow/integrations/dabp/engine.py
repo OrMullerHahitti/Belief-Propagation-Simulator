@@ -27,7 +27,7 @@ from torch.optim import AdamW
 from ...bp.engine_base import BPEngine
 from ...bp.engine_components import Step
 from .build import build_dabp_inputs
-from .constant import SCALE, dtype_for_device, select_device
+from .constant import SCALE, SPLIT_RATIO, dtype_for_device, select_device
 from .model import AttentiveBP
 
 
@@ -48,6 +48,12 @@ class DABPEngine(BPEngine):
 
     engine_name = "DABPEngine"
     factor_splitting_enabled = True
+    # ratio used by DABP's built-in SCFG step to split every factor C into clones
+    # split_ratio*C and (1-split_ratio)*C at graph-build time (i.e. from the
+    # start). DABP's default is the asymmetric SPLIT_RATIO (0.95); subclasses
+    # override it (e.g. 0.5 for a symmetric split). Ignored when
+    # factor_splitting_enabled is False.
+    split_ratio = SPLIT_RATIO
 
     def __init__(
         self,
@@ -81,6 +87,7 @@ class DABPEngine(BPEngine):
         self._data, self._ordered_names, self._domain = build_dabp_inputs(
             self.graph,
             scale=self.scale,
+            split_ratio=self.split_ratio,
             factor_splitting_enabled=self.factor_splitting_enabled,
         )
         self._abp = AttentiveBP(
@@ -209,6 +216,19 @@ class DABPEngineNoSplit(DABPEngine):
 
     engine_name = "DABPEngineNoSplit"
     factor_splitting_enabled = False
+
+
+class DABPEngineSymSplit(DABPEngine):
+    """DABP variant that splits every factor symmetrically (0.5/0.5) from the start.
+
+    Same network and driver as ``DABPEngine`` but the built-in SCFG step uses a
+    symmetric ``split_ratio`` of 0.5 instead of DABP's asymmetric default (0.95),
+    so each original factor is cloned into two equal halves before iteration 0.
+    """
+
+    engine_name = "DABPEngineSymSplit"
+    factor_splitting_enabled = True
+    split_ratio = 0.5
 
 
 DABPEngine_No_Split = DABPEngineNoSplit

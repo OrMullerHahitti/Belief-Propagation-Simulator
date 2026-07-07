@@ -56,6 +56,7 @@ from csv_backups import backup_existing_csvs
 from engines import (
     AttentiveEngine,
     AttentiveNoSplitEngine,
+    AttentiveSymSplitEngine,
     CostOnlySnapshotManager,
     DampedMidRunSplitEngine,
     DampingRandomSplitEngine,
@@ -81,6 +82,7 @@ OPTIMAL_LABEL = "Optimal"
 PLAIN_MS_LABEL = "MS"
 ATTENTIVE_LABEL = "Attentive"
 ATTENTIVE_NOSPLIT_LABEL = "Attentive_NoSplit"
+ATTENTIVE_SYMSPLIT_LABEL = "Attentive_SymSplit"
 RANDOM_TERNARY_BENCHMARK = "random_ternary"
 RANDOM_TERNARY_LABELS = {"DMS_split_0.5"}
 
@@ -138,6 +140,8 @@ def make_engine(label: str, fg, seed: int):
         return AttentiveEngine(factor_graph=fg, **_common_kwargs())
     if label == ATTENTIVE_NOSPLIT_LABEL:
         return AttentiveNoSplitEngine(factor_graph=fg, **_common_kwargs())
+    if label == ATTENTIVE_SYMSPLIT_LABEL:
+        return AttentiveSymSplitEngine(factor_graph=fg, **_common_kwargs())
     if label == SPLIT_MS_LABEL:
         return SplitEngine(factor_graph=fg, split_factor=0.5, **_common_kwargs())
     raise ValueError(f"unknown engine label: {label}")
@@ -148,7 +152,7 @@ def make_engine(label: str, fg, seed: int):
 ENGINE_LABELS = (
     [PLAIN_MS_LABEL, "DMS", "DMS_split_0.5", "DMS_split_0.4_0.6"]
     + [f"DMS_split_at_{k}" for k in SPLIT_AT_ITERS]
-    + [ATTENTIVE_LABEL, ATTENTIVE_NOSPLIT_LABEL]
+    + [ATTENTIVE_LABEL, ATTENTIVE_NOSPLIT_LABEL, ATTENTIVE_SYMSPLIT_LABEL]
 )
 # extra engine columns that build a normal task but are excluded from "all"
 EXTRA_ENGINE_LABELS = [f"DMS_split_at_{k}" for k in EXTRA_SPLIT_AT_ITERS]
@@ -161,7 +165,7 @@ KNOWN_LABELS = ALL_LABELS + EXTRA_ENGINE_LABELS
 # the full AAAI family minus the two DABP variants. Optimal is kept in the set
 # (it self-limits via the time cap and is only meaningfully attempted on the
 # low-domain ternary benchmarks; see run_full_ternary.sh).
-DABP_LABELS = {ATTENTIVE_LABEL, ATTENTIVE_NOSPLIT_LABEL}
+DABP_LABELS = {ATTENTIVE_LABEL, ATTENTIVE_NOSPLIT_LABEL, ATTENTIVE_SYMSPLIT_LABEL}
 # what "--algorithms all" expands to for a ternary benchmark (mirrors binary
 # "all": ALL_LABELS, i.e. no opt-in extras), minus DABP.
 TERNARY_SUPPORTED_LABELS = set(ALL_LABELS) - DABP_LABELS

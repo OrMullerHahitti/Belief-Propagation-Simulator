@@ -47,6 +47,7 @@ LABELS = {
     "MS_split_opt_200": "MS + split + optimal@200",
     "Attentive": "Attentive (DABP)",
     "Attentive_NoSplit": "Attentive (DABP, no split)",
+    "Attentive_SymSplit": "Attentive (DABP, sym split 0.5)",
 }
 ORDER = list(LABELS)
 COLORS = {
@@ -65,6 +66,7 @@ COLORS = {
     "MS_split_opt_200": "#882255",
     "Attentive": "#000000",
     "Attentive_NoSplit": "#BBBBBB",
+    "Attentive_SymSplit": "#666666",
 }
 
 # DABP variants whose curve is stretched onto the wall-clock axis, mapped to the
@@ -72,6 +74,7 @@ COLORS = {
 STRETCH_RATIO_COLUMNS = {
     "Attentive": "ratio",
     "Attentive_NoSplit": "nosplit_ratio",
+    "Attentive_SymSplit": "symsplit_ratio",
 }
 # Binary-menu merges whose single merged-cost point is stretched onto the
 # wall-clock axis (drawn at x = merge_at + ratio), mapped to the per-iteration
