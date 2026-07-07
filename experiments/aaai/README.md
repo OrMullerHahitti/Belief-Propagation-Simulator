@@ -37,7 +37,9 @@ helper is binary-only.
 | `DMS_split_0.4_0.6` | 2c | DMS on a *random* SCFG: each cost-table entry c is split into u·c / (1-u)·c with u ~ U[0.4, 0.6) — the "0.4-0.6" version of the AIJ paper (§6.2), which it found best |
 | `DMS_split_at_{50,100,300,500,1000}` | 2d | `MidRunSplitEngine` + damping; all factors split at iteration K, `transfer` mode (prior R messages redistributed p/(1-p) across clones, as in the late-split experiments in `experiments/other/non_convergence_chain`) |
 | `DMS_split_at_1500` | 2d+ | same, **`random_dense` only** — an extra late split point; opt-in (not part of `--algorithms all`), added via `run_full.sh`. 1500 leaves 500 post-split iterations of the 2000 horizon |
-| `Attentive` | 2e | DABP (Deep Attentive Belief Propagation): a per-instance graph-attention network driven one BP iteration per step (`AttentiveEngine` -> `propflow.integrations.dabp.DABPEngine`; needs the optional `[dabp]` extra). Far more expensive per iteration than min-sum, so its curve is **stretched** on the cost plots (see Notes) |
+| `Attentive` | 2e | DABP (Deep Attentive Belief Propagation): a per-instance graph-attention network driven one BP iteration per step (`AttentiveEngine` -> `propflow.integrations.dabp.DABPEngine`; needs the optional `[dabp]` extra). Uses DABP's built-in SCFG step, which splits every factor **asymmetrically (0.95/0.05)** at graph-build time (i.e. from iteration 0). Far more expensive per iteration than min-sum, so its curve is **stretched** on the cost plots (see Notes) |
+| `Attentive_NoSplit` | 2e′ | same DABP network and driver as `Attentive` but with DABP's SCFG split **disabled** — one DABP factor per original binary factor (`AttentiveNoSplitEngine` -> `DABPEngineNoSplit`) |
+| `Attentive_SymSplit` | 2e″ | same DABP network and driver as `Attentive` but the SCFG split is **symmetric (0.5/0.5) from the start** instead of the 0.95 default (`AttentiveSymSplitEngine` -> `DABPEngineSymSplit`) — the DABP counterpart of the `*_split_0.5` min-sum families |
 | `Optimal` | 2f | depth-first branch and bound on the original tables, 60 s/instance limit; reported only for instances where the search completed (expect graph_coloring and meeting_scheduling; the domain-10 benchmarks generally won't finish) |
 | `MS_split_0.5` | 2g | undamped min-sum on a 0.5/0.5 SCFG |
 | `MS_split_MGM_200` | 2h | the two assignments at iterations 198/199 of the `MS_split_0.5` run (its period-2 oscillation branches = "the two options after 200 iterations") merged with MGM-1 restricted to the per-variable binary menu {b1[v], b2[v]}; run from both seeds, best kept |
@@ -82,7 +84,7 @@ CSV-writing scripts back up existing `data/*.csv` files to
 - `data/{benchmark}_metadata.json` — run parameters
 - `data/{benchmark}_summary.csv` — per-algorithm mean/std (final + anytime)
 - `data/{benchmark}_significance.csv` — pairwise paired t-test + Wilcoxon p-values on both metrics, computed over the common solved seeds (AIJ 2020 reported paired t-tests on final and anytime results)
-- `data/dabp_timing.csv` — per-benchmark DABP/DMS per-iteration time ratio (from `time_dabp.py`, excluding `random_ternary`), used to stretch the DABP curve
+- `data/dabp_timing.csv` — per-benchmark DABP/DMS per-iteration time ratios (from `time_dabp.py`, excluding `random_ternary`), used to stretch each DABP curve: `ratio` (`Attentive`, 0.95 split), `nosplit_ratio` (`Attentive_NoSplit`), `symsplit_ratio` (`Attentive_SymSplit`, 0.5 split)
 - `plots/{benchmark}_cost.pdf` — colored mean per-iteration cost (the only plot; anytime and B&W variants are no longer generated)
 - `plots/{benchmark}_cost_zoom.pdf` — tail-window close-up of the crowded lower-cost curve cluster, generated from the same CSV data when a separated cluster is detected
 

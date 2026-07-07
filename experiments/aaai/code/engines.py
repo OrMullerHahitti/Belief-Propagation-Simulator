@@ -130,6 +130,19 @@ def AttentiveNoSplitEngine(*args, **kwargs):
     return DABPEngineNoSplit(*args, **kwargs)
 
 
+def AttentiveSymSplitEngine(*args, **kwargs):
+    """DABP symmetric-split variant: every factor split 0.5/0.5 from the start.
+
+    Same network and driver as ``AttentiveEngine`` but DABP's built-in
+    factor-splitting (SCFG) step uses a symmetric 0.5 ratio instead of the
+    asymmetric 0.95 default, so each factor is cloned into two equal halves
+    before iteration 0. Lazily imported like the other DABP factories."""
+
+    from propflow.integrations.dabp import DABPEngineSymSplit
+
+    return DABPEngineSymSplit(*args, **kwargs)
+
+
 def run_full_horizon(engine: BPEngine, max_iter: int) -> list[float]:
     """step the engine for exactly max_iter iterations, preserving the cycle
     events (message normalization) but ignoring convergence stops so every run

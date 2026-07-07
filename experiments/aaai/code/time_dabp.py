@@ -87,6 +87,9 @@ def time_benchmark(benchmark: str, seed: int) -> dict:
     nosplit, nosplit_ratio = _time_dabp_variant(
         "Attentive_NoSplit", benchmark, seed, dms
     )
+    symsplit, symsplit_ratio = _time_dabp_variant(
+        "Attentive_SymSplit", benchmark, seed, dms
+    )
     return {
         "benchmark": benchmark,
         "dms_s_per_iter": dms,
@@ -94,6 +97,8 @@ def time_benchmark(benchmark: str, seed: int) -> dict:
         "ratio": ratio,
         "dabp_nosplit_s_per_iter": nosplit,
         "nosplit_ratio": nosplit_ratio,
+        "dabp_symsplit_s_per_iter": symsplit,
+        "symsplit_ratio": symsplit_ratio,
     }
 
 
@@ -136,7 +141,9 @@ def main() -> None:
             f"  DMS {row['dms_s_per_iter'] * 1e3:.2f} ms/iter, "
             f"DABP {row['dabp_s_per_iter'] * 1e3:.2f} ms/iter (ratio {row['ratio']:.2f}), "
             f"DABP-no-split {row['dabp_nosplit_s_per_iter'] * 1e3:.2f} ms/iter "
-            f"(ratio {row['nosplit_ratio']:.2f})",
+            f"(ratio {row['nosplit_ratio']:.2f}), "
+            f"DABP-sym-split {row['dabp_symsplit_s_per_iter'] * 1e3:.2f} ms/iter "
+            f"(ratio {row['symsplit_ratio']:.2f})",
             flush=True,
         )
 
@@ -156,6 +163,8 @@ def main() -> None:
                 "ratio",
                 "dabp_nosplit_s_per_iter",
                 "nosplit_ratio",
+                "dabp_symsplit_s_per_iter",
+                "symsplit_ratio",
             ]
         )
         for row in rows:
@@ -167,6 +176,8 @@ def main() -> None:
                     f"{row['ratio']:.4f}",
                     f"{row['dabp_nosplit_s_per_iter']:.6f}",
                     f"{row['nosplit_ratio']:.4f}",
+                    f"{row['dabp_symsplit_s_per_iter']:.6f}",
+                    f"{row['symsplit_ratio']:.4f}",
                 ]
             )
     print(f"wrote {out_path}", flush=True)

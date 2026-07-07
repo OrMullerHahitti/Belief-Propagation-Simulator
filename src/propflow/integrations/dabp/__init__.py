@@ -6,6 +6,16 @@ explicit and never triggered by the core package::
     from propflow.integrations.dabp import DABPEngine
 """
 
-from .engine import DABPEngine, DABPEngineNoSplit, DABPEngine_No_Split
+from .engine import (
+    DABPEngine,
+    DABPEngineNoSplit,
+    DABPEngineSymSplit,
+    DABPEngine_No_Split,
+)
 
-__all__ = ["DABPEngine", "DABPEngineNoSplit", "DABPEngine_No_Split"]
+__all__ = [
+    "DABPEngine",
+    "DABPEngineNoSplit",
+    "DABPEngineSymSplit",
+    "DABPEngine_No_Split",
+]
