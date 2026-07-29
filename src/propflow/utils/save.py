@@ -531,19 +531,21 @@ class EnhancedSaveModule:
                 "initial_cost": costs[0],
                 "final_cost": costs[-1],
                 "total_improvement": costs[0] - costs[-1],
-                "improvement_rate": (costs[0] - costs[-1]) / costs[0]
-                if costs[0] != 0
-                else 0.0,
+                "improvement_rate": (
+                    (costs[0] - costs[-1]) / costs[0] if costs[0] != 0 else 0.0
+                ),
                 "iterations_with_improvement": int(np.sum(improvements)),
                 "improvement_percentage": float(
                     np.sum(improvements) / len(cost_diff) * 100
                 ),
-                "largest_single_improvement": float(np.min(cost_diff))
-                if cost_diff.size > 0
-                else 0.0,
-                "average_improvement_per_step": float(np.mean(cost_diff[improvements]))
-                if np.any(improvements)
-                else 0.0,
+                "largest_single_improvement": (
+                    float(np.min(cost_diff)) if cost_diff.size > 0 else 0.0
+                ),
+                "average_improvement_per_step": (
+                    float(np.mean(cost_diff[improvements]))
+                    if np.any(improvements)
+                    else 0.0
+                ),
                 "cost_variance": float(np.var(costs)),
                 "cost_std": float(np.std(costs)),
             }
@@ -576,9 +578,11 @@ class EnhancedSaveModule:
             "has_message_data": True,
             "total_message_count": total_messages,
             "unique_message_flows": len(unique_flows),
-            "average_messages_per_step": total_messages / len(history.step_messages)
-            if history.step_messages
-            else 0,
+            "average_messages_per_step": (
+                total_messages / len(history.step_messages)
+                if history.step_messages
+                else 0
+            ),
             "message_flow_list": list(unique_flows),
         }
 

@@ -386,9 +386,11 @@ class History:
                 {
                     "sender": getattr(msg.sender, "name", "unknown"),
                     "recipient": getattr(msg.recipient, "name", "unknown"),
-                    "data": msg.data.tolist()
-                    if isinstance(msg.data, np.ndarray)
-                    else [float(msg.data)],
+                    "data": (
+                        msg.data.tolist()
+                        if isinstance(msg.data, np.ndarray)
+                        else [float(msg.data)]
+                    ),
                 }
                 for msg in agent_messages
             ]
@@ -399,9 +401,11 @@ class History:
         serialized = {}
         for cycle_num, beliefs in self.beliefs.items():
             serialized[str(cycle_num)] = {
-                var_name: belief_array.tolist()
-                if isinstance(belief_array, np.ndarray)
-                else belief_array
+                var_name: (
+                    belief_array.tolist()
+                    if isinstance(belief_array, np.ndarray)
+                    else belief_array
+                )
                 for var_name, belief_array in beliefs.items()
             }
         return serialized

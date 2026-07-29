@@ -1,6 +1,9 @@
 import json
 
-from experiments.other.non_convergence_chain.code.config import build_chain_graph, load_config
+from experiments.other.non_convergence_chain.code.config import (
+    build_chain_graph,
+    load_config,
+)
 from experiments.other.non_convergence_chain.code.run_non_convergence_study import main
 
 

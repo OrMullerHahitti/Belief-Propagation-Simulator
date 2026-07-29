@@ -35,7 +35,15 @@ class Attention(nn.Module):
 
 
 class AttentiveBP(nn.Module):
-    def __init__(self, in_channels, out_channels, num_heads=1, prefix_dim=4, msg_dim=15, max_color=100):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        num_heads=1,
+        prefix_dim=4,
+        msg_dim=15,
+        max_color=100,
+    ):
         super().__init__()
         self.prefix_dim = prefix_dim
         self.vn_color_embed = nn.Embedding(max_color, in_channels - prefix_dim)
@@ -137,7 +145,9 @@ class AttentiveBP(nn.Module):
 
         embed_src = x[embed_src_idxes]
         embed_trg = x[embed_trg_idxes]
-        var_degree = torch.unique(v2f_scatter_idxes, return_counts=True)[-1]  # Degree(x) - 1
+        var_degree = torch.unique(v2f_scatter_idxes, return_counts=True)[
+            -1
+        ]  # Degree(x) - 1
         embed_trg_repeated = torch.repeat_interleave(embed_trg, var_degree, dim=0)
         assert embed_src.shape == embed_trg_repeated.shape
 
@@ -156,11 +166,15 @@ class AttentiveBP(nn.Module):
 
         attention_scores = scatter_mean(attention_scores, v2f_scatter_idxes, dim=0)
         damped_weights = torch.softmax(
-            torch.cat([attention_scores.unsqueeze(1), attention_trg_scores.unsqueeze(1)], dim=1), dim=1
+            torch.cat(
+                [attention_scores.unsqueeze(1), attention_trg_scores.unsqueeze(1)],
+                dim=1,
+            ),
+            dim=1,
         )
-        v2f_msgs = weighted_msg.unsqueeze(2) * damped_weights[:, 0, :].unsqueeze(1) + msg_trg.unsqueeze(
-            2
-        ) * damped_weights[:, 1, :].unsqueeze(1)
+        v2f_msgs = weighted_msg.unsqueeze(2) * damped_weights[:, 0, :].unsqueeze(
+            1
+        ) + msg_trg.unsqueeze(2) * damped_weights[:, 1, :].unsqueeze(1)
         v2f_msgs = v2f_msgs.mean(-1)
         v2f_msgs = v2f_msgs - v2f_msgs.min(dim=1, keepdim=True)[0]
         msgs[msg_trg_idxes] = v2f_msgs
@@ -174,7 +188,9 @@ class AttentiveBP(nn.Module):
         dist_rv = dist[rv_idxes]
         dist_cv = dist[cv_idxes]
         if not first_iteration:
-            loss = torch.bmm(torch.bmm(dist_rv.unsqueeze(1), cost_tensors), dist_cv.unsqueeze(2)).squeeze()
+            loss = torch.bmm(
+                torch.bmm(dist_rv.unsqueeze(1), cost_tensors), dist_cv.unsqueeze(2)
+            ).squeeze()
             loss = scatter_add(loss, f_batch)
             loss = loss.mean()
             loss = loss + 0.1 * entropy

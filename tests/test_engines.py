@@ -116,9 +116,9 @@ def test_split_engine():
     verbose_print(f"Factor count after splitting: {len(fg.factors)}")
 
     # Check that the number of factors has doubled (splitting was applied in post_init)
-    assert len(fg.factors) == original_factor_count * 2, (
-        "SplitEngine should double the number of factors"
-    )
+    assert (
+        len(fg.factors) == original_factor_count * 2
+    ), "SplitEngine should double the number of factors"
     verbose_print("✓ Number of factors successfully doubled")
 
     # Check that the factors have the correct names
@@ -291,9 +291,9 @@ def test_damping_scfg_engine():
     verbose_print(f"New factor count: {len(fg.factors)}")
 
     # Check that the number of factors has doubled (splitting was applied in post_init)
-    assert len(fg.factors) == original_factor_count * 2, (
-        "DampingSCFGEngine should double the number of factors"
-    )
+    assert (
+        len(fg.factors) == original_factor_count * 2
+    ), "DampingSCFGEngine should double the number of factors"
     verbose_print("✓ Number of factors successfully doubled")
 
     # Check that the factors have the correct names
