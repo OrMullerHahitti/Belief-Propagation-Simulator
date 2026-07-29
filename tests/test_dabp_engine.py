@@ -22,6 +22,7 @@ from propflow.core.agents import FactorAgent, VariableAgent  # noqa: E402
 from propflow.integrations.dabp import (  # noqa: E402
     DABPEngine,
     DABPEngineNoSplit,
+    DABPEngineSymSplit,
     DABPEngine_No_Split,
 )
 from propflow.integrations.dabp.build import build_dabp_inputs  # noqa: E402
@@ -91,6 +92,20 @@ def test_build_no_split_mode_keeps_one_factor_tensor():
     assert len(data["edge_index"][0]) == 8
 
 
+def test_build_symmetric_split_mode_halves_binary_factors():
+    fg, table = _single_binary_graph()
+
+    data, _, _ = build_dabp_inputs(
+        fg,
+        split_ratio=DABPEngineSymSplit.split_ratio,
+        factor_splitting_enabled=DABPEngineSymSplit.factor_splitting_enabled,
+    )
+
+    assert data["NF"] == 2
+    np.testing.assert_allclose(data["cost_tensors"][0], table / SCALE * 0.5)
+    np.testing.assert_allclose(data["cost_tensors"][1], table / SCALE * 0.5)
+
+
 def test_dabp_no_split_public_api_exports():
     import propflow
     import propflow.engines as engines
@@ -105,6 +120,7 @@ def test_dabp_no_split_public_api_exports():
 
     reloaded = importlib.import_module("propflow.integrations.dabp")
     assert reloaded.DABPEngineNoSplit is DABPEngineNoSplit
+    assert reloaded.DABPEngineSymSplit is DABPEngineSymSplit
 
 
 @pytest.mark.slow

@@ -150,6 +150,8 @@ Engine variants exported from `propflow`:
   splitting, available with the `dabp` extra.
 - `DABPEngineNoSplit`: optional DABP variant that builds one DABP factor tensor
   per original binary factor.
+- `DABPEngineSymSplit`: optional DABP variant that splits each binary factor
+  symmetrically into two equal tensors.
 
 Convergence can be configured with `ConvergenceConfig`:
 

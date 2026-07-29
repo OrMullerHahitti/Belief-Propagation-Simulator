@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-07-29
+
+### Added
+
+- Added the optional `propflow[dabp]` integration for Deep Attentive Belief
+  Propagation with lazy imports that keep PyTorch out of the core install path.
+- Added `DABPEngineNoSplit` and `DABPEngineSymSplit` variants for comparing
+  original-factor, asymmetric-split, and symmetric-split DABP behavior.
+- Added explicit and automatic DABP device selection, including the
+  `PROPFLOW_DABP_DEVICE` environment override.
+
+### Fixed
+
+- Corrected the project documentation URL published in package metadata.
+
+## [3.0.2] - 2026-04-25
+
 ### Added
 
 - Optional **SoftMinTorchComputator** (PyTorch-based soft-min for factor→variable messages).
@@ -111,7 +128,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python 3.10+ support
 - Continuous testing with pytest
 
-[Unreleased]: https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/compare/ae936b4...v3.1.0
+[3.0.2]: https://pypi.org/project/propflow/3.0.2/
 [1.1.1]: https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/compare/v1.0.1...v1.1.1
 [1.0.1]: https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/compare/v0.12...v1.0.1
 [0.12]: https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/compare/v0.1.1...v0.12

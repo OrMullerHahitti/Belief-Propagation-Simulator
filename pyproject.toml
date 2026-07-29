@@ -10,7 +10,7 @@ max-line-length = 120
 
 [project]
 name = "propflow"
-version = "3.0.2"
+version = "3.1.0"
 description = "Highly configurable belief propagation simulator for factor graphs"
 readme = {file = "README.md", content-type = "text/markdown"}
 authors = [{name = "Or Muller"}]
@@ -56,7 +56,7 @@ dependencies = [
 Homepage = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
 Repository = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator"
 Issues = "https://github.com/OrMullerHahitti/Belief-Propagation-Simulator/issues"
-Documentation = "https://https://ormullerhahitti.github.io/Belief-Propagation-Simulator/index.html"
+Documentation = "https://ormullerhahitti.github.io/Belief-Propagation-Simulator/index.html"
 
 [project.optional-dependencies]
 # Development extras

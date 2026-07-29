@@ -120,7 +120,9 @@ Available top-level engine exports include `BPEngine`, `DampingEngine`,
 
 Optional DABP engines are available when installed with the `dabp` extra:
 `DABPEngine` keeps DABP's built-in factor splitting, while
-`DABPEngineNoSplit` builds one DABP factor tensor per original binary factor.
+`DABPEngineNoSplit` builds one DABP factor tensor per original binary factor and
+`DABPEngineSymSplit` uses a symmetric `0.5/0.5` split. Import the variants from
+`propflow.integrations.dabp`.
 
 ## Running Experiments
 

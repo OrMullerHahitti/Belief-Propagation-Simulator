@@ -251,6 +251,7 @@ Specialised engines extend ``BPEngine`` with additional behaviour:
 * :class:`propflow.bp.engines.MessagePruningEngine` – initializes a message-pruning policy.
 * ``DABPEngine`` – optional learned DABP solver with DABP's built-in factor splitting.
 * ``DABPEngineNoSplit`` – optional DABP variant with one DABP factor tensor per original binary factor.
+* ``DABPEngineSymSplit`` – optional DABP variant with a symmetric ``0.5/0.5`` factor split.
 
 Complement engines with policies and utilities:
 
