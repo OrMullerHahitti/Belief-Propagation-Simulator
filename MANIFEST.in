@@ -1,11 +1,5 @@
 include README.md
 include LICENSE
 include CHANGELOG.md
-include CONTRIBUTING.md
 include requirements.txt
-recursive-include examples *.py *.ipynb
-recursive-include configs *.py *.md
-prune configs/logs
-prune .vscode
-prune .venv
-
+recursive-include examples *.py

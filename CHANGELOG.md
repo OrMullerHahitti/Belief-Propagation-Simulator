@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Corrected the project documentation URL published in package metadata.
+- Removed stale source-distribution manifest entries that referenced files and
+  directories no longer present in the repository.
 
 ## [3.0.2] - 2026-04-25
 
