@@ -1,0 +1,7 @@
+# Lean build artifacts
+/.lake/
+*.olean
+*.ilean
+
+# Editor
+.vscode/
