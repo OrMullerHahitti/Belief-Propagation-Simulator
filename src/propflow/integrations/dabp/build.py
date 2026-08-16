@@ -64,7 +64,9 @@ def build_dabp_inputs(
     # DABP only models binary factors. Unary factors (e.g. tie-break prefs) are
     # folded into one incident binary factor so the total cost is preserved.
     unary = {name: np.zeros(domain, dtype=float) for name in ordered_names}
-    base: list[list[Any]] = []  # mutable [matrix(scaled), row_name, col_name]
+    base: list[list[Any]] = (
+        []
+    )  # mutable [matrix(scaled), row_name, col_name, factor_name]
     for f in fg.factors:
         cn = getattr(f, "connection_number", {}) or {}
         if f.cost_table is None or not cn:
@@ -75,7 +77,7 @@ def build_dabp_inputs(
             unary[vname] = unary[vname] + ct.reshape(-1) / scale
         elif len(cn) == 2 and set(cn.values()) == {0, 1}:
             inv = {dim: name for name, dim in cn.items()}
-            base.append([ct / scale, inv[0], inv[1]])
+            base.append([ct / scale, inv[0], inv[1], f.name])
         else:
             raise ValueError(
                 f"DABP supports only unary/binary factors; factor '{f.name}' "
@@ -85,7 +87,7 @@ def build_dabp_inputs(
     # fold each variable's accumulated unary cost into one incident binary factor
     folded = set()
     for entry in base:
-        m, row, col = entry
+        m, row, col = entry[0], entry[1], entry[2]
         if row not in folded and np.any(unary[row]):
             m = m + unary[row][:, None]
             entry[0] = m
@@ -102,12 +104,20 @@ def build_dabp_inputs(
         )
 
     all_matrix: list[tuple[np.ndarray, str, str]] = []
-    for m, row, col in base:
+    # provenance per function node: original factor name and split half
+    # (0 = split_ratio clone, 1 = complement clone; always 0 without splitting)
+    fn_factor_names: list[str] = []
+    fn_half: list[int] = []
+    for m, row, col, fname in base:
         if factor_splitting_enabled:
             all_matrix.append((m * split_ratio, row, col))
             all_matrix.append((m * (1.0 - split_ratio), row, col))
+            fn_factor_names.extend([fname, fname])
+            fn_half.extend([0, 1])
         else:
             all_matrix.append((m, row, col))
+            fn_factor_names.append(fname)
+            fn_half.append(0)
 
     NV = len(variables)
     NF = len(all_matrix)
@@ -208,6 +218,9 @@ def build_dabp_inputs(
 
     # ---------------- attention target/source + belief scatter indices --------
     msg_trg_idxes = []
+    # provenance per target row: owning variable and target function node
+    trg_var_names: list[str] = []
+    trg_fn_idxes: list[int] = []
     msg_src_idx_groups: list[list[int]] = []
     embed_trg_idxes = []
     embed_src_idx_groups: list[list[int]] = []
@@ -246,6 +259,8 @@ def build_dabp_inputs(
         degrees.append(degree)
         for j in range(degree):
             msg_trg_idxes.append(msg_vn2f_idxes[j])
+            trg_var_names.append(vn)
+            trg_fn_idxes.append(func_list[j])
             tmp = list(msg_f2vn_idxes)
             tmp.pop(j)
             msg_src_idx_groups.append(tmp)
@@ -298,5 +313,10 @@ def build_dabp_inputs(
         "cv_idxes": cv_idxes,
         "NF": NF,
         "NV": NV,
+        # provenance for weight analysis (unused by the model itself)
+        "fn_factor_names": fn_factor_names,
+        "fn_half": fn_half,
+        "trg_var_names": trg_var_names,
+        "trg_fn_idxes": trg_fn_idxes,
     }
     return data, ordered_names, domain

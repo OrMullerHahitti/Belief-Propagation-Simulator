@@ -44,6 +44,8 @@ class DABPEngine(BPEngine):
             affect the reported cost).
         device: optional torch device override ("cpu"/"mps"/"cuda"); auto-selects
             cuda > mps > cpu when None.
+        record_weights: when True, keep per-iteration detached copies of the
+            model's per-edge attention/damping tensors in ``weights_log``.
     """
 
     engine_name = "DABPEngine"
@@ -65,6 +67,7 @@ class DABPEngine(BPEngine):
         lr: float = 1e-4,
         scale: float = SCALE,
         device: str | None = None,
+        record_weights: bool = False,
         **kwargs,
     ) -> None:
         self.num_head = int(num_head)
@@ -74,6 +77,9 @@ class DABPEngine(BPEngine):
         self.lr = float(lr)
         self.scale = float(scale)
         self._device_pref = device
+        # stored before super().__init__ because post_init runs inside it
+        self.record_weights = bool(record_weights)
+        self._weights_log: list[dict] = []
         self._abp: AttentiveBP | None = None
         super().__init__(*args, **kwargs)
         self._name = self.engine_name
@@ -98,6 +104,7 @@ class DABPEngine(BPEngine):
         )
         self._abp.configure(self.device, self.dtype)
         self._abp.to(device=self.device, dtype=self.dtype)
+        self._abp.record_weights = self.record_weights
         self._optimizer = AdamW(self._abp.parameters(), lr=self.lr, weight_decay=5e-5)
         self._phase_losses: list = []
         self._phase_costs: list = []
@@ -136,6 +143,11 @@ class DABPEngine(BPEngine):
 
         first_iter = phase_pos == 0
         loss, cost_internal, beliefs = abp.step_once(first_iter)
+        if self.record_weights and abp.last_weights is not None:
+            rec = abp.last_weights
+            rec["iteration"] = i
+            self._weights_log.append(rec)
+            abp.last_weights = None
         if not first_iter:
             self._phase_losses.append(loss)
             self._phase_costs.append(cost_internal)
@@ -165,6 +177,34 @@ class DABPEngine(BPEngine):
         if self._abp is None:
             raise RuntimeError("DABP model is not initialized.")
         return self._abp
+
+    # ------------------------------------------------- weight introspection
+    @property
+    def weights_log(self) -> list[dict]:
+        """per-iteration recorded weight tensors (empty unless record_weights)."""
+        return self._weights_log
+
+    def weight_metadata(self) -> dict:
+        """map recorded tensor rows back to variable/factor names.
+
+        Keys: ``ordered_names`` (belief row -> variable name),
+        ``fn_factor_names``/``fn_half`` (function node -> original factor name,
+        split half), ``trg_var_names``/``trg_fn_idxes`` (damped_weights row ->
+        variable name, function node), ``src_fn_idxes``/``src_trg_idxes``
+        (attention_weight row -> source function node, target row), and
+        ``num_heads``.
+        """
+        nv = self._data["NV"]
+        return {
+            "ordered_names": list(self._ordered_names),
+            "fn_factor_names": list(self._data["fn_factor_names"]),
+            "fn_half": list(self._data["fn_half"]),
+            "trg_var_names": list(self._data["trg_var_names"]),
+            "trg_fn_idxes": list(self._data["trg_fn_idxes"]),
+            "src_fn_idxes": [j - nv for j in self._data["embed_src_idxes"]],
+            "src_trg_idxes": list(self._data["v2f_scatter_idxes"]),
+            "num_heads": self.num_head,
+        }
 
     # ------------------------------------------------------------- readouts
     def _update_assignment(self, beliefs: np.ndarray) -> None:

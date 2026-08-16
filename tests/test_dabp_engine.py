@@ -219,3 +219,112 @@ def test_build_rejects_higher_arity():
 
     with pytest.raises(ValueError, match="unary/binary"):
         build_dabp_inputs(fg)
+
+
+def test_build_exposes_split_pair_provenance():
+    fg, _ = _single_binary_graph()
+
+    data, _, _ = build_dabp_inputs(fg, split_ratio=0.5, factor_splitting_enabled=True)
+
+    assert data["fn_factor_names"] == ["f12", "f12"]
+    assert data["fn_half"] == [0, 1]
+    assert data["trg_var_names"] == ["x1", "x1", "x2", "x2"]
+    assert data["trg_fn_idxes"] == [0, 1, 0, 1]
+
+    # no-split: single function node, and degree-1 variables produce no target rows
+    fg2, _ = _single_binary_graph()
+    data2, _, _ = build_dabp_inputs(fg2, factor_splitting_enabled=False)
+    assert data2["fn_factor_names"] == ["f12"]
+    assert data2["fn_half"] == [0]
+    assert data2["trg_var_names"] == []
+    assert data2["trg_fn_idxes"] == []
+
+
+@pytest.mark.slow
+def test_symsplit_records_weights_with_expected_shapes():
+    import torch
+
+    torch.manual_seed(0)
+    fg = _small_cycle()
+    eng = DABPEngineSymSplit(
+        factor_graph=fg,
+        update_interval=4,
+        restart_period=100,
+        device="cpu",
+        record_weights=True,
+    )
+
+    n = 6
+    for i in range(n):
+        eng.step(i)
+
+    meta = eng.weight_metadata()
+    T = len(meta["trg_var_names"])  # directed v2f edges of variables with degree >= 2
+    S = len(meta["src_fn_idxes"])  # (source fn, target edge) attention rows
+    H = meta["num_heads"]
+    assert T == 20 and S == 60 and H == 4
+
+    log = eng.weights_log
+    assert len(log) == n
+    src_trg = np.asarray(meta["src_trg_idxes"])
+    for step_idx, rec in enumerate(log):
+        assert rec["iteration"] == step_idx
+        damped = rec["damped_weights"]
+        attention = rec["attention_weight"]
+        assert damped.shape == (T, 2, H)
+        assert attention.shape == (S, H)
+        # the two damping components are a softmax pair per edge/head
+        np.testing.assert_allclose(damped.sum(axis=1), np.ones((T, H)), atol=1e-9)
+        # attention weights are a softmax within each target group
+        for h in range(H):
+            sums = np.zeros(T)
+            np.add.at(sums, src_trg, attention[:, h])
+            np.testing.assert_allclose(sums, np.ones(T), atol=1e-9)
+
+    # every (variable, original factor) incidence pairs both split halves
+    fn_orig = meta["fn_factor_names"]
+    fn_half = meta["fn_half"]
+    pairs: dict = {}
+    for k in range(T):
+        fn = meta["trg_fn_idxes"][k]
+        key = (meta["trg_var_names"][k], fn_orig[fn])
+        slot = pairs.setdefault(key, [None, None])
+        assert slot[fn_half[fn]] is None
+        slot[fn_half[fn]] = k
+    assert len(pairs) == T // 2
+    assert all(a is not None and b is not None for a, b in pairs.values())
+
+
+@pytest.mark.slow
+def test_record_weights_off_is_default_and_identical():
+    import torch
+
+    n = 8
+
+    torch.manual_seed(0)
+    eng_off = DABPEngineSymSplit(
+        factor_graph=_small_cycle(), update_interval=4, restart_period=100, device="cpu"
+    )
+    for i in range(n):
+        eng_off.step(i)
+
+    torch.manual_seed(0)
+    eng_on = DABPEngineSymSplit(
+        factor_graph=_small_cycle(),
+        update_interval=4,
+        restart_period=100,
+        device="cpu",
+        record_weights=True,
+    )
+    for i in range(n):
+        eng_on.step(i)
+
+    assert eng_off.record_weights is False
+    assert eng_off.weights_log == []
+    assert len(eng_on.weights_log) == n
+
+    # recording must not change the numbers: exact equality, not approx
+    costs_off = [eng_off._snapshots[i].global_cost for i in range(n)]
+    costs_on = [eng_on._snapshots[i].global_cost for i in range(n)]
+    assert costs_off == costs_on
+    assert eng_off.assignments == eng_on.assignments

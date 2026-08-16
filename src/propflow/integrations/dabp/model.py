@@ -59,6 +59,10 @@ class AttentiveBP(nn.Module):
         # device/dtype the preprocessed tensors live on (set via configure)
         self.device = torch.device("cpu")
         self.dtype = torch.float64
+        # opt-in capture of the latest per-edge attention/damping tensors as
+        # detached cpu copies; populated by step() when record_weights is True
+        self.record_weights = False
+        self.last_weights: dict | None = None
 
     def configure(self, device: torch.device, dtype: torch.dtype) -> None:
         self.device = device
@@ -172,6 +176,12 @@ class AttentiveBP(nn.Module):
             ),
             dim=1,
         )
+        if self.record_weights:
+            # read-only detached copies; never touches the autograd graph
+            self.last_weights = {
+                "attention_weight": attention_weight.detach().to("cpu").numpy().copy(),
+                "damped_weights": damped_weights.detach().to("cpu").numpy().copy(),
+            }
         v2f_msgs = weighted_msg.unsqueeze(2) * damped_weights[:, 0, :].unsqueeze(
             1
         ) + msg_trg.unsqueeze(2) * damped_weights[:, 1, :].unsqueeze(1)
