@@ -161,17 +161,17 @@ def main() -> None:
 
     write_file(
         root / f"src/{pkg}/__init__.py",
-        "__all__ = [\"greet\"]\n",
+        '__all__ = ["greet"]\n',
         strip=False,
     )
 
     write_file(
         root / f"src/{pkg}/core.py",
-        """
+        '''
         def greet(name: str) -> str:
             """Return a friendly greeting."""
             return f"Hello, {name}!"
-        """,
+        ''',
     )
 
     write_file(
