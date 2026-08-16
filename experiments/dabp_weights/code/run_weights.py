@@ -1,15 +1,18 @@
-"""Run DABP-SymSplit on 10-agent random problems, recording learned edge weights.
+"""Run DABP on 10-agent random problems, recording learned edge weights.
 
-For each seed this builds the problem, runs ``DABPEngineSymSplit`` (0.5/0.5
-factor split, CPU float64, one BP iteration per step) until the assignment
-vector is unchanged for ``--stable-iters`` consecutive iterations or
-``--max-iter`` is reached, and writes the per-iteration ``damped_weights`` /
-``attention_weight`` tensors plus index provenance to
-``data/raw/seed{NNN}.npz``. The cap must stay below the engine's
+For each seed this builds the problem, runs the selected variant
+(``--engine symsplit``: ``DABPEngineSymSplit``, 0.5/0.5 factor split;
+``--engine asym``: ``DABPEngine``, DABP's native 0.95/0.05 split) on CPU
+float64, one BP iteration per step, until the assignment vector is unchanged
+for ``--stable-iters`` consecutive iterations or ``--max-iter`` is reached,
+and writes the per-iteration ``damped_weights`` / ``attention_weight`` tensors
+plus index provenance to ``data/raw/seed{NNN}.npz`` (``data_asym/raw/`` for
+the asymmetric engine). The cap must stay below the engine's
 ``restart_period`` so no message-state restart happens inside the run.
 
 Example:
     uv run python experiments/dabp_weights/code/run_weights.py --n-problems 50
+    uv run python experiments/dabp_weights/code/run_weights.py --engine asym
 """
 
 from __future__ import annotations
@@ -27,7 +30,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from problems import DENSITY, DOMAIN_SIZE, NUM_AGENTS, build_random_10  # noqa: E402
 
-DATA_DIR = Path(__file__).resolve().parents[1] / "data"
+BASE_DIR = Path(__file__).resolve().parents[1]
+# engine key -> class name and default output dir; classes resolve lazily
+# inside run_seed so this module stays importable without torch
+ENGINE_NAMES = {"symsplit": "DABPEngineSymSplit", "asym": "DABPEngine"}
+ENGINE_DIRS = {"symsplit": BASE_DIR / "data", "asym": BASE_DIR / "data_asym"}
 
 
 class CostOnlySnapshot:
@@ -47,14 +54,17 @@ class CostOnlySnapshotManager:
         return CostOnlySnapshot(step_index)
 
 
-def run_seed(seed: int, max_iter: int, stable_iters: int, out_path: Path) -> dict:
+def run_seed(
+    seed: int, engine_key: str, max_iter: int, stable_iters: int, out_path: Path
+) -> dict:
     """run one seed to convergence and write its npz; returns a summary dict."""
     import torch
-    from propflow.integrations.dabp import DABPEngineSymSplit
+    from propflow.integrations import dabp
 
+    engine_cls = getattr(dabp, ENGINE_NAMES[engine_key])
     torch.manual_seed(seed)
     fg = build_random_10(seed)
-    engine = DABPEngineSymSplit(
+    engine = engine_cls(
         factor_graph=fg,
         # cpu keeps float64 and determinism; auto-select would pick MPS/float32
         device="cpu",
@@ -140,11 +150,22 @@ def run_seed(seed: int, max_iter: int, stable_iters: int, out_path: Path) -> dic
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--engine",
+        choices=tuple(ENGINE_NAMES),
+        default="symsplit",
+        help="symsplit = 0.5/0.5 split; asym = DABP's native 0.95/0.05 split",
+    )
     parser.add_argument("--n-problems", type=int, default=50)
     parser.add_argument("--seed-start", type=int, default=0)
     parser.add_argument("--max-iter", type=int, default=1000)
     parser.add_argument("--stable-iters", type=int, default=25)
-    parser.add_argument("--out-dir", type=Path, default=DATA_DIR)
+    parser.add_argument(
+        "--out-dir",
+        type=Path,
+        default=None,
+        help="default: data/ for symsplit, data_asym/ for asym",
+    )
     parser.add_argument(
         "--overwrite",
         action="store_true",
@@ -154,7 +175,8 @@ def main() -> None:
 
     import torch
 
-    raw_dir = args.out_dir / "raw"
+    out_dir = args.out_dir if args.out_dir is not None else ENGINE_DIRS[args.engine]
+    raw_dir = out_dir / "raw"
     raw_dir.mkdir(parents=True, exist_ok=True)
 
     seeds = range(args.seed_start, args.seed_start + args.n_problems)
@@ -166,7 +188,9 @@ def main() -> None:
             print(f"seed {seed}: exists, skipping", flush=True)
             continue
         t_seed = time.time()
-        summary = run_seed(seed, args.max_iter, args.stable_iters, out_path)
+        summary = run_seed(
+            seed, args.engine, args.max_iter, args.stable_iters, out_path
+        )
         n_run += 1
         print(
             f"seed {seed}: converged={summary['converged']} "
@@ -177,7 +201,7 @@ def main() -> None:
 
     metadata = {
         "experiment": "dabp_weights",
-        "engine": "DABPEngineSymSplit",
+        "engine": ENGINE_NAMES[args.engine],
         "num_agents": NUM_AGENTS,
         "domain_size": DOMAIN_SIZE,
         "density": DENSITY,
@@ -190,7 +214,7 @@ def main() -> None:
         "seeds_run": n_run,
         "elapsed_s": round(time.time() - t0, 1),
     }
-    (args.out_dir / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    (out_dir / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
     print(f"done: {n_run} seeds in {metadata['elapsed_s']}s", flush=True)
 
 

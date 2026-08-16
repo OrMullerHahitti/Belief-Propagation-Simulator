@@ -49,7 +49,7 @@ def damping_pairs(run: dict) -> dict[tuple[int, int], list[int]]:
     """map (variable idx, original factor idx) -> [edge row of half 0, of half 1]."""
     T = run["damped"].shape[1]
     NF = len(run["fn_half"])
-    assert T == 2 * NF, "pairing assumes the symmetric split (every var degree >= 2)"
+    assert T == 2 * NF, "pairing assumes factor splitting (every var degree >= 2)"
     pairs: dict[tuple[int, int], list] = {}
     for k in range(T):
         fn = int(run["trg_fn"][k])

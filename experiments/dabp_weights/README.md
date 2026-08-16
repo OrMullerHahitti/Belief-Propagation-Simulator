@@ -1,4 +1,4 @@
-# DABP-SymSplit Edge-Weight Analysis
+# DABP Edge-Weight Analysis
 
 Component analysis of the per-edge weights DABP learns while solving, on small
 random problems. DABP (Deng et al., NeurIPS 2022) picks, for every directed
@@ -17,11 +17,16 @@ iteration; this experiment records and analyzes them.
 - seeds 0..49, one problem per seed, fully deterministic
   (`problems.build_random_10`)
 
-## Engine
+## Engines
 
-`DABPEngineSymSplit`: DABP with its built-in SCFG split at a symmetric ratio of
-0.5/0.5, so every original factor becomes two identical halves before iteration
-0. Upstream defaults otherwise (4 heads, `update_interval=20`,
+- `DABPEngineSymSplit` (`--engine symsplit`, default): DABP with its built-in
+  SCFG split at a symmetric ratio of 0.5/0.5, so every original factor becomes
+  two identical halves before iteration 0.
+- `DABPEngine` (`--engine asym`): same network and driver with DABP's native
+  asymmetric split ratio of 0.95/0.05, so the halves scale the original table
+  by 0.95 and 0.05. Outputs go to `data_asym/` and `plots_asym/`.
+
+Upstream defaults otherwise (4 heads, `update_interval=20`,
 `eff_iterations=2`, AdamW lr 1e-4). Runs on **CPU float64** — auto-select would
 pick MPS/float32 on a Mac, and the split-pair symmetry measurement needs full
 precision.
@@ -60,8 +65,9 @@ the 0.5/0.5 symmetry. Caveat: the two halves are automorphic nodes of the GNN
 with bitwise-identical inputs, so in exact arithmetic their trajectories are
 identical; any asymmetry is seeded by float rounding and then amplified (or
 not) by training. A ratio pinned at exactly 1 is therefore a meaningful result,
-not a bug. The natural contrast — DABP's asymmetric default 0.95/0.05 split
-(`DABPEngine`) — is a one-flag extension of the runner, out of scope here.
+not a bug. Under the asymmetric 0.95/0.05 split (`--engine asym`) the two
+halves have different inputs, so the automorphism is broken by construction
+and any learned asymmetry shows up directly in the same ratio.
 
 ## Files
 
@@ -73,12 +79,14 @@ not a bug. The natural contrast — DABP's asymmetric default 0.95/0.05 split
 - `code/plot_weights.py` — four exploratory multi-panel PDFs into `plots/`
   (pair_asymmetry, weights_distribution, trajectories, structure_correlation)
 
-`data/` is not committed (see `data/.gitignore`); everything is regenerable
-from the seeds.
+With `--engine asym`, `data/` becomes `data_asym/` and `plots/` becomes
+`plots_asym/` throughout. Neither data dir is committed (see the
+`.gitignore` in each); everything is regenerable from the seeds.
 
 ## Run
 
 ```bash
-bash experiments/dabp_weights/code/run_full.sh              # full 50-seed suite
+bash experiments/dabp_weights/code/run_full.sh                # 50-seed suite, symsplit
+bash experiments/dabp_weights/code/run_full.sh --engine asym  # 0.95/0.05 contrast
 uv run python experiments/dabp_weights/code/run_weights.py --n-problems 1   # smoke test
 ```
