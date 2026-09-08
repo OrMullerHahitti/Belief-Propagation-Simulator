@@ -48,6 +48,11 @@ damping_audit/
   and outgoing message), both as histograms, the pair whose shares drifted
   apart most over the run, and the median / range of each half over the run
   for messages with the most common neighbor count (dashed line = uniform).
+- `edge_pair_ratios_all.pdf`, `edge_pair_ratios_grid.pdf` (0.95/0.05 small
+  set, seed 0 only; `code/plot_pair_ratios.py`) — the ratio share(half A) /
+  share(half B) of every edge pair over the run, all pairs in one plot and one
+  panel per pair. Pairs that share the variable and the factor overlap almost
+  exactly, whichever third factor the message goes to.
 - `attention_weights.pdf` — the share each incoming neighbor gets when the
   edge aggregates its messages: learned share against the uniform share
   1/(number of neighbors), the share of the twin half against the other
