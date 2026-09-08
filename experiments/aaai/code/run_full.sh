@@ -18,10 +18,11 @@ uv run python experiments/aaai/code/run_experiments.py \
     --algorithms $NO_OPT \
     "$@"
 
-# dense: standard split points plus the opt-in late split@1500
+# dense: standard split points plus the opt-in late split@1500 and the
+# damping-0.5 / split-0.5 variant
 uv run python experiments/aaai/code/run_experiments.py \
     --benchmarks random_dense \
-    --algorithms $NO_OPT DMS_split_at_1500 \
+    --algorithms $NO_OPT DMS_split_at_1500 DMS_0.5_split_0.5 \
     "$@"
 
 # true arity-3 benchmark: targeted DMS + split 0.5 only

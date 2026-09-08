@@ -34,6 +34,7 @@ helper is binary-only.
 | `MS` | baseline | `BPEngine`, normal undamped min-sum on the original factor graph |
 | `DMS` | 2a | `DampingEngine`, lambda = 0.9 |
 | `DMS_split_0.5` | 2b | `DampingSCFGEngine`, constant symmetric split (0.5/0.5) |
+| `DMS_0.5_split_0.5` | 2b′ | `DampingSCFGEngine` with lambda = 0.5 on the same 0.5/0.5 SCFG, **`random_dense` only**; opt-in (not part of `--algorithms all`), added via `run_full.sh` |
 | `DMS_split_0.4_0.6` | 2c | DMS on a *random* SCFG: each cost-table entry c is split into u·c / (1-u)·c with u ~ U[0.4, 0.6) — the "0.4-0.6" version of the AIJ paper (§6.2), which it found best |
 | `DMS_split_at_{50,100,300,500,1000}` | 2d | `MidRunSplitEngine` + damping; all factors split at iteration K, `transfer` mode (prior R messages redistributed p/(1-p) across clones, as in the late-split experiments in `experiments/other/non_convergence_chain`) |
 | `DMS_split_at_1500` | 2d+ | same, **`random_dense` only** — an extra late split point; opt-in (not part of `--algorithms all`), added via `run_full.sh`. 1500 leaves 500 post-split iterations of the 2000 horizon |

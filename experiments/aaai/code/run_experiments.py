@@ -4,6 +4,8 @@ Algorithms (professor's list + plain min-sum baseline):
   baseline. MS                       normal undamped min-sum on original graph
   a. DMS                       damped min-sum, lambda = 0.9
   b. DMS_split_0.5             DMS on an SCFG, constant symmetric split (0.5/0.5)
+  b'. DMS_0.5_split_0.5        same SCFG, but damping lambda = 0.5 (opt-in,
+                               random_dense only)
   c. DMS_split_0.4_0.6         DMS on a random SCFG, per-entry split in [0.4, 0.6)
   d. DMS_split_at_{K}          DMS that splits all factors at iteration K,
                                K in {50, 100, 300, 500, 1000} (transfer mode)
@@ -74,6 +76,8 @@ from problems import BENCHMARKS, capture_original
 from problems_ternary import TERNARY_BENCHMARKS
 
 DAMPING = 0.9
+# damping used by the opt-in DMS_0.5_split_0.5 column (dense benchmark only)
+HALF_DAMPING = 0.5
 # how many times to re-run tasks whose worker died (self-healing pool); the
 # first attempt plus this many retries on progressively smaller pools.
 MAX_PASSES = 4
@@ -81,6 +85,7 @@ SPLIT_AT_ITERS = (50, 100, 300, 500, 1000)
 # opt-in split points, NOT part of the "all" expansion. run them only where
 # requested explicitly (e.g. split@1500 on the dense benchmark via run_full.sh)
 EXTRA_SPLIT_AT_ITERS = (1500,)
+HALF_DAMPING_SPLIT_LABEL = "DMS_0.5_split_0.5"
 
 SPLIT_MS_LABEL = "MS_split_0.5"
 MGM_LABEL = "MS_split_MGM_200"
@@ -125,6 +130,13 @@ def make_engine(label: str, fg, seed: int):
             split_factor=0.5,
             **_common_kwargs(),
         )
+    if label == HALF_DAMPING_SPLIT_LABEL:
+        return DampingSCFGEngine(
+            factor_graph=fg,
+            damping_factor=HALF_DAMPING,
+            split_factor=0.5,
+            **_common_kwargs(),
+        )
     if label == "DMS_split_0.4_0.6":
         return DampingRandomSplitEngine(
             factor_graph=fg,
@@ -163,7 +175,9 @@ ENGINE_LABELS = (
     + [ATTENTIVE_LABEL, ATTENTIVE_NOSPLIT_LABEL, ATTENTIVE_SYMSPLIT_LABEL]
 )
 # extra engine columns that build a normal task but are excluded from "all"
-EXTRA_ENGINE_LABELS = [f"DMS_split_at_{k}" for k in EXTRA_SPLIT_AT_ITERS]
+EXTRA_ENGINE_LABELS = [f"DMS_split_at_{k}" for k in EXTRA_SPLIT_AT_ITERS] + [
+    HALF_DAMPING_SPLIT_LABEL
+]
 # what "--algorithms all" expands to (unchanged: no opt-in extras)
 ALL_LABELS = ENGINE_LABELS + [
     SPLIT_MS_LABEL,
