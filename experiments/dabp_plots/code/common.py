@@ -170,9 +170,9 @@ def pair_halves(run: dict) -> tuple[np.ndarray, np.ndarray]:
         half = int(run["fn_half"][fn])
         assert slot[half] is None, f"duplicate half {half} for pair {key}"
         slot[half] = k
-    assert all(a is not None and b is not None for a, b in slots.values()), (
-        "unpaired half"
-    )
+    assert all(
+        a is not None and b is not None for a, b in slots.values()
+    ), "unpaired half"
     keys = sorted(slots)
     k_a = np.array([slots[key][0] for key in keys], dtype=np.int32)
     k_b = np.array([slots[key][1] for key in keys], dtype=np.int32)
@@ -189,6 +189,32 @@ def twin_mask(run: dict) -> np.ndarray:
     """sources that are the other half of the target edge's own factor."""
     trg_fn = run["trg_fn"][run["src_trg"]]
     return run["fn_orig_idx"][run["src_fn"]] == run["fn_orig_idx"][trg_fn]
+
+
+def pair_source_halves(run: dict) -> tuple[np.ndarray, np.ndarray]:
+    """source rows of half A and half B of one factor feeding the same outgoing message.
+
+    A message to a third factor g sees both halves of f among its sources, so
+    their attention shares can be compared directly. Messages to a half of f
+    itself see only the twin and are skipped.
+    """
+    src_fn, src_trg = run["src_fn"], run["src_trg"]
+    src_orig = run["fn_orig_idx"][src_fn]
+    trg_orig = run["fn_orig_idx"][run["trg_fn"][src_trg]]
+    half = run["fn_half"][src_fn]
+    slots: dict[tuple[int, int], list] = {}
+    for s in np.nonzero(src_orig != trg_orig)[0]:
+        key = (int(src_trg[s]), int(src_orig[s]))
+        slot = slots.setdefault(key, [None, None])
+        assert slot[half[s]] is None, f"duplicate half {half[s]} for {key}"
+        slot[half[s]] = int(s)
+    assert all(
+        a is not None and b is not None for a, b in slots.values()
+    ), "unpaired half"
+    keys = sorted(slots)
+    s_a = np.array([slots[key][0] for key in keys], dtype=np.int32)
+    s_b = np.array([slots[key][1] for key in keys], dtype=np.int32)
+    return s_a, s_b
 
 
 def first_fixed_iteration(run: dict) -> int | None:

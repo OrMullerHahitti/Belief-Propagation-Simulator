@@ -4,8 +4,9 @@ Reads the raw per-seed npz files of both splits (``data/`` = 0.5/0.5,
 ``data_asym/`` = 0.95/0.05) plus the structure CSVs written by
 analyze_weights.py, and writes into ``small_10agents_50seeds/``:
 
-- ``split_0.5_0.5/`` and ``split_0.95_0.05/``: damping_weights, split_halves,
-  attention_weights, cost_and_convergence, structure
+- ``split_0.5_0.5/`` and ``split_0.95_0.05/``: damping_weights,
+  split_halves_damping, split_halves_edge_weights, attention_weights,
+  cost_and_convergence, structure
 - ``compare_splits.pdf``: the two splits side by side on the same 50 problems
 
 Example:
@@ -26,7 +27,8 @@ from figures import (  # noqa: E402
     fig_compare_splits_small,
     fig_cost_small,
     fig_damping_weights,
-    fig_split_halves,
+    fig_split_halves_damping,
+    fig_split_halves_edge,
     fig_structure_small,
 )
 
@@ -54,7 +56,8 @@ def main() -> None:
         runs_by_split[split] = runs
         out = args.out_dir / split_dirname(split)
         fig_damping_weights(runs, out / "damping_weights.pdf")
-        fig_split_halves(runs, out / "split_halves.pdf")
+        fig_split_halves_damping(runs, out / "split_halves_damping.pdf")
+        fig_split_halves_edge(runs, out / "split_halves_edge_weights.pdf")
         fig_attention(runs, out / "attention_weights.pdf")
         fig_cost_small(runs, out / "cost_and_convergence.pdf")
         fig_structure_small(

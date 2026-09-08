@@ -5,8 +5,9 @@ One random graph (edge probability 0.5, domain 10, graph seed 0) at 20 and at
 and every iteration retained. Reads ``outputs/{20,50}nodes_seed0/
 {symmetric,asymmetric}.npz`` and writes into ``bigger_seed0/{20,50}nodes/``:
 
-- ``split_0.5_0.5/`` and ``split_0.95_0.05/``: damping_weights, split_halves,
-  attention_weights, cost_and_convergence
+- ``split_0.5_0.5/`` and ``split_0.95_0.05/``: damping_weights,
+  split_halves_damping, split_halves_edge_weights, attention_weights,
+  cost_and_convergence
 - ``compare_splits.pdf``: both splits on the same graph
 
 Example:
@@ -27,7 +28,8 @@ from figures import (  # noqa: E402
     fig_compare_splits_single,
     fig_cost_single,
     fig_damping_weights,
-    fig_split_halves,
+    fig_split_halves_damping,
+    fig_split_halves_edge,
 )
 
 OUT_DIR = PLOTS_ROOT / "bigger_seed0"
@@ -49,7 +51,8 @@ def main() -> None:
             run = load_bigger_run(src / f"{variant}.npz")
             out = args.out_dir / f"{nodes}nodes" / split_dirname(run["split_ratio"])
             fig_damping_weights([run], out / "damping_weights.pdf")
-            fig_split_halves([run], out / "split_halves.pdf")
+            fig_split_halves_damping([run], out / "split_halves_damping.pdf")
+            fig_split_halves_edge([run], out / "split_halves_edge_weights.pdf")
             fig_attention([run], out / "attention_weights.pdf")
             fig_cost_single(run, out / "cost_and_convergence.pdf")
             # the 50-node attention array is ~1 GB and the comparison never reads it

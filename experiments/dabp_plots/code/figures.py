@@ -28,6 +28,7 @@ from common import (
     first_fixed_iteration,
     half_labels,
     pair_halves,
+    pair_source_halves,
     plain_axes,
     pooled_over_iterations,
     save,
@@ -94,7 +95,9 @@ def fig_damping_weights(runs: list[dict], out: Path) -> None:
     ax.hist(final, bins=50, color=BLUE, alpha=0.85)
     ax.axvline(START_WEIGHT, color="black", lw=1.0, ls="--", label="start value 0.5")
     ax.legend(frameon=False, fontsize=8)
-    ax.set_xlabel("weight on the previous message (last iteration)")
+    ax.set_xlabel(
+        "damping weight at the last iteration (weight on the previous message)"
+    )
     ax.set_ylabel("number of edges")
     _title(
         ax,
@@ -112,7 +115,9 @@ def fig_damping_weights(runs: list[dict], out: Path) -> None:
         patch.set_facecolor(color)
         patch.set_alpha(0.6)
     ax.axhline(START_WEIGHT, color="black", lw=0.8, ls="--")
-    ax.set_ylabel("weight on the previous message (last iteration)")
+    ax.set_ylabel(
+        "damping weight at the last iteration (weight on the previous message)"
+    )
     _title(ax, "The same weight, separately for each attention head")
 
     ax = axes[1, 0]
@@ -123,7 +128,7 @@ def fig_damping_weights(runs: list[dict], out: Path) -> None:
     ax.axhline(START_WEIGHT, color="black", lw=0.8, ls="--")
     update_guides(ax, run["update_interval"], lam.shape[0])
     ax.set_xlabel("iteration")
-    ax.set_ylabel("weight on the previous message")
+    ax.set_ylabel("damping weight (weight on the previous message)")
     shown = (
         f"{len(cols)} of {lam.shape[1]} edges"
         if len(cols) < lam.shape[1]
@@ -143,7 +148,7 @@ def fig_damping_weights(runs: list[dict], out: Path) -> None:
     ax.axhline(START_WEIGHT, color="black", lw=0.8, ls="--")
     ax.legend(frameon=False, fontsize=8)
     ax.set_xlabel("iteration")
-    ax.set_ylabel("weight on the previous message")
+    ax.set_ylabel("damping weight (weight on the previous message)")
     _title(
         ax,
         f"Lowest, median and highest edge at each iteration ({_pooled_note(runs)})",
@@ -155,8 +160,8 @@ def fig_damping_weights(runs: list[dict], out: Path) -> None:
     save(fig, out)
 
 
-# ------------------------------------------------------------- split halves
-def fig_split_halves(runs: list[dict], out: Path) -> None:
+# ------------------------------------------------------------- split halves, damping
+def fig_split_halves_damping(runs: list[dict], out: Path) -> None:
     label_a, label_b = half_labels(runs[0]["split_ratio"])
     final_a = np.concatenate([run["lam"][-1, _pairs(run)[0]] for run in runs])
     final_b = np.concatenate([run["lam"][-1, _pairs(run)[1]] for run in runs])
@@ -172,7 +177,7 @@ def fig_split_halves(runs: list[dict], out: Path) -> None:
     ax.set_ylabel(f"damping weight on the edge to {label_b}")
     _title(
         ax,
-        f"The two edges of each split factor at the last iteration ({final_a.size} pairs)",
+        f"Damping weight of the two edges of each split factor at the last iteration ({final_a.size} pairs)",
     )
 
     ax = axes[0, 1]
@@ -180,10 +185,13 @@ def fig_split_halves(runs: list[dict], out: Path) -> None:
     ax.hist(final_a, bins=bins, color=HALF_COLORS[0], alpha=0.6, label=label_a)
     ax.hist(final_b, bins=bins, color=HALF_COLORS[1], alpha=0.6, label=label_b)
     ax.legend(frameon=False, fontsize=8)
-    ax.set_xlabel("weight on the previous message (last iteration)")
+    ax.set_xlabel(
+        "damping weight at the last iteration (weight on the previous message)"
+    )
     ax.set_ylabel("number of edges")
     _title(
-        ax, "The same weights as histograms (fully overlapping bars = identical halves)"
+        ax,
+        "The same damping weights as histograms (fully overlapping bars = identical halves)",
     )
 
     ax = axes[1, 0]
@@ -203,10 +211,10 @@ def fig_split_halves(runs: list[dict], out: Path) -> None:
     update_guides(ax, run["update_interval"], run["n_iter"])
     ax.legend(frameon=False, fontsize=7, ncol=2)
     ax.set_xlabel("iteration")
-    ax.set_ylabel("weight on the previous message")
+    ax.set_ylabel("damping weight (weight on the previous message)")
     _title(
         ax,
-        f"The pair that moved the most over the run ({run['label']}, {_edge_name(run, k_a[j])}; "
+        f"The damping pair that moved the most over the run ({run['label']}, {_edge_name(run, k_a[j])}; "
         "solid = half A, dashed = half B)",
     )
 
@@ -229,8 +237,132 @@ def fig_split_halves(runs: list[dict], out: Path) -> None:
     ax.axhline(START_WEIGHT, color="black", lw=0.8, ls="--")
     ax.legend(frameon=False, fontsize=8)
     ax.set_xlabel("iteration")
-    ax.set_ylabel("weight on the previous message")
-    _title(ax, f"Half A against half B over the run, all pairs ({_pooled_note(runs)})")
+    ax.set_ylabel("damping weight (weight on the previous message)")
+    _title(
+        ax,
+        f"Damping weight of half A against half B over the run, all pairs ({_pooled_note(runs)})",
+    )
+
+    for ax in axes.ravel():
+        plain_axes(ax)
+    fig.tight_layout()
+    save(fig, out)
+
+
+# ------------------------------------------------------------- split halves, edge weights
+def _source_pairs(run: dict) -> tuple[np.ndarray, np.ndarray]:
+    if "src_pair_a" not in run:
+        run["src_pair_a"], run["src_pair_b"] = pair_source_halves(run)
+    return run["src_pair_a"], run["src_pair_b"]
+
+
+def _source_pair_name(run: dict, s: int) -> str:
+    """'x3 to f12, halves of f7': the outgoing message and the factor whose halves are compared."""
+    target = int(run["src_trg"][s])
+    source_factor = run["factor_names"][run["fn_orig_idx"][run["src_fn"][s]]]
+    return f"{_edge_name(run, target)}, halves of {source_factor}"
+
+
+def fig_split_halves_edge(runs: list[dict], out: Path) -> None:
+    """attention share of half A against half B of the same factor inside one outgoing message."""
+    label_a, label_b = half_labels(runs[0]["split_ratio"])
+    final_a = np.concatenate(
+        [run["attention"][-1, _source_pairs(run)[0], :].mean(axis=1) for run in runs]
+    )
+    final_b = np.concatenate(
+        [run["attention"][-1, _source_pairs(run)[1], :].mean(axis=1) for run in runs]
+    )
+    lo, hi = min(final_a.min(), final_b.min()), max(final_a.max(), final_b.max())
+    fig, axes = plt.subplots(2, 2, figsize=(11, 8))
+
+    ax = axes[0, 0]
+    idx = _subsample(final_a.size, MAX_POINTS)
+    ax.scatter(final_a[idx], final_b[idx], s=6, alpha=0.4, color=GREEN)
+    _identity(ax, lo, hi, "equal shares")
+    ax.legend(frameon=False, fontsize=8)
+    ax.set_xlabel(f"attention share of {label_a}")
+    ax.set_ylabel(f"attention share of {label_b}")
+    _title(
+        ax,
+        "Edge weights: attention share of the two halves of a factor inside the same "
+        f"outgoing message, last iteration ({final_a.size} pairs)",
+    )
+
+    ax = axes[0, 1]
+    bins = np.linspace(lo, hi, 50) if hi > lo else 50
+    ax.hist(final_a, bins=bins, color=HALF_COLORS[0], alpha=0.6, label=label_a)
+    ax.hist(final_b, bins=bins, color=HALF_COLORS[1], alpha=0.6, label=label_b)
+    ax.legend(frameon=False, fontsize=8)
+    ax.set_xlabel("attention share (last iteration)")
+    ax.set_ylabel("number of pairs")
+    _title(
+        ax, "The same shares as histograms (fully overlapping bars = identical halves)"
+    )
+
+    ax = axes[1, 0]
+    run = runs[0]
+    s_a, s_b = _source_pairs(run)
+    shares = run["attention"]
+    apart = np.abs(shares[:, s_a, :] - shares[:, s_b, :]).max(axis=(0, 2))
+    j = int(apart.argmax())
+    n_in = int(np.bincount(run["src_trg"])[run["src_trg"][s_a[j]]])
+    for h, color in enumerate(HEAD_COLORS[: run["num_heads"]]):
+        ax.plot(shares[:, s_a[j], h], color=color, lw=1.2, label=f"head {h}, half A")
+        ax.plot(
+            shares[:, s_b[j], h],
+            color=color,
+            lw=1.2,
+            ls="--",
+            label=f"head {h}, half B",
+        )
+    ax.axhline(1.0 / n_in, color="black", lw=0.8, ls="--", label=f"uniform = 1/{n_in}")
+    update_guides(ax, run["update_interval"], run["n_iter"])
+    ax.legend(frameon=False, fontsize=7, ncol=2)
+    ax.set_xlabel("iteration")
+    ax.set_ylabel("attention share")
+    _title(
+        ax,
+        f"The pair whose shares drifted apart the most ({run['label']}, "
+        f"{_source_pair_name(run, s_a[j])}; solid = half A, dashed = half B)",
+    )
+
+    ax = axes[1, 1]
+    # shares depend on how many neighbors the message has, so pool only messages
+    # with the most common neighbor count
+    group_size = {id(r): np.bincount(r["src_trg"])[r["src_trg"]] for r in runs}
+    pair_sizes = np.concatenate([group_size[id(r)][_source_pairs(r)[0]] for r in runs])
+    n_in = int(np.bincount(pair_sizes).argmax())
+    for half, color, label in (
+        (0, HALF_COLORS[0], label_a),
+        (1, HALF_COLORS[1], label_b),
+    ):
+        selected = {
+            id(r): _source_pairs(r)[half][
+                group_size[id(r)][_source_pairs(r)[0]] == n_in
+            ]
+            for r in runs
+        }
+        t, lo_h, mid_h, hi_h = pooled_over_iterations(
+            [r for r in runs if selected[id(r)].size],
+            lambda r, half=half: r["attention"][:, selected[id(r)], :].mean(axis=2),
+        )
+        ax.fill_between(t, lo_h, hi_h, color=color, alpha=0.2, lw=0)
+        ax.plot(
+            t,
+            mid_h,
+            color=color,
+            lw=1.5,
+            label=f"{label}: median (band = lowest to highest)",
+        )
+    ax.axhline(1.0 / n_in, color="black", lw=0.8, ls="--", label=f"uniform = 1/{n_in}")
+    ax.legend(frameon=False, fontsize=8)
+    ax.set_xlabel("iteration")
+    ax.set_ylabel("attention share")
+    _title(
+        ax,
+        f"Share of half A against half B over the run, messages with {n_in} incoming "
+        f"neighbors ({int((pair_sizes == n_in).sum())} of {pair_sizes.size} pairs, {_pooled_note(runs)})",
+    )
 
     for ax in axes.ravel():
         plain_axes(ax)
@@ -523,7 +655,9 @@ def _compare_weight_panels(axes_pair, runs_by_split: dict[float, list[dict]]) ->
         )
     ax_hist.axvline(START_WEIGHT, color="black", lw=0.8, ls="--")
     ax_hist.legend(frameon=False, fontsize=8)
-    ax_hist.set_xlabel("weight on the previous message (last iteration)")
+    ax_hist.set_xlabel(
+        "damping weight at the last iteration (weight on the previous message)"
+    )
     ax_hist.set_ylabel("number of edges")
     _title(
         ax_hist, "Damping weight of every edge at the last iteration, under each split"
@@ -551,16 +685,16 @@ def _compare_weight_panels(axes_pair, runs_by_split: dict[float, list[dict]]) ->
     ax_scatter.set_ylabel("damping weight on the edge to half B (the smaller share)")
     _title(
         ax_scatter,
-        "The two edges of each split factor at the last iteration, under each split",
+        "Damping weight of the two edges of each split factor at the last iteration, under each split",
     )
 
 
 def fig_compare_splits_small(runs_by_split: dict[float, list[dict]], out: Path) -> None:
     splits = sorted(runs_by_split)
     seeds = [[run["seed"] for run in runs_by_split[s]] for s in splits]
-    assert all(sd == seeds[0] for sd in seeds), (
-        "the two splits must cover the same seeds"
-    )
+    assert all(
+        sd == seeds[0] for sd in seeds
+    ), "the two splits must cover the same seeds"
     final = {
         s: np.array([run["costs"][-1] for run in runs_by_split[s]]) for s in splits
     }

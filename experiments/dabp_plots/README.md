@@ -1,8 +1,12 @@
 # DABP weight figures
 
-All figures about the per-edge weights DABP learns, in one place. Every panel
-shows a weight value itself (on its 0-1 scale) or a cost — no ratios, logs or
-normalized differences. Three data sources feed it:
+All figures about the weights DABP learns, in one place. DABP learns two kinds:
+**edge weights** (the attention share each incoming neighbor's message gets when
+a variable builds an outgoing message; uniform shares reproduce plain min-sum)
+and **damping weights** (the weight on the previous message of the same edge
+when the new message is mixed with it). Every panel shows a weight value itself
+(on its 0-1 scale) or a cost — no ratios, logs or normalized differences.
+Three data sources feed it:
 
 | Folder | Experiment | Data |
 |---|---|---|
@@ -14,11 +18,11 @@ normalized differences. Three data sources feed it:
 
 ```
 small_10agents_50seeds/
-  split_0.5_0.5/      damping_weights, split_halves, attention_weights,
-  split_0.95_0.05/    cost_and_convergence, structure
+  split_0.5_0.5/      damping_weights, split_halves_damping, split_halves_edge_weights,
+  split_0.95_0.05/    attention_weights, cost_and_convergence, structure
   compare_splits.pdf
 bigger_seed0/
-  20nodes/  split_0.5_0.5/, split_0.95_0.05/ (same four, no structure), compare_splits.pdf
+  20nodes/  split_0.5_0.5/, split_0.95_0.05/ (same five, no structure), compare_splits.pdf
   50nodes/  same
 damping_audit/
   audit_summary.pdf
@@ -31,11 +35,19 @@ damping_audit/
   attention head, every edge over the run for one seed, and the lowest /
   median / highest edge over the run pooled over seeds. The dashed line is
   the start value 0.5.
-- `split_halves.pdf` — each original factor is split into half A (the larger
-  cost share) and half B; a variable therefore has two edges per factor.
-  Panels: half-A weight against half-B weight (one point per pair), both as
-  histograms, one pair over the run per head, and the median / range of each
-  half over the run.
+- `split_halves_damping.pdf` — each original factor is split into half A (the
+  larger cost share) and half B; a variable therefore sends one message to
+  each half. Panels: the damping weight of the message to half A against the
+  damping weight of the message to half B (one point per pair), both as
+  histograms, the pair that moved most over the run per head, and the
+  median / range of each half over the run.
+- `split_halves_edge_weights.pdf` — the other kind of weight for the same two
+  halves: when the variable builds its message to a third factor, both
+  halves' incoming messages are among the sources, and each gets an attention
+  share. Panels: share of half A against share of half B (one point per pair
+  and outgoing message), both as histograms, the pair whose shares drifted
+  apart most over the run, and the median / range of each half over the run
+  for messages with the most common neighbor count (dashed line = uniform).
 - `attention_weights.pdf` — the share each incoming neighbor gets when the
   edge aggregates its messages: learned share against the uniform share
   1/(number of neighbors), the share of the twin half against the other
