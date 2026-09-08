@@ -24,7 +24,7 @@ iteration; this experiment records and analyzes them.
   two identical halves before iteration 0.
 - `DABPEngine` (`--engine asym`): same network and driver with DABP's native
   asymmetric split ratio of 0.95/0.05, so the halves scale the original table
-  by 0.95 and 0.05. Outputs go to `data_asym/` and `plots_asym/`.
+  by 0.95 and 0.05. Outputs go to `data_asym/`.
 
 Upstream defaults otherwise (4 heads, `update_interval=20`,
 `eff_iterations=2`, AdamW lr 1e-4). Runs on **CPU float64** — auto-select would
@@ -76,12 +76,13 @@ and any learned asymmetry shows up directly in the same ratio.
 - `code/analyze_weights.py` — writes the summary CSVs into `data/`
   (pair_asymmetry, pair_asymmetry_dynamics, edge_weights, attention_final,
   structure_correlation, correlation_stats, run_summary)
-- `code/plot_weights.py` — four exploratory multi-panel PDFs into `plots/`
-  (pair_asymmetry, weights_distribution, trajectories, structure_correlation)
+- figures: `experiments/dabp_plots/code/plot_small.py` reads both data dirs
+  and writes `experiments/dabp_plots/small_10agents_50seeds/` (see the README
+  there)
 
-With `--engine asym`, `data/` becomes `data_asym/` and `plots/` becomes
-`plots_asym/` throughout. Neither data dir is committed (see the
-`.gitignore` in each); everything is regenerable from the seeds.
+With `--engine asym`, `data/` becomes `data_asym/` throughout. Neither data
+dir is committed (see the `.gitignore` in each); everything is regenerable
+from the seeds.
 
 ## Run
 
