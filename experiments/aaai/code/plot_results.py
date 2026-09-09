@@ -34,22 +34,22 @@ from utils.plot_helpers import remove_frame  # noqa: E402
 LABELS = {
     "MS": "MS",
     "DMS": "DMS",
-    "DMS_split_0.5": "DMS + split 0.5",
-    "DMS_0.5_split_0.5": "DMS + damping 0.5 + split 0.5",
-    "DMS_split_0.4_0.6": "DMS + split 0.4-0.6",
-    "DMS_split_at_50": "DMS + split@50",
-    "DMS_split_at_100": "DMS + split@100",
-    "DMS_split_at_300": "DMS + split@300",
-    "DMS_split_at_500": "DMS + split@500",
-    "DMS_split_at_1000": "DMS + split@1000",
-    "DMS_split_at_1500": "DMS + split@1500",
-    "MS_split_0.5": "MS + split 0.5",
-    "MS_split_MGM_200": "MS + split + MGM@200",
-    "MS_split_MGM_inverted_200": "MS + split + MGM inverted@200",
-    "MS_split_opt_200": "MS + split + optimal@200",
-    "Attentive": "Attentive (DABP)",
-    "Attentive_NoSplit": "Attentive (DABP, no split)",
-    "Attentive_SymSplit": "Attentive (DABP, sym split 0.5)",
+    "DMS_split_0.5": "DMS s=.5",
+    "DMS_0.5_split_0.5": "DMS d=.5 s=.5",
+    "DMS_split_0.4_0.6": "DMS s=.4-.6",
+    "DMS_split_at_50": "DMS @50",
+    "DMS_split_at_100": "DMS @100",
+    "DMS_split_at_300": "DMS @300",
+    "DMS_split_at_500": "DMS @500",
+    "DMS_split_at_1000": "DMS @1000",
+    "DMS_split_at_1500": "DMS @1500",
+    "MS_split_0.5": "MS s=.5",
+    "MS_split_MGM_200": "MGM@200",
+    "MS_split_MGM_inverted_200": "MGM inv@200",
+    "MS_split_opt_200": "Opt merge@200",
+    "Attentive": "DABP",
+    "Attentive_NoSplit": "DABP no-split",
+    "Attentive_SymSplit": "DABP sym-split",
 }
 ORDER = list(LABELS)
 COLORS = {
@@ -95,6 +95,18 @@ ZOOM_MIN_CURVES = 5
 ZOOM_MIN_OMITTED_CURVES = 2
 ZOOM_GAP_MULTIPLIER = 4.0
 ZOOM_GAP_RELATIVE = 0.03
+LEGEND_RIGHT_MARGIN = 0.68
+LEGEND_KWARGS = {
+    "fontsize": 7,
+    "frameon": False,
+    "loc": "center left",
+    "bbox_to_anchor": (1.02, 0.5),
+    "borderaxespad": 0.0,
+    "columnspacing": 1.0,
+    "handlelength": 1.8,
+    "handletextpad": 0.45,
+    "labelspacing": 0.45,
+}
 
 
 @dataclass(frozen=True)
@@ -198,14 +210,14 @@ def _merge_curve(
             dtype=float,
         )
         ys = np.array(list(pre) + [pre[-1], pre[-1], merged, merged], dtype=float)
-        label = f"{label} +{ratio:.0f}it"
+        label = f"{label}+{ratio:.0f}it"
     else:
         # merge completes past the plotted horizon: hold the pre-merge cost flat
         xs = np.array(list(range(merge_at)) + [horizon - 1], dtype=float)
         ys = np.array(list(pre) + [pre[-1]], dtype=float)
-        label = f"{label} (merge @{drop_x:.0f}, off-axis)"
+        label = f"{label} off-axis @{drop_x:.0f}"
     if not complete:
-        label += " *capped"
+        label += " capped"
     return CostCurve(algorithm=algorithm, xs=xs, ys=ys, label=label)
 
 
@@ -298,6 +310,15 @@ def _draw_curves(ax: plt.Axes, curves: list[CostCurve]) -> None:
         )
 
 
+def _legend_outside_right(ax: plt.Axes, *, ncol: int = 1) -> None:
+    ax.legend(ncol=ncol, **LEGEND_KWARGS)
+
+
+def _save_plot_with_legend(fig: plt.Figure, out: Path) -> None:
+    fig.tight_layout(rect=(0.0, 0.0, LEGEND_RIGHT_MARGIN, 1.0))
+    fig.savefig(out, dpi=150, bbox_inches="tight")
+
+
 def _maybe_draw_optimal(ax: plt.Axes, optimal: pd.Series) -> None:
     if len(optimal):
         ax.axhline(
@@ -305,7 +326,7 @@ def _maybe_draw_optimal(ax: plt.Axes, optimal: pd.Series) -> None:
             color="black",
             ls="--",
             lw=1.6,
-            label=f"Optimal (n={len(optimal)})",
+            label=f"Opt n={len(optimal)}",
         )
 
 
@@ -341,17 +362,16 @@ def plot_zoom_benchmark(
 
     x_min = int(horizon * ZOOM_START_FRACTION)
     x_max = horizon - 1
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(11, 5))
     _draw_curves(ax, zoom_curves)
     ax.set_xlim(x_min, x_max)
     _set_zoom_ylim(ax, zoom_curves, x_min, x_max)
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Mean solution cost")
     remove_frame(ax)
-    ax.legend(fontsize=8, frameon=False, loc="upper right", ncol=2)
-    fig.tight_layout()
+    _legend_outside_right(ax)
     out = plots_dir / f"{benchmark}_cost_zoom.pdf"
-    fig.savefig(out, dpi=150)
+    _save_plot_with_legend(fig, out)
     plt.close(fig)
     print(f"wrote {out}")
 
@@ -372,7 +392,7 @@ def plot_benchmark(
     optimal = final.loc[final["algorithm"] == "Optimal", "final_cost"].dropna()
     curves = mean_cost_curves(raw, horizon, bench_ratios, bench_merge_ratios)
 
-    fig, ax = plt.subplots(figsize=(9, 5))
+    fig, ax = plt.subplots(figsize=(11, 5))
     _draw_curves(ax, curves)
     _maybe_draw_optimal(ax, optimal)
     # keep the standard horizon so DABP is read as "where it reaches within the
@@ -381,10 +401,9 @@ def plot_benchmark(
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Mean solution cost")
     remove_frame(ax)
-    ax.legend(fontsize=8, frameon=False, loc="upper right", ncol=2)
-    fig.tight_layout()
+    _legend_outside_right(ax)
     out = plots_dir / f"{benchmark}_cost.pdf"
-    fig.savefig(out, dpi=150)
+    _save_plot_with_legend(fig, out)
     plt.close(fig)
     print(f"wrote {out}")
     plot_zoom_benchmark(benchmark, plots_dir, horizon, curves)
