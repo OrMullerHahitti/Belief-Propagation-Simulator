@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DABP node dynamics</title>
+<style>__STYLE__</style>
+</head>
+<body>
+<div class="app-brand"><span class="brand-symbol" aria-hidden="true">p</span><div>propflow<span>RESEARCH WORKSPACE</span></div></div>
+<header>
+  <div class="wordmark">EXPERIMENT 01 <span> / NODE DYNAMICS</span></div>
+  <h1>DABP node dynamics</h1>
+  <p id="scope">Paired runs on one saved graph. All axes are linear.</p>
+  <div id="outcomes" class="outcomes"></div>
+</header>
+<nav aria-label="Report views">
+  <div class="nav-label">EXPLORE</div>
+  <button data-tab="graph" aria-current="page"><span>01</span> Graph overview</button>
+  <button data-tab="evolution"><span>02</span> Weight evolution</button>
+  <button data-tab="changes"><span>03</span> Node changes</button>
+  <button data-tab="structure"><span>04</span> Structure &amp; behavior</button>
+  <button data-tab="balance"><span>05</span> Split balance</button>
+  <button data-tab="architecture"><span>06</span> Architecture</button>
+  <div class="nav-foot"><span class="status-dot"></span> Paired experiment<br><small>Same graph. Two split settings.</small></div>
+</nav>
+<main>
+  <div id="report-toolbar" class="toolbar">
+    <label>Selected variable <select id="node"></select></label>
+    <label id="range-control">Chart scale <select id="axis-range"><option value="observed">Observed range · linear</option><option value="full">Include zero · linear</option></select></label>
+    <span id="loading" role="status">Preparing exact trajectories…</span>
+  </div>
+  <p id="node-order" class="order-note"></p>
+  <div id="error" role="alert" hidden></div>
+  <section id="view-graph">
+    <div class="section-title"><div class="eyebrow">TOPOLOGY</div><h2>Explore the graph</h2><p>Select a variable to highlight its connections and inspect its structure.</p></div>
+    <div class="graph-layout">
+      <div class="graph-canvas"><div id="network" class="network" aria-label="Interactive variable graph"></div><div class="graph-key"><span><i class="selected-dot"></i> Selected</span><span><i class="neighbor-dot"></i> Neighbor</span><span><i></i> Other variable</span></div></div>
+      <aside><div class="eyebrow">VARIABLE INSPECTOR</div><h3 id="node-title"></h3><dl id="properties"></dl><h4>Connected variables</h4><div id="neighbors"></div><button id="inspect" class="primary">Explore its weights <span aria-hidden="true">→</span></button></aside>
+    </div>
+    <div class="section-title"><div class="eyebrow">RUN DYNAMICS</div><h2>How much changes each turn?</h2><p>Largest absolute change from the preceding iteration. Each curve ends when its run stops.</p></div>
+    <div class="two-columns"><div id="global-damping" class="chart"></div><div id="global-coefficient" class="chart"></div></div>
+  </section>
+  <section id="view-evolution" hidden>
+    <div class="section-title"><h2>Weights through the run</h2><p id="evolution-context"></p></div>
+    <div class="controls"><label>Order variables by <select id="evolution-order"><option value="damping">Largest damping jump</option><option value="coefficient">Largest message-coefficient jump</option></select></label></div>
+    <div class="controls"><label>Original factor <select id="factor"></select></label><label>Outgoing destination <select id="destination"></select></label></div>
+    <p class="note">Damping belongs to each outgoing variable → split-half message. Attention and message coefficients below compare the two incoming halves toward the selected common destination. Solid line = half 0; dashed line = half 1.</p>
+    <h3>Starting weights · iteration 1</h3>
+    <p class="note">Values below are the recorded weights before the first optimizer update. Damping rows describe the selected outgoing halves; attention and edge rows describe the incoming halves toward the selected destination.</p>
+    <div class="table-scroll"><table id="starting-weights"><thead><tr><th>Weight</th><th>Symmetric<br>Half 0</th><th>Symmetric<br>Half 1</th><th>Asymmetric<br>Half 0</th><th>Asymmetric<br>Half 1</th></tr></thead><tbody></tbody></table></div>
+    <div class="two-columns"><div id="symmetric-damping" class="chart"></div><div id="asymmetric-damping" class="chart"></div></div>
+    <div class="two-columns"><div id="symmetric-attention" class="chart"></div><div id="asymmetric-attention" class="chart"></div></div>
+    <div class="two-columns"><div id="symmetric-coefficient" class="chart"></div><div id="asymmetric-coefficient" class="chart"></div></div>
+  </section>
+  <section id="view-changes" hidden>
+    <div class="section-title"><h2>How much each variable changes</h2><p>One row per variable. Absolute changes are measured per coefficient before averaging, so opposite movements cannot cancel.</p></div>
+    <div class="controls"><label>Run <select id="table-run"><option value="asymmetric">Asymmetric · 0.95 / 0.05</option><option value="symmetric">Symmetric · 0.5 / 0.5</option></select></label><label>Quantity <select id="table-quantity"><option value="damping">Damping</option><option value="coefficient">Applied message coefficient</option></select></label></div>
+    <p id="table-window" class="note"></p>
+    <div class="table-scroll"><table id="change-table"><thead><tr><th><button data-sort="node">Variable</button></th><th><button data-sort="initial">Initial mean</button></th><th><button data-sort="final">Final mean</button></th><th><button data-sort="movement">Total movement</button></th><th><button data-sort="jump">Largest jump</button></th></tr></thead><tbody></tbody></table></div>
+    <p class="note">Total movement = mean across a node’s coefficients of the sum of absolute consecutive changes. Largest jump = maximum across all of that node’s coefficients and iterations. Longer runs allow more total movement; compare the displayed iteration counts.</p>
+  </section>
+  <section id="view-structure" hidden>
+    <div class="section-title"><h2>Structure versus learned behavior</h2><p>Each point is one variable from this graph. Click any point to inspect its trajectories. These within-graph associations do not establish causation.</p></div>
+    <div class="controls"><label>Structural property <select id="structure-x"><option value="degree">Degree</option><option value="betweenness">Betweenness</option><option value="closeness">Closeness</option><option value="clustering">Clustering</option></select></label><label>Quantity <select id="structure-quantity"><option value="damping">Damping</option><option value="coefficient">Applied message coefficient</option></select></label><label>Behavior <select id="structure-y"><option value="jump">Largest jump</option><option value="movement">Total movement</option><option value="final">Final mean</option></select></label></div>
+    <div class="two-columns"><div id="symmetric-structure" class="chart tall"></div><div id="asymmetric-structure" class="chart tall"></div></div>
+  </section>
+  <section id="view-balance" hidden>
+    <div id="split-overview" class="section-title"><div class="eyebrow">ALL VARIABLES</div><h2>Calculated splitting for every variable</h2><p>Each row follows the connection that changed most for that variable. All eligible factor/destination pairs are checked; no averaging across connections.</p></div>
+    <div class="controls"><label>Run to compare <select id="split-run"><option value="asymmetric">Asymmetric · 0.95 / 0.05</option><option value="symmetric">Symmetric · 0.5 / 0.5</option></select></label></div>
+    <p id="split-overview-context" class="note"></p>
+    <div class="table-scroll split-table-scroll"><table id="split-table"><thead><tr><th><button data-split-sort="node">Variable ↑</button></th><th>Initial split (%)</th><th>Final split (%)</th><th><button data-split-sort="departure">Largest departure (pp)</button></th></tr></thead><tbody></tbody></table></div>
+    <p class="note">Splits are shown as <strong>first half / second half</strong>. Largest departure is the biggest absolute change from that connection’s initial split at any iteration, in percentage points (pp). Initial and final values belong to the same connection. Click a variable to see its full trajectory.</p>
+    <div id="balance-detail" class="section-title"><div class="eyebrow">SELECTED CONNECTION</div><h2>How its calculated split changes</h2><p id="balance-context"></p><button id="split-back" class="secondary">↑ Back to all variables</button></div>
+    <div class="controls"><label>Original factor <select id="balance-factor"></select></label><label>Outgoing destination <select id="balance-destination"></select></label><label>Show <select id="split-display"><option value="share">Calculated split (%)</option><option value="change">Change from start (pp)</option></select></label></div>
+    <p class="note">The target’s own half is excluded from its incoming update. Only destinations receiving both halves are listed. Damping of the destination is common to the two incoming coefficients.</p>
+    <p id="split-chart-note" class="note"></p>
+    <div class="two-columns split-readouts"><p id="symmetric-split-readout"></p><p id="asymmetric-split-readout"></p></div>
+    <div class="two-columns"><div id="symmetric-balance-share" class="chart"></div><div id="asymmetric-balance-share" class="chart"></div></div>
+    <div class="formula">First-half share = 100 × p a / [p a + (1 − p) b]</div>
+    <p class="note">p is the original split; a and b are the applied message coefficients. 50% indicates coefficient compensation for the original scaling. This diagnostic is not a changed cost split, nor evidence that the full nonlinear messages contribute equally. The current DABP attention parameterization restricts possible coefficient ratios; large compensation may be unreachable.</p>
+    <div class="section-title"><h3>Multipliers behind this split</h3></div>
+    <div class="two-columns split-readouts"><p id="symmetric-balance-coefficient-start"></p><p id="asymmetric-balance-coefficient-start"></p></div>
+    <div class="two-columns"><div id="symmetric-balance-coefficient" class="chart"></div><div id="asymmetric-balance-coefficient" class="chart"></div></div>
+  </section>
+  <section id="view-architecture" hidden>
+    <div class="section-title"><div class="eyebrow">ILLUSTRATIVE TWO-VARIABLE GRAPH</div><h2>Where splitting and learned weights enter</h2><p>One original connection between x₁ and x₂ becomes two factor nodes. Follow one outgoing message to see which incoming message and weights it uses.</p></div>
+    <div class="controls"><label>Example split <select id="architecture-split"><option value="0.95">95% / 5%</option><option value="0.5">50% / 50%</option></select></label><label>Follow outgoing message <select id="architecture-target"><option value="x1-A">x₁ → factor A</option><option value="x1-B">x₁ → factor B</option><option value="x2-A">x₂ → factor A</option><option value="x2-B">x₂ → factor B</option></select></label></div>
+    <div id="architecture-canvas" class="architecture-canvas"></div>
+    <div class="architecture-key"><span><i class="active-path"></i> Messages used in this update</span><span><i class="excluded-path"></i> Destination’s return message: excluded</span></div>
+    <div class="architecture-steps">
+      <div><span class="step-number">1</span><h3>Split the cost</h3><p id="architecture-cost"></p><p>The factor nodes compute messages by minimizing their cost table plus the other variable’s incoming message.</p></div>
+      <div><span class="step-number">2</span><h3>Compute the weights</h3><p>Graph features + message history → GRU memory → 4 graph-attention layers → 4 attention/damping heads.</p><p>Head averages give the attention share α, new-message weight β, and old-message damping λ. β + λ = 1.</p></div>
+      <div><span class="step-number">3</span><h3>Build the outgoing message</h3><p id="architecture-update"></p><p>Subtract the minimum entry of the resulting vector to normalize the message.</p></div>
+    </div>
+    <div class="architecture-equation"><div class="eyebrow">SELECTED MESSAGE UPDATE · HEAD-AVERAGED WEIGHTS</div><p id="architecture-formula"></p><p id="architecture-explanation"></p></div>
+    <p class="note">In this two-variable example, only one incoming message is eligible for each outgoing update: d = 1 and α = 1, so its applied coefficient c = d × α × β = β. The numerical β and λ are produced by the neural network each iteration.</p>
+    <p class="note">A comparison of both factor halves toward the same outgoing destination needs an additional neighboring factor. The full experiment has those destinations; this minimal example illustrates the message flow.</p>
+  </section>
+  <details class="methods"><summary>Definitions, stopping rule &amp; source data</summary><div id="methods"></div></details>
+</main>
+<footer>Saved experiment inputs and every recorded iteration. No network connection required.</footer>
+<noscript>This interactive report needs JavaScript. Exact inputs are in graph.json and run.json; recorded arrays are in symmetric.npz and asymmetric.npz.</noscript>
+<script>__PLOTLY__</script>
+<script id="experiment-data" type="application/json">__DATA__</script>
+<script>__SCRIPT__</script>
+</body>
+</html>
