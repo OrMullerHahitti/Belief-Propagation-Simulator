@@ -8,7 +8,8 @@ still a guess.
 
 ## 2026-09-08 — compute_R reads the cost-table axes in the wrong order
 
-**Status: verified. Not fixed yet.**
+**Status: verified, and fixed in `9c2f4c8`. The reruns are still in
+progress, so the results committed here are still the pre-fix ones.**
 
 This is the one that matters. Read it before you trust any min-sum number in
 `experiments/aaai/`.
@@ -70,15 +71,25 @@ Every MS / DMS / split / merge line in `experiments/aaai` has been running this
 way since 2025-07-14, as has any other propflow run with more than 9 variables
 and asymmetric tables.
 
-### What to do
+### The fix
 
-Do not extend or publish those min-sum results until this is fixed and rerun.
-The fix is one line: order the incoming messages by `connection_number` before
-assigning axes.
+`compute_R` now sorts the incoming messages by the factor's
+`connection_number` before it assigns axes, so the loop index is the
+variable's real dimension in the cost table. It ships with a regression test
+that builds a factor over `x2` and `x13` and checks each variable gets the
+message for its own axis, which is the case the old code got backwards.
 
-Evidence: `src/propflow/bp/computators.py:188` (the `enumerate` that sets the
-axis) and `src/propflow/bp/engine_base.py:81` (the string sort that fills the
-inbox).
+Evidence: `src/propflow/bp/computators.py` (the sort, and the `enumerate` that
+follows it) and `src/propflow/bp/engine_base.py:81` (the string sort that fills
+the inbox in the first place).
+
+### What still needs doing
+
+Every AAAI min-sum number produced before this fix came from a partly
+transposed problem, so all of them need regenerating. That rerun was running
+when this note was written and is not finished. Until it is, treat the cost
+CSVs and the plots built from them as pre-fix results, and do not compare a
+pre-fix line against a post-fix one on the same axes.
 
 ---
 
