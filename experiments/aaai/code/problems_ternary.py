@@ -121,7 +121,9 @@ def build_random_dense_ternary(seed: int) -> FactorGraph:
     return _random_ternary_graph(seed, density=RANDOM_DENSE_TERNARY_DENSITY)
 
 
-def create_ternary_coloring_table(domain: int, cost: float = COLORING_COST) -> np.ndarray:
+def create_ternary_coloring_table(
+    domain: int, cost: float = COLORING_COST
+) -> np.ndarray:
     """Ternary not-equal constraint: cost x (number of equal pairs in the triple).
 
     This is exactly the three pairwise not-equal (graph-coloring) constraints on

@@ -1,4 +1,5 @@
 """Example: Capture and visualize snapshots on a 4-variable ring graph using SnapshotVisualizer."""
+
 from __future__ import annotations
 
 from pathlib import Path

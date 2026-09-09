@@ -3,6 +3,7 @@
 This example demonstrates snapshot analysis on a larger randomly-generated
 factor graph, computing convergence metrics and exporting analysis results.
 """
+
 from __future__ import annotations
 
 import json

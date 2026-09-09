@@ -30,7 +30,7 @@ from propflow.bp.engines import (
     SplitEngine,
     DiffusionEngine,
     TRWEngine,
-    DampingTRWEngine
+    DampingTRWEngine,
 )
 
 SEED = 42
@@ -46,7 +46,9 @@ if __name__ == "__main__":
     # --- Configuration (uses centralized defaults, override as needed) ---
     NUM_GRAPHS = 4
     MAX_ITER = EngineDefaults().max_iterations  # Can override: MAX_ITER = 2000
-    LOG_LEVEL = SimulatorDefaults().default_log_level  # Can override: LOG_LEVEL = "HIGH"
+    LOG_LEVEL = (
+        SimulatorDefaults().default_log_level
+    )  # Can override: LOG_LEVEL = "HIGH"
 
     # Engine configurations (using centralized defaults with explicit overrides when needed)
     engine_configs = {
@@ -60,15 +62,10 @@ if __name__ == "__main__":
             "class": SplitEngine,
             "split_factor": PolicyDefaults().split_factor,  # Can override: "split_factor": 0.7,
         },
-        "TRW Engine": {
-            "class": TRWEngine
-        
-        },
+        "TRW Engine": {"class": TRWEngine},
         "Damping+TRW": {
             "class": DampingTRWEngine,
-            "damping_factor": PolicyDefaults().damping_factor # Can override: "damping_factor": 0.6,
-            
-            
+            "damping_factor": PolicyDefaults().damping_factor,  # Can override: "damping_factor": 0.6,
         },
     }
     # --- Graph Creation ---

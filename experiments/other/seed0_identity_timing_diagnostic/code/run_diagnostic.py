@@ -467,7 +467,10 @@ def run_one(
 def is_split_graph(engine: Any, iteration: int) -> bool:
     """Return whether ``iteration`` ran after the mid-run split was applied."""
 
-    return any(int(event["iteration"]) <= iteration for event in getattr(engine, "split_events", []))
+    return any(
+        int(event["iteration"]) <= iteration
+        for event in getattr(engine, "split_events", [])
+    )
 
 
 class DiagnosticCollector:
@@ -516,14 +519,10 @@ class DiagnosticCollector:
             else assignment_hamming(assignment, self.prev2_assignment)
         )
         residual1 = (
-            None
-            if self.prev_rdiff is None
-            else max_abs_delta(rdiff, self.prev_rdiff)
+            None if self.prev_rdiff is None else max_abs_delta(rdiff, self.prev_rdiff)
         )
         residual2 = (
-            None
-            if self.prev2_rdiff is None
-            else max_abs_delta(rdiff, self.prev2_rdiff)
+            None if self.prev2_rdiff is None else max_abs_delta(rdiff, self.prev2_rdiff)
         )
         signs = {key: sign_label(value) for key, value in rdiff.items()}
         sign_flips = (
@@ -597,7 +596,9 @@ class DiagnosticCollector:
         self._active_handle.close()
         coordinates = sorted(self.rdiff_coordinate_union)
         write_json(coordinates, self.run_dir / "rdiff_coordinates.json")
-        write_iteration_csv(self.rows, coordinates, self.run_dir / "per_iteration_diagnostics.csv")
+        write_iteration_csv(
+            self.rows, coordinates, self.run_dir / "per_iteration_diagnostics.csv"
+        )
         return {
             "rows": self.rows,
             "summary_metrics": summarize_rows(self.rows),
@@ -660,7 +661,9 @@ def active_minimizer_signatures(snapshot: Any) -> dict[str, Any]:
             other_axis = 1 - target_axis
             other_var = labels[other_axis]
             q_values = np.asarray(
-                snapshot.Q.get((other_var, factor_name), np.zeros(table.shape[other_axis])),
+                snapshot.Q.get(
+                    (other_var, factor_name), np.zeros(table.shape[other_axis])
+                ),
                 dtype=float,
             ).reshape(-1)
             for target_value in range(table.shape[target_axis]):
@@ -758,7 +761,9 @@ def write_iteration_csv(
                 {
                     "iteration": row["iteration"],
                     "global_cost": row["global_cost"],
-                    "decoded_assignment": json.dumps(row["decoded_assignment"], sort_keys=True),
+                    "decoded_assignment": json.dumps(
+                        row["decoded_assignment"], sort_keys=True
+                    ),
                     "assignment_hamming_1": row["assignment_hamming_1"],
                     "assignment_hamming_2": row["assignment_hamming_2"],
                     "Rdiff_vector": json.dumps(
@@ -890,9 +895,7 @@ def write_historical_comparison(results: list[RunResult], out_dir: Path) -> None
     write_csv(rows, out_dir / "historical_comparison.csv")
 
 
-def write_split_time_state_diagnostic(
-    results: list[RunResult], out_dir: Path
-) -> None:
+def write_split_time_state_diagnostic(results: list[RunResult], out_dir: Path) -> None:
     """Write the requested pre/post split timing-state diagnostics."""
 
     rows = []
@@ -987,9 +990,7 @@ def write_nested_pair_outputs(
     write_contingency(contingency, out_dir / "nested_pair_contingency.md")
 
 
-def write_structured_subset_comparison(
-    results: list[RunResult], out_dir: Path
-) -> None:
+def write_structured_subset_comparison(results: list[RunResult], out_dir: Path) -> None:
     rows = []
     for result in results:
         summary = result.summary
@@ -1222,9 +1223,7 @@ def structured_line(structured: dict[str, dict[str, Any]]) -> str:
 
 def minimizer_signature_line(results: list[RunResult]) -> str:
     converged = [
-        result
-        for result in results
-        if outcome_bucket(result.summary) == "converged"
+        result for result in results if outcome_bucket(result.summary) == "converged"
     ]
     oscillatory = [
         result
@@ -1277,7 +1276,9 @@ def verify_acceptance(out_dir: Path, results: list[RunResult]) -> None:
     if missing:
         write_json({"status": "failed", "missing": missing}, out_dir / "failure.json")
         raise RuntimeError(f"Missing required artifact(s): {missing}")
-    write_json({"status": "passed", "run_count": len(results)}, out_dir / "acceptance.json")
+    write_json(
+        {"status": "passed", "run_count": len(results)}, out_dir / "acceptance.json"
+    )
 
 
 def outcome_bucket(summary: dict[str, Any]) -> str:

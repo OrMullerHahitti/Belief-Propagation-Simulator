@@ -71,7 +71,14 @@ FIGURE_CONFIGS = {
         "key_order": ["x1_v0", "x2_v0", "x3_v0", "x1_v1", "x2_v1", "x3_v1"],
         "labels": ["v1-a", "v2-a", "v3-a", "v1-b", "v2-b", "v3-b"],
         "styles": ["-", "-", "-", "--", "--", "--"],
-        "colors": ["tab:blue", "tab:orange", "tab:green", "tab:blue", "tab:orange", "tab:green"],
+        "colors": [
+            "tab:blue",
+            "tab:orange",
+            "tab:green",
+            "tab:blue",
+            "tab:orange",
+            "tab:green",
+        ],
         "title": "Figure 8: inconsistent, no tail",
     },
 }
@@ -124,11 +131,15 @@ def _build_bw_config(figure_id: str, cycle_size: int, display_vars: int = 3) -> 
         n_show = min(display_vars, cycle_size)
 
     if case_name in {CASE_CONSISTENT_NO_TAIL, CASE_CONSISTENT_WITH_TAIL}:
-        key_order = [f"x{i+1}_route" for i in range(n_show)]
-        labels = [f"v{i+1}" for i in range(n_show)]
+        key_order = [f"x{i + 1}_route" for i in range(n_show)]
+        labels = [f"v{i + 1}" for i in range(n_show)]
     else:
-        key_order = [f"x{i+1}_v{v}" for v in range(2) for i in range(n_show)]
-        labels = [f"v{i+1}-{'a' if v == 0 else 'b'}" for v in range(2) for i in range(n_show)]
+        key_order = [f"x{i + 1}_v{v}" for v in range(2) for i in range(n_show)]
+        labels = [
+            f"v{i + 1}-{'a' if v == 0 else 'b'}"
+            for v in range(2)
+            for i in range(n_show)
+        ]
 
     n_lines = len(key_order)
     bw_styles = [_BW_STYLES[i % len(_BW_STYLES)] for i in range(n_lines)]
@@ -149,7 +160,9 @@ def _build_bw_config(figure_id: str, cycle_size: int, display_vars: int = 3) -> 
 # ── single-example plotting ──────────────────────────────────────────────────
 
 
-def plot_single_run_bw(ax, run, key_order, labels, bw_styles, *, legend_outside: bool = False):
+def plot_single_run_bw(
+    ax, run, key_order, labels, bw_styles, *, legend_outside: bool = False
+):
     """Plot a single example's belief traces in black-and-white."""
     n = len(next(iter(run["records"].values())))
     iters = np.arange(n + 1)  # 0 … max_iter (prepend pre-computation state)
@@ -158,7 +171,9 @@ def plot_single_run_bw(ax, run, key_order, labels, bw_styles, *, legend_outside:
         y_raw = np.asarray(run["records"][key], dtype=float)
         # prepend 0 for the natural pre-computation state (all messages are zero vectors)
         y_plot = np.concatenate([[0.0], y_raw])
-        ax.plot(iters, y_plot, linestyle=lstyle, linewidth=lw, color="black", label=label)
+        ax.plot(
+            iters, y_plot, linestyle=lstyle, linewidth=lw, color="black", label=label
+        )
 
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Value")
@@ -178,7 +193,9 @@ def plot_single_run_bw(ax, run, key_order, labels, bw_styles, *, legend_outside:
         # match reference image: bigger font, single column for small label counts;
         # widen to multiple columns only when labels would overflow vertically
         ncol = 1 if len(labels) <= 6 else max(1, len(labels) // 6)
-        ax.legend(loc="upper left", fontsize=14, ncol=ncol, frameon=True, framealpha=1.0)
+        ax.legend(
+            loc="upper left", fontsize=14, ncol=ncol, frameon=True, framealpha=1.0
+        )
     _remove_frame(ax)
 
 
@@ -222,7 +239,9 @@ def select_representative_run(runs, case_name, *, match_seed=None):
             return matched
 
     if case_name == CASE_CONSISTENT_WITH_TAIL:
-        return max(runs, key=lambda r: r["classification"].get("periodic_start", 0) or 0)
+        return max(
+            runs, key=lambda r: r["classification"].get("periodic_start", 0) or 0
+        )
 
     return runs[0]
 
@@ -233,7 +252,9 @@ def select_representative_run(runs, case_name, *, match_seed=None):
 _paired_cache: dict[tuple[int, int], tuple[list, list]] = {}
 
 
-def _get_paired_5a_5b(cycle_size: int, n_examples: int, seed_start: int) -> tuple[list, list]:
+def _get_paired_5a_5b(
+    cycle_size: int, n_examples: int, seed_start: int
+) -> tuple[list, list]:
     """Return (5a_examples, 5b_examples) from the same base graphs."""
     key = (cycle_size, seed_start)
     if key in _paired_cache:
@@ -325,7 +346,9 @@ def _load_fig8_examples_from_csv(csv_path: Path) -> list[dict]:
     with open(csv_path) as f:
         reader = csv.DictReader(f)
         for row in reader:
-            cost_tables = [np.asarray(t, dtype=float) for t in json.loads(row["cost_tables"])]
+            cost_tables = [
+                np.asarray(t, dtype=float) for t in json.loads(row["cost_tables"])
+            ]
             cycle_size = int(row["cycle_size"])
             domain = int(cost_tables[0].shape[0])
 
@@ -336,24 +359,35 @@ def _load_fig8_examples_from_csv(csv_path: Path) -> list[dict]:
                 "unclassified": row["unclassified"] == "True",
                 "period": int(row["period"]),
                 "periodic_start": int(row["periodic_start"]),
-                "route_values_by_var": tuple(tuple(v) for v in json.loads(row["route_values_by_var"])),
-                "periodic_route": tuple(tuple(v) for v in json.loads(row["periodic_route"])),
-                "assignment_trace": tuple(tuple(v) for v in json.loads(row["assignment_trace"])),
-                CASE_INCONSISTENT_NO_TAIL: row["inconsistent"] == "True" and row["no_tail"] == "True",
-                CASE_CONSISTENT_NO_TAIL: row["consistent"] == "True" and row["no_tail"] == "True",
-                CASE_CONSISTENT_WITH_TAIL: row["consistent"] == "True" and row["no_tail"] == "False",
+                "route_values_by_var": tuple(
+                    tuple(v) for v in json.loads(row["route_values_by_var"])
+                ),
+                "periodic_route": tuple(
+                    tuple(v) for v in json.loads(row["periodic_route"])
+                ),
+                "assignment_trace": tuple(
+                    tuple(v) for v in json.loads(row["assignment_trace"])
+                ),
+                CASE_INCONSISTENT_NO_TAIL: row["inconsistent"] == "True"
+                and row["no_tail"] == "True",
+                CASE_CONSISTENT_NO_TAIL: row["consistent"] == "True"
+                and row["no_tail"] == "True",
+                CASE_CONSISTENT_WITH_TAIL: row["consistent"] == "True"
+                and row["no_tail"] == "False",
             }
-            examples.append({
-                "experiment": row["case_name"],
-                "case_name": row["case_name"],
-                "seed": int(row["seed"]),
-                "attempt": 1,
-                "cycle_size": cycle_size,
-                "domain": domain,
-                "cost_tables": cost_tables,
-                "classification": classification,
-                "generation_strategy": row.get("generation_strategy", "csv_replay"),
-            })
+            examples.append(
+                {
+                    "experiment": row["case_name"],
+                    "case_name": row["case_name"],
+                    "seed": int(row["seed"]),
+                    "attempt": 1,
+                    "cycle_size": cycle_size,
+                    "domain": domain,
+                    "cost_tables": cost_tables,
+                    "classification": classification,
+                    "generation_strategy": row.get("generation_strategy", "csv_replay"),
+                }
+            )
     return examples
 
 
@@ -368,7 +402,7 @@ def _score_fig8_slope_spread(run: dict, window: int = 100) -> float:
     for values in run["records"].values():
         if len(values) < 2:
             continue
-        tail = np.asarray(values[-min(window + 1, len(values)):], dtype=float)
+        tail = np.asarray(values[-min(window + 1, len(values)) :], dtype=float)
         if len(tail) < 2:
             continue
         x = np.arange(len(tail), dtype=float)
@@ -394,26 +428,52 @@ def _save_cost_tables(example: dict, out_path: Path) -> None:
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description="Reproduce paper figures (5a, 5b, 8) via representative belief traces.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    p.add_argument("--figure", choices=["5a", "5b", "8"],
-                   help="which figure to reproduce (single-figure mode)")
-    p.add_argument("--cycle-size", type=int, default=3,
-                   help="cycle length; 3 matches paper exactly, >3 uses generalised helpers")
-    p.add_argument("--n-examples", type=int, default=10,
-                   help="number of random instances to average over")
-    p.add_argument("--output", type=str, default=None,
-                   help="save plot to this path (PNG/PDF); omit to display interactively")
-    p.add_argument("--batch-bw", action="store_true",
-                   help="generate all 12 B&W PNGs (3 figures x 4 cycle sizes)")
-    p.add_argument("--out-subdir", type=str, default="",
-                   help="optional subdirectory under experiments/plots/ for batch-bw output")
-    p.add_argument("--replay", action="store_true",
-                   help="replay BP on the saved cost_tables JSONs in experiments/plots/ "
-                        "instead of regenerating examples (skips slow rejection sampling)")
+    p.add_argument(
+        "--figure",
+        choices=["5a", "5b", "8"],
+        help="which figure to reproduce (single-figure mode)",
+    )
+    p.add_argument(
+        "--cycle-size",
+        type=int,
+        default=3,
+        help="cycle length; 3 matches paper exactly, >3 uses generalised helpers",
+    )
+    p.add_argument(
+        "--n-examples",
+        type=int,
+        default=10,
+        help="number of random instances to average over",
+    )
+    p.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="save plot to this path (PNG/PDF); omit to display interactively",
+    )
+    p.add_argument(
+        "--batch-bw",
+        action="store_true",
+        help="generate all 12 B&W PNGs (3 figures x 4 cycle sizes)",
+    )
+    p.add_argument(
+        "--out-subdir",
+        type=str,
+        default="",
+        help="optional subdirectory under experiments/plots/ for batch-bw output",
+    )
+    p.add_argument(
+        "--replay",
+        action="store_true",
+        help="replay BP on the saved cost_tables JSONs in experiments/plots/ "
+        "instead of regenerating examples (skips slow rejection sampling)",
+    )
     return p
 
 
@@ -465,7 +525,9 @@ def _replay_fig8_from_csv(cycle_size: int, csv_dir: Path, out_dir: Path) -> bool
     case_name = cfg["case_name"]
 
     examples = _load_fig8_examples_from_csv(csv_path)
-    print(f"[replay] fig8 cycle{cycle_size}: loaded {len(examples)} examples from {csv_path}")
+    print(
+        f"[replay] fig8 cycle{cycle_size}: loaded {len(examples)} examples from {csv_path}"
+    )
 
     runs = run_experiment_examples_cycle(
         examples,
@@ -481,14 +543,18 @@ def _replay_fig8_from_csv(cycle_size: int, csv_dir: Path, out_dir: Path) -> bool
     scores = [(i, _score_fig8_slope_spread(r)) for i, r in enumerate(runs)]
     best_idx, best_score = min(scores, key=lambda t: t[1])
     rep = runs[best_idx]
-    print(f"[replay] fig8 cycle{cycle_size}: picked example {best_idx} "
-          f"(seed={rep['seed']}, slope-spread={best_score:.4f})")
+    print(
+        f"[replay] fig8 cycle{cycle_size}: picked example {best_idx} "
+        f"(seed={rep['seed']}, slope-spread={best_score:.4f})"
+    )
 
     _plot_and_save_bw(out_dir, "8", cycle_size, cfg, rep, examples)
     return True
 
 
-def _replay_one(figure_id: str, cycle_size: int, source_dir: Path, out_dir: Path) -> bool:
+def _replay_one(
+    figure_id: str, cycle_size: int, source_dir: Path, out_dir: Path
+) -> bool:
     """Replay a single (figure, cycle) by loading the saved cost-tables JSON.
 
     runs BP at FIGURE_CONFIGS[figure_id]['max_iter'] (currently 200) on the
@@ -516,13 +582,17 @@ def _replay_one(figure_id: str, cycle_size: int, source_dir: Path, out_dir: Path
         print(f"[replay] empty run for fig{figure_id} cycle{cycle_size} — skipping")
         return False
 
-    print(f"[replay] fig{figure_id} cycle{cycle_size}: replayed seed={example['seed']} "
-          f"at {cfg['max_iter']} iterations")
+    print(
+        f"[replay] fig{figure_id} cycle{cycle_size}: replayed seed={example['seed']} "
+        f"at {cfg['max_iter']} iterations"
+    )
     _plot_and_save_bw(out_dir, figure_id, cycle_size, cfg, runs[0], [example])
     return True
 
 
-def _run_replay_batch(out_subdir: str, figures: tuple[str, ...] = ("5a", "5b", "8")) -> None:
+def _run_replay_batch(
+    out_subdir: str, figures: tuple[str, ...] = ("5a", "5b", "8")
+) -> None:
     """Replay every saved cost-tables JSON for fig5a/5b plus fig8 at every cycle size.
 
     fig5a/5b sources: aij/plots/figXa_cycleN_cost_tables.json
@@ -543,7 +613,9 @@ def _run_replay_batch(out_subdir: str, figures: tuple[str, ...] = ("5a", "5b", "
         for figure_id in ("5a", "5b"):
             if figure_id not in figures:
                 continue
-            ok = _replay_one(figure_id, cycle_size, source_dir=base_dir, out_dir=out_dir)
+            ok = _replay_one(
+                figure_id, cycle_size, source_dir=base_dir, out_dir=out_dir
+            )
             if ok:
                 successes += 1
             else:
@@ -551,7 +623,9 @@ def _run_replay_batch(out_subdir: str, figures: tuple[str, ...] = ("5a", "5b", "
 
         # fig8: replay from experiments/figure_8/cycle_{N}/examples.csv
         if "8" in figures:
-            ok = _replay_fig8_from_csv(cycle_size, csv_dir=fig8_csv_dir, out_dir=out_dir)
+            ok = _replay_fig8_from_csv(
+                cycle_size, csv_dir=fig8_csv_dir, out_dir=out_dir
+            )
             if ok:
                 successes += 1
             else:
@@ -580,37 +654,57 @@ def _run_batch_bw(n_examples: int, out_subdir: str = "") -> None:
     for cycle_size in BATCH_CYCLE_SIZES:
         # --- 5b first: pick the representative with the best tail ---
         count += 1
-        print(f"\n[batch-bw] ({count}/{total}) figure=5b, cycle_size={cycle_size}, "
-              f"n_examples={n_examples}")
+        print(
+            f"\n[batch-bw] ({count}/{total}) figure=5b, cycle_size={cycle_size}, "
+            f"n_examples={n_examples}"
+        )
         cfg_5b = _build_bw_config("5b", cycle_size)
-        runs_5b, examples_5b = _collect_and_run(cfg_5b, cycle_size=cycle_size, n_examples=n_examples)
+        runs_5b, examples_5b = _collect_and_run(
+            cfg_5b, cycle_size=cycle_size, n_examples=n_examples
+        )
         rep_5b = select_representative_run(runs_5b, cfg_5b["case_name"])
-        print(f"[batch-bw] selected 1 of {len(runs_5b)} examples, "
-              f"{cfg_5b['max_iter']} iterations each")
+        print(
+            f"[batch-bw] selected 1 of {len(runs_5b)} examples, "
+            f"{cfg_5b['max_iter']} iterations each"
+        )
         _plot_and_save_bw(out_dir, "5b", cycle_size, cfg_5b, rep_5b, examples_5b)
 
         # --- 5a: match the same seed so both show the same base graph ---
         count += 1
-        print(f"\n[batch-bw] ({count}/{total}) figure=5a, cycle_size={cycle_size}, "
-              f"n_examples={n_examples}")
+        print(
+            f"\n[batch-bw] ({count}/{total}) figure=5a, cycle_size={cycle_size}, "
+            f"n_examples={n_examples}"
+        )
         cfg_5a = _build_bw_config("5a", cycle_size)
-        runs_5a, examples_5a = _collect_and_run(cfg_5a, cycle_size=cycle_size, n_examples=n_examples)
-        rep_5a = select_representative_run(runs_5a, cfg_5a["case_name"], match_seed=rep_5b["seed"])
-        print(f"[batch-bw] selected 1 of {len(runs_5a)} examples (matched seed={rep_5b['seed']}), "
-              f"{cfg_5a['max_iter']} iterations each")
+        runs_5a, examples_5a = _collect_and_run(
+            cfg_5a, cycle_size=cycle_size, n_examples=n_examples
+        )
+        rep_5a = select_representative_run(
+            runs_5a, cfg_5a["case_name"], match_seed=rep_5b["seed"]
+        )
+        print(
+            f"[batch-bw] selected 1 of {len(runs_5a)} examples (matched seed={rep_5b['seed']}), "
+            f"{cfg_5a['max_iter']} iterations each"
+        )
         _plot_and_save_bw(out_dir, "5a", cycle_size, cfg_5a, rep_5a, examples_5a)
 
         # --- fig 8: independent (skip if generation is not yet supported) ---
         if "8" in BATCH_FIGURES:
             count += 1
-            print(f"\n[batch-bw] ({count}/{total}) figure=8, cycle_size={cycle_size}, "
-                  f"n_examples={n_examples}")
+            print(
+                f"\n[batch-bw] ({count}/{total}) figure=8, cycle_size={cycle_size}, "
+                f"n_examples={n_examples}"
+            )
             try:
                 cfg_8 = _build_bw_config("8", cycle_size)
-                runs_8, examples_8 = _collect_and_run(cfg_8, cycle_size=cycle_size, n_examples=n_examples)
+                runs_8, examples_8 = _collect_and_run(
+                    cfg_8, cycle_size=cycle_size, n_examples=n_examples
+                )
                 rep_8 = select_representative_run(runs_8, cfg_8["case_name"])
-                print(f"[batch-bw] selected 1 of {len(runs_8)} examples, "
-                      f"{cfg_8['max_iter']} iterations each")
+                print(
+                    f"[batch-bw] selected 1 of {len(runs_8)} examples, "
+                    f"{cfg_8['max_iter']} iterations each"
+                )
                 _plot_and_save_bw(out_dir, "8", cycle_size, cfg_8, rep_8, examples_8)
             except Exception as exc:
                 print(f"[batch-bw] skipping figure=8, cycle_size={cycle_size}: {exc}")
@@ -635,14 +729,20 @@ def main() -> None:
 
     cfg = FIGURE_CONFIGS[args.figure]
 
-    print(f"[reproduce_figure] figure={args.figure}, cycle_size={args.cycle_size}, "
-          f"n_examples={args.n_examples}")
+    print(
+        f"[reproduce_figure] figure={args.figure}, cycle_size={args.cycle_size}, "
+        f"n_examples={args.n_examples}"
+    )
 
-    runs, examples = _collect_and_run(cfg, cycle_size=args.cycle_size, n_examples=args.n_examples)
+    runs, examples = _collect_and_run(
+        cfg, cycle_size=args.cycle_size, n_examples=args.n_examples
+    )
     representative = select_representative_run(runs, cfg["case_name"])
     example = examples[representative["example_index"]]
-    print(f"[reproduce_figure] selected 1 of {len(runs)} examples, "
-          f"running {cfg['max_iter']} iterations each")
+    print(
+        f"[reproduce_figure] selected 1 of {len(runs)} examples, "
+        f"running {cfg['max_iter']} iterations each"
+    )
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
     plot_single_run(

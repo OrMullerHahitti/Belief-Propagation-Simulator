@@ -94,7 +94,9 @@ def _json_dumps(obj: Any) -> str:
     return json.dumps(_to_jsonable(obj), separators=(",", ":"))
 
 
-def _series_meta(series_key: str, classification: Mapping[str, Any]) -> tuple[str, str, int]:
+def _series_meta(
+    series_key: str, classification: Mapping[str, Any]
+) -> tuple[str, str, int]:
     if series_key.endswith("_route"):
         variable_name = series_key[:-6]
         var_idx = int(variable_name[1:]) - 1
@@ -134,9 +136,13 @@ def build_examples_dataframe(
                 "inconsistent": bool(classification["inconsistent"]),
                 "no_tail": bool(classification["no_tail"]),
                 "unclassified": bool(classification["unclassified"]),
-                "route_values_by_var_json": _json_dumps(classification["route_values_by_var"]),
+                "route_values_by_var_json": _json_dumps(
+                    classification["route_values_by_var"]
+                ),
                 "periodic_route_json": _json_dumps(classification["periodic_route"]),
-                "assignment_trace_json": _json_dumps(classification["assignment_trace"]),
+                "assignment_trace_json": _json_dumps(
+                    classification["assignment_trace"]
+                ),
                 "cost_tables_json": _json_dumps(example["cost_tables"]),
             }
         )
@@ -157,7 +163,9 @@ def build_traces_dataframe(
         seed = int(run["seed"])
         classification = run["classification"]
         for series_key in run["key_order"]:
-            variable_name, tracked_kind, tracked_value = _series_meta(series_key, classification)
+            variable_name, tracked_kind, tracked_value = _series_meta(
+                series_key, classification
+            )
             values = run["records"][series_key]
             for iteration, belief in enumerate(values):
                 rows.append(
@@ -210,7 +218,9 @@ def _collect_examples(
             domain=DOMAIN,
             classify_max_iter=CLASSIFY_MAX_ITER,
         )
-        return derive_tail_examples(base_examples, tail_length=2, classify_max_iter=CLASSIFY_MAX_ITER)[:n_examples]
+        return derive_tail_examples(
+            base_examples, tail_length=2, classify_max_iter=CLASSIFY_MAX_ITER
+        )[:n_examples]
 
     if case_name == CASE_INCONSISTENT_NO_TAIL:
         # fig 8: one off-diagonal factor + rest diagonal
@@ -244,7 +254,9 @@ def generate_fig58_csv_datasets(
 
         for cycle_size in cycle_sizes:
             seed_start = seed_base + cycle_size * 100_000
-            print(f"  - cycle={cycle_size}: collecting {n_examples} examples (seed_start={seed_start})")
+            print(
+                f"  - cycle={cycle_size}: collecting {n_examples} examples (seed_start={seed_start})"
+            )
 
             examples = _collect_examples(
                 case_name=case_name,

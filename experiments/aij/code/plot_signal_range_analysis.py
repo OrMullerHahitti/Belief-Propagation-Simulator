@@ -32,8 +32,16 @@ def _load_combined() -> pd.DataFrame:
 
 def _split_engines(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Return (bp_df, damp_df) sorted by factor name."""
-    bp = df[df["engine"] == "BPEngine"].sort_values("activated_factor").reset_index(drop=True)
-    damp = df[df["engine"] == "DampingEngine"].sort_values("activated_factor").reset_index(drop=True)
+    bp = (
+        df[df["engine"] == "BPEngine"]
+        .sort_values("activated_factor")
+        .reset_index(drop=True)
+    )
+    damp = (
+        df[df["engine"] == "DampingEngine"]
+        .sort_values("activated_factor")
+        .reset_index(drop=True)
+    )
     return bp, damp
 
 
@@ -45,6 +53,7 @@ def _minmax_normalize(values: np.ndarray) -> np.ndarray:
 
 
 # ── plot 1: dynamic range compression ────────────────────────────────────────
+
 
 def plot_dynamic_range(df: pd.DataFrame) -> None:
     bp, damp = _split_engines(df)
@@ -75,11 +84,20 @@ def plot_dynamic_range(df: pd.DataFrame) -> None:
     _remove_frame(ax1)
 
     # right: damped — hatched bars, lighter fill
-    ax2.barh(y, damp_norm, color="white", edgecolor="black", linewidth=0.5,
-             hatch="///", height=0.7)
+    ax2.barh(
+        y,
+        damp_norm,
+        color="white",
+        edgecolor="black",
+        linewidth=0.5,
+        hatch="///",
+        height=0.7,
+    )
     ax2.set_xlabel("Relative signal (fraction of max)")
     ax2.set_xlim(0, 1.05)
-    damp_range = damp_ordered["q_message_value"].max() - damp_ordered["q_message_value"].min()
+    damp_range = (
+        damp_ordered["q_message_value"].max() - damp_ordered["q_message_value"].min()
+    )
     ax2.set_title(f"Damped\nrange = {damp_range:.2e}", fontsize=11)
     _remove_frame(ax2)
 
@@ -95,6 +113,7 @@ def plot_dynamic_range(df: pd.DataFrame) -> None:
 
 # ── plot 4: min-max range comparison ─────────────────────────────────────────
 
+
 def plot_minmax_range(df: pd.DataFrame) -> None:
     bp, damp = _split_engines(df)
 
@@ -109,13 +128,21 @@ def plot_minmax_range(df: pd.DataFrame) -> None:
 
     # plot A: both on same scale (undamped dominates, damped invisible)
     fig, ax = plt.subplots(figsize=(6, 4))
-    bars = ax.bar(["Undamped", "Damped"], [bp_range, damp_range], color="black", width=0.5)
+    bars = ax.bar(
+        ["Undamped", "Damped"], [bp_range, damp_range], color="black", width=0.5
+    )
     ax.set_ylabel("Signal range (max \u2212 min)")
     ax.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
     # annotate values on bars
     for bar, val in zip(bars, [bp_range, damp_range]):
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height(),
-                f"{val:.2e}", ha="center", va="bottom", fontsize=9)
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height(),
+            f"{val:.2e}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
     _remove_frame(ax)
     plt.tight_layout()
     fig.savefig(out_dir / "minmax_range_same_scale.png", dpi=150)
@@ -128,16 +155,35 @@ def plot_minmax_range(df: pd.DataFrame) -> None:
     b1 = ax1.bar(["Undamped"], [bp_range], color="black", width=0.4)
     ax1.set_ylabel("Signal range (max \u2212 min)")
     ax1.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
-    ax1.text(b1[0].get_x() + b1[0].get_width() / 2, bp_range,
-             f"{bp_range:.2e}", ha="center", va="bottom", fontsize=9)
+    ax1.text(
+        b1[0].get_x() + b1[0].get_width() / 2,
+        bp_range,
+        f"{bp_range:.2e}",
+        ha="center",
+        va="bottom",
+        fontsize=9,
+    )
     _remove_frame(ax1)
 
-    b2 = ax2.bar(["Damped"], [damp_range], color="white", edgecolor="black",
-                 linewidth=1.0, hatch="///", width=0.4)
+    b2 = ax2.bar(
+        ["Damped"],
+        [damp_range],
+        color="white",
+        edgecolor="black",
+        linewidth=1.0,
+        hatch="///",
+        width=0.4,
+    )
     ax2.set_ylabel("Signal range (max \u2212 min)")
     ax2.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
-    ax2.text(b2[0].get_x() + b2[0].get_width() / 2, damp_range,
-             f"{damp_range:.2e}", ha="center", va="bottom", fontsize=9)
+    ax2.text(
+        b2[0].get_x() + b2[0].get_width() / 2,
+        damp_range,
+        f"{damp_range:.2e}",
+        ha="center",
+        va="bottom",
+        fontsize=9,
+    )
     _remove_frame(ax2)
 
     plt.tight_layout()
@@ -147,6 +193,7 @@ def plot_minmax_range(df: pd.DataFrame) -> None:
 
 
 # ── plot 2: per-factor ratio ─────────────────────────────────────────────────
+
 
 def plot_per_factor_ratio(df: pd.DataFrame) -> None:
     bp, damp = _split_engines(df)
@@ -176,7 +223,13 @@ def plot_per_factor_ratio(df: pd.DataFrame) -> None:
     ax.set_xlabel("Damped / Undamped (normalized ratio)")
 
     median_ratio = float(np.median(ratio))
-    ax.axvline(median_ratio, color="black", linestyle="--", linewidth=1.0, label=f"median = {median_ratio:.2f}")
+    ax.axvline(
+        median_ratio,
+        color="black",
+        linestyle="--",
+        linewidth=1.0,
+        label=f"median = {median_ratio:.2f}",
+    )
     ax.legend(fontsize=9)
     _remove_frame(ax)
 
@@ -192,6 +245,7 @@ def plot_per_factor_ratio(df: pd.DataFrame) -> None:
 
 # ── plot 3: signal uniformity ────────────────────────────────────────────────
 
+
 def plot_signal_uniformity(df: pd.DataFrame) -> None:
     bp, damp = _split_engines(df)
 
@@ -201,8 +255,12 @@ def plot_signal_uniformity(df: pd.DataFrame) -> None:
     fig, ax = plt.subplots(figsize=(7, 4.5))
 
     ranks = np.arange(1, len(bp_sorted) + 1)
-    ax.plot(ranks, bp_sorted, linestyle="-", linewidth=2.0, color="black", label="Undamped")
-    ax.plot(ranks, damp_sorted, linestyle="--", linewidth=2.0, color="black", label="Damped")
+    ax.plot(
+        ranks, bp_sorted, linestyle="-", linewidth=2.0, color="black", label="Undamped"
+    )
+    ax.plot(
+        ranks, damp_sorted, linestyle="--", linewidth=2.0, color="black", label="Damped"
+    )
 
     ax.set_xlabel("Factor rank")
     ax.set_ylabel("Normalized signal")
@@ -223,9 +281,17 @@ def plot_signal_uniformity(df: pd.DataFrame) -> None:
 
 def _superscript_int(n: int) -> str:
     _sup = {
-        "0": "\u2070", "1": "\u00b9", "2": "\u00b2", "3": "\u00b3",
-        "4": "\u2074", "5": "\u2075", "6": "\u2076", "7": "\u2077",
-        "8": "\u2078", "9": "\u2079", "-": "\u207b",
+        "0": "\u2070",
+        "1": "\u00b9",
+        "2": "\u00b2",
+        "3": "\u00b3",
+        "4": "\u2074",
+        "5": "\u2075",
+        "6": "\u2076",
+        "7": "\u2077",
+        "8": "\u2078",
+        "9": "\u2079",
+        "-": "\u207b",
     }
     return "".join(_sup.get(c, c) for c in str(n))
 
@@ -237,13 +303,14 @@ def _scatter_stats_text(vals: np.ndarray, exponent: int | None = None) -> str:
     if exponent is None:
         max_abs = max(abs(std_val), abs(range_val), 1e-300)
         exponent = int(np.floor(np.log10(max_abs)))
-    scale = 10.0 ** exponent
+    scale = 10.0**exponent
     std_scaled = std_val / scale
     range_scaled = range_val / scale
     return f"std = {std_scaled:.2f}\nrange = {range_scaled:.2f}\n(\u00d710{_superscript_int(exponent)})"
 
 
 # ── plot A: scatter undamped only ─────────────────────────────────────────────
+
 
 def plot_scatter_undamped(df: pd.DataFrame) -> None:
     bp, _ = _split_engines(df)
@@ -253,15 +320,28 @@ def plot_scatter_undamped(df: pd.DataFrame) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(4, 6))
-    ax.scatter(np.zeros_like(vals), vals, marker="x", color="black", s=30, linewidths=1.0)
+    ax.scatter(
+        np.zeros_like(vals), vals, marker="x", color="black", s=30, linewidths=1.0
+    )
     ax.set_xticks([])
     ax.set_ylabel("Aggregated coefficients")
     ax.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
     # draw once to let matplotlib pick the axis exponent, then match it
     fig.canvas.draw()
-    axis_exp = int(ax.yaxis.get_offset_text().get_text().replace("1e", "").replace("\u2212", "-") or "0")
-    ax.text(0.95, 0.95, _scatter_stats_text(vals, exponent=axis_exp), transform=ax.transAxes,
-            ha="right", va="top", fontsize=9, family="monospace")
+    axis_exp = int(
+        ax.yaxis.get_offset_text().get_text().replace("1e", "").replace("\u2212", "-")
+        or "0"
+    )
+    ax.text(
+        0.95,
+        0.95,
+        _scatter_stats_text(vals, exponent=axis_exp),
+        transform=ax.transAxes,
+        ha="right",
+        va="top",
+        fontsize=9,
+        family="monospace",
+    )
     ax.set_xlabel("Undamped")
     _remove_frame(ax)
     plt.tight_layout()
@@ -272,6 +352,7 @@ def plot_scatter_undamped(df: pd.DataFrame) -> None:
 
 # ── plot B: scatter damped only ───────────────────────────────────────────────
 
+
 def plot_scatter_damped(df: pd.DataFrame) -> None:
     _, damp = _split_engines(df)
     vals = damp["q_message_value"].values
@@ -280,12 +361,28 @@ def plot_scatter_damped(df: pd.DataFrame) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     fig, ax = plt.subplots(figsize=(4, 6))
-    ax.scatter(np.zeros_like(vals), vals, marker="o", facecolors="none", edgecolors="black", s=30, linewidths=1.0)
+    ax.scatter(
+        np.zeros_like(vals),
+        vals,
+        marker="o",
+        facecolors="none",
+        edgecolors="black",
+        s=30,
+        linewidths=1.0,
+    )
     ax.set_xticks([])
     ax.set_ylabel("Aggregated coefficients")
     ax.ticklabel_format(axis="y", style="scientific", scilimits=(0, 0))
-    ax.text(0.95, 0.95, _scatter_stats_text(vals), transform=ax.transAxes,
-            ha="right", va="top", fontsize=9, family="monospace")
+    ax.text(
+        0.95,
+        0.95,
+        _scatter_stats_text(vals),
+        transform=ax.transAxes,
+        ha="right",
+        va="top",
+        fontsize=9,
+        family="monospace",
+    )
     ax.set_xlabel("Damped")
     _remove_frame(ax)
     plt.tight_layout()
@@ -296,12 +393,29 @@ def plot_scatter_damped(df: pd.DataFrame) -> None:
 
 # ── plot C: side-by-side scatter (separate columns) ──────────────────────────
 
+
 def _plot_scatter_side_by_side(bp_vals, damp_vals, out_path, log_scale=False):
     fig, ax = plt.subplots(figsize=(5, 6))
     # undamped at x=0, damped at x=1
-    ax.scatter(np.zeros_like(bp_vals), bp_vals, marker="x", color="black", s=30, linewidths=1.0, label="Undamped")
-    ax.scatter(np.ones_like(damp_vals), damp_vals, marker="o", facecolors="none", edgecolors="black",
-               s=30, linewidths=1.0, label="Damped")
+    ax.scatter(
+        np.zeros_like(bp_vals),
+        bp_vals,
+        marker="x",
+        color="black",
+        s=30,
+        linewidths=1.0,
+        label="Undamped",
+    )
+    ax.scatter(
+        np.ones_like(damp_vals),
+        damp_vals,
+        marker="o",
+        facecolors="none",
+        edgecolors="black",
+        s=30,
+        linewidths=1.0,
+        label="Damped",
+    )
     ax.set_xticks([0, 1])
     ax.set_xticklabels(["Undamped", "Damped"])
     ax.set_xlim(-0.5, 1.5)
@@ -326,20 +440,41 @@ def plot_scatter_side_by_side(df: pd.DataFrame) -> None:
     out_dir = BASE_OUT / "plots"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    _plot_scatter_side_by_side(bp_vals, damp_vals, out_dir / "scatter_side_by_side.png", log_scale=False)
-    _plot_scatter_side_by_side(bp_vals, damp_vals, out_dir / "scatter_side_by_side_log.png", log_scale=True)
+    _plot_scatter_side_by_side(
+        bp_vals, damp_vals, out_dir / "scatter_side_by_side.png", log_scale=False
+    )
+    _plot_scatter_side_by_side(
+        bp_vals, damp_vals, out_dir / "scatter_side_by_side_log.png", log_scale=True
+    )
 
 
 # ── plot D: overlay scatter (same column, x vs o markers) ────────────────────
+
 
 def _plot_scatter_overlay(bp_vals, damp_vals, out_path, log_scale=False):
     fig, ax = plt.subplots(figsize=(4, 6))
     # both on x=0, distinguished by marker
     jitter_bp = np.random.default_rng(0).uniform(-0.08, 0.08, size=len(bp_vals))
     jitter_damp = np.random.default_rng(1).uniform(-0.08, 0.08, size=len(damp_vals))
-    ax.scatter(jitter_bp, bp_vals, marker="x", color="black", s=30, linewidths=1.0, label="Undamped")
-    ax.scatter(jitter_damp, damp_vals, marker="o", facecolors="none", edgecolors="black",
-               s=30, linewidths=1.0, label="Damped")
+    ax.scatter(
+        jitter_bp,
+        bp_vals,
+        marker="x",
+        color="black",
+        s=30,
+        linewidths=1.0,
+        label="Undamped",
+    )
+    ax.scatter(
+        jitter_damp,
+        damp_vals,
+        marker="o",
+        facecolors="none",
+        edgecolors="black",
+        s=30,
+        linewidths=1.0,
+        label="Damped",
+    )
     ax.set_xticks([])
     ax.set_ylabel("Aggregated coefficients")
     if log_scale:
@@ -362,15 +497,22 @@ def plot_scatter_overlay(df: pd.DataFrame) -> None:
     out_dir = BASE_OUT / "plots"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    _plot_scatter_overlay(bp_vals, damp_vals, out_dir / "scatter_overlay.png", log_scale=False)
-    _plot_scatter_overlay(bp_vals, damp_vals, out_dir / "scatter_overlay_log.png", log_scale=True)
+    _plot_scatter_overlay(
+        bp_vals, damp_vals, out_dir / "scatter_overlay.png", log_scale=False
+    )
+    _plot_scatter_overlay(
+        bp_vals, damp_vals, out_dir / "scatter_overlay_log.png", log_scale=True
+    )
 
 
 # ── main ─────────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     df = _load_combined()
-    print(f"[plot_range_analysis] loaded {len(df)} rows from signal_results_combined.csv")
+    print(
+        f"[plot_range_analysis] loaded {len(df)} rows from signal_results_combined.csv"
+    )
 
     plot_dynamic_range(df)
     plot_minmax_range(df)

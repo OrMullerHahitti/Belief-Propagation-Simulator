@@ -23,13 +23,15 @@ _AIJ_DIR = Path(__file__).resolve().parent.parent  # experiments/aij/
 RESULTS_DIR = _AIJ_DIR / "data"
 PLOTS_DIR = _AIJ_DIR / "plots"
 
-plt.rcParams.update({
-    "figure.facecolor": "#fafafa",
-    "axes.facecolor": "#fafafa",
-    "axes.grid": True,
-    "grid.alpha": 0.25,
-    "font.size": 10,
-})
+plt.rcParams.update(
+    {
+        "figure.facecolor": "#fafafa",
+        "axes.facecolor": "#fafafa",
+        "axes.grid": True,
+        "grid.alpha": 0.25,
+        "font.size": 10,
+    }
+)
 VAR_COLOR = "#4c72b0"
 OBSERVER_COLOR = "#e63946"
 
@@ -75,7 +77,12 @@ def plot_graph_per_engine(meta, df_combined, G, var_names, plots_dir):
 
     for ax, engine_name in zip(axes, engines):
         engine_df = df_combined[df_combined["engine"] == engine_name]
-        belief_map = dict(zip(engine_df["activated_factor"], engine_df["belief_at_observer"].astype(float)))
+        belief_map = dict(
+            zip(
+                engine_df["activated_factor"],
+                engine_df["belief_at_observer"].astype(float),
+            )
+        )
 
         factor_vals = np.array([float(belief_map.get(fn, 0)) for fn in factor_names])
         # per-engine normalization: each engine gets its own [0, 1] scale
@@ -87,13 +94,37 @@ def plot_graph_per_engine(meta, df_combined, G, var_names, plots_dir):
 
         ax.set_axis_off()
         nx.draw_networkx_edges(G, pos, ax=ax, alpha=0.15, width=0.8)
-        nx.draw_networkx_nodes(G, pos, nodelist=regular_vars, node_color=VAR_COLOR,
-                               node_size=400, ax=ax, edgecolors="white", linewidths=1.0)
-        nx.draw_networkx_nodes(G, pos, nodelist=[observer], node_color=OBSERVER_COLOR,
-                               node_size=700, ax=ax, edgecolors="white", linewidths=2.0)
-        nx.draw_networkx_nodes(G, pos, nodelist=factor_names, node_color=factor_colors,
-                               node_shape="s", node_size=300, ax=ax,
-                               edgecolors="#666", linewidths=0.5)
+        nx.draw_networkx_nodes(
+            G,
+            pos,
+            nodelist=regular_vars,
+            node_color=VAR_COLOR,
+            node_size=400,
+            ax=ax,
+            edgecolors="white",
+            linewidths=1.0,
+        )
+        nx.draw_networkx_nodes(
+            G,
+            pos,
+            nodelist=[observer],
+            node_color=OBSERVER_COLOR,
+            node_size=700,
+            ax=ax,
+            edgecolors="white",
+            linewidths=2.0,
+        )
+        nx.draw_networkx_nodes(
+            G,
+            pos,
+            nodelist=factor_names,
+            node_color=factor_colors,
+            node_shape="s",
+            node_size=300,
+            ax=ax,
+            edgecolors="#666",
+            linewidths=0.5,
+        )
         nx.draw_networkx_labels(G, pos, font_size=6, font_color="#222", ax=ax)
 
         # per-engine colorbar
@@ -105,18 +136,48 @@ def plot_graph_per_engine(meta, df_combined, G, var_names, plots_dir):
         ax.set_title(engine_name, fontsize=13, fontweight="bold", pad=15)
 
     legend_els = [
-        Line2D([0], [0], marker="o", color="w", markerfacecolor=VAR_COLOR,
-               markersize=10, label="variable"),
-        Line2D([0], [0], marker="o", color="w", markerfacecolor=OBSERVER_COLOR,
-               markersize=12, label=f"observer ({observer})"),
-        Line2D([0], [0], marker="s", color="w", markerfacecolor="#dd8452",
-               markersize=9, label="factor (colored by signal)"),
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor=VAR_COLOR,
+            markersize=10,
+            label="variable",
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="w",
+            markerfacecolor=OBSERVER_COLOR,
+            markersize=12,
+            label=f"observer ({observer})",
+        ),
+        Line2D(
+            [0],
+            [0],
+            marker="s",
+            color="w",
+            markerfacecolor="#dd8452",
+            markersize=9,
+            label="factor (colored by signal)",
+        ),
     ]
-    fig.legend(handles=legend_els, loc="upper left", fontsize=9, framealpha=0.9,
-               bbox_to_anchor=(0.01, 0.98))
+    fig.legend(
+        handles=legend_els,
+        loc="upper left",
+        fontsize=9,
+        framealpha=0.9,
+        bbox_to_anchor=(0.01, 0.98),
+    )
 
-    fig.suptitle(f"signal propagation — per-engine (own color scale), observer={observer}, {meta['max_iter']} iterations",
-                 fontsize=14, fontweight="bold", y=1.02)
+    fig.suptitle(
+        f"signal propagation — per-engine (own color scale), observer={observer}, {meta['max_iter']} iterations",
+        fontsize=14,
+        fontweight="bold",
+        y=1.02,
+    )
     plt.tight_layout()
     out = plots_dir / "factor_graph_comparison.png"
     fig.savefig(out, dpi=150, bbox_inches="tight")
@@ -130,7 +191,9 @@ def plot_comparison_bars(meta, df_combined, plots_dir):
     n_engines = len(engines)
 
     # sort by first engine's values
-    first_df = df_combined[df_combined["engine"] == engines[0]].sort_values("belief_at_observer", ascending=True)
+    first_df = df_combined[df_combined["engine"] == engines[0]].sort_values(
+        "belief_at_observer", ascending=True
+    )
     factor_order = first_df["activated_factor"].tolist()
     n = len(factor_order)
 
@@ -143,17 +206,26 @@ def plot_comparison_bars(meta, df_combined, plots_dir):
 
     for ax, engine_name in zip(axes, engines):
         engine_df = df_combined[df_combined["engine"] == engine_name]
-        belief_map = dict(zip(engine_df["activated_factor"], engine_df["belief_at_observer"].astype(float)))
+        belief_map = dict(
+            zip(
+                engine_df["activated_factor"],
+                engine_df["belief_at_observer"].astype(float),
+            )
+        )
         vals = [belief_map[fn] for fn in factor_order]
 
-        ax.barh(range(n), vals,
-                color=colors, edgecolor="white", linewidth=0.3, height=0.8)
+        ax.barh(
+            range(n), vals, color=colors, edgecolor="white", linewidth=0.3, height=0.8
+        )
         ax.set_yticks(range(n))
         ax.set_yticklabels(factor_order, fontsize=7)
         ax.set_xscale("log")
         ax.set_xlabel("belief at observer (log scale)", fontsize=10)
-        ax.set_title(f"{engine_name} — signal at {meta['observer']}",
-                     fontsize=11, fontweight="bold")
+        ax.set_title(
+            f"{engine_name} — signal at {meta['observer']}",
+            fontsize=11,
+            fontweight="bold",
+        )
         _remove_frame(ax)
 
     plt.tight_layout()

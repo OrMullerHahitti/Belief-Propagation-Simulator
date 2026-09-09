@@ -170,9 +170,9 @@ def pair_halves(run: dict) -> tuple[np.ndarray, np.ndarray]:
         half = int(run["fn_half"][fn])
         assert slot[half] is None, f"duplicate half {half} for pair {key}"
         slot[half] = k
-    assert all(
-        a is not None and b is not None for a, b in slots.values()
-    ), "unpaired half"
+    assert all(a is not None and b is not None for a, b in slots.values()), (
+        "unpaired half"
+    )
     keys = sorted(slots)
     k_a = np.array([slots[key][0] for key in keys], dtype=np.int32)
     k_b = np.array([slots[key][1] for key in keys], dtype=np.int32)
@@ -208,9 +208,9 @@ def pair_source_halves(run: dict) -> tuple[np.ndarray, np.ndarray]:
         slot = slots.setdefault(key, [None, None])
         assert slot[half[s]] is None, f"duplicate half {half[s]} for {key}"
         slot[half[s]] = int(s)
-    assert all(
-        a is not None and b is not None for a, b in slots.values()
-    ), "unpaired half"
+    assert all(a is not None and b is not None for a, b in slots.values()), (
+        "unpaired half"
+    )
     keys = sorted(slots)
     s_a = np.array([slots[key][0] for key in keys], dtype=np.int32)
     s_b = np.array([slots[key][1] for key in keys], dtype=np.int32)

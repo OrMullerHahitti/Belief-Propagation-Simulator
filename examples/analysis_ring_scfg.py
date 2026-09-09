@@ -5,6 +5,7 @@ Some specialized features from the legacy analyzer module (like scc_greedy_neutr
 are no longer available. The new snapshot module focuses on convergence analysis,
 Jacobian computation, and cycle detection.
 """
+
 from __future__ import annotations
 
 import json

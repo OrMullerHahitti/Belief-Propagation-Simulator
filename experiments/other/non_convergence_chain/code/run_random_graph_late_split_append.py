@@ -192,9 +192,7 @@ def main() -> None:
     late_dir = output_dir / args.batch_name
     if late_dir.exists():
         if not args.force:
-            raise SystemExit(
-                f"{late_dir} already exists. Pass --force to replace it."
-            )
+            raise SystemExit(f"{late_dir} already exists. Pass --force to replace it.")
         backup_idx = 1
         while True:
             backup = output_dir / f"{args.batch_name}.previous_{backup_idx}"

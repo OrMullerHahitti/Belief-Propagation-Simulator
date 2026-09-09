@@ -30,17 +30,17 @@ from experiments.aij.code._ct_utils import _FixedCostTable  # noqa: E402
 
 # ── constants ─────────────────────────────────────────────────────────────────
 
-TOPOLOGY_SEED    = 1234   # controls which variable pairs connect (erdos-renyi)
-REPLACEMENT_SEED = 5678   # controls which factors get swapped per variant
-RANDOM_CT_SEED   = 9999   # controls random cost-table values for replaced factors
+TOPOLOGY_SEED = 1234  # controls which variable pairs connect (erdos-renyi)
+REPLACEMENT_SEED = 5678  # controls which factors get swapped per variant
+RANDOM_CT_SEED = 9999  # controls random cost-table values for replaced factors
 
-NUM_VARS         = 40
-DOMAIN           = 10
-DENSITY          = 0.7    # dense random graph → many short cycles
+NUM_VARS = 40
+DOMAIN = 10
+DENSITY = 0.7  # dense random graph → many short cycles
 
-N_VARIANTS       = 10     # 10 steps of 10% each: 0%, 10%, …, 100% randomised
+N_VARIANTS = 10  # 10 steps of 10% each: 0%, 10%, …, 100% randomised
 
-CT_RANGE         = (100, 200)  # shared range for ALL cells (structured and random)
+CT_RANGE = (100, 200)  # shared range for ALL cells (structured and random)
 
 # ── fixed topology ─────────────────────────────────────────────────────────────
 
@@ -56,8 +56,7 @@ _topo_graph = FGBuilder.build_random_graph(
 
 # list of (var_name_a, var_name_b) — same for all 11 graphs
 edge_pairs_names = [
-    (vlist[0].name, vlist[1].name)
-    for _factor, vlist in _topo_graph.edges.items()
+    (vlist[0].name, vlist[1].name) for _factor, vlist in _topo_graph.edges.items()
 ]
 n_factors = len(edge_pairs_names)
 # each step randomises exactly 10% of all factors
@@ -68,7 +67,9 @@ REPLACEMENT_STEP = max(1, n_factors // N_VARIANTS)
 # structured CT: only CT[0,0]=0, everything else in [100, 200)
 # factors prefer xi=0 AND xj=0; any other assignment costs at least 100
 _rng_struct = np.random.RandomState(TOPOLOGY_SEED)
-STRUCTURED_CT = _rng_struct.randint(CT_RANGE[0], CT_RANGE[1], size=(DOMAIN, DOMAIN)).astype(float)
+STRUCTURED_CT = _rng_struct.randint(
+    CT_RANGE[0], CT_RANGE[1], size=(DOMAIN, DOMAIN)
+).astype(float)
 STRUCTURED_CT[0, 0] = 0.0
 
 # random CT: entire table in [100, 200), no zeros at all
@@ -85,6 +86,7 @@ replacement_order = list(_rng_repl.permutation(n_factors))
 
 
 # ── builder ───────────────────────────────────────────────────────────────────
+
 
 def build_variant(n_random: int) -> object:
     """Build a fresh FactorGraph with exactly n_random factors using random CTs."""
@@ -111,6 +113,7 @@ def build_variant(n_random: int) -> object:
 
 # ── main ──────────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
     aij_dir = Path(__file__).resolve().parent.parent  # experiments/aij/
     data_dir = aij_dir / "data"
@@ -127,7 +130,9 @@ def main() -> None:
         with open(pkl_path, "wb") as fh:
             pickle.dump(fg, fh)
         pct = round(100 * n_random / n_factors)
-        print(f"  graph_{i:02d}.pkl  ({pct:3d}% random, {n_random} random / {n_factors} total)")
+        print(
+            f"  graph_{i:02d}.pkl  ({pct:3d}% random, {n_random} random / {n_factors} total)"
+        )
 
     # write metadata.json for reproducibility
     metadata = {

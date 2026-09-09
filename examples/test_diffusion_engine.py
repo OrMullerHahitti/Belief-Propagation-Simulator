@@ -57,7 +57,9 @@ def create_cycle_graph():
 
     # Build factor graph
     fg = FactorGraph(
-        variable_li=[var1, var2, var3], factor_li=[factor12, factor23, factor31], edges=edges
+        variable_li=[var1, var2, var3],
+        factor_li=[factor12, factor23, factor31],
+        edges=edges,
     )
 
     return fg
@@ -79,10 +81,26 @@ def run_engine_comparison():
     # Test configurations
     configs = [
         {"name": "Pure BP (no diffusion)", "engine": BPEngine, "params": {}},
-        {"name": "Light Diffusion (α=0.1)", "engine": DiffusionEngine, "params": {"alpha": 0.1}},
-        {"name": "Medium Diffusion (α=0.3)", "engine": DiffusionEngine, "params": {"alpha": 0.3}},
-        {"name": "Heavy Diffusion (α=0.7)", "engine": DiffusionEngine, "params": {"alpha": 0.7}},
-        {"name": "Damping (0.9) for comparison", "engine": DampingEngine, "params": {"damping_factor": 0.9}},
+        {
+            "name": "Light Diffusion (α=0.1)",
+            "engine": DiffusionEngine,
+            "params": {"alpha": 0.1},
+        },
+        {
+            "name": "Medium Diffusion (α=0.3)",
+            "engine": DiffusionEngine,
+            "params": {"alpha": 0.3},
+        },
+        {
+            "name": "Heavy Diffusion (α=0.7)",
+            "engine": DiffusionEngine,
+            "params": {"alpha": 0.7},
+        },
+        {
+            "name": "Damping (0.9) for comparison",
+            "engine": DampingEngine,
+            "params": {"damping_factor": 0.9},
+        },
     ]
 
     results = []
@@ -90,20 +108,26 @@ def run_engine_comparison():
     for config in configs:
         print(f"\n{'─' * 70}")
         print(f"Testing: {config['name']}")
-        print('─' * 70)
+        print("─" * 70)
 
         # Create fresh graph for each test
         fg_test = create_cycle_graph()
 
         # Create engine
-        engine = config["engine"](factor_graph=fg_test, computator=MinSumComputator(), **config["params"])
+        engine = config["engine"](
+            factor_graph=fg_test, computator=MinSumComputator(), **config["params"]
+        )
 
         # Run
         engine.run(max_iter=100)
 
         # Collect results
         snapshot = engine.latest_snapshot()
-        final_cost = snapshot.global_cost if snapshot and snapshot.global_cost is not None else 0.0
+        final_cost = (
+            snapshot.global_cost
+            if snapshot and snapshot.global_cost is not None
+            else 0.0
+        )
         # Check if converged by seeing if it stopped before max_iter
         converged = engine.iteration_count < 100
         result = {
@@ -129,14 +153,20 @@ def run_engine_comparison():
     print("-" * 70)
     for r in results:
         conv = "✓" if r["converged"] else "✗"
-        print(f"{r['name']:<40} {conv:<12} {r['iterations']:<8} {r['final_cost']:<10.2f}")
+        print(
+            f"{r['name']:<40} {conv:<12} {r['iterations']:<8} {r['final_cost']:<10.2f}"
+        )
 
     print("\n" + "=" * 70)
     print("Interpretation:")
     print("=" * 70)
     print("• α=0: No diffusion (equivalent to pure BP)")
-    print("• α=0.1-0.3: Recommended range - balances local info with neighbor smoothing")
-    print("• α=0.7: Heavy smoothing - may slow convergence but could help on hard problems")
+    print(
+        "• α=0.1-0.3: Recommended range - balances local info with neighbor smoothing"
+    )
+    print(
+        "• α=0.7: Heavy smoothing - may slow convergence but could help on hard problems"
+    )
     print("• Damping vs Diffusion:")
     print("    - Damping: temporal smoothing (current vs previous iteration)")
     print("    - Diffusion: spatial smoothing (local vs neighbors at same iteration)")

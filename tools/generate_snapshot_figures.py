@@ -4,6 +4,7 @@ This utility spins up a random factor graph, runs belief propagation with
 snapshots enabled, and produces the new visualizations added to
 ``SnapshotVisualizer``. Figures are saved under the ``figures/`` directory.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

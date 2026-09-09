@@ -30,6 +30,7 @@ if __package__ in {None, ""}:
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def _load_results(results_dir: Path) -> pd.DataFrame:
     """Concatenate all structured_vs_random CSV files into one DataFrame."""
     csv_files = sorted(results_dir.glob("structured_vs_random_graph_*.csv"))
@@ -64,6 +65,7 @@ _COST_CURVE_PCT_SHOW = {0, 10, 30, 49, 59, 69, 79, 89, 99}
 
 # ── plot A: B&W cost curves ──────────────────────────────────────────────────
 
+
 def plot_cost_curves_bw(df: pd.DataFrame, plots_dir: Path) -> None:
     """One PNG per engine; filtered B&W lines with dash patterns and side legend."""
     engines = sorted(df["engine"].unique())
@@ -86,8 +88,8 @@ def plot_cost_curves_bw(df: pd.DataFrame, plots_dir: Path) -> None:
             if len(iters) < max_iter + 1:
                 full_iters = np.arange(max_iter + 1)
                 full_costs = np.empty(max_iter + 1)
-                full_costs[:len(costs)] = costs
-                full_costs[len(costs):] = costs[-1]
+                full_costs[: len(costs)] = costs
+                full_costs[len(costs) :] = costs[-1]
                 iters, costs = full_iters, full_costs
             lstyle, lw = _BW_STYLES[i % len(_BW_STYLES)]
             ax.plot(
@@ -128,9 +130,27 @@ _ENGINE_TITLE = {"BPEngine": "MS", "DampingEngine": "DMS"}
 
 _ENGINE_BW_STYLES = [
     {"linestyle": "-", "linewidth": 2.0, "marker": "x", "markersize": 7},
-    {"linestyle": "--", "linewidth": 2.0, "marker": "o", "markersize": 5, "fillstyle": "none"},
-    {"linestyle": "-.", "linewidth": 2.0, "marker": "s", "markersize": 5, "fillstyle": "none"},
-    {"linestyle": ":", "linewidth": 2.0, "marker": "^", "markersize": 5, "fillstyle": "none"},
+    {
+        "linestyle": "--",
+        "linewidth": 2.0,
+        "marker": "o",
+        "markersize": 5,
+        "fillstyle": "none",
+    },
+    {
+        "linestyle": "-.",
+        "linewidth": 2.0,
+        "marker": "s",
+        "markersize": 5,
+        "fillstyle": "none",
+    },
+    {
+        "linestyle": ":",
+        "linewidth": 2.0,
+        "marker": "^",
+        "markersize": 5,
+        "fillstyle": "none",
+    },
 ]
 
 
@@ -170,10 +190,11 @@ def plot_final_cost_bw(df: pd.DataFrame, plots_dir: Path) -> None:
 
 # ── main ──────────────────────────────────────────────────────────────────────
 
+
 def main() -> None:
-    aij_dir     = Path(__file__).resolve().parent.parent  # experiments/aij/
+    aij_dir = Path(__file__).resolve().parent.parent  # experiments/aij/
     results_dir = aij_dir / "data"
-    plots_dir   = aij_dir / "plots"
+    plots_dir = aij_dir / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 
     df = _load_results(results_dir)

@@ -10,22 +10,17 @@ if SRC_DIR.is_dir() and str(SRC_DIR) not in sys.path:
 
 from propflow.snapshots.types import EngineSnapshot
 
+
 def test_snapshot_data_deprecation():
     snapshot = EngineSnapshot(
-        step=1,
-        lambda_=0.5,
-        dom={},
-        N_var={},
-        N_fac={},
-        Q={},
-        R={}
+        step=1, lambda_=0.5, dom={}, N_var={}, N_fac={}, Q={}, R={}
     )
-    
+
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         data = snapshot.data
         print(f"Accessed snapshot.data: {data}")
-        
+
         if len(w) > 0:
             print(f"Caught warning: {w[-1].message}")
             if issubclass(w[-1].category, DeprecationWarning):
@@ -39,6 +34,7 @@ def test_snapshot_data_deprecation():
         print("Verified: snapshot.data returns self")
     else:
         print("Failed: snapshot.data does not return self")
+
 
 if __name__ == "__main__":
     test_snapshot_data_deprecation()

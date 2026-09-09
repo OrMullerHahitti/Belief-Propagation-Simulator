@@ -11,22 +11,23 @@ if SRC_DIR.is_dir() and str(SRC_DIR) not in sys.path:
 
 from propflow.bp.engine_components import History
 
+
 def test_history_json():
     # Create history without BCT (default)
     hist = History(engine_type="TestEngine", use_bct_history=False)
-    
+
     # Mock some data
     # (In a real run, cycles would be populated)
     # We just want to see if to_json produces empty dict
-    
+
     outfile = "test_history.json"
     hist.to_json(outfile)
-    
+
     with open(outfile, "r") as f:
         content = json.load(f)
-    
+
     print(f"JSON content: {content}")
-    
+
     if content == {}:
         print("Issue reproduced: JSON is empty")
     else:
@@ -34,6 +35,7 @@ def test_history_json():
 
     if os.path.exists(outfile):
         os.remove(outfile)
+
 
 if __name__ == "__main__":
     test_history_json()

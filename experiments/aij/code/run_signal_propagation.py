@@ -16,7 +16,14 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
-from propflow import BPEngine, DampingEngine, FactorAgent, FactorGraph, FGBuilder, VariableAgent
+from propflow import (
+    BPEngine,
+    DampingEngine,
+    FactorAgent,
+    FactorGraph,
+    FGBuilder,
+    VariableAgent,
+)
 
 # ── configuration ────────────────────────────────────────────────────────────
 TOPOLOGY_SEED = 42
@@ -48,7 +55,11 @@ def _build_signal_graph(topo_edges, var_names, domain, active_factor):
     variables = {n: VariableAgent(name=n, domain=domain) for n in var_names}
     edge_dict = {}
     for fname, va, vb in topo_edges:
-        ct = np.ones((domain, domain)) if fname == active_factor else np.zeros((domain, domain))
+        ct = (
+            np.ones((domain, domain))
+            if fname == active_factor
+            else np.zeros((domain, domain))
+        )
         f = FactorAgent.create_from_cost_table(fname, ct)
         edge_dict[f] = [variables[va], variables[vb]]
     return FactorGraph(list(variables.values()), list(edge_dict.keys()), edge_dict)
@@ -68,17 +79,22 @@ def run_signal_experiment(
 
     np.random.seed(topology_seed)
     ref_fg = FGBuilder.build_random_graph(
-        num_vars=num_vars, domain_size=domain_size,
-        ct_factory="random_int", ct_params={"low": 0, "high": 10},
-        density=density, seed=topology_seed,
+        num_vars=num_vars,
+        domain_size=domain_size,
+        ct_factory="random_int",
+        ct_params={"low": 0, "high": 10},
+        density=density,
+        seed=topology_seed,
     )
     topo_edges, var_names = _extract_topology(ref_fg)
     observer_name = var_names[0]
     target_factor = "f13"
     factor_names = sorted(f.name for f in ref_fg.factors)
 
-    print(f"topology: {len(var_names)} vars, {len(factor_names)} factors, "
-          f"observer={observer_name}, target_factor={target_factor}")
+    print(
+        f"topology: {len(var_names)} vars, {len(factor_names)} factors, "
+        f"observer={observer_name}, target_factor={target_factor}"
+    )
 
     all_rows = {}
 
@@ -107,7 +123,7 @@ def run_signal_experiment(
             rows[fname] = q_val
 
             if (fi + 1) % 20 == 0 or fi == 0:
-                print(f"  [{fi+1}/{len(factor_names)}]")
+                print(f"  [{fi + 1}/{len(factor_names)}]")
 
         all_rows[engine_name] = rows
 
@@ -138,13 +154,20 @@ def run_signal_experiment(
 
     # save metadata
     meta = {
-        "topology_seed": topology_seed, "num_vars": num_vars,
-        "domain_size": domain_size, "density": density, "max_iter": max_iter,
-        "observer": observer_name, "target_factor": target_factor,
+        "topology_seed": topology_seed,
+        "num_vars": num_vars,
+        "domain_size": domain_size,
+        "density": density,
+        "max_iter": max_iter,
+        "observer": observer_name,
+        "target_factor": target_factor,
         "metric": "Q-message from observer to target_factor, domain value 0",
         "factor_names": factor_names,
         "topology_edges": topo_edges,
-        "engines": {name: {k: str(v) for k, v in cfg["kwargs"].items()} for name, cfg in engine_configs.items()},
+        "engines": {
+            name: {k: str(v) for k, v in cfg["kwargs"].items()}
+            for name, cfg in engine_configs.items()
+        },
     }
     with open(results_dir / "signal_propagation_metadata.json", "w") as f:
         json.dump(meta, f, indent=2)

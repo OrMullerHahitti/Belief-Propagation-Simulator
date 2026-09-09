@@ -89,7 +89,9 @@ def _dms_per_iter(benchmark: str, seed: int, dms_lookup: dict) -> float:
     (keeps DABP and merge stretches on the same denominator), else measure."""
     if benchmark in dms_lookup:
         return dms_lookup[benchmark]
-    return _time_steps(make_engine("DMS", BENCHMARKS[benchmark](seed), seed), N_WARMUP, N_TIMED)
+    return _time_steps(
+        make_engine("DMS", BENCHMARKS[benchmark](seed), seed), N_WARMUP, N_TIMED
+    )
 
 
 def _branches(benchmark: str, seed: int):
@@ -138,9 +140,7 @@ def _time_mgm(branch1, branch2, var_names, factor_vars, tables):
     return secs, best_assign, best_cost
 
 
-def _time_bnb(
-    branch1, branch2, var_names, factor_vars, tables, mgm_assign, mgm_cost
-):
+def _time_bnb(branch1, branch2, var_names, factor_vars, tables, mgm_assign, mgm_cost):
     """seconds for the branch-and-bound binary-menu merge, warm-started exactly
     like run_split_ms_task. Returns (seconds, opt_cost, complete)."""
     score1 = score_assignment(branch1, tables, factor_vars)
@@ -264,13 +264,23 @@ def main() -> None:
     out_path = Path(args.out_dir) / "merge_timing.csv"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     if not args.skip_backup:
-        backup_dir = backup_existing_csvs(out_path.parent, label="data_before_merge_timing")
+        backup_dir = backup_existing_csvs(
+            out_path.parent, label="data_before_merge_timing"
+        )
         if backup_dir is not None:
             print(f"BACKUP existing CSVs -> {backup_dir}", flush=True)
     with out_path.open("w", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(
-            ["benchmark", "dms_s_per_iter", "mgm_s", "bnb_s", "mgm_ratio", "bnb_ratio", "bnb_complete"]
+            [
+                "benchmark",
+                "dms_s_per_iter",
+                "mgm_s",
+                "bnb_s",
+                "mgm_ratio",
+                "bnb_ratio",
+                "bnb_complete",
+            ]
         )
         for row in rows:
             writer.writerow(

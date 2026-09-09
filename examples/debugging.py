@@ -468,10 +468,10 @@ if __name__ == "__main__":
     import psutil
 
     print(
-        f"[{time.strftime('%H:%M:%S')}] MAIN: System memory: {psutil.virtual_memory().total / 1024 ** 3:.1f} GB"
+        f"[{time.strftime('%H:%M:%S')}] MAIN: System memory: {psutil.virtual_memory().total / 1024**3:.1f} GB"
     )
     print(
-        f"[{time.strftime('%H:%M:%S')}] MAIN: Available memory: {psutil.virtual_memory().available / 1024 ** 3:.1f} GB"
+        f"[{time.strftime('%H:%M:%S')}] MAIN: Available memory: {psutil.virtual_memory().available / 1024**3:.1f} GB"
     )
 
     try:

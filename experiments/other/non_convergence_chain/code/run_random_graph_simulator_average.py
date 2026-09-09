@@ -90,9 +90,7 @@ class FullRunDampingEngine(FullRunMixin, DampingEngine):
 class FullRunDampedMidRunSplitEngine(FullRunMixin, MidRunSplitEngine):
     """Mid-run splitting with the same Q-message damping hook as DampingEngine."""
 
-    def __init__(
-        self, *args: Any, damping_factor: float = 0.9, **kwargs: Any
-    ) -> None:
+    def __init__(self, *args: Any, damping_factor: float = 0.9, **kwargs: Any) -> None:
         self.damping_factor = float(damping_factor)
         super().__init__(*args, **kwargs)
         self._name = "FullRunDampedMidRunSplitEngine"
@@ -257,10 +255,15 @@ def write_raw_costs(path: Path, results: dict[str, list[list[float]]]) -> None:
 
 def write_average_costs(path: Path, results: dict[str, list[list[float]]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    max_iter = max((len(costs) for costs_list in results.values() for costs in costs_list), default=0)
+    max_iter = max(
+        (len(costs) for costs_list in results.values() for costs in costs_list),
+        default=0,
+    )
     with path.open("w", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["engine", "iteration", "mean_global_cost", "std_global_cost", "run_count"])
+        writer.writerow(
+            ["engine", "iteration", "mean_global_cost", "std_global_cost", "run_count"]
+        )
         for engine_name, costs_list in results.items():
             padded = pad_costs(costs_list, max_iter)
             mean = np.nanmean(padded, axis=0)

@@ -144,13 +144,15 @@ def scan_seeds(
 
         result = check_bistability(ct_left, ct_right)
         if result["bistable"]:
-            bistable_instances.append({
-                "seed": seed,
-                "ct_left": ct_left.tolist(),
-                "ct_right": ct_right.tolist(),
-                "odd_fp": result["odd_fp"],
-                "even_fp": result["even_fp"],
-            })
+            bistable_instances.append(
+                {
+                    "seed": seed,
+                    "ct_left": ct_left.tolist(),
+                    "ct_right": ct_right.tolist(),
+                    "odd_fp": result["odd_fp"],
+                    "even_fp": result["even_fp"],
+                }
+            )
 
     return bistable_instances
 

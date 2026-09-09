@@ -8,7 +8,14 @@ from typing import Any, Dict, Iterable, List, Mapping, Sequence, Tuple
 import numpy as np
 import pandas as pd
 
-from propflow import BPEngine, DampingEngine, FactorAgent, FactorGraph, FGBuilder, VariableAgent
+from propflow import (
+    BPEngine,
+    DampingEngine,
+    FactorAgent,
+    FactorGraph,
+    FGBuilder,
+    VariableAgent,
+)
 
 
 Assignment = Tuple[int, ...]
@@ -50,9 +57,13 @@ def _as_cycle_cost_tables(cost_tables: Sequence[np.ndarray]) -> CycleCostTables:
     domain = int(normalized[0].shape[0])
     for idx, ct in enumerate(normalized):
         if ct.ndim != 2:
-            raise ValueError(f"Cost table at index {idx} must be 2D, got ndim={ct.ndim}.")
+            raise ValueError(
+                f"Cost table at index {idx} must be 2D, got ndim={ct.ndim}."
+            )
         if ct.shape[0] != ct.shape[1]:
-            raise ValueError(f"Cost table at index {idx} must be square, got shape={ct.shape}.")
+            raise ValueError(
+                f"Cost table at index {idx} must be square, got shape={ct.shape}."
+            )
         if ct.shape[0] != domain:
             raise ValueError(
                 "All cost tables must share the same domain size. "
@@ -61,27 +72,33 @@ def _as_cycle_cost_tables(cost_tables: Sequence[np.ndarray]) -> CycleCostTables:
     return normalized
 
 
-def _build_cycle_graph_from_cost_tables(cost_tables: Sequence[np.ndarray]) -> FactorGraph:
+def _build_cycle_graph_from_cost_tables(
+    cost_tables: Sequence[np.ndarray],
+) -> FactorGraph:
     """Build an N-variable cycle graph from explicit 2D cost tables."""
     tables = _as_cycle_cost_tables(cost_tables)
     cycle_size = len(tables)
     domain = int(tables[0].shape[0])
 
-    variables = [VariableAgent(f"x{i+1}", domain=domain) for i in range(cycle_size)]
+    variables = [VariableAgent(f"x{i + 1}", domain=domain) for i in range(cycle_size)]
     factors: List[FactorAgent] = []
     edges: Dict[FactorAgent, List[VariableAgent]] = {}
 
     for idx, ct in enumerate(tables):
         left_idx = idx + 1
         right_idx = (idx + 1) % cycle_size + 1
-        factor = FactorAgent.create_from_cost_table(f"f{left_idx}{right_idx}", np.array(ct, dtype=float))
+        factor = FactorAgent.create_from_cost_table(
+            f"f{left_idx}{right_idx}", np.array(ct, dtype=float)
+        )
         factors.append(factor)
         edges[factor] = [variables[idx], variables[(idx + 1) % cycle_size]]
 
     return FGBuilder.build_from_edges(variables=variables, factors=factors, edges=edges)
 
 
-def build_cycle_graph_from_tables(*cost_tables: np.ndarray | Sequence[np.ndarray]) -> FactorGraph:
+def build_cycle_graph_from_tables(
+    *cost_tables: np.ndarray | Sequence[np.ndarray],
+) -> FactorGraph:
     """Build a cycle graph from explicit cost tables.
 
     Backward compatible forms:
@@ -93,7 +110,9 @@ def build_cycle_graph_from_tables(*cost_tables: np.ndarray | Sequence[np.ndarray
     return _build_cycle_graph_from_cost_tables(cost_tables)  # type: ignore[arg-type]
 
 
-def _is_periodic_from(assignments: Sequence[Assignment], start: int, pattern: Sequence[Assignment]) -> bool:
+def _is_periodic_from(
+    assignments: Sequence[Assignment], start: int, pattern: Sequence[Assignment]
+) -> bool:
     """Return True if assignments[start:] repeat the given pattern exactly."""
     if not pattern:
         return False
@@ -179,7 +198,9 @@ def classify_case_cycle(
     assignments: List[Assignment] = []
     for i in range(max_iter):
         engine.step(i)
-        assignments.append(tuple(int(engine.assignments[f"x{j+1}"]) for j in range(cycle_size)))
+        assignments.append(
+            tuple(int(engine.assignments[f"x{j + 1}"]) for j in range(cycle_size))
+        )
 
     info = _find_route_info(
         assignments,
@@ -215,7 +236,9 @@ def classify_case_cycle(
         "inconsistent": inconsistent,
         CASE_CONSISTENT_NO_TAIL: bool(consistent and no_tail),
         CASE_CONSISTENT_WITH_TAIL: bool(consistent and not no_tail),
-        CASE_INCONSISTENT_NO_TAIL: bool(inconsistent and no_tail and inconsistent_all_domain_values),
+        CASE_INCONSISTENT_NO_TAIL: bool(
+            inconsistent and no_tail and inconsistent_all_domain_values
+        ),
     }
 
 
@@ -239,7 +262,9 @@ def classify_case(
     )
 
 
-def route_assignment_from_classification(classification: Mapping[str, Any]) -> Tuple[int, ...]:
+def route_assignment_from_classification(
+    classification: Mapping[str, Any],
+) -> Tuple[int, ...]:
     """Return the single assignment tuple from a consistent route classification."""
     values = classification["route_values_by_var"]
     if not classification["consistent"]:
@@ -258,18 +283,24 @@ def _generate_candidate_cost_tables(
 ) -> CycleCostTables:
     if generation_strategy == GEN_RANDOM_FULL:
         return tuple(
-            rng.randint(low, high, size=(domain, domain)).astype(float) for _ in range(cycle_size)
+            rng.randint(low, high, size=(domain, domain)).astype(float)
+            for _ in range(cycle_size)
         )
 
     if generation_strategy == GEN_MOTIF_REPEAT:
-        motif = [rng.randint(low, high, size=(domain, domain)).astype(float) for _ in range(3)]
+        motif = [
+            rng.randint(low, high, size=(domain, domain)).astype(float)
+            for _ in range(3)
+        ]
         return tuple(np.array(motif[idx % 3], dtype=float) for idx in range(cycle_size))
 
     raise ValueError(f"Unknown generation strategy: {generation_strategy}")
 
 
 def _cost_tables_signature(cost_tables: Sequence[np.ndarray]) -> tuple:
-    return tuple(tuple(np.asarray(ct, dtype=float).reshape(-1).tolist()) for ct in cost_tables)
+    return tuple(
+        tuple(np.asarray(ct, dtype=float).reshape(-1).tolist()) for ct in cost_tables
+    )
 
 
 def _format_example_result(
@@ -496,8 +527,10 @@ def derive_tail_examples(
                 break
 
         if not success:
-            print(f"  [derive_tail] skipping seed={base['seed']}: "
-                  f"no alt_val produced a valid tail")
+            print(
+                f"  [derive_tail] skipping seed={base['seed']}: "
+                f"no alt_val produced a valid tail"
+            )
 
     return derived
 
@@ -535,15 +568,17 @@ def construct_consistent_no_tail_examples(
 
         cls = classify_case_cycle(tables, max_iter=classify_max_iter)
         if cls.get(CASE_CONSISTENT_NO_TAIL, False):
-            examples.append(_format_example_result(
-                case_name=CASE_CONSISTENT_NO_TAIL,
-                seed=seed,
-                attempt=1,
-                cycle_size=cycle_size,
-                generation_strategy="constructed_diagonal",
-                cost_tables=tables,
-                classification=cls,
-            ))
+            examples.append(
+                _format_example_result(
+                    case_name=CASE_CONSISTENT_NO_TAIL,
+                    seed=seed,
+                    attempt=1,
+                    cycle_size=cycle_size,
+                    generation_strategy="constructed_diagonal",
+                    cost_tables=tables,
+                    classification=cls,
+                )
+            )
         seed += 1
 
     return examples
@@ -590,15 +625,17 @@ def construct_inconsistent_no_tail_examples(
             cls = classify_case_cycle(tables, max_iter=classify_max_iter)
             if cls.get(CASE_INCONSISTENT_NO_TAIL, False):
                 seen.add(sig)
-                examples.append(_format_example_result(
-                    case_name=CASE_INCONSISTENT_NO_TAIL,
-                    seed=seed,
-                    attempt=1,
-                    cycle_size=cycle_size,
-                    generation_strategy="constructed_off_diagonal",
-                    cost_tables=tables,
-                    classification=cls,
-                ))
+                examples.append(
+                    _format_example_result(
+                        case_name=CASE_INCONSISTENT_NO_TAIL,
+                        seed=seed,
+                        attempt=1,
+                        cycle_size=cycle_size,
+                        generation_strategy="constructed_off_diagonal",
+                        cost_tables=tables,
+                        classification=cls,
+                    )
+                )
 
         seed += 1
 
@@ -635,7 +672,9 @@ def run_belief_trace_cycle(
                 if key not in records:
                     records[key] = []
                     first[key] = current
-                records[key].append(current - first[key] if subtract_initial else current)
+                records[key].append(
+                    current - first[key] if subtract_initial else current
+                )
 
     return records
 
@@ -662,17 +701,21 @@ def run_belief_trace(
     )
 
 
-def _canonical_key_order_for_case(case_name: str, *, cycle_size: int = 3, domain: int = 2) -> List[str]:
+def _canonical_key_order_for_case(
+    case_name: str, *, cycle_size: int = 3, domain: int = 2
+) -> List[str]:
     _require_valid_case_name(case_name)
     if case_name in {CASE_CONSISTENT_NO_TAIL, CASE_CONSISTENT_WITH_TAIL}:
-        return [f"x{i+1}_route" for i in range(cycle_size)]
-    return [f"x{i+1}_v{value}" for value in range(domain) for i in range(cycle_size)]
+        return [f"x{i + 1}_route" for i in range(cycle_size)]
+    return [f"x{i + 1}_v{value}" for value in range(domain) for i in range(cycle_size)]
 
 
 def _extract_cost_tables(example: Mapping[str, Any]) -> CycleCostTables:
     if "cost_tables" in example:
         return _as_cycle_cost_tables(example["cost_tables"])
-    return _as_cycle_cost_tables([example["ct_f12"], example["ct_f23"], example["ct_f31"]])
+    return _as_cycle_cost_tables(
+        [example["ct_f12"], example["ct_f23"], example["ct_f31"]]
+    )
 
 
 def run_experiment_examples_cycle(
@@ -694,11 +737,13 @@ def run_experiment_examples_cycle(
         cycle_size = len(tables)
         domain = int(tables[0].shape[0])
         classification = example["classification"]
-        key_order = _canonical_key_order_for_case(case_name, cycle_size=cycle_size, domain=domain)
+        key_order = _canonical_key_order_for_case(
+            case_name, cycle_size=cycle_size, domain=domain
+        )
 
         if case_name in {CASE_CONSISTENT_NO_TAIL, CASE_CONSISTENT_WITH_TAIL}:
             route = route_assignment_from_classification(classification)
-            tracked_values = {f"x{i+1}": [int(route[i])] for i in range(cycle_size)}
+            tracked_values = {f"x{i + 1}": [int(route[i])] for i in range(cycle_size)}
             raw_records = run_belief_trace_cycle(
                 tables,
                 tracked_values=tracked_values,
@@ -708,10 +753,13 @@ def run_experiment_examples_cycle(
                 subtract_initial=subtract_initial,
             )
             canonical_records = {
-                f"x{i+1}_route": raw_records[f"x{i+1}_v{int(route[i])}"] for i in range(cycle_size)
+                f"x{i + 1}_route": raw_records[f"x{i + 1}_v{int(route[i])}"]
+                for i in range(cycle_size)
             }
         else:
-            tracked_values = {f"x{i+1}": list(range(domain)) for i in range(cycle_size)}
+            tracked_values = {
+                f"x{i + 1}": list(range(domain)) for i in range(cycle_size)
+            }
             canonical_records = run_belief_trace_cycle(
                 tables,
                 tracked_values=tracked_values,
@@ -832,7 +880,11 @@ def compute_slope_stats(
     else:
         vals = np.array(list(slopes.values()), dtype=float)
         mean_val = float(np.mean(vals))
-        spread = 0.0 if abs(mean_val) < 1e-12 else float((np.max(vals) - np.min(vals)) / abs(mean_val) * 100.0)
+        spread = (
+            0.0
+            if abs(mean_val) < 1e-12
+            else float((np.max(vals) - np.min(vals)) / abs(mean_val) * 100.0)
+        )
 
     return {
         "slopes": slopes,

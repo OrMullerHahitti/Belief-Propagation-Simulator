@@ -64,9 +64,9 @@ def build_dabp_inputs(
     # DABP only models binary factors. Unary factors (e.g. tie-break prefs) are
     # folded into one incident binary factor so the total cost is preserved.
     unary = {name: np.zeros(domain, dtype=float) for name in ordered_names}
-    base: list[list[Any]] = (
-        []
-    )  # mutable [matrix(scaled), row_name, col_name, factor_name]
+    base: list[
+        list[Any]
+    ] = []  # mutable [matrix(scaled), row_name, col_name, factor_name]
     for f in fg.factors:
         cn = getattr(f, "connection_number", {}) or {}
         if f.cost_table is None or not cn:

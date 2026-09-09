@@ -1537,9 +1537,7 @@ class SnapshotVisualizer:
         highlight_color: str,
         text_color: str,
         fmt: str,
-    ) -> Tuple[
-        np.ndarray, np.ndarray, plt.AxesImage
-    ]:  # pyright: ignore[reportPrivateImportUsage]
+    ) -> Tuple[np.ndarray, np.ndarray, plt.AxesImage]:  # pyright: ignore[reportPrivateImportUsage]
         (
             factor_name,
             record,

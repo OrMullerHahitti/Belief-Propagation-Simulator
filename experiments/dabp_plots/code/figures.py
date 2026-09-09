@@ -692,9 +692,9 @@ def _compare_weight_panels(axes_pair, runs_by_split: dict[float, list[dict]]) ->
 def fig_compare_splits_small(runs_by_split: dict[float, list[dict]], out: Path) -> None:
     splits = sorted(runs_by_split)
     seeds = [[run["seed"] for run in runs_by_split[s]] for s in splits]
-    assert all(
-        sd == seeds[0] for sd in seeds
-    ), "the two splits must cover the same seeds"
+    assert all(sd == seeds[0] for sd in seeds), (
+        "the two splits must cover the same seeds"
+    )
     final = {
         s: np.array([run["costs"][-1] for run in runs_by_split[s]]) for s in splits
     }

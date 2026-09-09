@@ -25,7 +25,9 @@ from experiments.other.non_convergence_chain.code.oscillation_detector import (
     classification_details,
 )
 from experiments.other.non_convergence_chain.code.reporting import write_outputs
-from experiments.other.non_convergence_chain.code.trace_recorder import trace_from_engine
+from experiments.other.non_convergence_chain.code.trace_recorder import (
+    trace_from_engine,
+)
 
 
 def main(argv: list[str] | None = None) -> int:

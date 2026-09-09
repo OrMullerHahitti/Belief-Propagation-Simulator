@@ -60,7 +60,9 @@ def build_butterfly_graph(seed: int) -> tuple[FactorGraph, dict]:
     return fg, {"ct_left": ct_left, "ct_right": ct_right}
 
 
-def has_belief_equality(beliefs: dict[str, np.ndarray], tol: float = BELIEF_EQ_TOL) -> bool:
+def has_belief_equality(
+    beliefs: dict[str, np.ndarray], tol: float = BELIEF_EQ_TOL
+) -> bool:
     """checks if any variable has ambiguous argmin (tied belief values)."""
     for belief in beliefs.values():
         if belief is not None and len(belief) == DOMAIN:
@@ -74,13 +76,19 @@ def run_single(fg: FactorGraph, engine_cls, engine_kwargs: dict, max_iter: int):
     engine = engine_cls(factor_graph=fg, **engine_kwargs)
     engine.run(max_iter=max_iter)
     beliefs = engine.get_beliefs()
-    converged = engine.convergence_monitor.stable_count >= engine.convergence_monitor.config.patience
+    converged = (
+        engine.convergence_monitor.stable_count
+        >= engine.convergence_monitor.config.patience
+    )
     return converged, beliefs, engine.iteration_count
 
 
 def run_experiment():
     """main Monte Carlo loop over both engines."""
-    stats = {name: {"converged": 0, "not_converged": 0, "belief_equality": 0} for name in ENGINE_CONFIGS}
+    stats = {
+        name: {"converged": 0, "not_converged": 0, "belief_equality": 0}
+        for name in ENGINE_CONFIGS
+    }
     non_converging = []
 
     for i in range(N_SAMPLES):
@@ -89,7 +97,9 @@ def run_experiment():
         for eng_name, eng_cfg in ENGINE_CONFIGS.items():
             # build a fresh graph per engine (agents carry mutable state)
             fg, cost_tables = build_butterfly_graph(seed)
-            converged, beliefs, iters = run_single(fg, eng_cfg["cls"], eng_cfg["kwargs"], MAX_ITER)
+            converged, beliefs, iters = run_single(
+                fg, eng_cfg["cls"], eng_cfg["kwargs"], MAX_ITER
+            )
 
             if has_belief_equality(beliefs):
                 stats[eng_name]["belief_equality"] += 1
@@ -99,20 +109,29 @@ def run_experiment():
                 stats[eng_name]["converged"] += 1
             else:
                 stats[eng_name]["not_converged"] += 1
-                non_converging.append({
-                    "seed": seed,
-                    "engine": eng_name,
-                    "ct_left": cost_tables["ct_left"].tolist(),
-                    "ct_right": cost_tables["ct_right"].tolist(),
-                    "iteration_count": iters,
-                    "final_beliefs": {k: v.tolist() for k, v in beliefs.items() if v is not None},
-                })
+                non_converging.append(
+                    {
+                        "seed": seed,
+                        "engine": eng_name,
+                        "ct_left": cost_tables["ct_left"].tolist(),
+                        "ct_right": cost_tables["ct_right"].tolist(),
+                        "iteration_count": iters,
+                        "final_beliefs": {
+                            k: v.tolist() for k, v in beliefs.items() if v is not None
+                        },
+                    }
+                )
 
         if (i + 1) % 1000 == 0:
             print(f"  [{i + 1}/{N_SAMPLES}]")
 
     # compute P(convergence) per engine
-    results = {"n_samples": N_SAMPLES, "max_iter": MAX_ITER, "domain": DOMAIN, "engines": {}}
+    results = {
+        "n_samples": N_SAMPLES,
+        "max_iter": MAX_ITER,
+        "domain": DOMAIN,
+        "engines": {},
+    }
     for eng_name, s in stats.items():
         effective = s["converged"] + s["not_converged"]
         p_conv = s["converged"] / effective if effective > 0 else 0.0

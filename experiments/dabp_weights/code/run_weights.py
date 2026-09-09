@@ -71,9 +71,9 @@ def run_seed(
         record_weights=True,
         snapshot_manager=CostOnlySnapshotManager(),
     )
-    assert (
-        max_iter <= engine.restart_period
-    ), "a restart inside the run would reset DABP's message state"
+    assert max_iter <= engine.restart_period, (
+        "a restart inside the run would reset DABP's message state"
+    )
 
     meta = engine.weight_metadata()
     names = list(meta["ordered_names"])

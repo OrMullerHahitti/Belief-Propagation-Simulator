@@ -89,7 +89,9 @@ class SnapshotAnalyzer:
 
         return series
 
-    def difference_coordinates(self, step_idx: int) -> tuple[
+    def difference_coordinates(
+        self, step_idx: int
+    ) -> tuple[
         Dict[tuple[str, str], float | np.ndarray],
         Dict[tuple[str, str], float | np.ndarray],
     ]:
@@ -321,7 +323,9 @@ class SnapshotAnalyzer:
 
         return domain
 
-    def _coordinate_arrays(self, step_idx: int) -> tuple[
+    def _coordinate_arrays(
+        self, step_idx: int
+    ) -> tuple[
         Dict[tuple[str, str], np.ndarray],
         Dict[tuple[str, str], np.ndarray],
         List[_Coordinate],
