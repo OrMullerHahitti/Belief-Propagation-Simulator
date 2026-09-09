@@ -183,6 +183,17 @@ class BPComputator(Computator):
         combine_func = self.combine_func
         reduce_msg = self._reduce_msg
 
+        # order the Q messages by the factor's stored axis map so that the loop
+        # index below is the variable's real dimension in the cost table. the
+        # inbox is filled in send order, which need not match the table axes
+        # (variables are sent sorted by name, so "x13" arrives before "x2")
+        factor = incoming_messages[0].recipient
+        connection = getattr(factor, "connection_number", None)
+        if connection:
+            incoming_messages = sorted(
+                incoming_messages, key=lambda m: connection[m.sender.name]
+            )
+
         b_msgs = []
         axes_cache = []
         for axis, msg in enumerate(incoming_messages):

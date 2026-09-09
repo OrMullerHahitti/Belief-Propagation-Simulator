@@ -124,3 +124,36 @@ def test_broadcast_shape_cache_returns_expected_tuple():
     shape2 = computator._get_broadcast_shape(3, 1, 4)
     assert shape1 == (1, 4, 1)
     assert shape1 is shape2  # cached tuple reused
+
+
+def test_compute_r_uses_connection_number_not_inbox_order():
+    # the engine sends variables sorted by name as strings, so "x13" reaches a
+    # factor before "x2" even when x2 owns axis 0 of the cost table. compute_R
+    # must map each Q message to its stored axis, not to its inbox position
+    var_a = VariableAgent("x2", domain=2)
+    var_b = VariableAgent("x13", domain=3)
+    factor = _make_factor("f", domain=2)
+    factor.cost_table = np.array([[0.0, 5.0, 9.0], [7.0, 1.0, 3.0]])
+    factor.connection_number = {var_a.name: 0, var_b.name: 1}
+
+    q_a = np.array([0.0, 2.0])
+    q_b = np.array([1.0, 0.0, 4.0])
+    in_axis_order = [
+        Message(q_a, sender=var_a, recipient=factor),
+        Message(q_b, sender=var_b, recipient=factor),
+    ]
+    in_inbox_order = list(reversed(in_axis_order))
+
+    computator = MinSumComputator()
+    by_recipient = {
+        msg.recipient.name: msg.data
+        for msg in computator.compute_R(factor.cost_table, in_inbox_order)
+    }
+
+    expected_to_a = (factor.cost_table + q_b[None, :]).min(axis=1)
+    expected_to_b = (factor.cost_table + q_a[:, None]).min(axis=0)
+    np.testing.assert_allclose(by_recipient["x2"], expected_to_a)
+    np.testing.assert_allclose(by_recipient["x13"], expected_to_b)
+
+    for msg in computator.compute_R(factor.cost_table, in_axis_order):
+        np.testing.assert_allclose(msg.data, by_recipient[msg.recipient.name])
