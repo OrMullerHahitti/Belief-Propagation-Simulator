@@ -86,10 +86,16 @@ the inbox in the first place).
 ### What still needs doing
 
 Every AAAI min-sum number produced before this fix came from a partly
-transposed problem, so all of them need regenerating. That rerun was running
-when this note was written and is not finished. Until it is, treat the cost
-CSVs and the plots built from them as pre-fix results, and do not compare a
-pre-fix line against a post-fix one on the same axes.
+transposed problem, so all of them need regenerating.
+
+That rerun covers `random_dense`, `random_sparse` and `scale_free`, and it was
+still running when this note was written — see
+`experiments/aaai/logs/rerun_axis_fix.log`. The **ternary benchmarks and the
+AIJ figure 5/8 examples were not part of it and are still pre-fix**.
+
+Until a benchmark has been regenerated, treat its cost CSVs and the plots built
+from them as pre-fix results, and never put a pre-fix line and a post-fix line
+on the same axes.
 
 ---
 
