@@ -1,0 +1,55 @@
+== A. one edge, values {0, 1}
+table C[X1, X2] = [[0.0, 3.0], [4.0, 1.0]],  unary X1 = [0.0, 0.6],  unary X2 = [0.5, 0.0]
+  cost(0, 0) = 0.5
+  cost(0, 1) = 3.0
+  cost(1, 0) = 5.1
+  cost(1, 1) = 1.6
+optimum: (0, 0) with cost 0.5
+-- plain min-sum
+   t   Q(X1->X2)          Q(X2->X1)          belief X1          belief X2      decoded  committed arcs
+   0   [0. 0.]   [0. 0.]   [0.  1.6]   [0.  0.5]   (0, 0)   [False, False]
+   1   [0.  0.6]   [0.5 0. ]   [0.  1.1]   [0.  1.1]   (0, 0)   [False, False]
+   2   [0.  0.6]   [0.5 0. ]   [0.  1.1]   [0.  1.1]   (0, 0)   [False, False]
+   3   [0.  0.6]   [0.5 0. ]   [0.  1.1]   [0.  1.1]   (0, 0)   [False, False]
+   4   [0.  0.6]   [0.5 0. ]   [0.  1.1]   [0.  1.1]   (0, 0)   [False, False]
+   5   [0.  0.6]   [0.5 0. ]   [0.  1.1]   [0.  1.1]   (0, 0)   [False, False]
+   6   [0.  0.6]   [0.5 0. ]   [0.  1.1]   [0.  1.1]   (0, 0)   [False, False]
+   7   [0.  0.6]   [0.5 0. ]   [0.  1.1]   [0.  1.1]   (0, 0)   [False, False]
+-- split (Q = cavity + belief)
+   t   Q(X1->X2)          Q(X2->X1)          belief X1          belief X2      decoded  committed arcs
+   0   [0. 0.]   [0. 0.]   [0.  1.6]   [0.  0.5]   (0, 0)   [False, False]
+   1   [0.  2.2]   [0. 0.]   [0.  1.6]   [0.  2.5]   (0, 0)   [True, False]
+   2   [0.  2.2]   [0. 2.]   [0.  3.6]   [0.  2.5]   (0, 0)   [True, False]
+   3   [0.  4.2]   [0. 2.]   [0.  3.6]   [0.  2.5]   (0, 0)   [True, False]
+   4   [0.  4.2]   [0. 2.]   [0.  3.6]   [0.  2.5]   (0, 0)   [True, False]
+   5   [0.  4.2]   [0. 2.]   [0.  3.6]   [0.  2.5]   (0, 0)   [True, False]
+   6   [0.  4.2]   [0. 2.]   [0.  3.6]   [0.  2.5]   (0, 0)   [True, False]
+   7   [0.  4.2]   [0. 2.]   [0.  3.6]   [0.  2.5]   (0, 0)   [True, False]
+-- split, damping 0.5
+   t   Q(X1->X2)          Q(X2->X1)          belief X1          belief X2      decoded  committed arcs
+   0   [0. 0.]   [0. 0.]   [0.  1.6]   [0.  0.5]   (0, 0)   [False, False]
+   1   [0.  1.1]   [0. 0.]   [0.  1.6]   [0.  1.6]   (0, 0)   [False, False]
+   2   [0.   1.65]   [0.   0.55]   [0.   2.15]   [0.   2.15]   (0, 0)   [False, False]
+   3   [0.  2.2]   [0.  1.1]   [0.  2.7]   [0.  2.5]   (0, 0)   [True, False]
+   4   [0.   2.75]   [0.   1.55]   [0.   3.15]   [0.  2.5]   (0, 0)   [True, False]
+   5   [0.   3.25]   [0.    1.775]   [0.    3.375]   [0.  2.5]   (0, 0)   [True, False]
+   6   [0.    3.612]   [0.    1.887]   [0.    3.488]   [0.  2.5]   (0, 0)   [True, False]
+   7   [0.   3.85]   [0.    1.944]   [0.    3.544]   [0.  2.5]   (0, 0)   [True, False]
+
+== B. triangle X1 - X2 - X3 - X1 of 'be different' constraints, values {0, 1}
+every edge: C = [[10.0, 0.0], [0.0, 10.0]] (10 if equal, 0 if different); tiny random unaries for tie breaking
+any assignment violates at least one edge (odd cycle): best cost 10, e.g. (0, 0, 1); worst cost 30: (0, 0, 0) or (1, 1, 1)
+-- plain min-sum: decoded assignment per iteration
+   010 010 010 101 101 101 010 010 010 101 101 101 010 010 010 101 101 101 010 010
+   010 101 101 101 010 010 010 101 101 101 010 010 010 101 101 101 010 010 010 101
+   costs of the last two: 10.0, 10.0;  committed arcs at the end: 0.00
+-- split, no damping: decoded assignment per iteration
+   010 110 010 111 000 111 000 111 000 111 000 111 000 111 000 111 000 111 000 111
+   000 111 000 111 000 111 000 111 000 111 000 111 000 111 000 111 000 111 000 111
+   costs of the last two: 30.0, 30.0;  committed arcs at the end: 1.00
+-- split, damping 0.9: decoded assignment per iteration
+   010 010 010 010 010 010 010 010 010 010 010 010 010 010 010 010 010 010 101 101
+   101 101 101 101 101 101 101 101 101 101 101 101 101 101 101 101 101 101 101 101
+   costs of the last two: 10.0, 10.0;  committed arcs at the end: 0.00
+cost_2(000, 111) = 0.0: the alternation between the two layers satisfies every edge of the double cover,
+while each layer on its own costs 30. no re-phasing of the layers is a single assignment (the triangle is not bipartite).

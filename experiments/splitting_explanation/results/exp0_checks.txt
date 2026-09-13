@@ -1,0 +1,87 @@
+== (a) reduction identity: SCFG(0.5) vs Q = cavity + belief on the original graph
+  random dense n=30    lam=0.0  max |belief diff| = 2.09e-08  assignment mismatches = 0
+  random dense n=30    lam=0.5  max |belief diff| = 4.26e-11  assignment mismatches = 0
+  random dense n=30    lam=0.9  max |belief diff| = 2.06e-11  assignment mismatches = 0
+  random sparse n=50   lam=0.0  max |belief diff| = 1.16e-10  assignment mismatches = 0
+  random sparse n=50   lam=0.5  max |belief diff| = 1.28e-12  assignment mismatches = 0
+  random sparse n=50   lam=0.9  max |belief diff| = 3.69e-13  assignment mismatches = 0
+  coloring n=40        lam=0.0  max |belief diff| = 1.78e-15  assignment mismatches = 0
+  coloring n=40        lam=0.5  max |belief diff| = 1.18e-09  assignment mismatches = 0
+  coloring n=40        lam=0.9  max |belief diff| = 4.41e-13  assignment mismatches = 0
+  bipartite 20+20      lam=0.0  max |belief diff| = 2.20e-10  assignment mismatches = 0
+  bipartite 20+20      lam=0.5  max |belief diff| = 4.38e-12  assignment mismatches = 0
+  bipartite 20+20      lam=0.9  max |belief diff| = 2.27e-13  assignment mismatches = 0
+  -> worst belief difference over all cases: 2.09e-08
+== (b) propflow cross-check on a float-table instance (assignment agreement per iteration)
+  MS                               agreement = 1.0000
+  MS + split                       agreement = 1.0000
+  DMS                              agreement = 1.0000
+  DMS + split                      agreement = 1.0000
+  DMS, split at 10 (transfer)      agreement = 1.0000
+  -> minimum agreement: 1.0000
+== (c) recorded AAAI cost curves (data_cuda) vs the fast engine in exact-propflow mode
+  random_dense       seed=0 MS                mismatching iterations=   0/2000  first=none  final fast=107360.3 csv=107360.3
+  random_dense       seed=0 MS_split_0.5      mismatching iterations=   0/2000  first=none  final fast=106198.3 csv=106198.3
+  random_dense       seed=0 DMS_split_0.5     mismatching iterations=   0/2000  first=none  final fast=98762.3 csv=98762.3
+  random_dense       seed=0 DMS_split_at_100  mismatching iterations=1989/2000  first=   3  final fast=99106.3 csv=98018.3
+  random_dense       seed=0 DMS_split_at_1000 mismatching iterations=1989/2000  first=   3  final fast=98448.2 csv=97895.3
+  random_dense       seed=0 DMS               mismatching iterations=1989/2000  first=   3  final fast=101724.2 csv=97895.3
+  random_dense       seed=1 MS                mismatching iterations=   2/2000  first= 606  final fast=107000.2 csv=107000.2
+  random_dense       seed=1 MS_split_0.5      mismatching iterations=   0/2000  first=none  final fast=105056.3 csv=105056.3
+  random_dense       seed=1 DMS_split_0.5     mismatching iterations=   0/2000  first=none  final fast=98486.2 csv=98486.2
+  random_dense       seed=1 DMS_split_at_100  mismatching iterations=1981/2000  first=   6  final fast=97911.2 csv=97886.3
+  random_dense       seed=1 DMS_split_at_1000 mismatching iterations=1904/2000  first=   6  final fast=97708.2 csv=97632.2
+  random_dense       seed=1 DMS               mismatching iterations=1741/2000  first=   6  final fast=97737.2 csv=97828.2
+  random_sparse      seed=0 MS                mismatching iterations=   0/2000  first=none  final fast=19666.3 csv=19666.3
+  random_sparse      seed=0 MS_split_0.5      mismatching iterations=   0/2000  first=none  final fast=19769.2 csv=19769.2
+  random_sparse      seed=0 DMS_split_0.5     mismatching iterations=   0/2000  first=none  final fast=17235.2 csv=17235.2
+  random_sparse      seed=0 DMS_split_at_100  mismatching iterations=  50/2000  first=   6  final fast=17100.3 csv=17100.3
+  random_sparse      seed=0 DMS_split_at_1000 mismatching iterations=1926/2000  first=   6  final fast=17072.3 csv=17089.2
+  random_sparse      seed=0 DMS               mismatching iterations=1926/2000  first=   6  final fast=17072.3 csv=17089.2
+  random_sparse      seed=1 MS                mismatching iterations=   0/2000  first=none  final fast=15682.2 csv=15682.2
+  random_sparse      seed=1 MS_split_0.5      mismatching iterations=   0/2000  first=none  final fast=15644.3 csv=15644.3
+  random_sparse      seed=1 DMS_split_0.5     mismatching iterations=   0/2000  first=none  final fast=13787.2 csv=13787.2
+  random_sparse      seed=1 DMS_split_at_100  mismatching iterations=  54/2000  first=  28  final fast=13766.3 csv=13766.3
+  random_sparse      seed=1 DMS_split_at_1000 mismatching iterations=1944/2000  first=  28  final fast=13743.2 csv=13771.2
+  random_sparse      seed=1 DMS               mismatching iterations=1944/2000  first=  28  final fast=13743.2 csv=13933.3
+  graph_coloring     seed=0 MS                mismatching iterations=   0/2000  first=none  final fast=620.2 csv=620.2
+  graph_coloring     seed=0 MS_split_0.5      mismatching iterations=   0/2000  first=none  final fast=1100.3 csv=1100.3
+  graph_coloring     seed=0 DMS_split_0.5     mismatching iterations=   0/2000  first=none  final fast=50.2 csv=50.2
+  graph_coloring     seed=0 DMS_split_at_100  mismatching iterations=   0/2000  first=none  final fast=40.2 csv=40.2
+  graph_coloring     seed=0 DMS_split_at_1000 mismatching iterations=   0/2000  first=none  final fast=40.3 csv=40.3
+  graph_coloring     seed=0 DMS               mismatching iterations=  33/2000  first=1758  final fast=100.3 csv=100.3
+  graph_coloring     seed=1 MS                mismatching iterations=   0/2000  first=none  final fast=560.2 csv=560.2
+  graph_coloring     seed=1 MS_split_0.5      mismatching iterations=   0/2000  first=none  final fast=590.2 csv=590.2
+  graph_coloring     seed=1 DMS_split_0.5     mismatching iterations=   0/2000  first=none  final fast=40.2 csv=40.2
+  graph_coloring     seed=1 DMS_split_at_100  mismatching iterations=   0/2000  first=none  final fast=20.2 csv=20.2
+  graph_coloring     seed=1 DMS_split_at_1000 mismatching iterations=   0/2000  first=none  final fast=30.2 csv=30.2
+  graph_coloring     seed=1 DMS               mismatching iterations=   0/2000  first=none  final fast=20.2 csv=20.2
+  scale_free         seed=0 MS                mismatching iterations=1957/2000  first=  42  final fast=19076.3 csv=20640.3
+  scale_free         seed=0 MS_split_0.5      mismatching iterations=   0/2000  first=none  final fast=20202.3 csv=20202.3
+  scale_free         seed=0 DMS_split_0.5     mismatching iterations=   0/2000  first=none  final fast=16633.3 csv=16633.3
+  scale_free         seed=0 DMS_split_at_100  mismatching iterations=   0/2000  first=none  final fast=16475.2 csv=16475.2
+  scale_free         seed=0 DMS_split_at_1000 mismatching iterations=   1/2000  first= 839  final fast=16316.3 csv=16316.3
+  scale_free         seed=0 DMS               mismatching iterations=   1/2000  first= 839  final fast=16316.3 csv=16316.3
+  scale_free         seed=1 MS                mismatching iterations=1958/2000  first=  41  final fast=18919.2 csv=19818.3
+  scale_free         seed=1 MS_split_0.5      mismatching iterations= 199/2000  first=  10  final fast=17330.3 csv=17330.3
+  scale_free         seed=1 DMS_split_0.5     mismatching iterations=   0/2000  first=none  final fast=16432.2 csv=16432.2
+  scale_free         seed=1 DMS_split_at_100  mismatching iterations=   0/2000  first=none  final fast=16423.2 csv=16423.2
+  scale_free         seed=1 DMS_split_at_1000 mismatching iterations=   0/2000  first=none  final fast=16535.3 csv=16535.3
+  scale_free         seed=1 DMS               mismatching iterations= 576/2000  first=1189  final fast=17549.3 csv=18360.3
+  meeting_scheduling seed=0 MS                mismatching iterations=   0/2000  first=none  final fast=88.0 csv=88.0
+  meeting_scheduling seed=0 MS_split_0.5      mismatching iterations=2000/2000  first=   0  final fast=83.0 csv=83.0
+  meeting_scheduling seed=0 DMS_split_0.5     mismatching iterations=2000/2000  first=   0  final fast=10.1 csv=12.0
+  meeting_scheduling seed=0 DMS_split_at_100  mismatching iterations=2000/2000  first=   0  final fast=10.1 csv=10.0
+  meeting_scheduling seed=0 DMS_split_at_1000 mismatching iterations=2000/2000  first=   0  final fast=12.1 csv=11.0
+  meeting_scheduling seed=0 DMS               mismatching iterations=2000/2000  first=   0  final fast=14.1 csv=25.0
+  meeting_scheduling seed=1 MS                mismatching iterations=   0/2000  first=none  final fast=90.0 csv=90.0
+  meeting_scheduling seed=1 MS_split_0.5      mismatching iterations=2000/2000  first=   0  final fast=90.0 csv=90.0
+  meeting_scheduling seed=1 DMS_split_0.5     mismatching iterations=2000/2000  first=   0  final fast=6.1 csv=5.0
+  meeting_scheduling seed=1 DMS_split_at_100  mismatching iterations=2000/2000  first=   0  final fast=7.1 csv=5.0
+  meeting_scheduling seed=1 DMS_split_at_1000 mismatching iterations=2000/2000  first=   0  final fast=6.1 csv=7.0
+  meeting_scheduling seed=1 DMS               mismatching iterations=2000/2000  first=   0  final fast=6.1 csv=6.0
+== (d) DMS with propflow's integer truncation vs DMS in floats, 50 seeds, 2000 iterations
+  random_dense: final cost  csv DMS 99557 +- 2394   trunc 99921 +- 2663   float 99575 +- 2709
+  random_dense: best cost   trunc 99239   float 99172   paired final diff trunc-float +346 (se 281)
+  random_sparse: final cost  csv DMS 15100 +- 1461   trunc 14921 +- 1489   float 15055 +- 1567
+  random_sparse: best cost   trunc 14506   float 14505   paired final diff trunc-float -134 (se 119)
