@@ -6,6 +6,101 @@ still a guess.
 
 ---
 
+## 2026-09-13 — Why splitting makes min-sum converge, and where it ends up
+
+**Status: verified against real runs. Everything is in
+`experiments/splitting_explanation/` — `EXPLANATION_formal.md` (theorems,
+proofs, measurements), `EXPLANATION_hebrew.md` (plain-language version),
+scripts `exp0`–`exp6`, `results/`, `plots/`.**
+
+### The mechanism
+
+- The symmetric 0.5/0.5 split is exactly plain min-sum on the original graph
+  with one change in the variable rule: `Q = 2·cavity + (the R this factor sent
+  me)`. Proved (Theorem 1) and checked numerically to 2e-8. Two ingredients:
+  **doubling** (the factor sees outside evidence at twice its scale, so it needs
+  half the margin to commit to one row) and **echo** (each edge becomes a
+  two-step feedback loop).
+- The echo is what locks. On the unsplit graph, `Q = belief` (echo only) freezes
+  100% of DMS runs (median 208 iterations on random dense); `Q = 2·cavity`
+  (doubling only) freezes fewer runs than plain DMS; both together (= the split)
+  freeze 100% in a median of 62. Plain DMS: 80% in a median of 630; MS never.
+  (A run counts as frozen only if at least 100 unchanged iterations follow its
+  last assignment change; without that rule runs still moving at iteration
+  1996 counted as frozen.)
+- After the decisions lock, every committed factor is locally constant, so the
+  damped messages settle geometrically. Measured decay per iteration after the
+  freeze: 0.92–0.95 at λ=0.9, 0.58–0.61 at λ=0.5 (above λ because 5–23% of the
+  arcs stay uncommitted).
+- Large scale: with all arcs committed the decoded dynamics is synchronous best
+  response, which is alternating minimisation of `cost_2(x, y)` on the bipartite
+  double cover. Period 1 or 2. Measured: in every period-2 run each layer is
+  exactly the best response to the other.
+
+### The two bad solutions
+
+- Undamped split ends in period 2 in 159/160 random runs at all densities
+  0.05–1.0 and in 158/160 bipartite runs. The layers are unoptimised exactly on
+  edges whose two endpoints both alternate: those edges cost 151–155 (a random
+  table entry; the table mean is 149.5) against 107–132 for edges with fixed
+  endpoints. Each layer has 22–41 improving single moves out of 50 variables.
+- Density raises the share of such edges (38% at density 0.05, 66–70% at 0.8+)
+  but does not create the alternation. What makes them *bad* solutions is
+  non-bipartiteness: on bipartite graphs re-phasing the two layers gives two
+  assignments with zero improving single moves, and the better one beats the
+  damped split in 111/158 runs. The smallest example is a triangle of "be
+  different" constraints: the undamped split alternates between 000 and 111
+  (cost 30 each, the worst), because cost_2(000, 111) = 0.
+- How much damping kills the alternation depends on the tables, not the density:
+  random U[100,200) tables need λ ≥ 0.4 at every density; "be different" tables
+  (graph coloring) still alternate in 16/20 runs at λ=0.2 and 1/20 at 0.4.
+
+### Why DMS+split is slightly worse than DMS on random dense (99758 vs 99575)
+
+- Both end points are locally optimal up to three-variable moves (zero
+  improving 1-, 2- and sampled 3-path moves in every frozen run). Paired on the
+  seeds where DMS froze (40/50), the split's point is worse by 538 ± 49; where
+  DMS did not freeze it is better by 1236. DMS wins the dense mean because it
+  freezes in 80% of dense runs and only 38% of sparse ones.
+- The split locks the nearest committed point to the current message state.
+  Splitting DMS at iteration K gives 99543 (K=50) → 99296 (K=1500), always better
+  than greedy 1-opt from DMS's decoded state at K, and the later the better.
+- The Weiss–Freeman guarantee on the split graph covers only 1- and 2-variable
+  moves (every edge is a 4-cycle); on the unsplit graph it covers every
+  tree-shaped move. The measured gap sits in moves of 4+ variables (not
+  enumerated).
+
+### Practical
+
+- With the split, λ = 0.2–0.5 freezes fastest (median 17–23) and costs the same
+  as λ = 0.9 on random dense/sparse, but 3/50 dense runs never settle at λ = 0.5
+  (long-period wandering, not period 2) and on meeting scheduling 14/50 stay in
+  period 2, so 0.9 is the safe default.
+- An asymmetric split p = 0.9–0.95 freezes 95–100% of the runs in 90–180
+  iterations at a better final cost than both the symmetric split and unsplit
+  DMS (dense 99798 vs 100300 / 100004; sparse 14388 vs 14518 / 14889).
+
+### Implementation facts that matter for the AAAI numbers
+
+- `compute_R` casts Q messages to the cost table's dtype
+  (`src/propflow/bp/computators.py:200`). random_dense and random_sparse tables
+  are int64, so every unsplit factor in the recorded runs saw trunc(Q); split
+  copies are float and did not truncate. Effect on DMS over 50 seeds: +346 ± 281
+  (dense), −134 ± 119 (sparse) — not measurable.
+- With truncation and PropFlow's normalise-every-diameter schedule, the
+  vectorised engine reproduces the recorded cost curves iteration for iteration
+  (MS, MS+split, DMS+split, DMS split-at-K) on random dense/sparse and coloring.
+  Damped-and-truncated runs (DMS before any split) are not bit-reproducible: the
+  truncated value of 0.9·old + 0.1·new depends on the last float bit.
+- Undamped, un-normalised message levels grow like (degree−1)^t; PropFlow
+  reaches 1e17 in 23 iterations and decodes float noise. Normalising per step
+  (a per-message constant) fixes it and is what every cross-check does.
+- `data_cuda/meeting_scheduling_raw_costs.csv`: the DMS and split rows carry
+  integer costs (no tie-break unaries); only the MS rows match the current
+  `problems.py` builder. Still to be resolved.
+
+---
+
 ## 2026-09-08 — compute_R reads the cost-table axes in the wrong order
 
 **Status: verified, and fixed in `9c2f4c8`. The reruns are still in
