@@ -21,6 +21,13 @@ Algorithms (professor's list + plain min-sum baseline):
                                binary-menu decision is inverted before scoring
   j. MS_split_opt_200          same two assignments merged optimally (branch and
                                bound over the binary menu)
+  k. DMS_split_0.95            DMS on an SCFG with a fixed asymmetric split: the
+                               first clone holds 0.95 of every entry, the second
+                               0.05 (DABP's ratio, without the network; opt-in)
+  l. DMS_split_pulse           DMS on the symmetric SCFG with a temporary
+                               asymmetric split: 0.95/0.05 from iteration 64 to
+                               255, then back to 0.5/0.5 with all messages kept
+                               (experiments/other/aaai_derived_control; opt-in)
 
 g, h, i and j share a single engine run per instance: the "two options after 200
 iterations" are the assignments at the last two iterations before the merge
@@ -49,6 +56,8 @@ from pathlib import Path
 os.environ.setdefault("MPLBACKEND", "Agg")
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+# the split-pulse engine is kept with the experiment that introduced it
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import numpy as np
 
@@ -66,6 +75,7 @@ from engines import (
     DampingRandomSplitEngine,
     run_full_horizon,
 )
+from experiments.other.aaai_derived_control.code.pulse import SplitPulseEngine
 from merge import (
     branch_and_bound,
     invert_binary_menu_assignment,
@@ -86,6 +96,12 @@ SPLIT_AT_ITERS = (50, 100, 300, 500, 1000)
 # requested explicitly (e.g. split@1500 on the dense benchmark via run_full.sh)
 EXTRA_SPLIT_AT_ITERS = (1500,)
 HALF_DAMPING_SPLIT_LABEL = "DMS_0.5_split_0.5"
+# fixed asymmetric split (first clone 0.95, second 0.05) and the temporary
+# split pulse (0.5 -> 0.95/0.05 at iteration 64 -> 0.5 at iteration 256)
+ASYM_SPLIT = 0.95
+ASYM_SPLIT_LABEL = "DMS_split_0.95"
+PULSE_LABEL = "DMS_split_pulse"
+PULSE_START, PULSE_STOP = 64, 256
 
 SPLIT_MS_LABEL = "MS_split_0.5"
 MGM_LABEL = "MS_split_MGM_200"
@@ -137,6 +153,23 @@ def make_engine(label: str, fg, seed: int):
             split_factor=0.5,
             **_common_kwargs(),
         )
+    if label == ASYM_SPLIT_LABEL:
+        return DampingSCFGEngine(
+            factor_graph=fg,
+            damping_factor=DAMPING,
+            split_factor=ASYM_SPLIT,
+            **_common_kwargs(),
+        )
+    if label == PULSE_LABEL:
+        return SplitPulseEngine(
+            factor_graph=fg,
+            damping_factor=DAMPING,
+            split_factor=0.5,
+            pulse_start=PULSE_START,
+            pulse_stop=PULSE_STOP,
+            pulse_weight=ASYM_SPLIT,
+            **_common_kwargs(),
+        )
     if label == "DMS_split_0.4_0.6":
         return DampingRandomSplitEngine(
             factor_graph=fg,
@@ -176,7 +209,9 @@ ENGINE_LABELS = (
 )
 # extra engine columns that build a normal task but are excluded from "all"
 EXTRA_ENGINE_LABELS = [f"DMS_split_at_{k}" for k in EXTRA_SPLIT_AT_ITERS] + [
-    HALF_DAMPING_SPLIT_LABEL
+    HALF_DAMPING_SPLIT_LABEL,
+    ASYM_SPLIT_LABEL,
+    PULSE_LABEL,
 ]
 # what "--algorithms all" expands to (unchanged: no opt-in extras)
 ALL_LABELS = ENGINE_LABELS + [
@@ -467,6 +502,8 @@ def _write_metadata(
         "merge_at": args.merge_at,
         "damping": DAMPING,
         "split_at_iters": list(SPLIT_AT_ITERS),
+        "asym_split": ASYM_SPLIT,
+        "pulse": [PULSE_START, PULSE_STOP],
         "opt_time_limit_s": args.opt_time_limit,
         "algorithms": sorted(labels),
         "elapsed_s": round(elapsed, 1),
