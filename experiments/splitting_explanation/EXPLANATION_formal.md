@@ -164,28 +164,42 @@ vs 6% (447). Full tables in `results/exp1_summary.md`, figures
 `plots/exp1_<bench>_aggregate.pdf` (fraction of runs frozen, mean committed fraction, mean cost vs
 iteration) and `plots/exp1_<bench>_example.pdf` (seed 0).
 
-**Phase 2 — messages settle.** Once every arc is committed with node decisions, Lemma 3 makes every
-factor map locally constant, so the message differences obey an affine recursion with constant input;
-with damping, $\hat Q^{t+1}-Q^*=\lambda(\hat Q^t-Q^*)$: **geometric convergence at exactly rate $\lambda$**,
-and the decoded assignment has already stopped changing. On the benchmarks commitment is partial
-(77–95% of the arcs), and an uncommitted factor in a fixed regime is an affine map with slopes 0/1, so
-the damped rate is between $\lambda$ and 1. Measured (median over seeds of the per-iteration decay of the
+**Phase 2 — local message stability.** Fix a reference-label gauge and an active-minimizer pattern.
+The undamped Q-to-Q map is affine, with Jacobian $J$; old-Q damping changes its Jacobian to
+$$J_\lambda=\lambda I+(1-\lambda)J.$$
+An eigenvalue $\mu$ therefore becomes $\lambda+(1-\lambda)\mu$. A fixed point strictly inside this
+active region is locally attracting when $\rho(J_\lambda)<1$. A change of minimizing rows changes
+$J$, so one region's spectrum does not prove convergence of the complete trajectory. Likewise,
+constant assignments alone do not establish message convergence.
+
+If every arc retains the same committed row, Lemma 3 gives $J=0$ and
+$\hat Q^{t+1}-Q^*=\lambda(\hat Q^t-Q^*)$ while that pattern is retained. This yields geometric
+decay at rate $\lambda$; full commitment that alternates between rows is a different case. With
+partial commitment (77–95% of arcs in the saved benchmarks), there is no general rate bound between
+$\lambda$ and 1. The remaining dependencies can support oscillating or growing modes.
+Measured (median over seeds of the per-iteration decay of the
 largest Q change; `plots/exp1_<bench>_message_change.pdf` shows seed 0 against $0.9^t$): at $\lambda=0.9$,
 0.945 in the first 50 iterations after the freeze and 0.922 in the next 100 on dense, 0.960 then 0.924 on
-sparse, 0.947 on coloring; at $\lambda=0.5$, 0.58 (dense) and 0.61 (sparse). So
-$$\text{convergence time}\approx\text{freeze time}+\frac{\log(1/\varepsilon)}{\log(1/\lambda)},$$
-and the freeze time is set by Phase 1, not by $\lambda$.
+sparse, 0.947 on coloring; at $\lambda=0.5$, 0.58 (dense) and 0.61 (sparse). These are finite-window
+measurements, not general convergence rates. Damping can affect both entry into an active region
+and subsequent decay; the observed assignment-freeze time is not independent of $\lambda$.
 
-**Why plain min-sum does not do this.** Without the echo there is no loop that pumps margins: the min-sum
-map on message differences is piecewise linear with slopes in $\{0,\pm1\}$, i.e. non-expansive but not
-contractive, and averaging (damping) a non-expansive map leaves it non-expansive. Without doubling the
-thresholds are twice as far. Hence MS never freezes and DMS drifts for hundreds of iterations (table above).
+**Comparison with plain min-sum.** Unsplit min-sum omits the direct sibling return, but messages can
+still return through other graph cycles. Local response derivatives with entries in $\{0,\pm1\}$
+do not imply a non-expansive network map: the variable updates sum multiple responses. Its local
+stability must also be assessed through the full $J_\lambda$ and the active-region inequalities.
+The table above reports slow or absent assignment freezing on these particular dense runs; plain
+min-sum can converge on other inputs, including the single-edge example in §3.
 
-**What damping does and does not do.** Damping does not create the contraction; the split does (Lemma 3).
-Damping (a) suppresses period-2 alternation: the swing of an alternating computed sequence is multiplied
-by $\kappa(\lambda)=(1-\lambda)/(1+\lambda)$ ($1/19$ at $\lambda=0.9$; Q, `lem:ema`), a committed alternation
-persists only below a threshold $\lambda^*$ (Q, `thm:lambdastar`), and $\lambda^*\to1$ with the degree
-(Q, `prop:kn`); (b) sets the Phase-2 rate. So a smaller $\lambda$ freezes faster (median 19 at
+**What damping does and does not do.** Commitment removes local message dependencies (Lemma 3),
+while damping changes the remaining feedback modes through $J_\lambda$. It can stabilize some modes
+and alter which minimizing rows are selected, but it need not stabilize every mode or trajectory.
+For a prescribed alternating computed sequence, its asymptotic sent swing is multiplied
+by $\kappa(\lambda)=(1-\lambda)/(1+\lambda)$ ($1/19$ at $\lambda=0.9$; Q, `lem:ema`). A specified committed
+binary alternation has a persistence threshold $\lambda^*$ (Q, `thm:lambdastar`), which approaches 1
+with degree in the complete-graph counterfamily
+(Q, `prop:kn`). Destroying one pattern does not establish convergence to a fixed point. In the saved
+experiments, a smaller $\lambda$ freezes faster (median 19 at
 $\lambda=0.5$ vs 62 at $0.9$ on dense) but less reliably: 3/50 dense runs at $\lambda=0.5$ never settle
 (they wander with long or no period; none of them is period 2), against 0/50 at $\lambda=0.9$, and on meeting
 scheduling 14/50 runs stay in period 2 at $\lambda=0.5$. `exp5` sweeps $\lambda$ with and without the split
@@ -269,8 +283,12 @@ constraints (10 if equal, 0 otherwise). Every single assignment violates one edg
 pair $x=(0,0,0)$, $y=(1,1,1)$ has $\mathrm{cost}_2=0$: the double cover of a triangle is a 6-cycle, which is
 bipartite, so the alternation satisfies every edge while each layer costs 30, the worst possible.
 Undamped split min-sum goes to exactly this: `010 110 010 111 000 111 000 …` with 100% of the arcs
-committed. Plain min-sum on the same triangle never commits and cycles through cost-10 assignments;
-the damped split ($\lambda=0.9$) settles on `101`, cost 10.
+committed. Plain min-sum on the same triangle never commits and cycles through cost-10 assignments.
+The displayed damped trace ($\lambda=0.9$) contains only 40 updates and ends on `101`, with pairwise
+cost 10; this is a short trajectory, not convergence evidence. A native 20,000-update replay of the
+same fixture in the [damping-causality investigation](../other/damping_causality/README.md)
+still has assignment changes in its final tail. Damping lowers the cost here without establishing
+convergence. The costs 0, 10 and 30 in this illustration omit the tiny unary contributions.
 
 **(c) Bipartite versus not.** On a bipartite graph the two layers can be re-phased (`cor:bipartite`, Q):
 $x'$ = $x$ on side $A$, $y$ on side $B$ and $y'$ the opposite satisfy
@@ -382,9 +400,9 @@ later lock-in, which by (e) is a better one.
 |---|---|
 | Symmetric split $\equiv$ unsplit min-sum with $\tilde Q=2\,\mathrm{cav}+\tilde R_{\text{own}}$ (damping included) | P (Theorem 1), M (exp0 a) |
 | Commitment criterion; doubling halves the required margin | P (Lemma 2) |
-| Committed factors are locally constant; damped messages then settle at rate $\lambda$ (exactly under full commitment) | P (Lemma 3, §4), M (exp1: 0.92–0.95 at $\lambda=0.9$, 0.58–0.61 at $0.5$, commitment 77–95%) |
+| Fixed committed rows give $J=0$ and decay at rate $\lambda$ while retained; otherwise assess $J_\lambda=\lambda I+(1-\lambda)J$ and branch inequalities | P (Lemma 3, §4); exp1 decay estimates are finite-window measurements |
 | The echo pumps each edge's margin by $\ge2|d|$ per round trip and locks it, robust to bounded perturbation | Q (`lem:drift`, `thm:dyncvg`; one binary edge) |
-| Freeze time set by commitment, not by $n$ or $\lambda$; MS never freezes, DMS slowly | M (exp1) |
+| The saved dense runs freeze faster with splitting and damping; timing and reliability depend on $\lambda$ and the instance | M (exp1, exp5); not a general convergence theorem |
 | Under full commitment the decoded dynamics is synchronous best response = alternating minimisation of $\mathrm{cost}_2$ on the double cover; period 1 or 2 | Q (`cor:rule`, `thm:tworoutes`), P (reformulation), M (exp3) |
 | Period-2 layers are unoptimised exactly on class-2 edges; bipartite graphs re-phase, non-bipartite do not | P (§6a), Q (`cor:bipartite`), M (exp3) |
 | Split fixed points are guaranteed optimal only for 1-/2-variable moves (SLT of the split graph), DMS's for every tree-shaped move on $G$; measured: neither has improving 1-, 2- or 3-path moves, and where DMS freezes its point is better by 0.5% | P (§6e) + Weiss–Freeman, M (exp4) |

@@ -3,10 +3,11 @@
 A. one edge, two values: plain min-sum is exact on a tree and stops after one step; the split adds
    the echo (a two-step loop on the edge) and the doubling, and the messages keep moving until the
    edge locks on one row of the table.
-B. a triangle of "be different" constraints (an odd cycle): the split's decision dynamics is
-   synchronous best response; without damping it alternates between 000 and 111 (each the worst
-   possible assignment) while the alternation itself has cost 0 on the bipartite double cover;
-   with damping it settles on a proper 1-opt assignment.
+B. a triangle of "be different" constraints (an odd cycle): without damping the split alternates
+   between 000 and 111, each with pairwise cost 30, while their cross-time pairwise cost is 0.
+   the damped 40-update trace ends on a cost-10 assignment but is not convergence evidence:
+   the native 20,000-update replay in experiments/other/damping_causality still changes assignments
+   in its final tail. tiny unary contributions are included by the code but rounded in the output.
 output: results/examples_tiny.txt
 """
 
@@ -60,7 +61,7 @@ for label, kw in (
             f"   {t}   {q[0]}   {q[1]}   {b[0]}   {b[1]}   {tuple(int(v) for v in e.assignment())}   {e.commit_mask().tolist()}"
         )
 
-# -- B: triangle -------------------------------------------------------------------------------
+# -- B: triangle; a short trace, not a convergence test -----------------------------------------
 say()
 say("== B. triangle X1 - X2 - X3 - X1 of 'be different' constraints, values {0, 1}")
 D = np.array([[10.0, 0.0], [0.0, 10.0]])
