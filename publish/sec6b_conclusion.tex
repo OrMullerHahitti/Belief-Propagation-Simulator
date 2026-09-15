@@ -1,0 +1,32 @@
+\section{Conclusion}
+\label{sec:conclusion}
+We asked why splitting a function-node, which leaves the objective unchanged,
+changes what Min-sum does.  On a single split binary function-node the answer
+is exact: the two copies exchange messages through a short loop, the loop
+absorbs the unary influence of the rest of the graph, and the variables commit
+to one assignment within a few iterations (Section~\ref{sec:setting}).
+Without damping this commitment is too fast.  Under the selection recursion,
+which we verified on every audited instance, the run either converges or
+alternates between exactly two coherent solutions, and on bipartite graphs a
+rephasing turns the alternation into a fixed point
+(Section~\ref{sec:tworoutes}).
+Damping above an instance-dependent threshold removes the alternation, and
+no problem-independent threshold exists (Section~\ref{sec:whydamping}).
+Selecting between the two branches with standard local search recovers most
+of the gap to the damped algorithm, which confirms the two-solution reading
+but does not replace damping.
+
+Empirically, splitting plus damping is what makes damped Min-sum settle.  On
+the random families it reaches the same final cost as damped Min-sum alone
+but settles about ten times earlier, and on the structured benchmarks it also
+lowers the final cost.  Delaying the split is the best distributed variant on
+every family; with held-out selection of the delay its gain over immediate
+splitting is established on random dense and scale-free graphs.  The learned
+solver DABP remains better by $0.1$--$0.2\%$ on random dense and sparse
+graphs, at the price of centralized execution.
+
+Two questions remain open.  The selection recursion is verified, not proved,
+and a proof would turn the two-solution theorem into an unconditional
+statement about Min-sum on split graphs.  The split ratio and the split time
+are the only two parameters of the method; both were fixed by hand here, and
+choosing them from the messages themselves is the natural next step.
