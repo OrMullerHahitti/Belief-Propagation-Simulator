@@ -15,4 +15,27 @@ For the case of a single cycle factor graph,~\citet{ForneyKMT2001} prove that th
 On the lemniscate SCFG of Figure~\ref{Fig:scfg}, MS converges to a period-2 oscillation between two \emph{solutions}: the optimal solution, whose cost is 130, and a disjoint alternative solution with cost 132. The variable-nodes visit the two solutions out of phase --- in iterations in which $X_1$ and $X_3$ take the value assignments of the optimal solution, $X_2$ takes the value assignment of the alternative solution, and vice versa --- so the decoded joint assignments have costs 300 and 1200.
 \end{observation}
 \noindent This explains why neither of the two good solutions appears in the reported results: the nodes are not synchronized in their oscillation between them. (A BCT view of the same phenomenon --- the alternating structure of the bottom layers of the middle variable's backtrack cost tree --- is consistent with this observation, but the general account is given in Section~\ref{sec:tworoutes}: once the split function-nodes commit, the decoded assignments follow a synchronous local selection rule whose only limit behaviors are convergence and an alternation between exactly two solutions, and the out-of-phase structure of Observation~\ref{obs:lemniscate} is precisely the bipartite rephasing of Corollary~\ref{cor:bipartite}, under which the two interleaved snapshots of costs 300 and 1200 carry two locally optimal solutions of costs 130 and 132.)
-Building on Observation~\ref{obs:lemniscate}, we propose two versions of the algorithm that exploit the two-branch structure of the oscillation. Given a factor graph, we generate its SCFG and perform 200 MS iterations. We take the assignments selected by the algorithm at iterations 198 and 199 --- the two branches of the (empirically period-2) oscillation --- and generate a new problem that includes in the domain of each variable only these two values. We then use either MGM~\cite{MaheswaranTBPV04} or SyncBB~\cite{HirayamaY97} to select a solution of this reduced problem. As the experiments in Section~\ref{Sec:experiments} show, the improvement in the quality of the selected solutions, relative to the raw MS-SCFG output, is dramatic and statistically significant on every benchmark (Table~\ref{tab:merge}); as expected, however, these undamped variants do not match the split-damped algorithms on the structured benchmarks (cf.\ Table~\ref{tab:final_costs}).
+\paragraph{Reading the two branches.}
+Observation~\ref{obs:lemniscate} suggests a diagnostic.  If the raw
+snapshots of an oscillating MS-SCFG run are two locally optimal solutions
+read out of phase, then restricting every variable to the two values it
+alternates between --- its \emph{binary menu} --- should contain an
+assignment far better than either snapshot, and the way the values are
+chosen from the menus should matter.  Section~\ref{Sec:experiments} tests
+this: we run MS on the SCFG for 200 iterations, take the assignments
+selected at iterations 198 and 199, and choose within the menus either
+with MGM~\cite{MaheswaranTBPV04} or exactly, by branch and
+bound~\cite{HirayamaY97}.  On every benchmark the chosen assignment is
+dramatically better than the raw oscillation, and inverting every
+disagreement decision of the MGM choice is significantly worse
+(Table~\ref{tab:merge}) --- though still far better than the raw
+snapshots, as Corollary~\ref{cor:bipartite} leads one to expect when both
+rephasings of the pair are locally optimal.  The reading also has a
+limit.  The menus are only as good as the two branches, and on every
+benchmark the best choice within them falls short of the split-damped
+algorithms of Table~\ref{tab:final_costs}, which resolve the alternation
+inside the message passing rather than after it.  We therefore use the
+menu selection as evidence for the structure analyzed next, not as a
+solver: Section~\ref{sec:tworoutes} explains why the alternation is
+between exactly two solutions, and Section~\ref{sec:whydamping} why
+damping removes it.
