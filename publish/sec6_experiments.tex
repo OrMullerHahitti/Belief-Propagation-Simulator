@@ -137,80 +137,69 @@ code.}
 \label{tab:final_costs}
 \scriptsize
 \setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{lrrrrrrrrrr}
+\begin{tabular}{lrrrrrrrr}
 \toprule
 \textbf{Problem}
 & \textbf{MS}
 & \textbf{DMS}
-& \textbf{MS-SCFG}
 & \textbf{DMS-SCFG}
 & \textbf{DMS-SCFG s=.95}
 & \textbf{DMS-SCFG pulse}
 & \textbf{DMS-SCFG @1000}
 & \textbf{DABP}
-& \textbf{DABP-NoSplit}
-& \textbf{DABP-SymSplit} \\
+& \textbf{DABP-NoSplit} \\
 \midrule
 Graph coloring
 & $666.19$
 & $138.81$
-& $668.61$
 & $34.42$
 & $42.43$
 & $\mathbf{27.23}$
 & $31.63$
 & $39.24$
-& $136.41$
-& $35.02$ \\
+& $136.41$ \\
 Meeting scheduling
 & $87.77$
 & $20.70$
-& $81.80$
 & $8.10$
 & $13.16$
 & $8.14$
 & $\mathbf{8.04}$
 & $27.22$
-& $24.00$
-& $30.15$ \\
+& $24.00$ \\
 Random dense
 & $107935.73$
 & $99557.33$
-& $107196.39$
 & $99758.48$
 & $99324.38$
 & $99409.53$
 & $99445.15$
 & $\mathbf{99223.68}$
-& $100309.79$
-& $99665.79$ \\
+& $100309.79$ \\
 Random sparse
 & $17204.93$
 & $15100.29$
-& $17073.27$
 & $14633.43$
 & $14522.63$
 & $14539.99$
 & $14554.99$
 & $\mathbf{14519.01}$
-& $15108.47$
-& $14631.11$ \\
+& $15108.47$ \\
 Scale-free
 & $19630.55$
 & $17079.39$
-& $19291.73$
 & $16761.71$
 & $16637.29$
 & $16658.59$
 & $16636.74$
 & $\mathbf{16628.46}$
-& $17088.25$
-& $16771.71$ \\
+& $17088.25$ \\
 \bottomrule
 \end{tabular}
 \end{table*}
 Splitting alone is not sufficient.  MS-SCFG remains close to MS on every
-benchmark, and its selected assignment rarely settles: the cost is
+benchmark (its final costs are in Table~\ref{tab:merge}), and its selected
+assignment rarely settles: the cost is
 constant over the final $100$ iterations in at most $6$ of $50$ runs on
 any benchmark, and in none on the random families.  This
 is the oscillation analyzed in Sections~\ref{Sec:MS-split}
@@ -367,7 +356,9 @@ splitting, DABP, DABP-NoSplit, and DABP-SymSplit after the early transient.}
 The DABP-SymSplit line has a specific interpretation.  It keeps the DABP
 architecture and online learning procedure fixed, but replaces the $0.95/0.05$
 split with a symmetric $0.5/0.5$ split.  Thus it isolates the effect of the split
-ratio.
+ratio.  Its mean final costs are $35.02$ on graph coloring, $30.15$ on
+meeting scheduling, $99665.79$ on random dense, $14631.11$ on random
+sparse, and $16771.71$ on scale-free graphs.
 The $0.95/0.05$ split is significantly better than the symmetric split on the
 three unstructured families (random sparse, random dense, and scale-free;
 Wilcoxon $p < 10^{-8}$ in each case), while on the two structured benchmarks
