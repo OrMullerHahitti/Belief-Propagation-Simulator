@@ -207,7 +207,7 @@ untouched. They now carry the section instead of the merge.
 - Table 1 has the post-fix numbers, the fixed K = 1000 column, and two new
   columns for the fixed 0.95 split and the pulse (numbers fill in tonight).
   Ten numeric columns do not fit: in tonight's substitute two-column build the
-  table overflows the text width by 139 pt (about two inches). Two columns
+  filled table overflows the text width by 115 pt (about an inch and a half). Two columns
   have to go; my suggestion is MS-SCFG (it already appears in the merge table)
   and DABP-SymSplit (one sentence in the DABP paragraph). Both new lines earn
   their columns (Section 6).
@@ -221,14 +221,14 @@ untouched. They now carry the section instead of the merge.
 - The merge subsection became "Selecting within the Two-Branch Menus", with the
   inverted selection and DMS-SCFG added to its table and the interpretation
   rewritten as a diagnostic.
-- Discussion and Limitations updated: DABP better on dense and sparse graphs
-  by 0.1 to 0.2 percent, tied on scale-free; delayed split gain established out
-  of sample on two families.
+- Discussion and Limitations updated: DABP ahead only on dense graphs (by
+  0.1 percent against the fixed 0.95 split), tied on sparse and scale-free;
+  delayed split gain established out of sample on two families.
 - Algorithm list: the two new split variants described; the pulse schedule is
   stated as fixed in advance on seeds 6000 to 6031.
 
-Remaining placeholders in the text are marked `\todofill{}` (twelve of them,
-all waiting for tonight's numbers).
+No placeholders remain in the text. The substitute build passes with the
+filled table; Table 1 still overflows the text width, now by 115 pt.
 
 ## 6. New experiments
 
@@ -299,8 +299,8 @@ did not beat fixed schedules on Sept 15), and DABP reruns (unaffected).
 ## 7. Plan for the three weeks
 
 Week 1 (by Sept 22)
-- Fill the twelve placeholders from tonight's runs; rerun the analysis scripts
-  (done automatically at the end of the tmux job). Half a day.
+- Done tonight: the twelve placeholders are filled from the 50-instance runs
+  and the analysis scripts were rerun.
 - Regenerate the paper plots with the two new lines, copy them into
   `publish/plots/` (the copies there are still the July placeholders), and
   recompile with the AAAI kit to see the page count. One day.
