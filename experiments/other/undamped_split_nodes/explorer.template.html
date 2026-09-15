@@ -1,0 +1,134 @@
+<div id="undamped-split-explorer">
+  <h3>Verdicts under equal splitting, zero damping</h3>
+  <div class="viz-controls">
+    <label class="form-label">Saved graph<select class="form-select" id="us-graph"><option value="random_sparse">Sparse · 125 edges</option><option value="random_dense">Dense · 697 edges</option></select></label>
+    <label class="form-label">Variable<select class="form-select" id="us-node"></select></label>
+  </div>
+  <div id="us-summary" class="text-small" aria-live="polite"></div>
+  <div id="us-map"></div>
+  <div class="viz-row text-small"><span>● Alternating verdict</span><span>□ Fixed verdict</span></div>
+  <div id="us-metrics" class="table-responsive"></div>
+  <div class="viz-controls">
+    <label class="form-label">Trace window<select class="form-select" id="us-window"><option value="early">Updates 1–60</option><option value="late">Updates 1981–2000</option></select></label>
+  </div>
+  <h3 id="us-belief-title">Full belief</h3>
+  <div id="us-belief"></div>
+  <div id="us-belief-legend" class="viz-row text-small"></div>
+  <div id="us-factor-panel">
+    <div class="viz-controls"><label class="form-label">Original factor / neighbor<select class="form-select" id="us-factor"></select></label></div>
+    <h3 id="us-cavity-title">Belief and cavity gaps</h3>
+    <div id="us-cavity"></div>
+    <div id="us-cavity-legend" class="viz-row text-small"></div>
+    <details open><summary id="us-table-title">Original cost table · each clone receives half</summary><div class="table-responsive" id="us-cost-table"></div></details>
+  </div>
+  <div id="us-no-detail" class="text-small" hidden></div>
+  <div id="us-tooltip" class="tooltip" role="tooltip" hidden></div>
+</div>
+<style>
+#undamped-split-explorer { position: relative; }
+#undamped-split-explorer .us-chart { display: block; width: 100%; overflow: visible; }
+#undamped-split-explorer .us-chart text { fill: var(--foreground); font-size: 12px; }
+#undamped-split-explorer .us-chart .domain, #undamped-split-explorer .us-chart .tick line { stroke: var(--border); }
+#undamped-split-explorer .us-series-button { color: var(--foreground); background: transparent; border: none; padding: 0; cursor: pointer; }
+#undamped-split-explorer .us-swatch { display: inline-block; width: 15px; margin-right: 5px; border-top: 2px solid; vertical-align: middle; }
+#undamped-split-explorer #us-tooltip { position: absolute; pointer-events: none; z-index: 3; background: var(--popover); color: var(--popover-foreground); }
+#undamped-split-explorer .us-highlight { background: color-mix(in srgb, var(--viz-series-1) 12%, transparent); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script>
+(() => {
+const root = document.getElementById('undamped-split-explorer');
+const data = __DATA__;
+const el = id => root.querySelector('#'+id);
+const graphSelect=el('us-graph'), nodeSelect=el('us-node'), windowSelect=el('us-window'), factorSelect=el('us-factor');
+const hidden = {belief:new Set(), cavity:new Set()};
+const colors = Array.from({length:6},(_,i)=>`var(--viz-series-${i+1})`);
+const fmt = d3.format('.2f');
+function current(){const graph=data[graphSelect.value]; const i=Number(nodeSelect.value); return {graph, i, node:graph.nodes[i], detail:graph.details[graph.nodes[i].variable]};}
+function chooseGraph(){
+ const g=data[graphSelect.value];
+ nodeSelect.replaceChildren(...g.nodes.map((n,i)=>new Option(`${n.variable} · ${n.unsettled?n.phase_A+' ↔ '+n.phase_B:'fixed '+n.phase_A}${g.details[n.variable]?' · detailed':''}`,i)));
+ nodeSelect.value=graphSelect.value==='random_sparse'?'27':'40'; chooseNode();
+}
+function chooseNode(){
+ const {node,detail}=current();
+ hidden.belief.clear(); hidden.cavity.clear();
+ el('us-factor-panel').hidden=!detail; el('us-no-detail').hidden=!!detail;
+ if(detail){
+   factorSelect.replaceChildren(...detail.factors.map((f,i)=>new Option(`${f.name} / ${f.neighbor}`,i)));
+   const ranked=detail.factors.map((f,i)=>[Math.abs(f.gap.at(-1)-f.gap.at(-2)),i]).sort((a,b)=>b[0]-a[0]); factorSelect.value=ranked[0][1];
+ } else el('us-no-detail').textContent=`Detailed factor traces: ${Object.keys(current().graph.details).join(', ')}.`;
+ el('us-belief-title').textContent=`${node.variable}: all 10 belief values`;
+ render();
+}
+function drawMap(){
+ const {graph:g,i,node}=current(), box=el('us-map'), w=box.clientWidth, h=Math.max(290,Math.min(410,w*.57));
+ box.replaceChildren(); const svg=d3.select(box).append('svg').attr('class','us-chart').attr('viewBox',`0 0 ${w} ${h}`).attr('role','img').attr('aria-label','Original variable graph. Circles alternate; squares retain one verdict.');
+ const x=d3.scaleLinear().domain(d3.extent(g.nodes,n=>n.position[0])).range([24,w-24]);
+ const y=d3.scaleLinear().domain(d3.extent(g.nodes,n=>n.position[1])).range([24,h-24]);
+ const points=g.nodes.map(n=>[x(n.position[0]),y(n.position[1])]);
+ svg.append('g').selectAll('line').data(g.edges).join('line').attr('x1',e=>points[e[0]][0]).attr('y1',e=>points[e[0]][1]).attr('x2',e=>points[e[1]][0]).attr('y2',e=>points[e[1]][1]).attr('stroke','var(--border)').attr('stroke-width',1).attr('opacity',e=>e.includes(i)?.9:.28);
+ const symbols=d3.symbol();
+ svg.append('g').selectAll('path').data(g.nodes).join('path').attr('d',n=>symbols.type(n.unsettled?d3.symbolCircle:d3.symbolSquare).size(100)()).attr('transform',(n,j)=>`translate(${points[j]})`).attr('fill',n=>n.unsettled?colors[0]:colors[1]).attr('fill-opacity',(n,j)=>j===i?1:.48);
+ svg.append('text').attr('x',points[i][0]).attr('y',points[i][1]-13).attr('text-anchor','middle').text(node.variable);
+ const overlay=svg.append('rect').attr('width',w).attr('height',h).attr('fill','transparent').attr('data-chart-hit','');
+ overlay.on('click',event=>{const [px,py]=d3.pointer(event);const nearest=d3.leastIndex(points,p=>Math.hypot(p[0]-px,p[1]-py));nodeSelect.value=nearest;chooseNode();});
+ el('us-summary').textContent=`${g.nodes.filter(n=>n.unsettled).length}/50 alternate · one unsettled component · ${g.component.edges} internal edges · ${g.component.cut_edges} boundary edges`;
+ const metrics=[['Verdict',node.unsettled?`${node.phase_A} ↔ ${node.phase_B}`:`fixed ${node.phase_A}`],['Degree',node.degree],['Betweenness',node.betweenness.toFixed(5)],['Core',node.core],['Clustering',node.clustering.toFixed(3)],['Unsettled neighbors',node.unsettled_neighbors],['Belief span',fmt(node.belief_span)],['Minimum margin',fmt(node.min_margin)]];
+ el('us-metrics').innerHTML=`<table class="table table-sm"><caption>${node.variable} · original graph metrics</caption><tbody>${Array.from({length:4},(_,j)=>`<tr><th scope="row">${metrics[j][0]}</th><td>${metrics[j][1]}</td><th scope="row">${metrics[j+4][0]}</th><td>${metrics[j+4][1]}</td></tr>`).join('')}</tbody></table>`;
+}
+function chart(target,legendTarget,series,titleY,key){
+ const box=el(target), width=box.clientWidth, height=285, margin={left:72,right:18,top:14,bottom:56};box.replaceChildren();
+ const svg=d3.select(box).append('svg').attr('class','us-chart').attr('viewBox',`0 0 ${width} ${height}`).attr('role','img').attr('aria-label',titleY+' across completed updates');
+ const visible=series.filter(s=>!hidden[key].has(s.name));
+ const all=series.flatMap(s=>s.points);const [xlo,xhi]=d3.extent(all,d=>d.x), [ylo,yhi]=d3.extent(all,d=>d.y);const pad=Math.max((yhi-ylo)*.08,.1);
+ const x=d3.scaleLinear().domain([xlo,xhi]).range([margin.left+3,width-margin.right-3]);
+ const y=d3.scaleLinear().domain([ylo-pad,yhi+pad]).range([height-margin.bottom-3,margin.top+3]);
+ const axisX=svg.append('g').attr('transform',`translate(0,${height-margin.bottom})`).call(d3.axisBottom(x).ticks(width<440?3:6).tickFormat(d3.format('d')));
+ svg.append('g').attr('transform',`translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('~g')));
+ svg.append('rect').attr('data-chart-frame','').attr('x',margin.left).attr('y',margin.top).attr('width',width-margin.left-margin.right).attr('height',height-margin.top-margin.bottom).attr('fill','none').attr('stroke','var(--border)');
+ svg.append('text').attr('class','axis-title').attr('data-axis','x').attr('x',(margin.left+width-margin.right)/2).attr('y',height-10).attr('text-anchor','middle').text('Completed updates');
+ svg.append('text').attr('class','axis-title').attr('data-axis','y').attr('transform',`translate(15,${(height-margin.bottom+margin.top)/2}) rotate(-90)`).attr('text-anchor','middle').text(titleY);
+ if(ylo<=0&&yhi>=0)svg.append('line').attr('x1',margin.left).attr('x2',width-margin.right).attr('y1',y(0)).attr('y2',y(0)).attr('stroke','var(--border)');
+ for(const s of visible)svg.append('path').datum(s.points).attr('d',d3.line().x(d=>x(d.x)).y(d=>y(d.y))).attr('fill','none').attr('stroke',s.color).attr('stroke-width',1.3).attr('stroke-dasharray',s.dash||null);
+ const guide=svg.append('line').attr('data-chart-hover-guide','').attr('y1',margin.top).attr('y2',height-margin.bottom).attr('stroke','var(--foreground)').attr('opacity',0);
+ const markers=svg.append('g');const tip=el('us-tooltip');
+ function hover(event){
+   const [px]=d3.pointer(event,svg.node()), xx=x.invert(Math.max(x.range()[0],Math.min(x.range()[1],px)));
+   guide.attr('x1',x(xx)).attr('x2',x(xx)).attr('opacity',.4);markers.selectAll('*').remove();
+   const rows=[];
+   for(const s of visible){
+     let j=d3.bisector(d=>d.x).center(s.points,xx); if(s.points[j].x>xx&&j>0)j--;const a=s.points[j],b=s.points[Math.min(j+1,s.points.length-1)];const yy=a.y+(b.y-a.y)*(b.x===a.x?0:(xx-a.x)/(b.x-a.x));
+     markers.append('circle').attr('data-chart-hover-marker','').attr('cx',x(xx)).attr('cy',y(yy)).attr('r',3).attr('fill',s.color);rows.push(`${s.name}: ${fmt(yy)}`);
+   }
+   tip.replaceChildren(); const strong=document.createElement('strong');strong.textContent=`Update ${xx.toFixed(1)}`;tip.append(strong);
+   rows.forEach(r=>{const div=document.createElement('div');div.textContent=r;tip.append(div);});tip.hidden=false;
+   const rr=root.getBoundingClientRect(),br=box.getBoundingClientRect();tip.style.left=Math.max(0,Math.min(width-175,px+10))+'px';tip.style.top=(br.top-rr.top+20)+'px';
+ }
+ svg.append('rect').attr('x',margin.left).attr('y',margin.top).attr('width',width-margin.left-margin.right).attr('height',height-margin.top-margin.bottom).attr('fill','transparent').attr('data-chart-hit','').attr('data-chart-hover-overlay','cross-series').on('pointermove',hover).on('click',hover).on('pointerleave',()=>{tip.hidden=true;guide.attr('opacity',0);markers.selectAll('*').remove();});
+ const legend=el(legendTarget);legend.replaceChildren();
+ series.forEach(s=>{const button=document.createElement('button');button.type='button';button.className='us-series-button';button.setAttribute('aria-pressed',String(!hidden[key].has(s.name)));button.innerHTML=`<span class="us-swatch" style="border-color:${s.color};${s.dash?'border-top-style:dashed':''}"></span>`;button.append(document.createTextNode(s.name));button.onclick=()=>{hidden[key].has(s.name)?hidden[key].delete(s.name):hidden[key].add(s.name);drawTraces();};legend.append(button);});
+ // remove optional edge ticks if measured text would collide at narrow widths
+ const ticks=axisX.selectAll('.tick text').nodes();let previous=null;ticks.forEach(t=>{const r=t.getBoundingClientRect();if(previous&&r.left<previous.right+4)t.parentNode.remove();else previous=r;});
+}
+function drawTraces(){
+ const {graph:g,i,node,detail}=current();const indices=d3.range(windowSelect.value==='early'?0:60,windowSelect.value==='early'?60:80);
+ const belief=Array.from({length:10},(_,v)=>({name:`Value ${v}`,color:colors[v%6],dash:v>=6?'4 3':'',points:indices.map(k=>({x:g.steps[k],y:g.beliefs[k][i][v]-Math.min(...g.beliefs[k][i])}))}));
+ chart('us-belief','us-belief-legend',belief,'Belief above minimum (cost)','belief');
+ if(!detail)return;
+ const factor=detail.factors[Number(factorSelect.value)], [a,b]=detail.values;
+ el('us-cavity-title').textContent=`${node.variable}: gap ${b} − ${a} · positive favors ${a}`;
+ const series=[['Full belief',k=>g.beliefs[k][i][b]-g.beliefs[k][i][a]],['Both incoming clones',k=>factor.gap[k]],['Exclude one clone',k=>g.beliefs[k][i][b]-g.beliefs[k][i][a]-factor.gap[k]/2],['Exclude both clones',k=>g.beliefs[k][i][b]-g.beliefs[k][i][a]-factor.gap[k]]].map(([name,fn],j)=>({name,color:colors[j],points:indices.map(k=>({x:g.steps[k],y:fn(k)}))}));
+ chart('us-cavity','us-cavity-legend',series,'Belief / cavity gap (cost)','cavity');
+ el('us-table-title').textContent=`${factor.name}: original cost table · each clone receives half`;
+ const table=document.createElement('table');table.className='table table-sm';
+ const cap=document.createElement('caption');cap.textContent=factor.neighbor==='unary'?`${node.variable} unary costs`:`Rows: ${node.variable} value · columns: ${factor.neighbor} value`;table.append(cap);
+ const head=document.createElement('thead');head.innerHTML='<tr><th></th>'+d3.range(10).map(v=>`<th scope="col">${v}</th>`).join('')+'</tr>';table.append(head);
+ const body=document.createElement('tbody');factor.table.forEach((row,v)=>{const tr=document.createElement('tr');tr.innerHTML=`<th scope="row">${factor.neighbor==='unary'?'Cost':v}</th>`+row.map(c=>`<td class="text-end${v===a||v===b?' us-highlight':''}">${Number.isInteger(c)?c:c.toFixed(4)}</td>`).join('');body.append(tr);});table.append(body);el('us-cost-table').replaceChildren(table);
+}
+function render(){drawMap();drawTraces();}
+graphSelect.addEventListener('change',chooseGraph);nodeSelect.addEventListener('change',chooseNode);windowSelect.addEventListener('change',drawTraces);factorSelect.addEventListener('change',()=>{hidden.cavity.clear();drawTraces();});
+let lastWidth=0;new ResizeObserver(()=>{const w=root.clientWidth;if(Math.abs(w-lastWidth)>1){lastWidth=w;render();}}).observe(root);
+chooseGraph();
+})();
+</script>
