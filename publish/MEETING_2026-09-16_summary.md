@@ -205,12 +205,10 @@ untouched. They now carry the section instead of the merge.
 ## 5. Section 6, what I changed
 
 - Table 1 has the post-fix numbers, the fixed K = 1000 column, and two new
-  columns for the fixed 0.95 split and the pulse (numbers fill in tonight).
-  Ten numeric columns do not fit: in tonight's substitute two-column build the
-  filled table overflows the text width by 115 pt (about an inch and a half). Two columns
-  have to go; my suggestion is MS-SCFG (it already appears in the merge table)
-  and DABP-SymSplit (one sentence in the DABP paragraph). Both new lines earn
-  their columns (Section 6).
+  columns for the fixed 0.95 split and the pulse. The MS-SCFG and
+  DABP-SymSplit columns were dropped so the table fits (MS-SCFG stays in the
+  merge table, the DABP-SymSplit means moved into the ablation paragraph);
+  the substitute build confirms it no longer overflows.
 - New settling table (Section 3b above) and a paragraph interpreting the
   random families as "same cost, ten times earlier".
 - Statistical significance paragraph rewritten with the post-fix p-values.
@@ -227,8 +225,8 @@ untouched. They now carry the section instead of the merge.
 - Algorithm list: the two new split variants described; the pulse schedule is
   stated as fixed in advance on seeds 6000 to 6031.
 
-No placeholders remain in the text. The substitute build passes with the
-filled table; Table 1 still overflows the text width, now by 115 pt.
+No placeholders remain in the text, and the substitute build passes with
+the eight-column Table 1 inside the text width.
 
 ## 6. New experiments
 
@@ -283,8 +281,8 @@ learned weights sit, and hurts on the structured ones, where the symmetric
 split has the strongest commitment certificate (Proposition on asymmetric
 splits, and the Sept 15 certificate result). The temporary pulse takes most
 of the random-family gain and none of the structured-family loss. Both lines
-earn a column in Table 1; my recommendation is to keep both and drop MS-SCFG
-and DABP-SymSplit to make room.
+earn a column in Table 1, and MS-SCFG and DABP-SymSplit were dropped to make
+room.
 
 Earlier evidence for these lines: the 20-instance split-ratio sweep of Sept 13
 (dense 0.95 split 99798 versus 100300 for 0.5; sparse 14388 versus 14518, on
@@ -306,7 +304,6 @@ Week 1 (by Sept 22)
   recompile with the AAAI kit to see the page count. One day.
 - Write the Conclusion section (the July review asked for it; still missing).
   Half a day.
-- Decide the Table 1 layout and whether the pulse line earns its column.
 
 Week 2 (by Sept 29)
 - Reproducibility checklist, anonymized repository, remove the placeholder
@@ -330,8 +327,8 @@ Week 3 (by Oct 6)
    times earlier" (my recommendation) versus keeping a final-cost claim, which
    the numbers no longer support on dense graphs.
 3. The two new split lines. Both earn their place (the 0.95 split on the
-   random families, the pulse on the structured ones); my recommendation is
-   to keep both in Table 1 and drop MS-SCFG and DABP-SymSplit to make room.
+   random families, the pulse on the structured ones); both are in Table 1,
+   with MS-SCFG and DABP-SymSplit dropped to make room. Confirm or revert.
 4. Whether the intro should keep "delayed split improves on most benchmarks";
    the honest version is "best distributed line on every family; the gain
    over immediate splitting is out-of-sample significant on two".
@@ -348,7 +345,6 @@ close to the real ones).
 - Three of the four bibliography files are not in `publish/` (`refs`,
   `DisCSP_refs`, `DampIns_AIJ`), so 69 citations are unresolved in the build.
   They are presumably in the Overleaf project; they need to be copied in.
-- Table 1 overflows (see Section 6 above).
 - Still to do from the July list: the anonymized repository URL (placeholder
   in the abstract's links block), the reproducibility checklist file (input
   by `main_revised.tex` but absent), stripping the `\todofill` macro, and
