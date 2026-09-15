@@ -1,0 +1,354 @@
+% ==================================================================
+\section{Effect of Splitting}\label{sec:setting}
+% ==================================================================
+In this section, we present our key insight --- an analysis of the effect of splitting on the behavior of the Min-sum algorithm and the reason it triggers convergence.
+
+\paragraph{Scope of the analysis.}
+% NEW in revision: explicit scope statement (reviewer-proofing).
+The formal results in this section concern undamped Min-sum on a single split binary function-node with two-value domains: Sections~\ref{sec:regimes}--\ref{sec:convergence} treat the isolated split cycle, and Section~\ref{sec:dynamic} models the influence of the remainder of the factor graph as a bounded, dynamically changing unary constraint. Section~\ref{sec:extensions} takes first steps toward damped updates and asymmetric splits. The role of damping in full graphs is analyzed in Sections~\ref{Sec:MS-split}--\ref{sec:whydamping}, and the instrumentation experiment of Section~\ref{sec:mechanism} measures how often the assumptions made here hold on benchmark instances.
+A note on indexing: within this section, message superscripts stamp the successive messages traveling \emph{around the split cycle} (so that consecutive messages of the same type are two stamps apart, e.g., $\Delta Q^{t-2}$ determines $\Delta R^{t}$); this differs from the two-phase iteration count of Section~\ref{secmaxsum} only by a relabeling of the time axis, and none of the results depends on the absolute stamps --- only on the traversal order of the cycle.
+
+\begin{figure}
+\centering
+\includegraphics[width=8cm]{examp.pdf}
+\vspace{-10pt}
+\caption{A factor graph with a single binary function-node converted into a split constraint factor graph with a single cycle.}
+\vspace{-5pt}
+\label{Fig:examp}
+\end{figure}
+We start by discussing the effect of splitting on the most simple case of a single binary function-node $F_{12}$ with two variable-nodes $X_1, X_2$ with two values in each of their domains  $D_i = \{a, b\}$ as depicted in Figure~\ref{Fig:examp}. Before starting the algorithm iterations, we split $F_{12}$ to $F'_{12}$ and $F^{''}_{12}$ evenly, i.e., for every entry $e$ in the cost table of $F_{12}$, $e' = e^{''} = \frac{1}{2}e$ (where $e'$ and $e^{''}$ are the entries that correspond to entry $e$ in $F'_{12}$ and $F^{''}_{12}$, respectively).
+To make the presentation more simple, we gave the following notations to the entries: $M_a$ to $F_{12}[a,a]$,  $B_a$ to $F_{12}[b,a]$, $B_b$ to $F_{12}[a,b]$, and $M_b$ to $F_{12}[b,b]$ (see Figure~\ref{Fig:examp}). We will also assume w.l.o.g.\ that $M_a < M_b < B_b < B_a$; intuitively, one may think of both $B_a$ and $B_b$ as much larger than $M_a$ and $M_b$, but only the strict order is used in the formal results.
+We further denote by $Q^t_{i} = \langle Q^t_{ia},Q^t_{ib} \rangle$ the message sent from $X_i$ to $F_{12}$ at iteration $t$ and by $R^t_{i} = \langle R^t_{ia},R^t_{ib} \rangle$ the message sent from $F'_{12}$ to $X_i$ at iteration $t$.
+We denote by $\Delta_Q$ the difference between the entries, i.e., $\Delta_Q = Q_b - Q_a$, the margin by which the value with the smaller entry is preferred. Moreover, the minimal entry in a message is the smallest among $Q_a$ and $Q_b$.
+Similar notation will be used for messages $R$.
+    For a message $R = \langle R_a, R_b \rangle$, $\Delta_R = R_b - R_a$ is the margin by which the value with the smaller entry is preferred. A variable-node $X$ changes the value implied by $R$ only if the differences it receives from its other neighbors sum, in the opposite direction, to more than $\Delta_R$, i.e., when $\underset{R' \neq R}{\sum}\Delta_{R'} < -\Delta_R$.
+\begin{observation}\label{obs:unsplit}
+In the original (un-split) factor graph, $X_2$ has a single neighbor, so $R^t_{2} = \langle M_a, M_b \rangle$ is static: $\Delta_{R^t_2} = \Delta_{R^{t'}_2} = M_b - M_a$ for all iterations $t, t'$.
+\end{observation}
+Recall that to simplify the discussion, we assumed that in our example $M_a < M_b$ and therefore in the original factor graph, $\Delta_R = M_b - M_a$ at all iterations.
+However, after the split, a feedback loop is generated that updates the content of the messages and specifically $\Delta_R$.
+In more detail, this is the sequence of messages that are passed in the first few iterations of the algorithm when solving the single cycle factor graph on the right hand side of Figure~\ref{Fig:examp}:\footnote{Since following the first iteration all messages $Q$ are equal to the messages $R$ received by the variable-node sending them in the previous iteration, we only specify the content of the $R$ messages.} $R^1_{2'} = \langle M'_a,M'_b\rangle$, $R^3_{1''} = \langle 2M'_a,2M'_b\rangle$, $R^5_{2'} = \langle 3M'_a,3M'_b\rangle$,  $R^7_{1''} = \langle 4M'_a,4M'_b\rangle$...
+Thus, $\Delta_Q$ and $\Delta_R$ grow by $M'_b - M'_a$ every two iterations. This process will continue until $\Delta_R = B'_b - M'_a$. Then, the algorithm will converge and the same messages will be sent by the nodes in the graph in all following iterations. We formally prove this in the following Lemma:
+\begin{lemma}\label{lem:singlecycle}
+    In an SCFG with a single cycle in which the entries are denoted as depicted in Figure~\ref{Fig:examp} and w.l.o.g. $M_a < M_b < B_b < B_a$, $\Delta_{R_1}$ will converge to $B'_b - M'_a$.
+\end{lemma}
+\begin{proof}
+    A variable-node in the single cycle forwards the message it received from its other neighbor, hence $\Delta^{t}_Q = \Delta^{t-1}_R$, starting from $\Delta^0_Q = 0$. As long as $M'_b + \Delta^t_Q < B'_b$, both entries of $R$ take the ``$M$'' branch, so $R_a = M'_a + Q_a$ and $R_b = M'_b + Q_b$, giving $\Delta^{t+1}_R = (M'_b - M'_a) + \Delta^t_Q$; thus $\Delta_R$ grows by $M'_b - M'_a$ every two iterations. This continues until $\Delta^t_Q \geq B'_b - M'_b$, where the $b$-entry switches to the ``$B'_b$'' branch, $R_b = B'_b + Q_a$, giving $\Delta_R = (B'_b + Q_a) - (M'_a + Q_a) = B'_b - M'_a$, independent of $Q$. Substituting back, $\Delta_Q = B'_b - M'_a$ keeps the $B'_b$ branch active (since $M'_b \geq M'_a$) and keeps $R_a$ on the $M'_a$ branch (since $2M'_a < B'_a + B'_b$), so $\Delta_R$ remains $B'_b - M'_a$: the process has converged.
+\end{proof}
+It is important to note that if $B_a < B_b$, then the algorithm would converge when $\Delta_R = B'_a - M'_a$. Thus, we will call $B_a$ and $B_b$ the bounders.
+This is the first indication of the implications of the split of a function-node. The increase of $\Delta_R$ results in a much more stable state, since the $\Delta$ of the messages that the variable-nodes $X_1$ and $X_2$ must receive to change the assignment selection implied by the $R$ messages received from $F'_{12}$ and $F^{''}_{12}$ is much larger. In other words, the algorithm generates larger differences between its minimal selection of assignments and the cost of the alternatives, triggering convergence.
+Next, we will analyze an extended scenario in which the variable-nodes in the cycle receive messages from function-nodes that are not part of the cycle.
+For each value $v$ of $X_2$, the forward update compares the two assignments of $X_1$: it adds $Q_a$ to the entry with $X_1=a$ and $Q_b$ to the entry with $X_1=b$, and keeps the smaller.  The incoming message thus shifts the cost of each assignment of $X_1$, and the minimum selects the cheaper one for every value of $X_2$.  This is what the forward min-sum update of Section~\ref{secmaxsum}, specialised to $C'$, says formally:
+\begin{equation}\label{eq:minsumR}
+    \bigl(R^t_{F_{12} \to X_2}\bigr)_v = \min_{u \in D}\bigl[C'(u, v) + (Q^{t-2}_{X_1 \to F_{12}})_u\bigr], \;\; v \in D.
+\end{equation}
+Throughout this section $C'$ denotes the split copy of the function-node, and we write $M'_a := C'(a,a)$, $B'_a := C'(b,a)$, $B'_b := C'(a,b)$, $M'_b := C'(b,b)$ for its four entries (Figure~\ref{Fig:examp}); the results below hold for arbitrary such entries. Which assignment of $X_1$ is selected for each value of $X_2$ depends only on the \emph{gap} between the two shifted entries; the absolute level of $Q$ cancels, so the analysis reduces to the message difference.
+\begin{definition}[Message differences]\label{def:deltas}
+Let
+\[
+    \begin{aligned}
+        \Delta Q^t &:= \bigl(Q^t_{X_1 \to F_{12}}\bigr)_b - \bigl(Q^t_{X_1 \to F_{12}}\bigr)_a, \\
+        \Delta R^t &:= \bigl(R^t_{F_{12} \to X_2}\bigr)_b - \bigl(R^t_{F_{12} \to X_2}\bigr)_a.
+    \end{aligned}
+\]
+\end{definition}
+\noindent The recurrence is initialised by an arbitrary real-valued message vector; equivalently, we treat the initial difference $\Delta Q^0 \in \mathbb{R}$ as a free parameter.
+As $\Delta Q$ varies, the forward step's outcome goes through three qualitatively different cases: for $\Delta Q$ very positive, $X_1=a$ is selected for both values of $X_2$; in a middle range the two values of $X_2$ select different assignments; for $\Delta Q$ very negative, $X_1=b$ is selected for both.  The switch happens separately for each value of $X_2$: each $v$ has a critical $\Delta Q$ at which its two shifted entries tie and the selected assignment of $X_1$ flips.
+\begin{definition}[Assignment margins and stability thresholds]\label{def:thresholds}
+For each value $v \in D$ of $X_2$ define the margin of assignment $X_1=a$ over $X_1=b$,
+\[
+    \Delta_v \;:=\; C'(X_1{=}a,\, X_2{=}v) - C'(X_1{=}b,\, X_2{=}v),
+\]
+so that $X_1=a$ is selected for $X_2=v$ iff $\Delta Q \geq \Delta_v$. Without loss of generality (by permuting the labels $\{a,b\}$ of $X_2$ if necessary) assume $\Delta_a \leq \Delta_b$, and set the \emph{stability thresholds}
+\[
+    \tau_U \;:=\; \Delta_b, \qquad \tau_L \;:=\; \Delta_a,
+\]
+so that $\tau_L \leq \tau_U$.
+\end{definition}
+\noindent Concretely $\Delta_a = M'_a - B'_a$ and $\Delta_b = B'_b - M'_b$; for the agreement structure $M'_a < M'_b < B'_b < B'_a$ of Section~\ref{sec:setting} this gives $\tau_U = B'_b - M'_b > 0$ and $\tau_L = M'_a - B'_a < 0$: for $\Delta Q > \tau_U$ the message selects $X_1=a$ for both values of $X_2$, for $\Delta Q < \tau_L$ it selects $X_1=b$, and in between the two values of $X_2$ select different assignments.  Outside the interval $[\tau_L, \tau_U]$ the forward step is constant in $\Delta Q$; inside, the selection \emph{splits}.  The remainder of this section formalizes what these regimes mean for the message dynamics.
+% ------------------------------------------------------------------
+\subsection{Regime Stability}\label{sec:regimes}
+% ------------------------------------------------------------------
+When $\Delta Q$ falls outside the interval $(\tau_L, \tau_U)$, $F_{12}$ selects the same assignment of $X_1$ for every value of $X_2$, and the outgoing difference $\Delta R$ is therefore determined by $C'$ alone, regardless of the incoming message.
+\begin{theorem}[Stability of the outgoing message]\label{thm:stability}
+Let $\tau_L, \tau_U$ be as in Definition~\ref{def:thresholds}.
+\begin{enumerate}
+    \item \textbf{(Upper regime.)} If $\Delta Q^{t-2} \geq \tau_U$, then
+    \[
+        \Delta R^t \;=\; C'(a,b) - C'(a,a) \;=\; B'_b - M'_a,
+    \]
+    independently of $Q^{t-2}_{X_1 \to F_{12}}$.
+    \item \textbf{(Lower regime.)} If $\Delta Q^{t-2} \leq \tau_L$, then
+    \[
+        \Delta R^t \;=\; C'(b,b) - C'(b,a) \;=\; M'_b - B'_a,
+    \]
+    independently of $Q^{t-2}_{X_1 \to F_{12}}$.
+\end{enumerate}
+In both cases $\Delta R^t$ depends only on $C'$.
+\end{theorem}
+\begin{proof}
+By~\eqref{eq:minsumR}, for each value $v$ of $X_2$ the minimum is attained at $X_1=a$ iff $\Delta Q^{t-2} \geq \Delta_v$, and at $X_1=b$ iff $\Delta Q^{t-2} \leq \Delta_v$ (ties give the same value regardless).
+\smallskip\noindent\textbf{Case 1} ($\Delta Q^{t-2} \geq \tau_U \geq \tau_L$):  $X_1=a$ is selected for both values of $X_2$, so $(R^t)_v = C'(a,v) + (Q^{t-2})_a$.  The $(Q^{t-2})_a$ terms cancel in the difference: $\Delta R^t = C'(a,b)-C'(a,a)$.
+\smallskip\noindent\textbf{Case 2} ($\Delta Q^{t-2} \leq \tau_L \leq \tau_U$):  $X_1=b$ is selected for both values of $X_2$, so $(R^t)_v = C'(b,v) + (Q^{t-2})_b$.  The $(Q^{t-2})_b$ terms cancel: $\Delta R^t = C'(b,b)-C'(b,a)$. \qedhere
+\end{proof}
+Once $\Delta Q$ is in either regime, the outgoing message is therefore \emph{locked}: $\Delta R$ equals a difference of two entries of $C'$ and is severed from the incoming $Q$ entirely.  We call $(\tau_L, \tau_U)$ the \emph{transition interval}: when $\Delta Q$ lies in this open interval, neither case applies and $\Delta R$ depends on the incoming message.
+% ------------------------------------------------------------------
+\subsection{Absorbing Regimes}\label{sec:absorbing}
+% ------------------------------------------------------------------
+Having identified the regimes, we ask: once the process enters a regime, does it stay? A single step into a regime produces a constant $\Delta R$, which feeds back to yield a specific next value of $\Delta Q$—the \emph{round-trip constant}. The regime is absorbing precisely when this constant remains inside the regime.
+The backward pass is the mirror image of~\eqref{eq:minsumR}: instead of fixing a value of $X_2$ and minimising over the assignments of $X_1$, we fix a value of $X_1$ and minimise over the assignments of $X_2$.  Using the same split cost $C'$, the updated message from $X_1$ to $F_{12}$ is
+\begin{equation}\label{eq:minsumQ}
+    \bigl(Q^t_{X_1 \to F_{12}}\bigr)_{x_1} = \min_{x_2 \in D}\bigl[C'(x_1, x_2) + (R^{t-2}_{F_{12} \to X_2})_{x_2}\bigr].
+\end{equation}
+Suppose the trajectory has just entered a regime: $\Delta Q^{t-2}$ is at or beyond a threshold.  The forward step then produces the regime's constant $\Delta R^t$ (Theorem~\ref{thm:stability}), and feeding this constant into the backward step yields a specific value of $\Delta Q^{t+2}$, also independent of the message level.  We call these the lower and upper \emph{round-trip constants}; if a constant lies inside its own regime, the trajectory is trapped there for good.  Both observations are packaged into the following theorem.
+\begin{theorem}[Round-trip constants and absorption]\label{thm:absorbing}
+\begin{enumerate}
+\item \textbf{(Lower.)}  If $\Delta Q^{t-2} \leq \tau_L$ for some $t \geq 2$, then $\Delta R^t = C'(b,b) - C'(b,a)$ and
+\begin{multline}\label{eq:cL}
+    \Delta Q^{t+2}
+    = \min\!\bigl(2C'(b,a),\;2C'(b,b)\bigr) \\
+    - \min\!\bigl(C'(a,a)+C'(b,a),\;C'(a,b)+C'(b,b)\bigr),
+\end{multline}
+independently of $Q^{t-2}$ and of $t$; denote this value by $c_L(C')$.  If additionally $c_L \leq \tau_L$, then $\Delta Q^j \leq \tau_L$ and $\Delta R^j = C'(b,b) - C'(b,a)$ for all $j \geq t$ --- the regime is \emph{absorbing}.
+\item \textbf{(Upper.)}  If $\Delta Q^{t-2} \geq \tau_U$ for some $t \geq 2$, then $\Delta R^t = C'(a,b) - C'(a,a)$ and
+\begin{multline}\label{eq:cU}
+    \Delta Q^{t+2}
+    = \min\!\bigl(C'(a,a)+C'(b,a), \\
+    C'(a,b)+C'(b,b)\bigr)
+    - \min\!\bigl(2C'(a,a),\,2C'(a,b)\bigr),
+\end{multline}
+independently of $Q^{t-2}$ and of $t$; denote this value by $c_U(C')$.  If additionally $c_U \geq \tau_U$, then $\Delta Q^j \geq \tau_U$ and $\Delta R^j = C'(a,b) - C'(a,a)$ for all $j \geq t$ --- the regime is \emph{absorbing}.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+\textbf{Upper.}  By Theorem~\ref{thm:stability} (Case 1), $(R^t)_v = C'(a,v)+(Q^{t-2})_a$, giving $\Delta R^t = C'(a,b)-C'(a,a)$.  Substituting into~\eqref{eq:minsumQ}, the constant shift $(Q^{t-2})_a$ cancels in the difference, yielding~\eqref{eq:cU}.  If additionally $c_U \geq \tau_U$, then $\Delta Q^{t+2} = c_U \geq \tau_U$, so the same argument applies at $t+4$ and inductively for all $j \geq t$.  \textbf{Lower.}  Symmetric: $X_1=b$ throughout, $(Q^{t-2})_b$ cancels, and the same induction. \qedhere
+\end{proof}
+\noindent For the agreement structure $M'_a < M'_b < B'_b < B'_a$ of Section~\ref{sec:setting} it is the \emph{upper} regime that is absorbing: $c_U \geq \tau_U$ (established in Theorem~\ref{thm:convergence}), consistent with the single-cycle settling difference $\Delta R = B'_b - M'_a$ of Section~\ref{sec:setting}; the lower regime is not absorbing.
+% ------------------------------------------------------------------
+\subsection{Convergence to an Absorbing Regime}\label{sec:convergence}
+% ------------------------------------------------------------------
+Theorem~\ref{thm:absorbing} is conditional: it gives absorption \emph{if} the trajectory enters the regime \emph{and} the round-trip constant lies inside it.  We now show the unconditional version: starting from any $\Delta Q^0$, the trajectory \emph{has} to reach the upper regime in finitely many iterations and stay there.
+The driving quantity is the \emph{drift constant}
+\[
+    d \;:=\; C'(b,b) - C'(a,a) \;=\; M'_b - M'_a.
+\]
+Inside the transition interval the forward step has $\Delta R = \Delta Q + d$ (for $X_2=a$ the minimum is at $X_1=a$, and for $X_2=b$ at $X_1=b$).  When the backward step is likewise split (for $X_1=a$ the minimum is at $X_2=a$, and for $X_1=b$ at $X_2=b$), a direct computation from~\eqref{eq:minsumQ} gives $\Delta Q^{\text{next}} = \Delta R + d$, contributing another $d$ and yielding a net change of $2d$ per round-trip.  A round-trip is one full loop of the split cycle through both copies $F', F''$ --- four iterations --- so $\Delta Q$ advances by $|d|$ every two, as in Section~\ref{sec:setting}.  Since $d \neq 0$, this monotone drift forces $\Delta Q$ out of the transition interval in finite time.
+\textbf{Canonical orientation.}  We assume $d > 0$ and $\tau_U + \tau_L \leq 0$ throughout, which lets us track a single regime (the upper one); the $d < 0$ case follows by symmetry.  Two relabellings get there: swapping $\{a, b\}$ in \emph{both} $X_1$ and $X_2$ sends $d \mapsto -d$ (preserving $\Delta_a \leq \Delta_b$), and swapping $X_1 \leftrightarrow X_2$ replaces $\tau_U + \tau_L$ by a quantity summing with the original to $-2d < 0$, so one of the two values is nonpositive.
+Inside the transition interval, each round-trip either exits to the upper regime, or increments $\Delta Q$ by at least $2|d|$.
+\begin{lemma}[Drift in the transition interval]\label{lem:drift}
+Assume $d > 0$ and $\tau_U + \tau_L \leq 0$.  For any $\Delta Q^t \in (\tau_L, \tau_U)$, after one round-trip either
+\[
+    \Delta Q^{t+4} \;\geq\; \tau_U \qquad\text{(upper regime entered),}
+\]
+or $\Delta Q^{t+4} \in (\tau_L, \tau_U)$ with $\Delta Q^{t+4} - \Delta Q^t \geq 2|d|$.
+\end{lemma}
+\begin{proof}
+Normalise $R^{t+2}_a = 0$.  In the transition interval, for $X_2=a$ the minimum is at $X_1=a$ and for $X_2=b$ at $X_1=b$, so $\Delta R^{t+2} = \Delta Q^t + d =: r$.
+In the Q-update~\eqref{eq:minsumQ}, assignment $X_1=u$ prefers $X_2 = a$ iff $r \geq C'(u,a)-C'(u,b)$.  Since $\tau_L \leq \tau_U$ implies $C'(a,a)-C'(a,b) \leq C'(b,a)-C'(b,b)$, three cases arise:
+\textbf{Both assignments prefer $X_2 = a$} ($r \geq C'(b,a)-C'(b,b)$): $\Delta Q^{t+4} = C'(b,a)-C'(a,a) = -\tau_L \geq \tau_U$.
+\textbf{Both prefer $X_2 = b$} ($r \leq C'(a,a)-C'(a,b)$): $\Delta Q^{t+4} = C'(b,b)-C'(a,b) = -\tau_U$.  Using $C'(a,a)-C'(a,b) = -d-\tau_U$, the condition $r \leq -d-\tau_U$ gives $\Delta Q^t = r-d \leq -2d-\tau_U$, so the increase $\Delta Q^{t+4}-\Delta Q^t = -\tau_U-\Delta Q^t \geq 2|d|$.
+\textbf{Split} (otherwise): $X_1=a$ prefers $X_2=a$ and $X_1=b$ prefers $X_2=b$, giving $\Delta Q^{t+4} = C'(b,b)+r-C'(a,a) = r+d = \Delta Q^t+2d$, an increase of exactly $2|d|$. \qedhere
+\end{proof}
+% ------------------------------------------------------------------
+\subsubsection{Convergence Theorem}
+% ------------------------------------------------------------------
+\begin{lemma}[Non-absorption of the lower regime]\label{lem:upper-nonabsorb}
+Under the WLOG orientation $d > 0$ and $\tau_U + \tau_L < 0$, we have $c_L > \tau_L$.  Consequently, any trajectory with $\Delta Q^{t-2} \leq \tau_L$ satisfies $\Delta Q^{t+2} = c_L > \tau_L$, and the lower regime is non-absorbing.
+\end{lemma}
+\begin{proof}
+By Theorem~\ref{thm:stability}, the lower regime gives $\Delta R^t = \tau_L + d$, independent of $Q^{t-2}$.  The backward update~\eqref{eq:minsumQ} then computes
+\[
+    \begin{aligned}
+        c_L &= \min\bigl(C'(b,a)+R_a,\; C'(b,b)+R_b\bigr) \\
+            &\quad - \min\bigl(C'(a,a)+R_a,\; C'(a,b)+R_b\bigr).
+    \end{aligned}
+\]
+Applying the inequality $\min(A,B) - \min(C,D) \geq \min(A-C,\, B-D)$,
+\[
+    \begin{aligned}
+        c_L &\geq \min\bigl(C'(b,a) - C'(a,a),\; C'(b,b) - C'(a,b)\bigr) \\
+            &= \min(-\tau_L,\, -\tau_U) = -\tau_U.
+    \end{aligned}
+\]
+Since $\tau_U + \tau_L < 0$, $-\tau_U > \tau_L$, hence $c_L > \tau_L$. \qedhere
+\end{proof}
+\begin{theorem}[Convergence to an absorbing regime]\label{thm:convergence}
+Assume $d \neq 0$ and let the WLOG relabelling above be in effect.  Starting from any initial $\Delta Q^0 \in \mathbb{R}$, there exists a finite index $N$ such that for all $j \geq N$:
+\[
+    \Delta Q^j \geq \tau_U,\quad \Delta R^j = C'(a,b) - C'(a,a) \quad (d > 0),
+\]
+and symmetrically for $d < 0$ with the lower regime.
+\end{theorem}
+\begin{proof}
+We treat $d > 0$.
+\textbf{Step 1: reaching the upper regime.}  If $\Delta Q^0 \geq \tau_U$, we are done.  If $\Delta Q^0 \leq \tau_L$, one round-trip gives $\Delta Q^4 = c_L$; by Lemma~\ref{lem:upper-nonabsorb}, $c_L > \tau_L$, so $\Delta Q^4$ either lies in the transition interval or is already in the upper regime.
+For iterates in the transition interval, Lemma~\ref{lem:drift} guarantees that each round-trip either enters the upper regime directly, or increases $\Delta Q$ by at least $2|d|$.  Since the transition interval has finite width $\tau_U - \tau_L$, the upper regime is reached in at most $\lceil(\tau_U - \tau_L)/2|d|\rceil$ round-trips.
+\textbf{Step 2: the upper regime is absorbing.}  We compute $c_U$ in closed form and verify $c_U \geq \tau_U$.  Write $p = C'(a,a)$, $q = C'(a,b)$, so that $C'(b,a) = p-\tau_L$, $C'(b,b) = q-\tau_U$, and $q-p = d+\tau_U$.  Substituting into~\eqref{eq:cU},
+\[
+    c_U \;=\; \min(2p-\tau_L,\, 2q-\tau_U) \;-\; \min(2p,\, 2q).
+\]
+The second minimum splits on the sign of $p-q = -(d+\tau_U)$, equivalently $\tau_U \gtrless -|d|$; the first on the sign of $(2p-\tau_L)-(2q-\tau_U) = -2d - (\tau_U+\tau_L)$, equivalently $\tau_U+\tau_L \gtrless -2|d|$.  A direct case analysis yields
+\[
+    c_U \;=\;
+    \begin{cases}
+        -\tau_U, & \tau_U \leq -|d|,\\[2pt]
+        \tau_U + 2|d|, & \tau_U > -|d|,\ \tau_U+\tau_L < -2|d|,\\[2pt]
+        -\tau_L, & \text{otherwise.}
+    \end{cases}
+\]
+In each case $c_U \geq \tau_U$: the first because $\tau_U \leq -|d| < 0$ gives $-\tau_U \geq |d| \geq \tau_U$; the second because $|d|>0$; the third because $\tau_U+\tau_L \leq 0$ gives $-\tau_L \geq \tau_U$.  Theorem~\ref{thm:absorbing} (Part 2) therefore applies.  The margin satisfies
+\[
+    c_U - \tau_U \;\geq\; \min\!\bigl(2|d|,\; -(\tau_U+\tau_L)\bigr),
+\]
+with equality when $\tau_U \geq -|d|$; for $\tau_U < -|d|$ the margin equals $-2\tau_U$, strictly larger.  \qedhere
+\end{proof}
+This completes the static picture: splitting induces a regime structure on the message difference, with the gating thresholds $\tau_L, \tau_U$ read off $C'$; the trajectory is forced into the upper regime in finite time from any start, where it settles at $\Delta R = B'_b - M'_a$.
+% ------------------------------------------------------------------
+\subsection{Convergence under a Dynamic Unary Constraint on $X_1$}\label{sec:dynamic}
+% ------------------------------------------------------------------
+In the static setting of Section~\ref{sec:setting} the unary constraint on $X_1$ was fixed.  We now let it vary.  When $X_1$ has other neighbours in a larger factor graph, the message it sends to $F_{12}$ carries, at each iteration $t$, a unary constraint $\phi^t : D \to \mathbb{R}$ that changes from step to step.
+Each iteration folds in a \emph{different} $\phi^t$, giving a different effective cost $C'^{(t)}$ and hence different gating thresholds.  The static analysis still carries over while the drift keeps pushing $\Delta Q$ toward a single regime; near a regime boundary, however, the shifting thresholds can change which assignment of $X_1$ the message selects.  We now characterise when finite-time convergence survives.
+\begin{definition}[Effective cost at iteration $t$]\label{def:dynC}
+\[
+    \begin{aligned}
+        C'^{(t)}(x_1, x_2) &:= C'(x_1, x_2) + \phi^t(x_1), \\
+        \delta^t_\phi &:= \phi^t(b) - \phi^t(a).
+    \end{aligned}
+\]
+\end{definition}
+\begin{definition}[Dynamic thresholds]\label{def:dynthresh}
+For each $v \in D$ set $\Delta^t_v := C'^{(t)}(a,v) - C'^{(t)}(b,v) = \Delta_v - \delta^t_\phi$, and
+\[
+    \tau_U^t \;:=\; \Delta^t_b \;=\; \tau_U - \delta^t_\phi,
+    \qquad
+    \tau_L^t \;:=\; \Delta^t_a \;=\; \tau_L - \delta^t_\phi.
+\]
+\end{definition}
+\noindent Both thresholds shift by the same amount, so $\tau_U^t - \tau_L^t = \tau_U - \tau_L$ for all $t$: the dynamic transition interval $(\tau_L^t, \tau_U^t)$ is a rigid translation of the static one, with the same width.  A large positive (resp.\ negative) $\delta^t_\phi$ slides the entire interval down (resp.\ up) the real line.  Because the width is preserved, the drift mechanism that pushes $\Delta Q$ out of the interval (Lemma~\ref{lem:drift}) is unaffected by $\phi$ --- only the \emph{location} of the interval moves.
+\begin{theorem}[Dynamic stability of the outgoing message]\label{thm:dynstability}
+Fix iteration $t \geq 2$ and let $\tau_L^t, \tau_U^t$ be as in Definition~\ref{def:dynthresh}.
+\begin{enumerate}
+    \item \textbf{(Upper regime at step $t$.)} If $\Delta Q^{t-2} \geq \tau_U^t$, then
+    \[
+        \Delta R^t \;=\; C'(a,b) - C'(a,a),
+    \]
+    independently of $Q^{t-2}_{X_1 \to F_{12}}$ and of $\phi^t$.
+    \item \textbf{(Lower regime at step $t$.)} If $\Delta Q^{t-2} \leq \tau_L^t$, then
+    \[
+        \Delta R^t \;=\; C'(b,b) - C'(b,a),
+    \]
+    independently of $Q^{t-2}_{X_1 \to F_{12}}$ and of $\phi^t$.
+\end{enumerate}
+In both cases the value of $\Delta R^t$ is the same constant as in the static Theorem~\ref{thm:stability}; only the gating thresholds depend on $t$.
+\end{theorem}
+\begin{proof}
+Apply Theorem~\ref{thm:stability} to $C'^{(t)}$, which has margins $\Delta^t_v$ and thresholds $\tau_L^t, \tau_U^t$ by construction.  In each case the selected assignment of $X_1$ contributes a constant $\phi^t(\cdot)$ to both values of $X_2$, which cancels in the difference: for the upper regime, $C'^{(t)}(a,b) - C'^{(t)}(a,a) = C'(a,b) - C'(a,a)$, and symmetrically for the lower. \qedhere
+\end{proof}
+Because $\Delta R$ in either regime is unchanged by $\phi$, the backward step that produces the next $\Delta Q$ uses the same $C'$ as in the static case, and the round-trip constant $c_U$ computed in Section~\ref{sec:absorbing} still applies.
+\subsubsection{Generalized Convergence under Bounded Perturbation}\label{subsec:gencvg}
+The thresholds $\tau_v^t = \tau_v - \delta^t_\phi$ shift with $\phi$, so the static absorption arguments of Sections~\ref{sec:absorbing}--\ref{sec:convergence} no longer apply directly.  We now bound how much $\phi$ can move them without ejecting the message that has settled inside.
+Recall the upper round-trip constant $c_U$ of Section~\ref{sec:absorbing}: once $\Delta Q$ enters the upper regime, it settles to $c_U$, which sits \emph{above} the threshold $\tau_U$.  The gap $c_U - \tau_U$ is how much room the settled message has to spare.  A dynamic unary constraint shifts the upper threshold to $\tau_U - \delta_\phi$ (Definition~\ref{def:dynthresh}); the message stays absorbed as long as $\delta_\phi$ stays within this gap.
+By the case analysis in the proof of Theorem~\ref{thm:convergence}, the gap satisfies
+\[
+    c_U - \tau_U \;\geq\; \min\!\bigl(2|d|,\; -(\tau_U+\tau_L)\bigr),
+\]
+with equality when $\tau_U \geq -|d|$ (strict only when $\tau_U < -|d|$, where the gap equals $-2\tau_U$).  We therefore require
+\[
+    B \;<\; \min\!\bigl(2|d|,\; -(\tau_U + \tau_L)\bigr),
+\]
+which presumes $\tau_U + \tau_L < 0$.  Under this bound, every shift stays strictly within the margin; Theorem~\ref{thm:dyncvg} below confirms that absorption survives.
+Note that the bound on $B$ depends on the regime margin ($-(\tau_U + \tau_L)$) and the drift ($2|d|$), but not on the interval width $\tau_U - \tau_L$---the width sets how fast static convergence happens, not how much perturbation the regime can absorb.
+\begin{lemma}[Dynamic drift in the transition interval]\label{lem:dyndrift}
+Assume $d > 0$ and $|\delta^t_\phi| \leq B$ for all $t$, with $B < \min(2|d|,\,-(\tau_U+\tau_L))$.  For any iteration $t$ with $\Delta Q^t \in (\tau_L^{t+2}, \tau_U^{t+2})$, after one round-trip either
+\[
+    \Delta Q^{t+4} \;\geq\; \tau_U^{t+6} \qquad\text{(upper regime entered),}
+\]
+or $\Delta Q^{t+4}$ again lies in a transition interval and the round-trip increment satisfies
+\[
+    \Delta Q^{t+4} - \Delta Q^t \;\geq\; 2|d| - B \;>\; 0 .
+\]
+In the split case the increment equals $2|d| + \delta^{t+2}_\phi \in [\,2|d|-B,\,2|d|+B\,]$, so the static rate $2|d|$ is replaced by a bounded \emph{rate window} of width $2B$ centred at $2|d|$; the boundary cases can only increase $\Delta Q$ faster.
+\end{lemma}
+\begin{proof}
+By Theorem~\ref{thm:dynstability}, the forward step at iteration $t+2$ uses the effective cost $C'^{(t+2)}$, with diagonal difference $d + \delta^{t+2}_\phi$.  Since $\Delta Q^t$ is in the moving interval, the factor is in the split regime, so
+\[
+    \Delta R^{t+2} \;=\; (d+\delta^{t+2}_\phi) + \Delta Q^t \;=:\; r .
+\]
+The backward step uses the bare $C'$, with the same three regions on $r$ as in the proof of Lemma~\ref{lem:drift}.
+\smallskip\noindent\textbf{Both assignments prefer $X_2=a$} ($r \geq -d-\tau_L$): $\Delta Q^{t+4} = -\tau_L$.  Since $\delta^{t+6}_\phi \geq -B > \tau_U+\tau_L$, we have $-\tau_L \geq \tau_U^{t+6}$, so the upper regime is entered.
+\smallskip\noindent\textbf{Both prefer $X_2=b$} ($r \leq -d-\tau_U$): $\Delta Q^{t+4} = -\tau_U$.  The gating condition gives $\Delta Q^t \leq -2|d| - \tau_U - \delta^{t+2}_\phi$, so the increment $-\tau_U - \Delta Q^t \geq 2|d| + \delta^{t+2}_\phi \geq 2|d|-B$.  If $-\tau_U \geq \tau_U^{t+6}$ the upper regime is entered; otherwise the iterate remains in the transition interval with the stated increment.
+\smallskip\noindent\textbf{Split} (otherwise): $\Delta Q^{t+4} = 2d+\delta^{t+2}_\phi+\Delta Q^t$, an increment of $2|d|+\delta^{t+2}_\phi \in [2|d|-B,\,2|d|+B]$, strictly positive since $B<2|d|$.
+\smallskip\noindent At least one of the first two cases is vacuous (both at the boundary $-(\tau_U+\tau_L) = 2|d|$); the increment bound holds in every nonvacuous case. \qedhere
+\end{proof}
+\begin{theorem}[Generalized convergence under bounded perturbation]\label{thm:dyncvg}
+Assume $d > 0$ (the WLOG orientation of Section~\ref{sec:convergence}; the case $d<0$ is symmetric, with the lower regime and constant $c_L$ in place of the upper regime and $c_U$), and let $|\delta^t_\phi| \leq B$ for all $t$, with $B < \min(2|d|,\,-(\tau_U+\tau_L))$.  Starting from any $\Delta Q^0 \in \mathbb{R}$, the trajectory reaches the upper regime in at most
+\[
+    \left\lceil \frac{\tau_U - \tau_L + 2B}{2|d| - B} \right\rceil
+\]
+round-trips and remains there for every subsequent iteration; the absorbing value is the static round-trip constant $c_U$ of Section~\ref{sec:absorbing}, given in closed form by the case analysis in the proof of Theorem~\ref{thm:convergence}.
+\end{theorem}
+\begin{proof}
+We treat $d>0$; the case $d<0$ is symmetric.
+\textbf{Ascent.}  By Lemma~\ref{lem:dyndrift}, every round-trip whose initial iterate lies in a transition interval either enters the upper regime or strictly increases $\Delta Q$ by at least $2|d|-B>0$, with no decrease.  Hence along round-trips $\Delta Q$ is monotonically increasing until the upper regime is reached.
+\textbf{Reaching the upper regime.}  Each interval $(\tau_L^j,\tau_U^j)$ is the static interval translated by $-\delta^j_\phi$ with $|\delta^j_\phi|\leq B$, so its endpoints stay within $[\tau_L-B,\,\tau_U+B]$.  An in-interval iterate is therefore above $\tau_L-B$, and the upper regime is guaranteed once $\Delta Q$ rises above $\tau_U+B$.  Since each in-interval round-trip raises $\Delta Q$ by at least $2|d|-B$, the upper regime is reached after at most
+\[
+    \left\lceil \frac{(\tau_U+B)-(\tau_L-B)}{2|d|-B} \right\rceil
+    = \left\lceil \frac{\tau_U-\tau_L+2B}{2|d|-B} \right\rceil
+\]
+round-trips.  (If $\Delta Q^0 \leq \tau_L^1$, Lemma~\ref{lem:upper-nonabsorb} gives $\Delta Q^4 = c_L > \tau_L$ after one round-trip; if this is not already in the upper regime, the in-interval bound above applies; cf.\ the proof of Theorem~\ref{thm:convergence}.)
+\textbf{Persistence.}  Suppose $\Delta Q^j \geq \tau_U^{j+2}$, so step $j+2$ is in the upper regime and $\Delta R^{j+2} = C'(a,b)-C'(a,a)$ by Theorem~\ref{thm:dynstability}.  The backward update uses the bare $C'$, so it returns the static round-trip constant $c_U$ from Section~\ref{sec:absorbing}, independent of $\phi$.  The next regime test $\Delta Q^{j+4} \geq \tau_U^{j+6}$ reads
+\[
+    c_U \;\geq\; \tau_U - \delta^{j+6}_\phi
+    \quad\Longleftrightarrow\quad
+    \delta^{j+6}_\phi \;\geq\; \tau_U - c_U .
+\]
+By the case analysis in the proof of Theorem~\ref{thm:convergence}, $c_U - \tau_U \geq \min(2|d|,\,-(\tau_U+\tau_L))$, so the condition is implied by $-\delta^{j+6}_\phi \leq B < \min(2|d|,\,-(\tau_U+\tau_L))$.  By induction the upper regime is never left, and $\Delta Q^j = c_U$ thereafter. \qedhere
+\end{proof}
+The bound interpolates between the static and adversarial limits: as $B \to 0$ it recovers the static $\lceil(\tau_U - \tau_L)/(2|d|)\rceil$ count, and as $B \to \min(2|d|, -(\tau_U+\tau_L))$ both penalties --- the $+2B$ in the numerator (moving thresholds) and the $-B$ in the denominator (partial drift cancellation) --- blow it up.
+\begin{remark}[Tightness of the perturbation bound]\label{rem:tight}
+The condition $B < \min(2|d|,-(\tau_U+\tau_L))$ is sharp: neither term can be dropped against an arbitrary adversary obeying $|\delta^t_\phi| \leq B$.  If $B \geq 2|d|$, an adversary with $\delta^t_\phi = -2|d|$ on each forward step cancels the drift entirely; if $B > -(\tau_U+\tau_L)$, the moving threshold $\tau_U - \delta_\phi$ can fall below $-\tau_L$ and eject $\Delta Q$ from the upper regime.
+\end{remark}
+% ------------------------------------------------------------------
+\subsection{Toward Damped and Asymmetric Splits}\label{sec:extensions}
+% ------------------------------------------------------------------
+% NEW in revision. AUTHORS: please verify both propositions carefully
+% (the algebra is a direct substitution into Thms 4.5/4.6, but confirm),
+% and add them to the Lean development before submission.
+Two gaps separate the analysis above from the algorithms evaluated in Section~\ref{Sec:experiments}: DMS-SCFG uses damping, and practical splits need not be symmetric (DABP uses a $0.95/0.05$ split). We take a first step on both fronts.
+
+\paragraph{Damping.}
+Damping replaces each sent message with a convex combination of the previous message on the same directed edge and the newly computed one (Section~\ref{Sec:background}). Within a locked regime the newly computed difference is a constant of $C'$ (Theorem~\ref{thm:stability}), so damping acts as exponential smoothing toward that same constant:
+\begin{proposition}[Geometric settling under damping]\label{prop:damped}
+Fix $\lambda \in [0,1)$ and let messages be damped as in Section~\ref{Sec:background}. Suppose that for all iterations $k \geq t$ the incoming difference satisfies $\Delta Q^{k-2} \geq \tau_U$. Then the damped outgoing difference satisfies
+\[
+    \Delta R^{k} - K \;=\; \lambda\,\bigl(\Delta R^{k-1} - K\bigr),
+    \qquad K := C'(a,b) - C'(a,a),
+\]
+so $\Delta R^k \to K$ geometrically at rate $\lambda$; the regime constants of Theorem~\ref{thm:stability} are unchanged by damping.
+\end{proposition}
+\begin{proof}
+By Theorem~\ref{thm:stability}, the undamped computation yields the constant difference $\widehat{\Delta R}^{\,k} = K$ whenever $\Delta Q^{k-2} \geq \tau_U$. The damped update on the directed edge $F_{12} \to X_2$ gives $\Delta R^{k} = \lambda\, \Delta R^{k-1} + (1-\lambda)\, \widehat{\Delta R}^{\,k}$; subtracting $K$ from both sides yields the claim.
+\end{proof}
+Proposition~\ref{prop:damped} is conditional: it assumes the trajectory remains in the upper regime. Closing the induction --- showing that once the damped trajectory enters the regime with sufficient margin it never leaves --- mirrors the persistence argument of Theorem~\ref{thm:dyncvg}, with the geometrically decaying damping residual playing the role of the bounded perturbation $\delta_\phi$. We leave the full damped analogue of Theorem~\ref{thm:convergence} for future work.
+
+\paragraph{Asymmetric splits.}
+Let the two copies carry arbitrary tables $C'$ and $C''$ with $C' + C'' = C$, so that the forward update~\eqref{eq:minsumR} uses $C'$ and the backward update~\eqref{eq:minsumQ} uses $C''$. The regime lock of Theorem~\ref{thm:stability} depends only on the forward table, and the round-trip cancellation goes through unchanged:
+\begin{proposition}[Asymmetric round-trip constants]\label{prop:asym}
+Let $\tau_L, \tau_U$ be the thresholds of Definition~\ref{def:thresholds} computed from $C'$. If $\Delta Q^{t-2} \geq \tau_U$, then $\Delta R^t = C'(a,b) - C'(a,a)$ and
+\begin{multline*}
+    \Delta Q^{t+2} = \min\!\bigl(C''(b,a)+C'(a,a),\; C''(b,b)+C'(a,b)\bigr) \\
+    - \min\!\bigl(C''(a,a)+C'(a,a),\; C''(a,b)+C'(a,b)\bigr) =: c_U(C',C''),
+\end{multline*}
+independently of $Q^{t-2}$; if additionally $c_U(C',C'') \geq \tau_U$, the upper regime is absorbing for this direction of the cycle. Symmetrically, for $\Delta Q^{t-2} \leq \tau_L$,
+\begin{multline*}
+    c_L(C',C'') := \min\!\bigl(C''(b,a)+C'(b,a),\; C''(b,b)+C'(b,b)\bigr) \\
+    - \min\!\bigl(C''(a,a)+C'(b,a),\; C''(a,b)+C'(b,b)\bigr).
+\end{multline*}
+Setting $C'' = C'$ recovers~\eqref{eq:cL} and~\eqref{eq:cU}.
+\end{proposition}
+\begin{proof}
+Identical to the proof of Theorem~\ref{thm:absorbing}: in the upper regime $(R^t)_v = C'(a,v) + (Q^{t-2})_a$ by Theorem~\ref{thm:stability}; substituting into the backward update with $C''$ in place of $C'$, the constant shift $(Q^{t-2})_a$ cancels in the difference, and the same induction gives absorption when the constant lies inside the regime. The mirrored flow of the cycle (starting at $X_2$) satisfies the symmetric statement with $C'$ and $C''$ exchanged.
+\end{proof}
+\begin{remark}[Split-ratio design]\label{rem:ratio}
+For a $\rho/(1{-}\rho)$ split, $C' = \rho\, C$ and $C'' = (1{-}\rho)\, C$, and Proposition~\ref{prop:asym} makes the absorption condition $c_U(C',C'') \geq \tau_U(C')$ an explicit function of $\rho$ and the entries of $C$. This turns the split ratio --- treated as a fixed design constant by \citet{CohenGZ20} and \citet{DengKL022} --- into a quantity that can, in principle, be optimized per function-node, and it offers a candidate explanation for the ratio effects observed in the DABP ablation of Section~\ref{Sec:experiments}. Extending the unconditional convergence theorem (Theorem~\ref{thm:convergence}) to the asymmetric case requires redoing the drift case analysis with two tables and is left for future work.
+\end{remark}

@@ -1,0 +1,6 @@
+benchmark,algorithm,final_cost_mean,final_cost_std,n
+graph_coloring,Attentive_SymSplit,35.0193,22.3353,50
+meeting_scheduling,Attentive_SymSplit,30.1526,33.4351,50
+random_dense,Attentive_SymSplit,99665.7887,2442.6659,50
+random_sparse,Attentive_SymSplit,14631.1130,1419.1691,50
+scale_free,Attentive_SymSplit,16771.7111,292.0105,50

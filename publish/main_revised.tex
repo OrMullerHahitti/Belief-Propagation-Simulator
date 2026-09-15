@@ -1,0 +1,71 @@
+\documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+\usepackage[submission]{aaai2027}     % DO NOT CHANGE THIS
+% Fonts (newtxtext for serif, helvet for sans, courier for mono) are
+% loaded AUTOMATICALLY by aaai2027.sty. Do NOT add \usepackage{times},
+% \usepackage{helvet}, or \usepackage{courier} -- they are forbidden in
+% the 2027 kit.
+\usepackage[hyphens]{url}             % DO NOT CHANGE THIS
+\usepackage{graphicx}                 % DO NOT CHANGE THIS
+\urlstyle{rm}                         % DO NOT CHANGE THIS
+\def\UrlFont{\rm}                     % DO NOT CHANGE THIS
+\usepackage{natbib}                   % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption}                  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\frenchspacing                        % DO NOT CHANGE THIS
+\pdfinfo{
+/TemplateVersion (2027.1)
+}
+% IMPORTANT BEFORE SUBMISSION (anonymous double-blind):
+%   AAAI-27 requires the final PDF's metadata be cleared with a
+%   metadata-cleaning tool (e.g. exiftool) so authoring info doesn't
+%   leak via PDF metadata fields. Do this AFTER the final compile,
+%   right before uploading. Example:
+%     exiftool -all:all="" -overwrite_original main.pdf
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}                   % required by ReproducibilityChecklist.tex
+
+% --- Revision helper: visible placeholder for content only the authors can
+% --- supply. STRIP BEFORE SUBMISSION: grep for \todofill; none may remain.
+\newcommand{\todofill}[1]{\textcolor{red}{\textbf{[TO FILL: #1]}}}
+
+% Numbered sections + subsections (theorems counted by section)
+\setcounter{secnumdepth}{2}
+% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\title{How Does Function Splitting Improve Belief Propagation?}
+\author{
+    Anonymous Submission
+}
+\affiliations{
+}
+\begin{document}
+\maketitle
+\input{sec0_abstract}
+\input{sec1_introduction}
+\input{sec2_related_work}
+\input{sec3_background}
+\input{sec4_effect_of_splitting}
+\input{sec5_splitting_no_damping}
+\input{sec5b_two_solutions}
+\input{sec6_experiments}
+\input{sec7_appendix}
+\input{secA_oscillation_appendix}
+\bibliography{refs,DisCSP_refs,DampIns_AIJ,oscillation_refs}
+% Reproducibility Checklist (AAAI kit; do not modify the file itself).
+% TODO(authors): every answer in ReproducibilityChecklist.tex is still
+% "Type your response here" — ALL must be filled before submission.
+% With the current draft the honest answers are mostly yes/partial;
+% 4.10-4.12 are now "yes" (50 seeds, std devs, paired t + Wilcoxon).
+\def\isChecklistMainFile{}
+\input{ReproducibilityChecklist}
+\end{document}

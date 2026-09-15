@@ -1,0 +1,330 @@
+% ======================================================================
+% Main-text version of the two-solution theory. Full proofs of
+% Lemmas ~\ref{lem:clones}, \ref{lem:decode}, \ref{lem:ema},
+% Theorem~\ref{thm:lambdastar}, Proposition~\ref{prop:kn}, and
+% Corollary~\ref{cor:bipartite}, together with the measurement
+% protocol, census, and audits, are in Appendix~\ref{app:tworoutes}.
+% ======================================================================
+\section{The Two-Solution Structure of Min-sum on SCFGs}\label{sec:tworoutes}
+
+We now explain the behavior documented in Section~\ref{Sec:MS-split} in
+three conditional steps: (i) a split function-node whose incoming
+difference is in a regime transmits a \emph{decision} --- one row of its
+cost table --- rather than a magnitude, and when this holds for every
+message involved (\emph{full commitment}), the selected assignments evolve
+by a simple synchronous rule; (ii) \emph{any} assignment sequence
+following that rule is eventually periodic with period one or two, and the
+limiting pair is a local minimum of a pair cost we call the alternation
+cost; (iii) damping destroys a fixed committed period-2 pattern exactly
+above an explicit threshold, and the threshold approaches $1$ as the
+degree grows, so no single damping value suffices universally
+(Section~\ref{sec:whydamping}).  Throughout, $x$ and $y$ denote complete
+assignments, $x_i \in D_i$ is the value $x$ assigns to $X_i$, and
+$\phi_i : D_i \to \mathbb{R}$ denotes the small unary tie-breaking
+preferences used in the experiments (the dynamic unary constraint
+$\phi^t$ of Section~\ref{sec:dynamic} is the time-varying case).  Scalar
+statements (regimes, transition intervals) are for binary domains; claims
+about larger domains are labeled empirical.
+
+\begin{remark}[Schedule and orientation]\label{rem:conv}
+We index messages by the two-phase schedule of
+Section~\ref{secmaxsum}: in iteration $t$ all variable-nodes send
+$Q^{t}$ (computed from $R^{t-1}$), then all function-nodes send $R^{t}$
+(computed from $Q^{t}$); value selection at iteration $t$ uses $R^{t}$.
+For cost terms, $C_{ij}$ denotes the \emph{shared} cost term of the
+constraint between $X_i$ and $X_j$, read with $X_i$'s value first:
+$C_{ij}(v, w) = C_{ji}(w, v)$ by definition.  No numerical symmetry of
+the table is assumed.
+\end{remark}
+
+\subsection{From Regimes to Synchronous Local Selection}\label{sec:rule}
+
+By Theorem~\ref{thm:stability}, outside the transition interval the
+minimum in the $R$-update is attained at the same value of the sending
+variable for both values of the receiving variable, so the $R$-message
+equals one row of the cost table plus a constant.  For general domains we
+say $Q^{t}_{X_i \to F}$ has a \emph{stable active minimizer} $u^{*}$ if
+$u^{*} = \operatorname{argmin}_{u}[\,C'(u,v) + (Q^{t}_{X_i\to F})[u]\,]$
+is the same for every $v$; then $R^{t}_{F\to X_j}(\cdot) =
+C'(u^{*},\cdot) + (Q^{t})[u^{*}]$: \emph{the function-node forwards row
+$u^{*}$}, up to an additive constant that shifts all entries equally
+(this constant keeps propagating, which matters for damping).
+
+\begin{lemma}[Clone synchronization]\label{lem:clones}
+Under the symmetric split with zero-initialized messages, the two copies
+$F'_{ij}, F''_{ij}$ send identical messages at every iteration, and so
+does $X_i$ toward the two copies.
+\end{lemma}
+
+Lemma~\ref{lem:clones} exposes what splitting changes: the message $X_i$
+sends toward $F'_{ij}$ \emph{contains the sibling copy's previous
+$R$-message}.  Ordinary Min-sum is non-backtracking, whereas on the SCFG
+every edge carries a length-two feedback cycle through the sibling copy.
+A round trip through this cycle applies the same cost term twice, so it
+reinforces its own direction whether the constraint prefers agreement or
+disagreement, and its drift per round trip is the constant $d$ of
+Section~\ref{sec:convergence}; Lemma~\ref{lem:drift} and
+Theorem~\ref{thm:dyncvg} state that the cycle expels $\Delta Q$ from the
+transition interval and holds it outside when the external swing obeys
+the stated bound.  On benchmark graphs commitment is partial and
+family-dependent: measured mean fractions of messages with a stable
+active minimizer at iteration $9$ / in the tail are $0.73$/$0.82$
+(random sparse, $|D_i|{=}10$, split) versus $0.12$/$0.10$ (unsplit),
+$0.74$/$0.92$ versus $0.36$/$0.35$ (random dense), $0.97$/$0.97$ versus
+$0.87$/$0.85$ (random binary), and $0.03$/$0.36$ versus $0.00$/$0.00$
+(graph coloring, which rarely commits in this strict sense although its
+messages still carry the sender's selection; Appendix~\ref{app:tworoutes}).
+Commitment can also hold on one parity of an alternation and fail on the
+other, and for $|D_i| > 2$ the commitment region is not an interval.
+
+\begin{lemma}[Decoded assignment under full commitment]\label{lem:decode}
+If at iteration $t$, for every neighbor $X_j$ of $X_i$, the message
+$Q^{t}_{X_j \to F'_{ij}}$ has a stable active minimizer $u^{*t}_j$, then
+\[
+  \hat{x}^{t}_i \;=\; \operatorname{argmin}_{v \in D_i}
+  \Big[\phi_i(v) + \sum_{j : C_{ij}\in\mathcal{C}}
+  C_{ij}\big(v,\, u^{*t}_j\big)\Big].
+\]
+\end{lemma}
+
+\begin{lemma}[Sibling evaluation]\label{lem:sibling}
+Assume the hypothesis of Lemma~\ref{lem:decode} at iteration $t$, and
+additionally that $Q^{t+1}_{X_i \to F'_{ij}}$ has a stable active
+minimizer $u^{*,t+1}_i$, with unique argmins.  Then
+$u^{*,t+1}_i = \hat{x}^{t}_i$.
+\end{lemma}
+\begin{proof}
+By Lemma~\ref{lem:clones} and the hypothesis at $t$,
+$(Q^{t+1}_{X_i \to F'_{ij}})[u] = \phi_i(u) + \sum_{k \neq j}
+C_{ik}(u, u^{*t}_k) + \tfrac12 C_{ij}(u, u^{*t}_j) + \text{const}$, the
+last term being the sibling's forwarded half-row.  A stable active
+minimizer minimizes $\tfrac12 C_{ij}(u,v) + (Q^{t+1})[u]$ for
+\emph{every} $v$; evaluating at $v = u^{*t}_j$ makes the two half-costs
+of $C_{ij}$ recombine, so the minimized expression becomes the full field
+$\phi_i(u) + \sum_{k} C_{ik}(u, u^{*t}_k) + \text{const}$, whose unique
+argmin is $\hat{x}^{t}_i$ by Lemma~\ref{lem:decode}. \qedhere
+\end{proof}
+
+\begin{corollary}[The selection rule]\label{cor:rule}
+If the hypotheses of Lemmas~\ref{lem:decode}--\ref{lem:sibling} hold for
+every variable and constraint at every $t \ge t_0$ (\emph{full
+commitment}), then for all $t \ge t_0$, simultaneously for all $i$,
+\[
+  \hat{x}^{t+1}_i \;=\; \operatorname{argmin}_{v\in D_i}
+  \Big[\phi_i(v) + \sum_{j : C_{ij}\in\mathcal{C}}
+  C_{ij}\big(v, \hat{x}^{t}_j\big)\Big]
+\]
+--- \emph{synchronous local selection}.
+\end{corollary}
+
+Because full commitment is partial in practice, we state the attractor
+theorem under the weaker hypothesis that the selected assignments satisfy
+this recursion --- implied by full commitment, and checkable directly on
+a run.  On an audited subset of $32$ period-2 runs across four benchmark
+families, the recursion held on every check performed: the two
+alternating solutions mapped to one another under it exactly (both
+directions, on the limit pair of every instance), and it predicted
+$\hat{x}^{t+1}$ from $\hat{x}^{t}$ correctly on all sampled transitions
+(every seventh transition of the recorded tails; protocol in
+Appendix~\ref{app:tworoutes}).
+
+\subsection{The Two-Solution Theorem}\label{sec:twosol}
+
+\begin{definition}[Alternation cost]\label{def:altcost}
+For complete assignments $(x, y)$ let
+\[
+  \mathrm{cost}_2(x,y) = \!\!\sum_{C_{ij}\in\mathcal{C}}\!\!
+  \big[C_{ij}(x_i, y_j) + C_{ij}(y_i, x_j)\big]
+  + \sum_i \big[\phi_i(x_i) + \phi_i(y_i)\big].
+\]
+Then $\mathrm{cost}_2(x,y) = \mathrm{cost}_2(y,x)$ --- using only that
+the two endpoints share one cost term --- and $\mathrm{cost}_2(x,x) =
+2\,\mathrm{cost}(x)$.
+\end{definition}
+
+Under the synchronous schedule a constraint is never evaluated within one
+iteration: each variable reacts to its neighbors' \emph{previous} values,
+so every charge crosses consecutive iterations.  $\mathrm{cost}_2(x,y)$ is
+exactly the resulting bill for alternating between $x$ and $y$ --- and
+since $\mathrm{cost}_2(x,x) = 2\,\mathrm{cost}(x)$, alternating pairs and
+ordinary solutions are priced in the same currency, with diagonal pairs
+being ordinary solutions counted twice.
+
+\begin{theorem}[Two solutions]\label{thm:tworoutes}
+If for all $t \ge t_0$ the selected assignments satisfy the synchronous
+local selection recursion with unique argmins, then
+$\mathrm{cost}_2(\hat{x}^{t}, \hat{x}^{t+1})$ is non-increasing and
+strictly decreasing unless $\hat{x}^{t+2} = \hat{x}^{t}$; hence the
+selected-assignment sequence is eventually periodic with period $1$ or
+$2$.
+\end{theorem}
+\begin{proof}
+Grouping $\mathrm{cost}_2(\hat{x}^{t+1}, z)$ around $z$, each $X_i$
+contributes $\phi_i(z_i) + \sum_{j} C_{ij}(z_i, \hat{x}^{t+1}_j)$ plus
+terms independent of $z$; this is separable and coordinatewise minimized
+by $z = \hat{x}^{t+2}$.  Hence
+$\mathrm{cost}_2(\hat{x}^{t+1}, \hat{x}^{t+2}) \le
+\mathrm{cost}_2(\hat{x}^{t+1}, \hat{x}^{t}) =
+\mathrm{cost}_2(\hat{x}^{t}, \hat{x}^{t+1})$ by swap symmetry.  With
+unique argmins, equality forces $\hat{x}^{t+2} = \hat{x}^{t}$;
+$\mathrm{cost}_2$ takes finitely many values, so strict decreases
+terminate. \qedhere
+\end{proof}
+
+\begin{corollary}\label{cor:localmin}
+The limit pair $(x, y)$ is a local minimum of $\mathrm{cost}_2$ under
+single-variable changes in either coordinate.  Period $1$ occurs exactly
+when the pair is diagonal, and a diagonal limit is a local minimum of the
+original problem.
+\end{corollary}
+
+Parallel-update period-at-most-two results go back to
+\citet{GolesOlivos80} (threshold networks, symmetric weights) and
+\citet{PoljakSura83} (weighted-plurality opinion dynamics --- pairwise
+terms proportional to equality indicators); a two-cycle result for
+simultaneous best response in two-player random potential games appears
+in \citet{AshkenaziGolan25}.  Theorem~\ref{thm:tworoutes} covers
+arbitrary \emph{shared} pairwise cost terms with unaries, hence the short
+proof.  Within its hypothesis it explains why the observed period is two
+rather than three, five, or aperiodic.  Empirically (census in
+Appendix~\ref{app:tworoutes}; periods detected on the final $150$ of
+$700$ iterations, up to $64$): of $276$ split runs, $274$ had a detected
+periodic tail of period $1$ or $2$ ($191$ period-2, $83$ period-1) and
+two had longer detected periods ($16$, $42$); restricted to the
+$n \ge 40$ cells of the domain-10 and coloring families the period-2
+count is $92$ of $92$; unsplit runs on the random domain-10 families had
+\emph{no} detected period at all in $85$--$100\%$ of instances from
+$n{=}20$ up.
+
+Off-diagonal minima of $\mathrm{cost}_2$ are where alternation pays: for
+three mutually ``not-equal'' constrained variables, every single
+assignment must violate one constraint, but the pair
+$x = (\alpha,\alpha,\alpha)$, $y = (\beta,\beta,\beta)$ satisfies all six
+cross terms.  On the audited subset, the limit pair was a local minimum
+of $\mathrm{cost}_2$ with zero violating moves in $32/32$ runs.
+
+\begin{corollary}[Bipartite rephasing]\label{cor:bipartite}
+Let the constraint graph be connected and bipartite with sides $A, B$,
+and $(x,y)$ any pair.  Define $x'$ ($=x$ on $A$, $=y$ on $B$) and $y'$
+($=y$ on $A$, $=x$ on $B$).  Then
+$\mathrm{cost}_2(x, y) = \mathrm{cost}(x') + \mathrm{cost}(y')$, and if
+$(x,y)$ is a layer-wise local minimum of $\mathrm{cost}_2$ then $x'$ and
+$y'$ are each coordinatewise local minima of the \emph{original} problem.
+\end{corollary}
+
+On a bipartite graph, then, the oscillating algorithm is not wandering
+between two poor assignments: it holds \emph{two locally optimal
+solutions in interleaved form}, and the raw snapshots read them out in
+mixed phase.  This is exactly Observation~\ref{obs:lemniscate}
+($\{X_1, X_3\}$ and $\{X_2\}$ are the two sides; snapshots cost $300$ and
+$1200$ while their rephasings are the local optima of costs $130$ and
+$132$), and it was verified on $8/8$ oscillating complete-bipartite
+random instances (Appendix~\ref{app:tworoutes}).  On non-bipartite graphs
+the only exact symmetry is the global swap $(x,y)\mapsto(y,x)$;
+per-variable rephasing changes $\mathrm{cost}_2$ and is heuristic
+post-processing (measured gains in Appendix~\ref{app:tworoutes}).  The
+two-value menus of the merge heuristics of Section~\ref{Sec:MS-split} are
+exactly the coordinates of the limit pair: on bipartite graphs
+Corollary~\ref{cor:bipartite} guarantees they contain two coordinatewise
+local optima; on general graphs the support is empirical
+(Table~\ref{tab:merge}).
+
+\section{Damping and the Two-Solution Oscillation}\label{sec:whydamping}
+
+Damping is applied to the $Q$-messages
+(Section~\ref{secmaxsum}).  Because a committed function-node forwards
+its row plus a propagating constant, raw messages need not settle even
+when all decisions are locked; the objects that settle are the message
+\emph{differences}.  All statements below are about differences.
+
+\begin{lemma}[Averaging an alternating computation]\label{lem:ema}
+If a damped scalar sequence has computed values alternating between
+constants $u$ and $v$, the sent values converge geometrically (rate
+$\lambda$) to the alternating pair $\frac{u+\lambda v}{1+\lambda}$,
+$\frac{v+\lambda u}{1+\lambda}$: the mean is preserved and the swing is
+multiplied by $(1-\lambda)/(1+\lambda)$ --- $1/19$ at $\lambda = 0.9$.
+\end{lemma}
+
+\begin{theorem}[Persistence threshold of a committed alternation]\label{thm:lambdastar}
+Binary domains.  Consider a trajectory of $Q$-damped Min-sum on the SCFG
+that, from some iteration on, reproduces a fixed period-2 pattern of
+regimes in which every message difference is in a regime at every step.
+For a message whose regime side flips each iteration, the computed
+differences alternate between constants $\Delta_1 > \tau_U$ and
+$\Delta_2 < \tau_L$ determined by the pattern, and the pattern can
+persist only if
+\[
+  \lambda \;\le\;
+  \min\!\left(
+    \frac{\Delta_1 - \tau_U}{\tau_U - \Delta_2},\;
+    \frac{\tau_L - \Delta_2}{\Delta_1 - \tau_L}
+  \right)
+\]
+for every flipping message; conversely, under strict inequalities the
+corresponding period-2 orbit of damped message differences exists and is
+locally attracting (contraction $\lambda$ per step).  The bound is
+strictly below $1$ whenever $\tau_U > \tau_L$ or the two margins differ.
+Damped and undamped updates have identical fixed points.
+\end{theorem}
+
+What Theorem~\ref{thm:lambdastar} does \emph{not} say: above the
+threshold of a given pattern the trajectory need not converge ---
+message differences may enter transition intervals, settle into a
+different pattern, or sustain non-committed oscillations.  Indeed, of
+$17$ initially oscillating instances in our damping scans, $2$ (both
+random dense) were non-monotone in $\lambda$.  We therefore report per
+instance the smallest grid $\lambda$ from which all larger tested values
+produced a constant \emph{assignment} tail (final $300$ of $2000$
+iterations; assignment constancy, cost constancy, and convergence of
+message differences are increasingly strong statements and only the
+first was tested): at most $0.2$ on random sparse and binary, with the
+largest values, $0.4$, on three coloring instances and one random dense
+instance (Appendix~\ref{app:tworoutes}).  For $|D_i| > 2$ the theorem
+does not apply and the domain-10 results are empirical.
+
+\begin{proposition}[The threshold approaches $1$ with degree]\label{prop:kn}
+Let the constraint graph be complete on $n$ agents with binary domains,
+every constraint costing $10$ when the two agents take equal values and
+$0$ otherwise, symmetric split, and a uniform unary preference gap
+$0.01$.  By symmetry all message differences share one value $q_t$,
+whose damped dynamics is the scalar recurrence
+\[
+  q_{t+1} \;=\; \lambda q_t + (1-\lambda)\big[\,0.01 -
+  (2n-3)\operatorname{clip}(q_t, -5, 5)\,\big],
+\]
+and the alternation between the two uniform solutions is a fully
+committed period-2 pattern with persistence threshold
+\[
+  \frac{10(n-2) - 0.01}{10(n-1) + 0.01} \;\xrightarrow[n\to\infty]{}\; 1 .
+\]
+Hence for every fixed $\lambda < 1$ there is a degree at which the
+oscillation persists: no problem-independent damping value exists.  For
+$n = 12$ the threshold is $0.9089$; the customary $\lambda = 0.9$ does
+not eliminate this oscillation (verified in the implementation from zero
+initialization), while at $\lambda = 0.95$ the message differences
+converge.
+\end{proposition}
+
+\paragraph{Summary, with scope.}
+Under full commitment and clone synchronization, split Min-sum's
+selections provably follow synchronous local selection
+(Corollary~\ref{cor:rule}); any selection-following tail is eventually of
+period $1$ or $2$ and parks at a local minimum of $\mathrm{cost}_2$
+(Theorem~\ref{thm:tworoutes}), whose bipartite rephasings are ordinary
+local optima (Corollary~\ref{cor:bipartite}).  On the benchmarks,
+commitment is partial and family-dependent, yet the selection recursion
+held on every check of the audited runs, and detected split tails were
+overwhelmingly of period $1$ or $2$ --- period $2$ almost exclusively in
+the large domain-10 and coloring cells --- while unsplit runs mostly
+showed no detectable period.  For damping: alternating computed
+differences are attenuated by $(1-\lambda)/(1+\lambda)$
+(Lemma~\ref{lem:ema}); each fully committed binary period-2 pattern
+persists exactly up to an explicit threshold
+(Theorem~\ref{thm:lambdastar}); and the threshold approaches $1$ with
+degree (Proposition~\ref{prop:kn}), so the reliability of
+$\lambda = 0.9$ on the benchmark families --- measured stable-damping
+values at most $0.4$ --- is a property of those families, not a universal
+guarantee.  Damping removes the parallel-update alternation that
+committed dynamics admits as its principal failure mode; it cannot
+manufacture commitment, which is splitting's contribution --- partial,
+but decisive on these benchmarks.

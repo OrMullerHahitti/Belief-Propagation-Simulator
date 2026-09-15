@@ -1,0 +1,191 @@
+% ======================================================================
+% Appendix: proofs and measurement details for the two-solution theory
+% (Sections \ref{sec:tworoutes}-\ref{sec:whydamping}).  Assumes
+% \appendix was already issued (sec7_appendix.tex).
+% ======================================================================
+\section{Proofs and Measurement Details for the Two-Solution Analysis}
+\label{app:tworoutes}
+
+\subsection{Deferred Proofs}
+
+\begin{proof}[Proof of Lemma~\ref{lem:clones}]
+Induction on $t$.  At initialization all messages are zero.  If all
+corresponding messages are equal at $t-1$, the two copies receive equal
+inputs and hold equal tables, so their $R^{t}$ are equal; the two $Q^{t}$
+from $X_i$ toward the pair differ only by which copy's $R^{t-1}$ is
+excluded, and those are equal by hypothesis.
+\end{proof}
+
+\begin{proof}[Proof of Lemma~\ref{lem:decode}]
+Each copy forwards half of the same row:
+$R^{t}_{F'_{ij}\to X_i}(v) = \tfrac12 C_{ij}(v, u^{*t}_j) +
+\text{const}$, and likewise for $F''_{ij}$ with the same minimizer
+(Lemma~\ref{lem:clones}).  Summing the two copies over all neighbors
+reconstructs $\sum_j C_{ij}(v, u^{*t}_j)$ up to an additive constant,
+which does not affect the argmin.
+\end{proof}
+
+\begin{proof}[Proof of Lemma~\ref{lem:ema}]
+Solving $m_{\mathrm{even}} = \lambda m_{\mathrm{odd}} + (1-\lambda)u$ and
+$m_{\mathrm{odd}} = \lambda m_{\mathrm{even}} + (1-\lambda)v$ gives
+$m_{\mathrm{even}} = (u+\lambda v)/(1+\lambda)$ and
+$m_{\mathrm{odd}} = (v+\lambda u)/(1+\lambda)$; the deviation from this
+alternating pair contracts by $\lambda$ per step.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:lambdastar}]
+Within the pattern the computed difference of each flipping message
+alternates between the constants $\Delta_1, \Delta_2$, so by
+Lemma~\ref{lem:ema} its damped difference converges to the alternating
+pair $(\Delta_1 + \lambda\Delta_2)/(1+\lambda)$,
+$(\Delta_2 + \lambda\Delta_1)/(1+\lambda)$.  Pattern consistency requires
+the first in the upper regime and the second in the lower:
+$\Delta_1 + \lambda\Delta_2 \ge (1+\lambda)\tau_U$ and
+$\Delta_2 + \lambda\Delta_1 \le (1+\lambda)\tau_L$, i.e., the stated
+bounds.  Under strict inequalities the pair sits strictly inside the
+regimes, drives are locally constant, and each difference follows an
+affine contraction of rate $\lambda$; hence the orbit exists and attracts
+a neighborhood.  Fixed-point invariance:
+$m = \lambda m + (1-\lambda)\widehat{m}$ iff $m = \widehat{m}$.
+\end{proof}
+
+\begin{proof}[Proof of Proposition~\ref{prop:kn}]
+By symmetry of the instance and zero initialization (the induction of
+Lemma~\ref{lem:clones} extended over the automorphisms of the complete
+graph), all $Q$-differences are equal at every iteration; call the
+common value $q_t$.  Each split table is $5$ on the diagonal and $0$ off
+it, so its difference map is $-\operatorname{clip}(q, -5, 5)$ with
+transition interval $[-5, 5]$, and a $Q$-message sums the unary gap and
+the $R$-differences of $2(n-1) - 1 = 2n-3$ incoming copies, giving the
+stated scalar recurrence.  While $|q_t| \ge 5$ the computed drive
+alternates between $\Delta_1 = 0.01 + 5(2n-3)$ and
+$\Delta_2 = 0.01 - 5(2n-3)$; Theorem~\ref{thm:lambdastar} with
+$\tau_U = -\tau_L = 5$ yields the threshold
+$(10(n-2) - 0.01)/(10(n-1) + 0.01)$ after simplification, and local
+attraction with two-step contraction $\lambda^{2}$.  Reachability from
+zero initialization: inside the strip the recurrence is affine with slope
+$\lambda - (1-\lambda)(2n-3)$, which is $\le -1$ exactly when
+$\lambda \le (n-2)/(n-1)$; below the threshold the interior fixed point
+is repelling and the oscillating iterates leave the strip in finitely
+many steps, after which the committed alternation attracts.  At
+$\lambda = 0.95$ (for $n = 12$) the interior slope is $-0.10$ and the
+message differences converge to the interior fixed point, whose decoded
+beliefs are exactly tied --- an artifact of the perfectly uniform
+instance --- so assignments there are determined by tie-breaking rather
+than by a surviving alternation.
+\end{proof}
+
+\begin{proof}[Proof of Corollary~\ref{cor:bipartite}]
+For an edge with $i \in A$, $j \in B$: $x'_i = x_i$, $x'_j = y_j$,
+$y'_i = y_i$, $y'_j = x_j$, so the two cross terms
+$C_{ij}(x_i, y_j) + C_{ij}(y_i, x_j)$ are literally the two intra terms
+$C_{ij}(x'_i, x'_j) + C_{ij}(y'_i, y'_j)$; unary terms match because
+each variable contributes both of its values once on either side.  A
+single-variable move in $x'$ corresponds to a single-layer move in
+$(x,y)$ --- in layer $x$ if the variable is in $A$, in layer $y$
+otherwise --- so layer-wise local minimality of $\mathrm{cost}_2$
+transfers to coordinatewise local minimality of $\mathrm{cost}$ for $x'$
+and $y'$ separately.
+\end{proof}
+
+\subsection{Measurement Protocol}
+
+All measurements were produced with a vectorized reimplementation of the
+synchronous two-phase schedule, verified to produce assignment
+trajectories identical to the repository engines
+(\texttt{BPEngine}, \texttt{SplitEngine}, \texttt{DampingEngine},
+\texttt{DampingSCFGEngine}) on shared instances, with per-iteration
+message normalization (without which undamped raw messages lose
+floating-point precision by iteration ${\sim}30$).  Families: random
+Erd\H{o}s--R\'enyi with $|D_i| = 10$ and uniform integer costs in
+$[100, 200)$ at densities $0.25$ (sparse) and $0.6$ (dense); random
+binary ($|D_i| = 2$) at density $0.25$; 3-coloring at density $0.15$
+with conflict cost $10$; tie-breaking unary preferences uniform in
+$[0, 10^{-2})$.  \emph{Period census}: $700$ iterations; the period of
+the selected-assignment sequence is the smallest $p \le 64$ that repeats
+over the final $150$ iterations (``detected periodic tail''); $12$--$20$
+seeds per cell over $n \in \{10, 20, 40, 80\}$.  \emph{Commitment}: the
+fraction of messages with a stable active minimizer, at iteration $9$,
+$49$, and averaged over the final $50$ iterations, recorded for split
+and unsplit runs of the same instances.  \emph{Audited mechanism
+subset}: $34$ instances ($10$ sparse, $10$ coloring, $8$ binary, $6$
+dense), of which $32$ had period-2 tails; on each we checked the
+selection-rule closure on the limit pair (both directions, exact), the
+selection-rule prediction on every seventh transition of the recorded
+$100$-iteration tail, and layer-wise local minimality of
+$\mathrm{cost}_2$ under all single-variable moves.  \emph{Damping scans}:
+$19$ instances ($17$ oscillating undamped), grid
+$\lambda \in \{0.02, 0.05, 0.08, 0.12, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7,
+0.8, 0.9\}$, $2000$ iterations, ``stable'' meaning the assignment is
+constant over the final $300$.  \emph{Bipartite verification}: $40$
+random complete-bipartite instances ($4{+}4$ variables, $|D_i| = 3$,
+uniform integer costs in $[0,100)$), of which $8$ oscillated; on all
+$8$, the identity of Corollary~\ref{cor:bipartite} held exactly and both
+rephasings were coordinatewise local minima of the original problem
+(raw snapshot costs $532$--$1044$ versus rephased costs $474$--$560$).
+Raw results and scripts accompany the code
+(\texttt{analysis\_oscillation/}).
+
+\subsection{Period Census}
+
+\begin{table}[t]
+\centering
+\caption{Fraction of runs whose selected-assignment sequence has a
+detected periodic tail of period 1 / period 2 / longer / none (window
+$150$, $p \le 64$).  MS-SCFG uses the symmetric split, no damping.}
+\label{tab:census}
+\scriptsize
+\begin{tabular}{llrrrrrrrr}
+\toprule
+& & \multicolumn{4}{c}{MS-SCFG} & \multicolumn{4}{c}{MS} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-10}
+family & $n$ & P1 & P2 & P$>$2 & none & P1 & P2 & P$>$2 & none \\
+\midrule
+sparse dom-10 & 10 & .35 & .65 & 0 & 0 & .65 & 0 & .15 & .20 \\
+ & 20 & 0 & 1.00 & 0 & 0 & .10 & .05 & 0 & .85 \\
+ & 40 & 0 & 1.00 & 0 & 0 & 0 & 0 & 0 & 1.00 \\
+ & 80 & 0 & 1.00 & 0 & 0 & 0 & 0 & 0 & 1.00 \\
+dense dom-10 & 10 & .08 & .83 & .08 & 0 & .17 & .17 & 0 & .67 \\
+ & 20 & .17 & .83 & 0 & 0 & .08 & 0 & 0 & .92 \\
+ & 40 & 0 & 1.00 & 0 & 0 & 0 & 0 & 0 & 1.00 \\
+coloring & 10 & .55 & .45 & 0 & 0 & .90 & .05 & .05 & 0 \\
+ & 20 & .15 & .85 & 0 & 0 & .45 & .15 & .25 & .15 \\
+ & 40 & 0 & 1.00 & 0 & 0 & 0 & .95 & 0 & .05 \\
+ & 80 & 0 & 1.00 & 0 & 0 & 0 & 1.00 & 0 & 0 \\
+binary & 10 & .85 & .15 & 0 & 0 & .80 & 0 & .20 & 0 \\
+ & 20 & .95 & .05 & 0 & 0 & .95 & 0 & 0 & .05 \\
+ & 40 & .80 & .15 & .05 & 0 & .65 & .15 & 0 & .20 \\
+ & 80 & .35 & .65 & 0 & 0 & .20 & .20 & .10 & .50 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:census} gives the full census.  Pooled over all cells,
+$191$ of $276$ split runs ($69\%$) had a detected period-2 tail, $83$
+period-1, and two longer periods ($16$, $42$); the split runs never
+wandered.  Restricted to the $n \ge 40$ cells of the domain-10 and
+coloring families the period-2 count is $92/92$.  Unsplit coloring at
+$n \ge 40$ also locks into period 2 --- its bounded conflict penalty
+lets high-degree fields commit messages without splitting, consistent
+with the theory (whenever commitment happens, the period is $1$ or
+$2$); unsplit domain-10 runs almost always show no detected period.
+
+\subsection{Damping Grid Audit}
+
+Per-instance smallest grid $\lambda$ from which all larger tested values
+were stable: random sparse $\{.12, .2, .2, .2, .2\}$; random dense
+$\{.2, .2, .4\}$; coloring $\{.02, .3, .4, .4, .4\}$; binary
+$\{.02, .08, .12, .2\}$.  Two dense instances were non-monotone (stable
+at one grid value, oscillating at a larger one, stable thereafter),
+which is why the ``all larger values'' criterion is used.  On instances
+where the number of flipping variables was unchanged from the undamped
+run --- a proxy for an unchanged pattern, not a verification of it ---
+the residual swing of the damped $Q$-differences followed the
+$(1-\lambda)/(1+\lambda)$ law of Lemma~\ref{lem:ema} within a mean
+relative deviation of about $4\%$ (random families; coloring
+re-equilibrates into different patterns at any tested $\lambda > 0$ and
+the same-pattern premise fails there).  Greedy per-variable rephasing of
+the limit pair (minimizing the sum of the two layers' ordinary costs)
+improved that sum by, on average, $2427$ (sparse), $4096$ (dense),
+$374$ (coloring), and $412$ (binary), flipping $6$--$36\%$ of the
+variables.

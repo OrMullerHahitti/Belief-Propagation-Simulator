@@ -1,0 +1,47 @@
+\appendix
+\section{Additional Experimental Plots}
+\label{app:additional_plots}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.32\textwidth]{plots/random_sparse_cost.pdf}
+\includegraphics[width=.32\textwidth]{plots/random_dense_cost.pdf}
+\includegraphics[width=.32\textwidth]{plots/scale_free_cost.pdf}
+\caption{Mean solution cost per iteration on the random sparse, random dense,
+and scale-free binary benchmarks.  These plots show that the split-damped and
+delayed-splitting variants remain competitive beyond the structured graph
+coloring and meeting scheduling benchmarks.}
+\label{Fig:binary_random_cost_curves}
+\end{figure*}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.32\textwidth]{plots/random_sparse_cost_zoom.pdf}
+\includegraphics[width=.32\textwidth]{plots/random_dense_cost_zoom.pdf}
+\includegraphics[width=.32\textwidth]{plots/scale_free_cost_zoom.pdf}
+\caption{Zoomed lower-cost region for the random sparse, random dense, and
+scale-free binary benchmarks.  The zoomed plots highlight the differences
+between DMS-SCFG, delayed splitting, DABP, DABP-NoSplit, and DABP-SymSplit
+near the end of the run.}
+\label{Fig:binary_random_cost_curves_zoom}
+\end{figure*}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.32\textwidth]{plots/random_sparse_ternary_cost.pdf}
+\includegraphics[width=.32\textwidth]{plots/random_dense_ternary_cost.pdf}
+\includegraphics[width=.32\textwidth]{plots/meeting_scheduling_ternary_cost.pdf}
+\caption{Mean solution cost per iteration on true arity-3 benchmarks:
+random sparse ternary, random dense ternary, and meeting scheduling ternary.
+These experiments test whether the split-damped phenomenon persists beyond
+binary pairwise factors.}
+\label{Fig:ternary_cost_curves}
+\end{figure*}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.32\textwidth]{plots/random_sparse_ternary_cost_zoom.pdf}
+\includegraphics[width=.32\textwidth]{plots/random_dense_ternary_cost_zoom.pdf}
+\includegraphics[width=.32\textwidth]{plots/meeting_scheduling_ternary_cost_zoom.pdf}
+\caption{Zoomed lower-cost region for the true arity-3 benchmarks.  The
+ternary results are important because in domain size 3 the binary neutral-step
+mechanism becomes only partial: the active minimizer structure is richer, but
+the empirical split-damped stabilization pattern still appears.}
+\label{Fig:ternary_cost_curves_zoom}
+\end{figure*}

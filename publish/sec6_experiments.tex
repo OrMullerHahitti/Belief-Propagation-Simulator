@@ -1,0 +1,442 @@
+\section{Experimental Evaluation}
+\label{Sec:experiments}
+Our empirical study is designed to test the mechanism suggested by the
+theoretical analysis.  Splitting a function-node does not change the objective
+function, but it changes the message-passing dynamics by modifying the local
+active-minimizer geometry and by introducing short feedback loops between the
+copies of each split function-node.  These feedback loops can separate
+candidate assignments quickly, but, without damping, they may also generate
+oscillations.  Damping is therefore expected to stabilize the oscillatory
+component created by splitting.
+The experiments are divided into four parts.  First, we compare standard
+Min-sum (MS), damped Min-sum (DMS), Min-sum on split constraint factor
+graphs (MS-SCFG), and DMS on split constraint factor graphs (DMS-SCFG).
+Second, we evaluate delayed splitting, in which DMS is performed on the
+original factor graph for a fixed number of iterations before the function-nodes
+are split.  Third, we evaluate post-processing of the two assignments produced
+by the split-only oscillation.  Fourth, we compare against Deep Attentive
+Belief Propagation (DABP) and two ablations: DABP without splitting and DABP
+with a symmetric split.
+\subsection{Experimental Setup}
+We evaluated the algorithms on five binary benchmark families, generating 50
+independent instances per family (seeds $0$--$49$).
+\emph{Random sparse} and \emph{random dense}: 50 agents, one variable each
+with $|D_i| = 10$, Erd\H{o}s--R\'enyi constraint graphs with density $p_1 = 0.1$
+(sparse) and $p_1 = 0.6$ (dense), and integer constraint costs drawn uniformly
+from $[100, 200)$; disconnected components are force-connected.
+\emph{Graph coloring}: 50 agents, 3 colors, $p_1 = 0.1$, with not-equal
+constraints costing 10 when neighboring agents select the same color and 0
+otherwise.
+\emph{Scale-free}: Barab\'asi--Albert graphs following \citet{CohenGZ20}: 7
+initial randomly connected agents, each new agent attaching preferentially to 3
+existing agents, $n = 50$, $|D_i| = 10$, integer costs uniform in $[100, 200)$.
+\emph{Meeting scheduling}: following \citet{CohenGZ20}, 90 agents schedule 20
+meetings into 20 time slots; each agent participates in two random meetings;
+each constrained meeting pair is assigned a travel time drawn uniformly from
+$\{6, \ldots, 10\}$, and the cost counts the overbooked (shared) agents when
+the slot difference is below the travel time.
+All instances add tiny random unary value preferences (uniform in
+$[0, 10^{-2})$) for tie breaking, as in prior Max-sum studies
+\cite{FarinelliRPJ08}; their total mass stays below the smallest structural
+cost gap, so they cannot change which assignment is optimal.
+All damped variants use $\lambda = 0.9$.
+
+All algorithms were executed for 2000 synchronous iterations.  At each
+iteration, the assignment selected by the current beliefs was evaluated using
+the original cost tables.  Thus, even when the algorithm runs on a split
+constraint factor graph, all costs are measured with respect to the original
+problem.  We report means over the 50 instances per family; standard
+deviations accompany all summary statistics, and all pairwise comparisons are
+evaluated with paired t-tests and Wilcoxon signed-rank tests over the common
+instances.  Full per-benchmark summary and significance tables are included
+with the code.
+We focus on final solution cost and on the cost trajectory over time.  This is
+different from the anytime emphasis of previous work.  The goal here is not
+only to determine whether an algorithm visits a good assignment, but whether
+the combination of splitting and damping stabilizes to a high-quality assignment
+by the end of the run.
+The DABP curves are plotted on the same iteration axis after a wall-clock
+normalization.  In the plot legend, a label of the form \texttt{x6.3} means that
+one iteration of that DABP variant took 6.3 times as long as one DMS iteration
+on the same machine.  All such timing measurements were taken on the same
+GPU workstation with an NVIDIA RTX 4090 24GB GPU.  Therefore, a DABP curve
+labelled \texttt{x6.3} should be read as a wall-clock-adjusted curve, not as a
+plain per-iteration curve.
+\subsection{Algorithms}
+We compare the following algorithms; the labels in parentheses are the ones
+used in the plot legends.
+\textbf{MS.}  Standard synchronous Min-sum on the original factor graph.
+\textbf{DMS.}  Damped Min-sum on the original factor graph.
+\textbf{MS-SCFG} (\texttt{MS s=.5})\textbf{.}  Standard Min-sum on a symmetric
+split constraint factor graph.  Each original function-node is replaced by two
+function-nodes whose cost tables each contain half of the original cost table.
+\textbf{DMS-SCFG} (\texttt{DMS s=.5})\textbf{.}  Damped Min-sum on the
+symmetric split constraint factor graph.
+\textbf{DMS-SCFG-rand} (\texttt{DMS s=.4-.6})\textbf{.}  Damped Min-sum on a
+\emph{random} SCFG: each cost-table entry $c$ is split into $u \cdot c$ and
+$(1-u) \cdot c$ with $u \sim U[0.4, 0.6)$, the best-performing split reported
+by \citet{CohenGZ20}.
+\textbf{DMS-SCFG-at-$K$} (\texttt{DMS @$K$})\textbf{.}  Delayed splitting.  The
+algorithm performs DMS on the original factor graph for $K$ iterations and then
+converts the graph to an SCFG, redistributing the previously sent messages
+across the two copies.  We evaluate $K\in\{50,100,300,500,1000\}$, and for
+random dense graphs we also evaluate $K=1500$.
+\textbf{MS-SCFG-MGM-200 and MS-SCFG-opt-200} (\texttt{MGM@200},
+\texttt{Opt merge@200})\textbf{.}  These versions use the two assignments
+selected at iterations 198 and 199 of the MS-SCFG run --- the two branches of
+its period-2 oscillation (Section~\ref{Sec:MS-split}).  The MGM version applies
+an MGM-style local improvement restricted to the two values suggested for each
+variable by these assignments, started from both branches, keeping the better
+result.  The optimal version solves the corresponding restricted binary-menu
+problem with branch and bound (300-second cap); the search is exact on every
+benchmark except random dense, where the reported value is the best merge found
+within the cap, warm-started from the MGM result.  A diagnostic variant
+(\texttt{MGM inv@200}) flips every disagreement variable of the MGM merge to
+the other value of its binary menu.
+\textbf{Optimal} (\texttt{Opt n=$k$})\textbf{.}  Branch and bound on the
+original problem with a 60-second limit per instance, reported only for the $k$
+instances on which the search completed (21 of 50 on graph coloring; the search
+does not finish on the domain-10 benchmarks).
+\textbf{DABP.}  Deep Attentive Belief Propagation~\cite{DengKL022}.  DABP
+learns dynamic damping factors and neighbor weights for composing BP messages.
+The original DABP implementation also uses an SCFG representation with a
+$0.95/0.05$ split ratio.
+\textbf{DABP-NoSplit.}  The same attentive architecture, but run on the original
+factor graph without splitting.  This ablation tests whether learned damping
+and learned neighbor weights are sufficient without the split representation.
+\textbf{DABP-SymSplit.}  The same attentive architecture, but using a symmetric
+$0.5/0.5$ split instead of the $0.95/0.05$ split.  This ablation tests whether
+the advantage of DABP depends on the highly asymmetric split or only on the
+presence of a split representation.
+\subsection{Final Solution Cost}
+Table~\ref{tab:final_costs} reports the mean final solution cost after 2000
+iterations.  Lower values indicate better solutions.
+\begin{table*}[t]
+\centering
+\caption{Mean final solution cost after 2000 iterations (50 instances per
+benchmark; lower is better; best in bold).  Standard deviations and full
+pairwise significance tables accompany the code.}
+\label{tab:final_costs}
+\scriptsize
+\begin{tabular}{lrrrrrrrr}
+\toprule
+\textbf{Problem}
+& \textbf{MS}
+& \textbf{DMS}
+& \textbf{MS-SCFG}
+& \textbf{DMS-SCFG}
+& \textbf{Best delayed split}
+& \textbf{DABP}
+& \textbf{DABP-NoSplit}
+& \textbf{DABP-SymSplit} \\
+\midrule
+Graph coloring
+& $666.19$
+& $138.81$
+& $668.61$
+& $34.42$
+& $\mathbf{30.62}\;(K{=}300)$
+& $39.24$
+& $136.41$
+& $35.02$ \\
+Meeting scheduling
+& $87.77$
+& $20.70$
+& $81.80$
+& $8.10$
+& $\mathbf{7.82}\;(K{=}100)$
+& $27.22$
+& $24.00$
+& $30.15$ \\
+Random dense
+& $108076.51$
+& $101904.84$
+& $107330.16$
+& $101571.10$
+& $101335.62\;(K{=}1000)$
+& $\mathbf{99223.68}$
+& $100309.79$
+& $99665.79$ \\
+Random sparse
+& $17611.47$
+& $15749.35$
+& $17288.43$
+& $15357.87$
+& $15330.27\;(K{=}1000)$
+& $\mathbf{14519.01}$
+& $15108.47$
+& $14631.11$ \\
+Scale-free
+& $19924.49$
+& $18229.40$
+& $19703.28$
+& $17952.74$
+& $17900.34\;(K{=}1000)$
+& $\mathbf{16628.46}$
+& $17088.25$
+& $16771.71$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+The results show that splitting alone is not sufficient.  MS-SCFG remains close
+to MS on the structured benchmarks and is much worse than the split-damped
+variants.  This supports the theoretical observation that splitting creates a
+new feedback structure but may still oscillate without damping.
+Damping alone improves MS substantially, but it does not fully explain the
+success of split-damped message passing.  In graph coloring, DMS reaches a
+mean final cost of $138.81$, while DMS-SCFG reaches $34.42$ and delayed
+splitting reaches $30.62$.  In meeting scheduling, DMS reaches $20.70$, while
+DMS-SCFG reaches $8.10$ and delayed splitting reaches $7.82$.  These large
+gaps are consistent with the claim that splitting changes the local message
+geometry in a way that damping alone does not.
+The DABP ablation further strengthens this conclusion.  On graph coloring,
+DABP-NoSplit reaches $136.41$, close to DMS and far from DABP with splitting
+($39.24$) and DMS-SCFG ($34.42$).  Thus, learned damping and learned neighbor
+weights do not replace splitting on this structured benchmark.  On meeting
+scheduling, both DABP and DABP-NoSplit are much worse than DMS-SCFG and the
+best delayed split.  On random sparse, random dense, and scale-free graphs,
+DABP with splitting is consistently better than DABP-NoSplit, and DABP attains
+the best final costs overall.  The advantage of the split-damped Min-sum
+variants is therefore concentrated on the structured benchmarks; on the
+unstructured families, DABP's learned per-edge parameters win, at the price of
+centralized execution and a substantially higher per-iteration cost.  Overall,
+the ablation indicates that splitting remains an essential structural component
+even when the algorithm learns dynamic damping factors and neighbor weights.
+
+\paragraph{Statistical significance.}
+All comparisons are paired per instance ($n = 50$); we cite Wilcoxon
+signed-rank p-values on final costs, and the paired t-tests agree unless noted.
+Adding splitting to DMS is significant on graph coloring ($p < 10^{-9}$),
+meeting scheduling ($p < 10^{-8}$), random sparse ($p < 10^{-5}$), and
+scale-free graphs ($p = 0.018$), but not on random dense graphs ($p = 0.47$).
+Removing splitting from DABP is significant on graph coloring
+($p < 10^{-9}$), random sparse ($p < 10^{-3}$), and scale-free graphs
+($p < 0.005$), but not on meeting scheduling ($p = 0.40$); on random dense
+the t-test is significant ($p = 0.003$) while the Wilcoxon test is not
+($p = 0.80$).  On graph coloring the difference between DMS-SCFG and DABP is
+\emph{not} significant ($p = 0.31$); on meeting scheduling DMS-SCFG is
+significantly better than DABP ($p < 10^{-6}$), and on the three unstructured
+families DABP is significantly better ($p < 10^{-14}$).  Delayed splitting
+improves significantly on DMS-SCFG only on meeting scheduling ($K{=}100$,
+$p = 0.031$) and random dense ($K{=}1000$, $p = 0.029$); on graph coloring the
+evidence is mixed (t-test $p = 0.038$, Wilcoxon $p = 0.14$), and on random
+sparse and scale-free graphs the improvement in the mean is not significant.
+\subsection{Cost Trajectories on Structured Benchmarks}
+Figure~\ref{Fig:structured_cost_curves} shows the cost trajectories for graph
+coloring and meeting scheduling.  These two benchmarks are the most important
+for the main paper because they exhibit the clearest separation between the
+mechanisms.  In both cases, MS and MS-SCFG remain high or unstable, while
+DMS-SCFG and delayed splitting stabilize at much lower costs.  The DABP-NoSplit
+curve is also informative: it tests whether neural attention alone can replace
+splitting.  The answer is negative on graph coloring, where removing splitting
+keeps DABP close to the DMS region rather than the split-based region.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.49\textwidth]{plots/graph_coloring_cost.pdf}
+\includegraphics[width=.49\textwidth]{plots/meeting_scheduling_cost.pdf}
+\caption{Mean solution cost per iteration on the structured benchmarks.
+Left: graph coloring.  Right: meeting scheduling.  The DABP labels include a
+wall-clock factor: for example, \texttt{DABP x6.3} means that this variant is
+6.3 times slower per plotted iteration than DMS on the same RTX 4090 24GB
+machine.}
+\label{Fig:structured_cost_curves}
+\end{figure*}
+Because several successful algorithms become close after the transient phase,
+Figure~\ref{Fig:structured_cost_curves_zoom} shows a zoomed view of the
+lower-cost region.  These plots should be read as convergence plots rather than
+anytime plots.  They show whether the decoded solution cost remains low near
+the end of the run.
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.49\textwidth]{plots/graph_coloring_cost_zoom.pdf}
+\includegraphics[width=.49\textwidth]{plots/meeting_scheduling_cost_zoom.pdf}
+\caption{Zoomed view of the lower-cost region on graph coloring and meeting
+scheduling.  The zoom highlights the separation between DMS-SCFG, delayed
+splitting, DABP, DABP-NoSplit, and DABP-SymSplit after the early transient.}
+\label{Fig:structured_cost_curves_zoom}
+\end{figure*}
+\subsection{The Symmetric-Split DABP Ablation}
+The DABP-SymSplit line has a specific interpretation.  It keeps the DABP
+architecture and online learning procedure fixed, but replaces the $0.95/0.05$
+split with a symmetric $0.5/0.5$ split.  Thus it isolates the effect of the split
+ratio.
+The $0.95/0.05$ split is significantly better than the symmetric split on the
+three unstructured families (random sparse, random dense, and scale-free;
+Wilcoxon $p < 10^{-8}$ in each case), while on the two structured benchmarks
+the two split ratios are statistically indistinguishable (graph coloring
+$p = 0.44$, where the symmetric split has the better mean, $35.02$ vs.\
+$39.24$; meeting scheduling $p = 0.23$).
+The original $0.95/0.05$ split gives one copy almost the entire original cost
+table and gives the second copy only a small fraction.  Early in the run, the
+dominant copy is therefore likely to select active minimizers similar to those
+selected by the original unsplit function-node.  At the same time, the small
+copy already creates an additional feedback channel.  Later in the run, this
+weak channel can become more important through accumulated messages and
+through the learned DABP neighbor weights.  This provides a plausible mechanism
+for why the $0.95/0.05$ split yields better final costs on the unstructured
+families: it preserves the original factor behavior early, while leaving a
+learned secondary route that can be amplified later.  Proposition~\ref{prop:asym}
+gives the corresponding formal handle: the split ratio moves the round-trip
+constants and thresholds, and hence the absorption condition.
+The symmetric split behaves differently.  Both copies immediately operate at
+equal scale.  This makes the feedback more balanced from the first iterations
+and removes the strong-copy/weak-copy asymmetry.  The symmetric split is
+often faster in wall-clock factor on the structured and sparse benchmarks: the
+measured per-iteration ratios give graph coloring \texttt{DABP x6.3} versus
+\texttt{DABP sym-split x6.1}, meeting scheduling \texttt{x8.2} versus
+\texttt{x7.3}, and random sparse \texttt{x6.9} versus \texttt{x4.6}.  The
+effect is not universal: on random dense and scale-free graphs the symmetric
+split is not faster by this timing factor.  Since the two split DABP variants
+have the same number of factor-node copies, this runtime difference should not
+be explained by graph size alone.  The likely explanation is that the split
+ratio changes the learned message dynamics and the early stopping / convergence
+behavior, rather than the raw number of messages.
+This ablation suggests a useful future direction.  We should inspect the learned
+DABP neighbor weights and $R$-message magnitudes on the two split copies.  If
+the interpretation above is correct, then the $0.95/0.05$ split should show a
+weak copy that is initially small but later receives non-negligible learned
+weight on some edges.  Such an analysis would connect the empirical DABP
+advantage directly to the feedback-loop mechanism studied in this paper.
+\subsection{Using the Split-only Oscillation}
+The theoretical analysis predicts that splitting without damping may create a
+small oscillatory attractor rather than convergence.  Although this prevents
+MS-SCFG from being a good final solver, the two assignments participating in
+the oscillation may still contain useful information.  Table~\ref{tab:merge}
+evaluates this by comparing the raw MS-SCFG final cost with two procedures
+that merge the two assignments observed at iterations 198 and 199.
+\begin{table*}[t]
+\centering
+\caption{Using the two assignments produced by the split-only oscillation.
+Lower is better.  Both merges improve significantly on raw MS-SCFG on every
+benchmark (Wilcoxon $p < 10^{-8}$).}
+\label{tab:merge}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Problem}
+& \textbf{MS-SCFG}
+& \textbf{MGM merge}
+& \textbf{Optimal merge} \\
+\midrule
+Graph coloring
+& $668.61$
+& $98.19$
+& $83.19$ \\
+Meeting scheduling
+& $81.80$
+& $20.98$
+& $20.14$ \\
+Random dense
+& $107330.16$
+& $101561.58$
+& $101561.58$ \\
+Random sparse
+& $17288.43$
+& $15288.05$
+& $15243.23$ \\
+Scale-free
+& $19703.28$
+& $17701.06$
+& $17663.82$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
+The large improvements in Table~\ref{tab:merge} show that the split-only
+oscillation is not arbitrary noise.  It often identifies a small set of candidate
+values that contains useful information.  The poor raw performance of MS-SCFG
+is therefore explained by incoherent mixing of the two oscillation branches
+across variables.  Once these branches are merged coherently, solution quality
+improves sharply.  This supports the central claim: splitting creates strong
+local decision pressure, but damping or an additional coordination step is needed
+to transform that pressure into a stable global assignment.
+\subsection{Measuring the Mechanism}
+\label{sec:mechanism}
+The theory of Sections~\ref{sec:setting} and~\ref{sec:tworoutes} predicts
+specific, measurable behavior on benchmark instances, which we instrumented
+directly (full protocol, tables, and raw results in
+Appendix~\ref{app:tworoutes}).  (i)~\emph{Commitment}: the fraction of
+messages with a stable active minimizer rises within ten iterations to
+$0.73$--$0.97$ on the split random families (versus $0.10$--$0.36$ unsplit
+in the tail, family-dependent), while graph coloring commits only in the
+weaker selection-content sense ($0.03$ at iteration $9$, $0.36$ in the
+tail) --- commitment is real but partial, which is why the reduction of
+Section~\ref{sec:tworoutes} is stated conditionally.  (ii)~\emph{Selection
+rule}: on an audited subset of $32$ period-2 runs, the two alternating
+solutions mapped to one another under the synchronous local selection rule
+exactly, and the rule predicted the next assignment correctly on all
+sampled transitions.  (iii)~\emph{Attractor structure}: on the same $32$
+runs, the limit pair was a layer-wise local minimum of the alternation
+cost $\mathrm{cost}_2$ with zero violating single-variable moves, and on
+oscillating bipartite instances the rephasings of
+Corollary~\ref{cor:bipartite} were coordinatewise local minima of the
+original problem in every case.  (iv)~\emph{Damping}: the smallest grid
+$\lambda$ from which all larger values stabilized the assignment tail was
+at most $0.4$ on every scanned benchmark instance --- far below the
+customary $0.9$, and consistent with Theorem~\ref{thm:lambdastar} ---
+while Proposition~\ref{prop:kn} exhibits a family where the required
+damping exceeds $0.9$ and grows with degree.
+\subsection{Ternary Benchmarks}
+We also include a ternary benchmark suite in the appendix.  In these benchmarks
+the factors are genuine arity-3 constraints rather than collections of binary
+constraints.  The ternary suite is important because the cleanest theoretical
+results in this paper are for binary domains and binary local minimizer maps.
+For domain size 2, preservation of an active minimizer can force a full neutral
+step in which the incoming message difference is cancelled.  With three values,
+this clean cancellation need not occur for all rows or columns simultaneously.
+The ternary experiments therefore test whether the qualitative split-damped
+phenomenon persists when the local minimizer structure is richer and only
+semi-neutral behavior may remain.
+The ternary plots should not be interpreted as a replacement for the binary
+theory.  Rather, they are evidence that the mechanism is not limited to a
+single pairwise artifact.  If split-damped variants also stabilize on true
+arity-3 factors, then the threshold and minimizer-switching explanation is
+likely to extend beyond the simplest binary case, although the full theorem
+will require additional case distinctions.
+\subsection{Discussion}
+The empirical results support the mechanism proposed in the theoretical
+sections.  Standard Min-sum performs poorly on cyclic benchmark graphs.
+Damping alone improves the result but does not fully exploit the structural
+change created by splitting.  Splitting alone changes the message dynamics but
+often produces oscillatory behavior.  Combining splitting with damping produces
+much lower final costs, especially on structured benchmarks such as graph
+coloring and meeting scheduling.
+The delayed-splitting results show that splitting is not merely a preprocessing
+transformation.  The point at which the split is introduced affects the final
+result, suggesting that DMS can first form useful beliefs on the original graph
+and that splitting can then accelerate stabilization by changing the local
+threshold structure of the factor-node updates.  We note, however, that the
+best $K$ varies across benchmarks and that the improvement over immediate
+splitting reaches statistical significance only on meeting scheduling and
+random dense graphs; selecting $K$ automatically is an open question.
+The DABP comparison further strengthens the main claim.  Even learned dynamic
+damping and learned neighbor weights do not remove the need for splitting.  The
+no-split attentive ablation fails to reach the split-based performance on the
+structured benchmarks, and the original DABP design itself uses a split
+representation.  The symmetric-split DABP ablation shows that the exact split
+ratio also matters on the unstructured families, while on the structured
+benchmarks the two ratios are statistically indistinguishable and the symmetric
+split often runs faster, providing a cleaner mechanistic baseline.
+Understanding this tradeoff will require direct analysis of the learned edge
+weights and the messages flowing through the two split copies.
+\paragraph{Limitations.}
+The formal results of Section~\ref{sec:setting} concern a single split binary
+function-node with two-value domains; undamped updates, except for the
+conditional Proposition~\ref{prop:damped}; and influence from the remainder of
+the graph modeled as a bounded unary perturbation.
+Proposition~\ref{prop:asym} extends the absorption analysis to asymmetric
+splits, but the unconditional convergence theorem
+(Theorem~\ref{thm:convergence}) is proved only for the symmetric case.
+Whether the bounded-perturbation condition of Theorem~\ref{thm:dyncvg} holds
+on benchmark instances is an empirical question, which the instrumentation of
+Section~\ref{sec:mechanism} answers: commitment is partial and
+family-dependent.  Accordingly, the oscillation analysis of
+Sections~\ref{sec:tworoutes}--\ref{sec:whydamping} is conditional: the
+reduction to synchronous local selection assumes full commitment; the
+two-solution theorem assumes the selection recursion holds along the run
+(verified on every audited instance, but not proved to occur); the damping
+threshold concerns fixed, fully committed binary patterns; and
+Proposition~\ref{prop:kn} shows that no problem-independent damping value
+exists, so the reliability of $\lambda = 0.9$ is a property of the
+benchmark families.  Finally, on the
+unstructured benchmark families the proposed variants do not match DABP's
+final costs; our contribution there is the mechanism explanation and the
+distributed-execution compatibility, not state-of-the-art solution quality.
