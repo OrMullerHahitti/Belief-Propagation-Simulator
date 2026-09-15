@@ -156,9 +156,9 @@ Graph coloring
 & $138.81$
 & $668.61$
 & $34.42$
-& \todofill{GC s=.95}
-& \todofill{GC pulse}
-& $\mathbf{31.63}$
+& $42.43$
+& $\mathbf{27.23}$
+& $31.63$
 & $39.24$
 & $136.41$
 & $35.02$ \\
@@ -167,8 +167,8 @@ Meeting scheduling
 & $20.70$
 & $81.80$
 & $8.10$
-& \todofill{MS s=.95}
-& \todofill{MS pulse}
+& $13.16$
+& $8.14$
 & $\mathbf{8.04}$
 & $27.22$
 & $24.00$
@@ -178,8 +178,8 @@ Random dense
 & $99557.33$
 & $107196.39$
 & $99758.48$
-& \todofill{RD s=.95}
-& \todofill{RD pulse}
+& $99324.38$
+& $99409.53$
 & $99445.15$
 & $\mathbf{99223.68}$
 & $100309.79$
@@ -189,8 +189,8 @@ Random sparse
 & $15100.29$
 & $17073.27$
 & $14633.43$
-& \todofill{RS s=.95}
-& \todofill{RS pulse}
+& $14522.63$
+& $14539.99$
 & $14554.99$
 & $\mathbf{14519.01}$
 & $15108.47$
@@ -200,8 +200,8 @@ Scale-free
 & $17079.39$
 & $19291.73$
 & $16761.71$
-& \todofill{SF s=.95}
-& \todofill{SF pulse}
+& $16637.29$
+& $16658.59$
 & $16636.74$
 & $\mathbf{16628.46}$
 & $17088.25$
@@ -222,6 +222,15 @@ the delayed split $31.63$.  In meeting scheduling, DMS reaches $20.70$,
 while DMS-SCFG reaches $8.10$ and the delayed split $8.04$.  These gaps are
 consistent with the claim that splitting changes the local message
 geometry in a way that damping alone does not.
+The split ratio interacts with the family.  The fixed $0.95/0.05$ split is
+the best distributed line on the three random families (Table~\ref{tab:final_costs}),
+but on meeting scheduling it is worse than the symmetric split ($13.16$
+versus $8.10$, $p < 10^{-5}$) and on graph coloring it settles in only
+$27$ of $50$ runs.  The pulse, which returns to the symmetric split after
+iteration $255$, is the best line on graph coloring ($27.23$; $p < 10^{-3}$
+against the symmetric split) and ties the symmetric split on meeting
+scheduling, while keeping most of the gain of the fixed asymmetric split on
+the random families.
 On the three random families the picture is different, and the difference
 is instructive.  DMS reaches final costs within $3\%$ of the split
 variants, and on random dense graphs its final cost is even lower than
@@ -267,9 +276,11 @@ three random families DABP-NoSplit is statistically indistinguishable from
 DMS, while DABP with splitting attains the best final costs on random dense
 and random sparse graphs and ties the delayed split on scale-free graphs.
 The advantage of the split-damped Min-sum variants is therefore concentrated
-on the structured benchmarks; on random dense and sparse graphs, DABP's
-learned per-edge parameters win by $0.1$--$0.2\%$, at the price of
-centralized execution and a substantially higher per-iteration cost.
+on the structured benchmarks; on random dense graphs DABP's learned
+per-edge parameters win by $0.1\%$ over the fixed $0.95/0.05$ split, and on
+random sparse and scale-free graphs the two are tied, with DABP paying the
+price of centralized execution and a substantially higher per-iteration
+cost.
 Overall, the ablation indicates that splitting remains an essential
 structural component even when the algorithm learns dynamic damping
 factors and neighbor weights.
@@ -299,7 +310,11 @@ against the delayed split); on meeting scheduling every split variant is
 significantly better than DABP ($p < 10^{-6}$); on random dense and
 random sparse graphs DABP is significantly better than the delayed split
 ($p = 0.0004$ and $p = 0.007$ at $K=1000$; $p = 0.038$ against $K=1500$ on
-random dense) \todofill{DABP vs s=.95 and pulse on dense/sparse}; on
+random dense, not significant after Holm's correction); against the fixed $0.95/0.05$ split DABP's advantage
+shrinks to $0.1\%$ on random dense ($p = 0.010$; $32$ wins to $18$) and
+disappears on random sparse ($p = 0.19$) and scale-free graphs
+($p = 0.30$), while the pulse stays significantly behind DABP on all
+three ($p \le 0.004$); on
 scale-free graphs DABP and the delayed split are tied ($p = 0.75$).
 \paragraph{Delayed splitting with held-out selection of $K$.}\label{sec:heldout}
 With $K=1000$ fixed, delayed splitting improves significantly on
@@ -312,7 +327,7 @@ $p < 10^{-5}$), $K = 500$ on scale-free ($104$, $p = 0.002$), and $K = 100$
 on the other three, where the held-out improvement is not significant
 ($p \ge 0.25$).  The gain from delaying the split is therefore established
 on the two families whose selection was confirmed out of sample, and the
-delayed split is the best distributed variant on every family; on random
+delayed split improves on immediate splitting on every family; on random
 dense graphs the held-out gap to DABP is $85$ ($p = 0.05$).
 \subsection{Cost Trajectories on Structured Benchmarks}
 Figure~\ref{Fig:structured_cost_curves} shows the cost trajectories for graph
@@ -504,8 +519,13 @@ established out of sample on random dense and scale-free graphs and is a
 tie on the other families; selecting $K$ automatically is an open question.
 The split ratio matters as well: the random $0.4$--$0.6$ split, the fixed
 $0.95/0.05$ split, and the temporary $0.95/0.05$ pulse all move the final
-cost on the random families \todofill{one sentence with the s=.95 and pulse
-outcome once the 50-instance runs are in}, which is the effect
+cost on the random families in the same direction, and the further the ratio
+is from $0.5$ the larger the gain: the fixed $0.95/0.05$ split lowers the
+mean below the symmetric split by $0.4$--$0.8\%$ on all three families
+($p < 10^{-8}$) and is at least as good as the delayed split ($p = 0.03$
+on random dense and sparse, not significant after Holm's correction; a tie
+on scale-free graphs), while the pulse
+sits between the symmetric and the fixed $0.95/0.05$ split; this is the effect
 Proposition~\ref{prop:asym} makes available: the ratio moves the round-trip
 constants and thresholds, and with them the absorbing regime.
 The DABP comparison further strengthens the main claim.  Even learned dynamic
@@ -537,9 +557,9 @@ two-solution theorem assumes the selection recursion holds along the run
 threshold concerns fixed, fully committed binary patterns; and
 Proposition~\ref{prop:kn} shows that no problem-independent damping value
 exists, so the reliability of $\lambda = 0.9$ is a property of the
-benchmark families.  Finally, on random dense and
-random sparse graphs DABP's final costs remain significantly better than
-those of the best distributed variant (by $0.1$--$0.2\%$), and on scale-free
-graphs the two are tied; our contribution there is the mechanism
+benchmark families.  Finally, on random dense graphs
+DABP's final costs remain significantly better than those of the best
+distributed variant (by $0.1\%$), and on random sparse and scale-free graphs
+the two are tied; our contribution there is the mechanism
 explanation, the settling speed, and the distributed-execution
 compatibility, not state-of-the-art solution quality.

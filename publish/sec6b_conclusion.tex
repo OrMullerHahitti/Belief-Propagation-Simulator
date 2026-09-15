@@ -19,11 +19,14 @@ but does not replace damping.
 Empirically, splitting plus damping is what makes damped Min-sum settle.  On
 the random families it reaches the same final cost as damped Min-sum alone
 but settles about ten times earlier, and on the structured benchmarks it also
-lowers the final cost.  Delaying the split is the best distributed variant on
-every family; with held-out selection of the delay its gain over immediate
-splitting is established on random dense and scale-free graphs.  The learned
-solver DABP remains better by $0.1$--$0.2\%$ on random dense and sparse
-graphs, at the price of centralized execution.
+lowers the final cost.  Delaying the split improves on immediate splitting
+on every family; with held-out selection of the delay its gain is established
+on random dense and scale-free graphs.  The split ratio is a second knob: a
+fixed $0.95/0.05$ split closes the gap to the learned solver DABP on the
+random families without any learning but hurts on the structured ones, and a
+temporary $0.95/0.05$ pulse takes most of the former gain without the latter
+loss.  DABP remains ahead only on random dense graphs, by $0.1\%$, at the
+price of centralized execution.
 
 Two questions remain open.  The selection recursion is verified, not proved,
 and a proof would turn the two-solution theorem into an unconditional

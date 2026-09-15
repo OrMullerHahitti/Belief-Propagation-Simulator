@@ -1,5 +1,40 @@
 # Revision Changelog — main_revised.tex + sec*.tex
 
+## 2026-09-15: post-fix revision (compute_R axis bug, fixed 2026-09-09 in 9c2f4c8)
+
+- **Table 1 regenerated** from the post-fix `experiments/aaai/data` (random
+  dense, sparse, scale-free changed; graph coloring, meeting scheduling and all
+  DABP lines unchanged). The delayed split is now reported at a fixed
+  `K = 1000` for every family; the in-sample best-K column is gone.
+- **Held-out selection of K** (§6, `sec:heldout`): K chosen on seeds 0-24 by
+  lowest mean, evaluated on seeds 25-49 (`code/key_comparisons.py`,
+  `data/*_heldout_k.csv`). Gain over DMS-SCFG is significant only on random
+  dense (K=1500) and scale-free (K=500).
+- **Settling table** (`tab:settling`): runs whose cost is constant over the last
+  100 iterations and the median iteration of the last change
+  (`code/settling.py`, `data/*_settling.csv`).
+- **Merge demoted to a diagnostic**: §5 no longer proposes the two merge
+  algorithms; the "Reading the two branches" paragraph states the binary-menu
+  selection as evidence for the two-solution structure. §6.2 became "Selecting
+  within the Two-Branch Menus" with the inverted selection and DMS-SCFG added
+  to its table. Post-fix, DMS-SCFG beats the exact selection on all five
+  families and plain DMS beats it on random dense.
+- **Significance paragraph** rewritten with post-fix Wilcoxon p-values and a
+  Holm note (`data/*_key_comparisons.csv`).
+- **Two new lines** in the algorithm list and Table 1: `DMS-SCFG s=.95` (fixed
+  0.95/0.05 split) and `DMS-SCFG pulse` (0.5 -> 0.95/0.05 over engine
+  iterations 64-255 -> 0.5), filled from the 50-instance runs of 2026-09-15:
+  the 0.95 split ties DABP on random sparse and scale-free graphs and hurts
+  on meeting scheduling; the pulse is the best line on graph coloring.
+- **Abstract / intro** scoped: the first use of the analysis is the diagnostic,
+  the second the delayed-splitting heuristic; "match or significantly
+  outperform" DABP on the structured benchmarks.
+- **Conclusion** added (`sec6b_conclusion.tex`, input after §6).
+- Build check with a substitute two-column preamble (tectonic): compiles, 22
+  pages with both appendices, Table 1 overflows the text width by 115 pt, and
+  the three main `.bib` files are still not in this folder.
+
+
 The paper is split one file per section; `main_revised.tex` inputs them in order.
 Compile requirements unchanged (aaai2027 kit, `examp.pdf`, `two_cycle_examp.pdf`,
 `plots/*.pdf`, the three `.bib` files, `ReproducibilityChecklist.tex`).
