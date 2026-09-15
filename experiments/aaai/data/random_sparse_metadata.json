@@ -19,11 +19,13 @@
     "DMS",
     "DMS_split_0.4_0.6",
     "DMS_split_0.5",
+    "DMS_split_0.95",
     "DMS_split_at_100",
     "DMS_split_at_1000",
     "DMS_split_at_300",
     "DMS_split_at_50",
     "DMS_split_at_500",
+    "DMS_split_pulse",
     "MS",
     "MS_split_0.5",
     "MS_split_MGM_200",
@@ -56,6 +58,13 @@
       ],
       "elapsed_s": 1278.0,
       "note": "rerun after compute_R axis fix (commit 9c2f4c8); replaced all pre-fix rows of these labels"
+    },
+    {
+      "algorithms": [
+        "DMS_split_0.95",
+        "DMS_split_pulse"
+      ],
+      "elapsed_s": 221.5
     }
   ]
 }

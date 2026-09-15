@@ -1,0 +1,4 @@
+selected_k,a,b,n,mean_a,mean_b,mean_diff,wilcoxon_p,ci_low,ci_high,wins,ties,losses,d_z
+100,DMS_split_at_100,DMS_split_0.5,25,7.84001,8.00001,-0.16,0.247342,-0.52,0.24,11,8,6,-0.162177
+100,DMS_split_at_100,DMS,25,7.84001,21.32,-13.48,5.96046e-08,-16.36,-10.72,25,0,0,-1.8244
+100,DMS_split_at_100,Attentive,25,7.84001,22.48,-14.64,3.02131e-05,-23.6,-7.16,23,1,1,-0.680754
