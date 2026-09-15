@@ -133,3 +133,27 @@ Use `AnalysisReport.to_csv()` when you want structured analyzer output; it write
   plotting cost trajectories from their snapshots.
 - Inspect large messages with `plot_message_norms()`.
 - Verify local dynamics with `SnapshotAnalyzer.jacobian()` and `block_norms()`.
+# Variable verdicts and cavities
+
+`VariableDynamicsAnalyzer` extends `SnapshotAnalyzer` for consecutive snapshots
+with explicit `beliefs` and `assignments`. `analyzer.verdicts(window=300)` reports
+preferred-value changes separately from belief variation after subtracting the
+first label's belief. A fixed finite window is not a convergence proof.
+
+`analyzer.cavities("x1", ["f1'", "f1''"])` additionally requires all incoming
+R messages for that variable. It returns the full belief, the cavity excluding
+each clone separately, and the external cavity excluding both clones, all in
+one reference-label gauge. These are undamped candidates for the **next** Q
+update; the Q recorded at the current step used the previous step's R messages.
+
+For the cost-dependent outgoing-difference threshold, use
+`row_thresholds` and `evaluate_commitment` from
+`propflow.snapshots.commitment`. Orient each actual factor cost table with the
+sender on rows and the receiver on columns. `row_thresholds(table)` computes
+`omega[a,b] = max_v(table[a,v] - table[b,v])`. Evaluating an incoming Q returns
+the best candidate row, the smallest inequality slack against any rival, and
+strict/weak threshold classifications. Strictly positive slack means all
+outgoing entries use one sender row, so the incoming term cancels from every
+outgoing difference locally. The row can change on later updates. For split
+factors pass the scaled clone table, and exclude unary factors from pairwise
+threshold counts. Leading batch axes are supported.

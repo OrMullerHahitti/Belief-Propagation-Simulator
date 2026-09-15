@@ -16,6 +16,7 @@ Top-level exports:
 from .types import EngineSnapshot, Jacobians, CycleMetrics
 from .manager import SnapshotManager
 from .analyzer import SnapshotAnalyzer, AnalysisReport
+from .variable_dynamics import VariableDynamicsAnalyzer
 from .visualizer import SnapshotVisualizer
 from .step_formatter import StepByStepFormatter
 from . import utils as snapshot_utils
@@ -26,6 +27,7 @@ __all__ = [
     "CycleMetrics",
     "SnapshotManager",
     "SnapshotAnalyzer",
+    "VariableDynamicsAnalyzer",
     "AnalysisReport",
     "SnapshotVisualizer",
     "StepByStepFormatter",
