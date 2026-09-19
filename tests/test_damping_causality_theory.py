@@ -5,12 +5,12 @@ from fractions import Fraction as F
 import numpy as np
 import pytest
 
-from experiments.other.aaai_derived_control.code.kernel import (
+from experiments.aamas.aaai_derived_control.code.kernel import (
     PairwiseKernel,
     PairwiseProblem,
     gauge,
 )
-from experiments.other.damping_causality.theory_helpers import (
+from experiments.aamas.damping_causality.theory_helpers import (
     committed_cycle_threshold,
     path_belief_gaps,
     path_cycle_candidate,

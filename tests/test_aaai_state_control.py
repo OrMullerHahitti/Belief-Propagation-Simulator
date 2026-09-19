@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from experiments.other.aaai_derived_control.code import kernel as runtime
-from experiments.other.aaai_state_control import core, native_replay, study
+from experiments.aamas.aaai_derived_control.code import kernel as runtime
+from experiments.aamas.aaai_state_control import core, native_replay, study
 
 
 def problem():

@@ -5,10 +5,10 @@ from itertools import product
 import numpy as np
 import pytest
 
-from experiments.other.aaai_derived_control.code.committed import (
+from experiments.aamas.aaai_derived_control.code.committed import (
     committed_weight_interval,
 )
-from experiments.other.aaai_derived_control.code.control import effective_boundaries
+from experiments.aamas.aaai_derived_control.code.control import effective_boundaries
 
 
 def _gauge(values):

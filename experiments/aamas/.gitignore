@@ -1,0 +1,24 @@
+# new generated outputs stay local; historical evidence is indexed separately
+/runs/
+/plots/
+/logs/
+/splitting_explanation/logs/
+
+# preserve the small historical results that were already tracked before moving
+!/splitting_explanation/results/
+/splitting_explanation/results/*
+!/splitting_explanation/results/examples_tiny.txt
+!/splitting_explanation/results/exp0_checks.txt
+!/splitting_explanation/results/exp0_truncation_random_dense.csv
+!/splitting_explanation/results/exp0_truncation_random_sparse.csv
+!/splitting_explanation/results/exp1_summary.md
+!/splitting_explanation/results/exp2_summary.md
+!/splitting_explanation/results/exp3_bipartite.csv
+!/splitting_explanation/results/exp3_random.csv
+!/splitting_explanation/results/exp3_summary.md
+!/splitting_explanation/results/exp4.csv
+!/splitting_explanation/results/exp4_summary.md
+!/splitting_explanation/results/exp5.csv
+!/splitting_explanation/results/exp5_summary.md
+!/splitting_explanation/results/exp6.csv
+!/splitting_explanation/results/exp6_summary.md

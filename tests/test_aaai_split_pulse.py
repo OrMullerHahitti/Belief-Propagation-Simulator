@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 
 from experiments.aaai.code.engines import CostOnlySnapshotManager
-from experiments.other.aaai_derived_control.code.kernel import (
+from experiments.aamas.aaai_derived_control.code.kernel import (
     PairwiseKernel,
     make_small_problem,
 )
-from experiments.other.aaai_derived_control.code.pulse import SplitPulseEngine
+from experiments.aamas.aaai_derived_control.code.pulse import SplitPulseEngine
 
 
 @pytest.mark.parametrize("family", ["random", "frustrated"])

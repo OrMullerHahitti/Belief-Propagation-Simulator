@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from experiments.other.adaptive_split_control.code.lab import (
+from experiments.aamas.adaptive_split_control.code.lab import (
     Action,
     PairwiseLab,
     TinyScorer,
@@ -88,7 +88,7 @@ def test_invalid_actions_do_not_partially_mutate_state(action):
 
 
 def test_split_changes_active_regions_while_damping_changes_derivative():
-    from experiments.other.adaptive_split_control.code.theory import (
+    from experiments.aamas.adaptive_split_control.code.theory import (
         active_jacobian,
         q_map,
     )
@@ -114,7 +114,7 @@ def test_split_changes_active_regions_while_damping_changes_derivative():
 
 
 def test_settled_online_keeps_split_and_stops_weight_updates(monkeypatch):
-    from experiments.other.adaptive_split_control.code.run import run_policy
+    from experiments.aamas.adaptive_split_control.code.run import run_policy
 
     problem = make_problem("bowtie", "random", 1)
 
@@ -131,7 +131,7 @@ def test_settled_online_keeps_split_and_stops_weight_updates(monkeypatch):
 
 
 def test_split_perturbation_is_invisible_until_active_choices_change():
-    from experiments.other.adaptive_split_control.code.symmetry_probe import probe
+    from experiments.aamas.adaptive_split_control.code.symmetry_probe import probe
 
     row = probe(make_problem("bowtie", "random", 17), 0, 1e-6)
     assert row["first_active_change"] is None
@@ -141,7 +141,7 @@ def test_split_perturbation_is_invisible_until_active_choices_change():
 
 
 def test_frustrated_roundoff_tie_matches_native_runtime():
-    from experiments.other.adaptive_split_control.code.lab import decode
+    from experiments.aamas.adaptive_split_control.code.lab import decode
 
     np.testing.assert_array_equal(decode(np.array([[0, -3.47e-18]]), 10), [0])
     assert native_parity(make_problem("bowtie", "frustrated", 2007), None, 0) < 1e-7

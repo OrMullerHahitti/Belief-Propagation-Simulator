@@ -7,11 +7,11 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from experiments.other.aaai_derived_control.code.control import (
+from experiments.aamas.aaai_derived_control.code.control import (
     effective_boundaries,
     selectors,
 )
-from experiments.other.aaai_derived_control.code.intervals import (
+from experiments.aamas.aaai_derived_control.code.intervals import (
     decoded_region_candidates,
 )
 

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from scipy import sparse
 
-from experiments.other.damping_generalization.code.decoded_gauge_check import (
+from experiments.aamas.damping_generalization.code.decoded_gauge_check import (
     coordinate_transforms,
     dag_nilpotency_index,
 )

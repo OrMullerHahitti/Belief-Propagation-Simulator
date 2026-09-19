@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from experiments.other.damping_causality.code.native_experiments import (
+from experiments.aamas.damping_causality.code.native_experiments import (
     fixtures,
     run_native,
 )

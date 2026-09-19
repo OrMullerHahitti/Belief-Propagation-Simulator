@@ -9,7 +9,7 @@ still a guess.
 ## 2026-09-13 — Why splitting makes min-sum converge, and where it ends up
 
 **Status: verified against real runs. Everything is in
-`experiments/splitting_explanation/` — `EXPLANATION_formal.md` (theorems,
+`experiments/aamas/splitting_explanation/` — `EXPLANATION_formal.md` (theorems,
 proofs, measurements), `EXPLANATION_hebrew.md` (plain-language version),
 scripts `exp0`–`exp6`, `results/`, `plots/`.**
 

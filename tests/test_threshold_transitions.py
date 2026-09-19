@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from experiments.other.undamped_split_nodes.threshold_transitions import classify_window
+from experiments.aamas.undamped_split_nodes.threshold_transitions import classify_window
 
 
 def test_two_cycle_saturation_is_not_the_same_as_crossing_and_returning():

@@ -6,11 +6,11 @@ from itertools import product
 import numpy as np
 import pytest
 
-from experiments.other.aaai_derived_control.code.kernel import (
+from experiments.aamas.aaai_derived_control.code.kernel import (
     PairwiseKernel,
     PairwiseProblem,
 )
-from experiments.other.damping_causality.theory_helpers import (
+from experiments.aamas.damping_causality.theory_helpers import (
     path_belief_gaps,
     path_raw_q,
     path_step,

@@ -27,7 +27,7 @@ Algorithms (professor's list + plain min-sum baseline):
   l. DMS_split_pulse           DMS on the symmetric SCFG with a temporary
                                asymmetric split: 0.95/0.05 from iteration 64 to
                                255, then back to 0.5/0.5 with all messages kept
-                               (experiments/other/aaai_derived_control; opt-in)
+                               (experiments/aamas/aaai_derived_control; opt-in)
 
 g, h, i and j share a single engine run per instance: the "two options after 200
 iterations" are the assignments at the last two iterations before the merge
@@ -75,7 +75,7 @@ from engines import (
     DampingRandomSplitEngine,
     run_full_horizon,
 )
-from experiments.other.aaai_derived_control.code.pulse import SplitPulseEngine
+from experiments.aamas.aaai_derived_control.code.pulse import SplitPulseEngine
 from merge import (
     branch_and_bound,
     invert_binary_menu_assignment,

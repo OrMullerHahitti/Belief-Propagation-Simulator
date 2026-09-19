@@ -4,13 +4,13 @@ import numpy as np
 import pytest
 from scipy import sparse
 
-from experiments.other.aaai_derived_control.code.kernel import (
+from experiments.aamas.aaai_derived_control.code.kernel import (
     PairwiseKernel,
     gauge,
     make_problem,
 )
-from experiments.other.damping_causality.code.native_experiments import fixtures
-from experiments.other.damping_generalization.code.local_stability import (
+from experiments.aamas.damping_causality.code.native_experiments import fixtures
+from experiments.aamas.damping_generalization.code.local_stability import (
     ActiveRegion,
     active_region,
     exact_nilpotency_index,

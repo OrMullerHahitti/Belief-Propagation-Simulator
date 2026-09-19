@@ -1,0 +1,728 @@
+{
+  "source_commit": "068f4d5e3d871bada316964971f67b258e1e1f88",
+  "moves": {
+    "experiments/other/adaptive_split_control": "experiments/aamas/adaptive_split_control",
+    "experiments/other/aaai_derived_control": "experiments/aamas/aaai_derived_control",
+    "experiments/other/undamped_split_nodes": "experiments/aamas/undamped_split_nodes",
+    "experiments/other/aaai_state_control": "experiments/aamas/aaai_state_control",
+    "experiments/other/damping_causality": "experiments/aamas/damping_causality",
+    "experiments/other/damping_generalization": "experiments/aamas/damping_generalization",
+    "experiments/splitting_explanation": "experiments/aamas/splitting_explanation"
+  },
+  "files": [
+    {
+      "source": "experiments/other/adaptive_split_control/README.md",
+      "destination": "experiments/aamas/adaptive_split_control/README.md",
+      "sha256_before": "b8a03d02e1b87f275dfe65438027c492a473b440f930cd586ea7073a46f1c2a3",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/adaptive_split_control/REPORT.md",
+      "destination": "experiments/aamas/adaptive_split_control/REPORT.md",
+      "sha256_before": "31d5e003e1fe497fc2e539f8eded1a1ac63fbe47f770c6ed4fbab28f0070aed4",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/adaptive_split_control/code/confirm.py",
+      "destination": "experiments/aamas/adaptive_split_control/code/confirm.py",
+      "sha256_before": "e35f064632f1e8e0ee3a9f7dff9876ddd3d4a3b511be8fc4b917fddf2eb064d7",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/adaptive_split_control/code/lab.py",
+      "destination": "experiments/aamas/adaptive_split_control/code/lab.py",
+      "sha256_before": "9239e29613093a37c3db0d1e023e2a531ad566a6753d1d2e991eb6bc374febc1",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/adaptive_split_control/code/run.py",
+      "destination": "experiments/aamas/adaptive_split_control/code/run.py",
+      "sha256_before": "c634475de0d0006c62fac2256cd36511f7b8751b5e648bf88ab22fa75462e30f",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/adaptive_split_control/code/symmetry_probe.py",
+      "destination": "experiments/aamas/adaptive_split_control/code/symmetry_probe.py",
+      "sha256_before": "6104d0ca7233d72b9a6b3109b52cbee25582df4ba689270f7a03a2dcb8646fc8",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/adaptive_split_control/code/theory.py",
+      "destination": "experiments/aamas/adaptive_split_control/code/theory.py",
+      "sha256_before": "4ceca708a63dfaac5877357510711583430d03fa8537bb2c1d4f51529e0ee41d",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/adaptive_split_control/code/verify.py",
+      "destination": "experiments/aamas/adaptive_split_control/code/verify.py",
+      "sha256_before": "37777af07871a48131ca0d56e6d0e7e10534d6f61fe89923c0e2477c2a8dd049",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/PROTOCOL.md",
+      "destination": "experiments/aamas/aaai_derived_control/PROTOCOL.md",
+      "sha256_before": "b9b8815cda5042349949949315cee108d31f8d749e503189b2d1495dec787d06",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/README.md",
+      "destination": "experiments/aamas/aaai_derived_control/README.md",
+      "sha256_before": "a2ece3383831ca30de135cb8478bc1c1dba17b247925317ae41686c19cba0a8a",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/REPORT.md",
+      "destination": "experiments/aamas/aaai_derived_control/REPORT.md",
+      "sha256_before": "391def332f78bd802d8111060d9bc23ec0c12dafd461b4e0e3a3a6550fd7cf87",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/code/committed.py",
+      "destination": "experiments/aamas/aaai_derived_control/code/committed.py",
+      "sha256_before": "40cd2c1b82851d99193ffb4922f60d660f16c6a80f5b583d948e5b2c5daf521b",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/code/control.py",
+      "destination": "experiments/aamas/aaai_derived_control/code/control.py",
+      "sha256_before": "4fbf311f222348138db3ab2ce1dedee87a01bab0bbb61bc8c1be222098f961cc",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/code/intervals.py",
+      "destination": "experiments/aamas/aaai_derived_control/code/intervals.py",
+      "sha256_before": "31f7cd9c6e8e6be14238bbe38d84c16cfb985de5705659b3111e948d5d215a8a",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/code/kernel.py",
+      "destination": "experiments/aamas/aaai_derived_control/code/kernel.py",
+      "sha256_before": "7ea982ed6ff7c567c5aaa05afe6f14a197ded38cc20ce6bcfee06f76844624d2",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/code/plot_confirmation.py",
+      "destination": "experiments/aamas/aaai_derived_control/code/plot_confirmation.py",
+      "sha256_before": "44eae0afbd711b79891fb761dde5afce21ad016ebbdefe13e0893ec127fb3d37",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/code/pulse.py",
+      "destination": "experiments/aamas/aaai_derived_control/code/pulse.py",
+      "sha256_before": "166e37fcec9c516962ad09ce0c032d6996a6cc67c80ca46cb3a612e815bc9636",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_derived_control/code/run.py",
+      "destination": "experiments/aamas/aaai_derived_control/code/run.py",
+      "sha256_before": "04a98032fe945af05ab405e714e4d235bb6d1e1cc7e5bf66f54c80fa88eb0d19",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/undamped_split_nodes/build_explorer.py",
+      "destination": "experiments/aamas/undamped_split_nodes/build_explorer.py",
+      "sha256_before": "c30d22a9cf5fe7a4312b5ad2aaaacb9403ece88e2922b95d3ea0fc532852b272",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/undamped_split_nodes/explorer.template.html",
+      "destination": "experiments/aamas/undamped_split_nodes/explorer.template.html",
+      "sha256_before": "5f68b89baa848e1d99ef83c3ba01eaea35b198d8b48f78de80387933b51c3702",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/undamped_split_nodes/report.py",
+      "destination": "experiments/aamas/undamped_split_nodes/report.py",
+      "sha256_before": "dbbfa672d56ef7168c066f768bd5df74a9ba00a3d5ad0ddf9e413a4075b121e1",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/undamped_split_nodes/run.py",
+      "destination": "experiments/aamas/undamped_split_nodes/run.py",
+      "sha256_before": "29840346521efa8114a1b247d37d671ee1b06d986daf6e00f1d000187138cf5a",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/undamped_split_nodes/threshold_transitions.py",
+      "destination": "experiments/aamas/undamped_split_nodes/threshold_transitions.py",
+      "sha256_before": "cbef7031782e7e343d508874b310044786ad5aadc38579a9d33c2634ce75e4dd",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/undamped_split_nodes/thresholds.py",
+      "destination": "experiments/aamas/undamped_split_nodes/thresholds.py",
+      "sha256_before": "1d6b41c3152f7116704de0fa81f375c84ad7577a6ad5d7de83b80960d36e4e7f",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/PROTOCOL.md",
+      "destination": "experiments/aamas/aaai_state_control/PROTOCOL.md",
+      "sha256_before": "c6ec5f6c4070e9adc618c4e37db59de4cd69482cb1c6281338e1b9591c291ef6",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/README.md",
+      "destination": "experiments/aamas/aaai_state_control/README.md",
+      "sha256_before": "d565e76125b988ffeb8e9c2610e0285bf766d4040541c4025b9df1822a50a0f0",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/REPORT.md",
+      "destination": "experiments/aamas/aaai_state_control/REPORT.md",
+      "sha256_before": "977441e2595f7393085ad5fbbf02e85827ddaba1d84f61c8082dbbf5a1ab0e9b",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/RESEARCH.md",
+      "destination": "experiments/aamas/aaai_state_control/RESEARCH.md",
+      "sha256_before": "dbd2d95e4f52db46eb17558bc06c970b69fb588f8b34b2f277c11d9fac143dde",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/__init__.py",
+      "destination": "experiments/aamas/aaai_state_control/__init__.py",
+      "sha256_before": "0f53ab4c93285e6888b4ea507be58219a9ac487a51a66a1679d5b18fbd5bb36f",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/analyze.py",
+      "destination": "experiments/aamas/aaai_state_control/analyze.py",
+      "sha256_before": "8f8d0d608af9950f178a7f2ad1a311bc50cdc9800cef4c9d6689394ce693ff3f",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/core.py",
+      "destination": "experiments/aamas/aaai_state_control/core.py",
+      "sha256_before": "215e5fe784a8a10e28f4e1ef10f53e3b23816dc78cd15844a04533a81a591683",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/mechanism.py",
+      "destination": "experiments/aamas/aaai_state_control/mechanism.py",
+      "sha256_before": "fc53049a4054382ee673c5f7c539f0e1de574a05a713ab2181ab6941c33d2ed5",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/native_replay.py",
+      "destination": "experiments/aamas/aaai_state_control/native_replay.py",
+      "sha256_before": "48481c2a9c2b5479fd947f7cbc29da78eb4e235399612b2f1ae5ea30268630ce",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/profile_policy.py",
+      "destination": "experiments/aamas/aaai_state_control/profile_policy.py",
+      "sha256_before": "e93e44f25a7911415366987b4cc8ad982018d7a3f8766bf47b1da1a599f652d1",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/aaai_state_control/study.py",
+      "destination": "experiments/aamas/aaai_state_control/study.py",
+      "sha256_before": "be1b582cea0a9a4d833c510fdbb17375badf51a79b50b1ea70ef824fccb4e4da",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/LITERATURE.md",
+      "destination": "experiments/aamas/damping_causality/LITERATURE.md",
+      "sha256_before": "fa0383710847af53ca4e90c53eeb445ad87112d126f9de8a69cb28aca6b05a3a",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/PROTOCOL.md",
+      "destination": "experiments/aamas/damping_causality/PROTOCOL.md",
+      "sha256_before": "ae75767ce9f8007de82504f863042eea468fe0e456292fcfc7177bb88dcf270e",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/README.md",
+      "destination": "experiments/aamas/damping_causality/README.md",
+      "sha256_before": "b14a99146c84b9c04d900f36209b83ad0e3d38da517592adcc676d987b761d16",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/code/feedback.py",
+      "destination": "experiments/aamas/damping_causality/code/feedback.py",
+      "sha256_before": "30f83f102dc20828b890ad26cd3146a04c89d0018a0b64ae54cd6ead6146bb78",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/code/native_experiments.py",
+      "destination": "experiments/aamas/damping_causality/code/native_experiments.py",
+      "sha256_before": "1292d36c3333d6d08b922308fa049b519e7d0a230777e7db800c23dc730b46f6",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/code/plot_evidence.py",
+      "destination": "experiments/aamas/damping_causality/code/plot_evidence.py",
+      "sha256_before": "52a1ad01de2e305d053e5cfef7fb10295062d73d66a46bbffa2237609eb212ab",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/code/run_feedback.py",
+      "destination": "experiments/aamas/damping_causality/code/run_feedback.py",
+      "sha256_before": "3b124b35bbd69ce9909b25a046c9e4bd37b4e010303fe94f52eedb7faa833005",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/theory.md",
+      "destination": "experiments/aamas/damping_causality/theory.md",
+      "sha256_before": "33d8fd56a48cef558c5514e9c2f9f404c9ff9ff73a2fbd2a5692e0dcd7330284",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_causality/theory_helpers.py",
+      "destination": "experiments/aamas/damping_causality/theory_helpers.py",
+      "sha256_before": "abde8b175f91155c297baed51a631243d32dbf26e72cd7615e80212b1d6a593b",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/BEST_LABEL_GAUGE.md",
+      "destination": "experiments/aamas/damping_generalization/BEST_LABEL_GAUGE.md",
+      "sha256_before": "dc0bcc165934ab597af27add87462700801360e22155c9a8852d92ce7383fd29",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/BINARY_ACTIVE_STRUCTURE.md",
+      "destination": "experiments/aamas/damping_generalization/BINARY_ACTIVE_STRUCTURE.md",
+      "sha256_before": "7aa8f36f83c4c94ba3b182f9b254d2950793392078b2ddb0e55fd30c628c7de5",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/OBSTRUCTIONS.md",
+      "destination": "experiments/aamas/damping_generalization/OBSTRUCTIONS.md",
+      "sha256_before": "a5490dcb81329c1b7e8df2359d3d35756dbc7b0d50229fd492ee0f0b710ab370",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/PRO_CONSULTATION.md",
+      "destination": "experiments/aamas/damping_generalization/PRO_CONSULTATION.md",
+      "sha256_before": "6d5f9998387ea5ccbe6a3c2e797c9fbd9ddeb15f5561581c240f82f38e23dcfe",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/PRO_THRESHOLD_AUDIT.md",
+      "destination": "experiments/aamas/damping_generalization/PRO_THRESHOLD_AUDIT.md",
+      "sha256_before": "26f998de260dd7c5d5d02d5a1d4772aeeed525a774daa3e47cfe6c3c787cef01",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/README.md",
+      "destination": "experiments/aamas/damping_generalization/README.md",
+      "sha256_before": "15265d95bafef6ae773af6e5ed2022b205922b82c72af962ad5c4a997c02c94a",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/THEORY_CANDIDATES.md",
+      "destination": "experiments/aamas/damping_generalization/THEORY_CANDIDATES.md",
+      "sha256_before": "0f3c1366ac56c0af1fe0355c95ba5ace36f2a66e37c4cc3d0d40fd9926c45f3b",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/code/decoded_gauge_check.py",
+      "destination": "experiments/aamas/damping_generalization/code/decoded_gauge_check.py",
+      "sha256_before": "bf482f1a37aaed206c4f376d501a7aa91dacd98b4b2c39d9eb9c41e8c131fe6c",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/code/local_stability.py",
+      "destination": "experiments/aamas/damping_generalization/code/local_stability.py",
+      "sha256_before": "aebcc59785f2059dea1874db643dc01974ced77a33f68913898fe55473e26ad9",
+      "tracked": true
+    },
+    {
+      "source": "experiments/other/damping_generalization/code/obstructions.py",
+      "destination": "experiments/aamas/damping_generalization/code/obstructions.py",
+      "sha256_before": "68ff7aa4dca92d24b408d95bce1ed270b4b79f05ef0d83e72c134d1b5896f231",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/.ruff_cache/.gitignore",
+      "destination": "experiments/aamas/splitting_explanation/.ruff_cache/.gitignore",
+      "sha256_before": "9e3a60f1e6ec4ae60215c11d54b171392745ec25e9dded433d5bd921363af316",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/.ruff_cache/0.14.7/2187985241701832232",
+      "destination": "experiments/aamas/splitting_explanation/.ruff_cache/0.14.7/2187985241701832232",
+      "sha256_before": "d21eddf0fb6c40817ed8b7c2531be177b0eea7793fb67bb00de6834096547915",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/.ruff_cache/CACHEDIR.TAG",
+      "destination": "experiments/aamas/splitting_explanation/.ruff_cache/CACHEDIR.TAG",
+      "sha256_before": "5953156d7e0c564a427251316eaf26f8870e6483ae2197f916b630e4f93e31ae",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/EXPLANATION_formal.md",
+      "destination": "experiments/aamas/splitting_explanation/EXPLANATION_formal.md",
+      "sha256_before": "37a7d08777716602f2b35be4185c73dfdf6d91c614f99f78ed984ec26ea4864c",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/EXPLANATION_hebrew.md",
+      "destination": "experiments/aamas/splitting_explanation/EXPLANATION_hebrew.md",
+      "sha256_before": "3f3acdb0a7107a20d1a74e1addbd48ef071e9cc2e61521799c66abc6491b2e6b",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/README.md",
+      "destination": "experiments/aamas/splitting_explanation/README.md",
+      "sha256_before": "4792397a98f4160c1980615fef89aa1d9d3aa1328d00e623e634e9751f871404",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/examples_tiny.py",
+      "destination": "experiments/aamas/splitting_explanation/examples_tiny.py",
+      "sha256_before": "8f657c77043d70474a7bcf419b9bbecf1fe1eb3ea5ba4bdbd656f14781279c22",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/exp0_checks.py",
+      "destination": "experiments/aamas/splitting_explanation/exp0_checks.py",
+      "sha256_before": "e7fcdfc983632502061727a2f0f6e119120f68677b76b1eca25882b1d022f9bd",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/exp1_speed.py",
+      "destination": "experiments/aamas/splitting_explanation/exp1_speed.py",
+      "sha256_before": "ca9151302e2d6ae7538817a8285b5418739b99ed8ee252de16698cd2ad813553",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/exp2_ingredients.py",
+      "destination": "experiments/aamas/splitting_explanation/exp2_ingredients.py",
+      "sha256_before": "a5bfd2a8911727be8f2430af493f943006c16fdc634de2d7041d6bdcc41c7359",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/exp3_two_solutions.py",
+      "destination": "experiments/aamas/splitting_explanation/exp3_two_solutions.py",
+      "sha256_before": "cb86742d2d28a3d440e4699317fe0ec65c07eb4b5788c7b8fcc60df592e5e50c",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/exp4_quality.py",
+      "destination": "experiments/aamas/splitting_explanation/exp4_quality.py",
+      "sha256_before": "30eb1ad89b111cf4c294493a8b08e5c8042271a0dc75d0a1c602e3ce54230df9",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/exp5_damping.py",
+      "destination": "experiments/aamas/splitting_explanation/exp5_damping.py",
+      "sha256_before": "9be32de5284d4ceb3efa41c2638746f666ae06136ac807e716d5a25445ab3a22",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/exp6_split_ratio.py",
+      "destination": "experiments/aamas/splitting_explanation/exp6_split_ratio.py",
+      "sha256_before": "5dffa0d69398fa2fa535c47139eeae8f71c0324e78b7d31821e460a8ca56cf94",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/lab.py",
+      "destination": "experiments/aamas/splitting_explanation/lab.py",
+      "sha256_before": "8f014279af56277f56317122b9e1e28fc8a959ceffcc554897ab24f51168fd95",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/logs/chain.log",
+      "destination": "experiments/aamas/splitting_explanation/logs/chain.log",
+      "sha256_before": "a899403a87bff4c63fd0086c7f33d3fdf88d4b5174a9e69bc8101bcaef9e0465",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/logs/exp0.log",
+      "destination": "experiments/aamas/splitting_explanation/logs/exp0.log",
+      "sha256_before": "bc5eeb1fee9edd8f12164e00231e5ec04c6b2c70417662b736dc587ab6489142",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/logs/exp1.log",
+      "destination": "experiments/aamas/splitting_explanation/logs/exp1.log",
+      "sha256_before": "91bd3d73a0c5c5edde321854ee73de4dd22a270a480c26ebcb568e2db0f14e0a",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/logs/exp3.log",
+      "destination": "experiments/aamas/splitting_explanation/logs/exp3.log",
+      "sha256_before": "971c78b5e184f70956477014ab7db5753cd92601207589c94c343cdc4ed8b49f",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_graph_coloring_aggregate.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_graph_coloring_aggregate.pdf",
+      "sha256_before": "9dafb78c2aec018731d38723398f7bd98aee5c320b73dfdecb97662157e98cbc",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_graph_coloring_example.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_graph_coloring_example.pdf",
+      "sha256_before": "360e1bd8d500911d43623595c6bb5f964b23a39b34349970060cfac049b63a64",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_graph_coloring_message_change.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_graph_coloring_message_change.pdf",
+      "sha256_before": "4faf8f739a187061dcf5e0d2ef8c04ea4d711d67f275919827171deb9b31526b",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_meeting_scheduling_aggregate.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_meeting_scheduling_aggregate.pdf",
+      "sha256_before": "5aedec403c6de67e8006664e289d75ebe0cd27a2f4a10a7e3a01301f501944eb",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_meeting_scheduling_example.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_meeting_scheduling_example.pdf",
+      "sha256_before": "abc44d49a3e774fa89cc37d0f0f856b986ec62fe998ff0b8c24f4859861917b4",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_meeting_scheduling_message_change.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_meeting_scheduling_message_change.pdf",
+      "sha256_before": "1e43ae709a7680ef1f4ab074fcf0648a711b6315ce16863421eac73e53b1a3e8",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_random_dense_aggregate.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_random_dense_aggregate.pdf",
+      "sha256_before": "ee1b165e4ba7f201816df553dff64efc8cc8b02fd9a42e9f27bb6ea1ab19ae87",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_random_dense_example.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_random_dense_example.pdf",
+      "sha256_before": "d9a9e6aea57abe8dff3f54761ac78418c557c4c9d0e585e168b65f2b2d855d28",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_random_dense_message_change.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_random_dense_message_change.pdf",
+      "sha256_before": "e846c32357004d6d989024cb8297b2e464df8565964548c0346f3e4adc3f90f9",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_random_sparse_aggregate.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_random_sparse_aggregate.pdf",
+      "sha256_before": "e0bc3a263809f860d7d950b45ce7de8dce7b41520f34dfb4c18a9598bec7813a",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_random_sparse_example.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_random_sparse_example.pdf",
+      "sha256_before": "7b9eece1f1db6107735d8598035749d208570f5efa9b033d65c5f7d04ac6ad6b",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_random_sparse_message_change.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_random_sparse_message_change.pdf",
+      "sha256_before": "581fa8a2100f81414da592698df3eb839fde664ecdafec6a76ed95ce29916018",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_scale_free_aggregate.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_scale_free_aggregate.pdf",
+      "sha256_before": "540419246a5d1eb11f26e10ef1de3838f4ecb06e7048358ab23fb4e04d48d212",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_scale_free_example.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_scale_free_example.pdf",
+      "sha256_before": "0cce20b949830bebd31b1ab480a12acff8870c34d6bb17187e84714c46effb7f",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp1_scale_free_message_change.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp1_scale_free_message_change.pdf",
+      "sha256_before": "8b05c63a9102f9b2a6ab4b575ce00bd72e6d63c4456b700269b5abcf53ef23e7",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp2_graph_coloring.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp2_graph_coloring.pdf",
+      "sha256_before": "eed9902e5c6ee1cbab68e83e84b4c14a8a3515a64101b8ffbc4849d7b0627ee2",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp2_random_dense.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp2_random_dense.pdf",
+      "sha256_before": "28e01524783b2e929ed9da4f311c0a8b57d452a2d23cb3274d77f0109a1c5822",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp2_random_sparse.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp2_random_sparse.pdf",
+      "sha256_before": "8436ab34079ab93574f6f5b380875504433a2fb216ce7aa4646ad148d1c09440",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp3_density.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp3_density.pdf",
+      "sha256_before": "69becbfb48bb1b71d79727703ce32bd2eae0e655b4e5a804b4ab844de83b8bd1",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp4_split_at_k.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp4_split_at_k.pdf",
+      "sha256_before": "ca1f2286972d5b3172e9f5fe0599b79859e276b7ed648d1da9c44e4d29e0a45d",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp5_damping.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp5_damping.pdf",
+      "sha256_before": "5c5a4ce4930c9f4c0491adfa9e08488bd9dab745394b0c0e8b096d7bcd4f88a5",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plots/exp6_split_ratio.pdf",
+      "destination": "experiments/aamas/splitting_explanation/plots/exp6_split_ratio.pdf",
+      "sha256_before": "d78f6659904c76430b87368f49e6e3b3c029692a7591c317a9310fda0ff44354",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/plotting.py",
+      "destination": "experiments/aamas/splitting_explanation/plotting.py",
+      "sha256_before": "9bb1de6dc51a11bad38ae8de246f117dd322275e8ce7c5b78c617745ffc1293f",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/examples_tiny.txt",
+      "destination": "experiments/aamas/splitting_explanation/results/examples_tiny.txt",
+      "sha256_before": "466610cf253f9a2f32ca6530bf131d3ad024ab653e91089f8cb0bf4f013ec1a4",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp0_checks.txt",
+      "destination": "experiments/aamas/splitting_explanation/results/exp0_checks.txt",
+      "sha256_before": "a353ffbaf965da23c5c5baee4328ee0d31fa6d037064c57a4fb1b2944eec6123",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp0_truncation_random_dense.csv",
+      "destination": "experiments/aamas/splitting_explanation/results/exp0_truncation_random_dense.csv",
+      "sha256_before": "9b9e2a627134921c5ffe57db7aecab6d2f6dc7160186e2262537c115f619efa9",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp0_truncation_random_sparse.csv",
+      "destination": "experiments/aamas/splitting_explanation/results/exp0_truncation_random_sparse.csv",
+      "sha256_before": "0862059da0d4c709159d69c677db6b331efe4535de6ca80606db54d9d9723751",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp1_graph_coloring.npz",
+      "destination": "experiments/aamas/splitting_explanation/results/exp1_graph_coloring.npz",
+      "sha256_before": "3dbd56433455fad9805ca1bd9d8393bc5101bfff59c77631585f7b18f43e452e",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp1_meeting_scheduling.npz",
+      "destination": "experiments/aamas/splitting_explanation/results/exp1_meeting_scheduling.npz",
+      "sha256_before": "c2283b4c1a1919d284c71c5712bc254bea885ae8414fa0a6e63faff056c33657",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp1_random_dense.npz",
+      "destination": "experiments/aamas/splitting_explanation/results/exp1_random_dense.npz",
+      "sha256_before": "26bb63d2cf45bee4e8a25bc40f62a3542e0fc3679dc03446b06aadbe3063d494",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp1_random_sparse.npz",
+      "destination": "experiments/aamas/splitting_explanation/results/exp1_random_sparse.npz",
+      "sha256_before": "b073784d55ede36c212e95fed5cb8eac24d480ac34d2128252da5b5c982c873b",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp1_scale_free.npz",
+      "destination": "experiments/aamas/splitting_explanation/results/exp1_scale_free.npz",
+      "sha256_before": "70df2633b4fc73b063c7eee16aa86c25dfced0cabcb2cd79ae83d790585e9bf7",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp1_summary.md",
+      "destination": "experiments/aamas/splitting_explanation/results/exp1_summary.md",
+      "sha256_before": "89de39af0e5ecc318df5d4a3faa0bd32551ae2b37eb7521779f772264715285b",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp2_graph_coloring.npz",
+      "destination": "experiments/aamas/splitting_explanation/results/exp2_graph_coloring.npz",
+      "sha256_before": "84294abb683b3dcb20bfa1cb0a73e68d58aa83408a62c2441e3121d9ce8966a5",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp2_random_dense.npz",
+      "destination": "experiments/aamas/splitting_explanation/results/exp2_random_dense.npz",
+      "sha256_before": "82f239656237ac02b9cbecec61bcdb8a30bea83775c7f71ddcdeef58f0932af9",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp2_random_sparse.npz",
+      "destination": "experiments/aamas/splitting_explanation/results/exp2_random_sparse.npz",
+      "sha256_before": "b746c64dbe756eb2391e1dfabb2d86958c400a5c91db7f3163b04037cdb11418",
+      "tracked": false
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp2_summary.md",
+      "destination": "experiments/aamas/splitting_explanation/results/exp2_summary.md",
+      "sha256_before": "72fe3c91a4e4dd4910d9cc1f438386f871028dbfd608b4f1dcb6e5ca5c782c02",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp3_bipartite.csv",
+      "destination": "experiments/aamas/splitting_explanation/results/exp3_bipartite.csv",
+      "sha256_before": "f9c932c60e900bfea46092aefcb1d3364dc456510cb421e789226cd868c29ea4",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp3_random.csv",
+      "destination": "experiments/aamas/splitting_explanation/results/exp3_random.csv",
+      "sha256_before": "800fc05bdf3d066b226bb72fda6fd378d5603ccb737ec701a88625f537cf96df",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp3_summary.md",
+      "destination": "experiments/aamas/splitting_explanation/results/exp3_summary.md",
+      "sha256_before": "e29cdeb375d94ef2e6b3838c8693154fe3d1e5329005a178a9fecd1c3c1dc088",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp4.csv",
+      "destination": "experiments/aamas/splitting_explanation/results/exp4.csv",
+      "sha256_before": "6e33f734e93b13cdc4b895e60079aac83ce35d179eafaf5a855f8796231b1e12",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp4_summary.md",
+      "destination": "experiments/aamas/splitting_explanation/results/exp4_summary.md",
+      "sha256_before": "137fa0c889ab9747633784a3fad0202176a4cc072835aafefadf3c56a39f7965",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp5.csv",
+      "destination": "experiments/aamas/splitting_explanation/results/exp5.csv",
+      "sha256_before": "1ba1a0a06c783cb966f84d51d03a1740df5f2cdc385115e8cdaa27c130047874",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp5_summary.md",
+      "destination": "experiments/aamas/splitting_explanation/results/exp5_summary.md",
+      "sha256_before": "7c8106bf93b6d654aa2739b7a845edb9928a8ce5f1615e534fd49ab953503b52",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp6.csv",
+      "destination": "experiments/aamas/splitting_explanation/results/exp6.csv",
+      "sha256_before": "517ba6ecc8609654550bb8e8834425831e1a0cf7bb8792a015a8dae4623754ce",
+      "tracked": true
+    },
+    {
+      "source": "experiments/splitting_explanation/results/exp6_summary.md",
+      "destination": "experiments/aamas/splitting_explanation/results/exp6_summary.md",
+      "sha256_before": "64c392aabbfe9ec900b022c0c6a86022d30d15b5755cf9fc3f0b510facd02bf0",
+      "tracked": true
+    }
+  ]
+}

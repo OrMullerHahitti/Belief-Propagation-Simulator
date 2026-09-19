@@ -364,4 +364,4 @@ close to the real ones).
 - Logs: `experiments/aaai/logs/append_asym_pulse_20260915.log` and
   `rerun_ternary_axis_fix_20260915.log`.
 - Engine equivalence check: run today on random sparse seed 0 with
-  `experiments/splitting_explanation/lab.py` against the stored harness curve.
+  `experiments/aamas/splitting_explanation/lab.py` against the stored harness curve.

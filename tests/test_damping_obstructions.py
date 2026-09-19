@@ -5,12 +5,12 @@ from fractions import Fraction as F
 import numpy as np
 import pytest
 
-from experiments.other.aaai_derived_control.code.kernel import (
+from experiments.aamas.aaai_derived_control.code.kernel import (
     PairwiseKernel,
     PairwiseProblem,
     gauge,
 )
-from experiments.other.damping_generalization.code.obstructions import (
+from experiments.aamas.damping_generalization.code.obstructions import (
     anti_equality_cycle,
     biased_cycle_bad_fixed_point,
     biased_cycle_positive_subsolution,

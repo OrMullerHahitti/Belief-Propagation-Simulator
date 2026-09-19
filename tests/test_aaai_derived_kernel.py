@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from experiments.other.aaai_derived_control.code.kernel import (
+from experiments.aamas.aaai_derived_control.code.kernel import (
     PairwiseKernel,
     extract_problem,
     make_problem,
