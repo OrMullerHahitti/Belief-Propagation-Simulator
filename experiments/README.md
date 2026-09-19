@@ -6,6 +6,8 @@ Source code and outputs for the experiments in the paper. All experiments use [P
 
 ```
 experiments/
+├── aamas/      # next submission: recent studies, baseline index, approved pilot
+├── aaai/       # previous submission: benchmark code and retained data
 ├── aij/        # paper bundle: signal propagation, structured-vs-random, fig 5a/5b/8
 │   ├── code/   # all scripts (flat, files renamed for collision-free coexistence)
 │   ├── plots/  # final PDFs / PNGs + the JSONs that produced fig5/8 plots
@@ -21,6 +23,12 @@ experiments/
 ```bash
 uv pip install -e ".[dev]"
 ```
+
+## aamas/ — next submission
+
+See [aamas/README.md](aamas/README.md) for the migrated September studies,
+the corrected-data inventory, and the completed three-seed late-split pilot.
+The 50-instance studies await final approval of the handoff.
 
 ## aij/ — paper experiments
 

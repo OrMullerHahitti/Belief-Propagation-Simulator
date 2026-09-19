@@ -1,0 +1,342 @@
+{
+  "captured_date": "2026-09-19",
+  "source_commit": "068f4d5e3d871bada316964971f67b258e1e1f88",
+  "files": [
+    {
+      "path": "experiments/aaai/data/dabp_timing.csv",
+      "sha256": "87935231982395e297f8000831e378278a4228dd40203df0e29552fba4575971",
+      "bytes": 365,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/graph_coloring_final_costs.csv",
+      "sha256": "81a8bee8c28400666c977e791da7af1d9d3e7221e074cadee2fec2f46d86ac84",
+      "bytes": 33595,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/graph_coloring_heldout_k.csv",
+      "sha256": "c39e690dafcaba7cb98ead6803740473bd3b1e989ee216ee63b775d8fc883e31",
+      "bytes": 397,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/graph_coloring_key_comparisons.csv",
+      "sha256": "4468e897043a70d657cdd7e02b7081459a3058ef6fd8f5626f9e5ed61c62dc0a",
+      "bytes": 2208,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/graph_coloring_metadata.json",
+      "sha256": "3f4620fe465972036c65e29315954302da0c83c5f0ac8c3f395679d3c12daf6b",
+      "bytes": 998,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/graph_coloring_raw_costs.csv",
+      "sha256": "ba944a3ba276a2d4f8f10ef0a4f6c8e31dc46ad04c19d86fa20dc87eff276a29",
+      "bytes": 42508625,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/graph_coloring_settling.csv",
+      "sha256": "6d1c7281546ccfee325d3113d80424ebc949bb67faf63967fe685f3e4296c7f6",
+      "bytes": 586,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/graph_coloring_significance.csv",
+      "sha256": "c63adbe527ce2711538cbd0c78211fbcbad64b3206944fb4d0cf21b137ddd84f",
+      "bytes": 30546,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/graph_coloring_summary.csv",
+      "sha256": "d16865dee8c1fe700d3474b236da81798d3372f44ebcb648cf09f43ac28878dc",
+      "bytes": 983,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/meeting_scheduling_final_costs.csv",
+      "sha256": "3920d2a03dba7b5d4b81b1d5da565731558b4ce56b5ca6a8ad811a4a2de2b47a",
+      "bytes": 32399,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/meeting_scheduling_heldout_k.csv",
+      "sha256": "5c9c58d62ab0091a6587496a6e0f9ef282280d3b17a5ac7bfc0c176706d8889b",
+      "bytes": 371,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/meeting_scheduling_key_comparisons.csv",
+      "sha256": "c8b6affb3b8a80b85087cefecf87005aabff4c0908043f6be3deaf5d40f8e96d",
+      "bytes": 2197,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/meeting_scheduling_metadata.json",
+      "sha256": "18529737440475fee5ed705cf044d06b37019969b270cf70bc9aecb8bc992b11",
+      "bytes": 1002,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/meeting_scheduling_raw_costs.csv",
+      "sha256": "dda9595bfdd4f52aa556240521cfbeda6eb3db67df8b473496d764033f386363",
+      "bytes": 41528835,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/meeting_scheduling_settling.csv",
+      "sha256": "0c2fb5ecf4fe05ade33b513d8ee864865328433cb7a571452ecb8dfa4766ed7d",
+      "bytes": 566,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/meeting_scheduling_significance.csv",
+      "sha256": "bea8b855304025616ed2abfbc42d19724948233faa828001dd3bb8192b2433fc",
+      "bytes": 26941,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/meeting_scheduling_summary.csv",
+      "sha256": "0d879a279e90710ba6b67e884714747b1c17c3dcf1ee5e7fc9ca88b21f5ca327",
+      "bytes": 892,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_dense_final_costs.csv",
+      "sha256": "fe7fd197d50992e812a6afe105fdd9b1c309ec55d85db5cb1ddc83ec38908a2e",
+      "bytes": 42852,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_dense_heldout_k.csv",
+      "sha256": "839b2c61b4b47fd828eecc9872e8286781f1391f5686668a6c9c7fabefaf7507",
+      "bytes": 398,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_dense_key_comparisons.csv",
+      "sha256": "97448b8ae4a3dcc1710da78026ff3749ffca6636e3bc9840f0b42f0b9e8e3136",
+      "bytes": 2297,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_dense_metadata.json",
+      "sha256": "dab432865189446276b6262f77521266717b343bbdc5ff4a90f4d5b2bce0045e",
+      "bytes": 1715,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_dense_raw_costs.csv",
+      "sha256": "3a5920537702193c046e39503d1fa4884520b371b3c8a8a456b40539704f49a8",
+      "bytes": 54076763,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_dense_settling.csv",
+      "sha256": "20ec7abf012b3c0a342473d66b238a5bd5cacf1aa58c0cf5b648138cfc7b07c9",
+      "bytes": 624,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_dense_significance.csv",
+      "sha256": "89a09d7271080b7cb5a506d81774ede335596532b4ac349699f6053fcf3c4a57",
+      "bytes": 34432,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_dense_summary.csv",
+      "sha256": "e60100276d149ba6f392e90c6b60e79268027e2007f159245efbe2ba7670c493",
+      "bytes": 1236,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_sparse_final_costs.csv",
+      "sha256": "aee7f5b50fb9b079bcfca9dd695a1de04ba7f1c1f32c28f1306876ae59300a38",
+      "bytes": 37250,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_sparse_heldout_k.csv",
+      "sha256": "9f3e8ebfaefa3beaa5ea1a6f0c8322a16d6eb828e0a4c89410d01e85bda1c277",
+      "bytes": 392,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_sparse_key_comparisons.csv",
+      "sha256": "116d1cb70c8280d8c35ffb428dd9efe0fbe18ef1838f95e0da9f157620032f3a",
+      "bytes": 2311,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_sparse_metadata.json",
+      "sha256": "626c4fb853a958c162e71e64931ab1216ff7534fe8669e4d313f8ccc82d92114",
+      "bytes": 1410,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_sparse_raw_costs.csv",
+      "sha256": "ebd2f1fa1cf2f30e0cceeb4820431c6f7ff9f2c0991717ecbc4016bf17033cb4",
+      "bytes": 46347711,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_sparse_settling.csv",
+      "sha256": "be8499d56e7f540f61ac1a5344552f05d3dba1458aea6935f0e4aa2008d2e733",
+      "bytes": 558,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_sparse_significance.csv",
+      "sha256": "e74dcf9f58912af5a77689c4e7f2c5b1e1e2e051cdddd1627c81ae7f5fac7bce",
+      "bytes": 27333,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/random_sparse_summary.csv",
+      "sha256": "ba2760029c6511e90f0966bcf499e07e952c19c82919839947ae5cb0bcad1c50",
+      "bytes": 1099,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/scale_free_final_costs.csv",
+      "sha256": "093b33edbdece444a2a617fae702f1ec27cf49e295955b329ac714bf573c0f3f",
+      "bytes": 37259,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/scale_free_heldout_k.csv",
+      "sha256": "757bebbf9ae01b15315c9167b38d54de06e597398f2779f14d9e9b1a8fa35d56",
+      "bytes": 395,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/scale_free_key_comparisons.csv",
+      "sha256": "b84d62d13d8f91f72912eca74b7bc598050a38049eb9e2bccea83fd59b6a74b2",
+      "bytes": 2286,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/scale_free_metadata.json",
+      "sha256": "6ea58010a3093fd53756ae985e5d97aaa476d8a9393a9889a268785d2cc2dafd",
+      "bytes": 1505,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/scale_free_raw_costs.csv",
+      "sha256": "993b419e4856eab282b5d9c5813ad64f9f6b566bbda03aa67b6f14d2aaad5ac1",
+      "bytes": 46047848,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/scale_free_settling.csv",
+      "sha256": "d253b8098f89c0d07242805a2cb279ea1c415a1b51ca1d8770cc1aa45e8553a2",
+      "bytes": 565,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/scale_free_significance.csv",
+      "sha256": "81ae67013ee360223a370e253b5b2b84bc34e39254535eed9f7e6dcd3567e701",
+      "bytes": 27378,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/data/scale_free_summary.csv",
+      "sha256": "d92474cfc644e4618776e7ab69c96d847cce0394d7bd89a68b6f228e5ef7923c",
+      "bytes": 1067,
+      "local_modification": false
+    },
+    {
+      "path": "experiments/aaai/ternary_data/meeting_scheduling_ternary_final_costs.csv",
+      "sha256": "31c06c66cefef14a8c73a0a4c33016471bc9c33bf848a8b354334529b13ca9f0",
+      "bytes": 26615,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/meeting_scheduling_ternary_metadata.json",
+      "sha256": "43af4a1d47a8226ce7b7e5bd56a68f700172073f30fd9eb295466e646e8cc56b",
+      "bytes": 648,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/meeting_scheduling_ternary_raw_costs.csv",
+      "sha256": "131c60cf3d47c069f4fe8f5b4349033796f69946b10d33fda22ea94395cf8bb1",
+      "bytes": 31238965,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/meeting_scheduling_ternary_significance.csv",
+      "sha256": "0610cfc8dc3821787880e62539cd7b4e5b20e6682bc699b1b03a22afd47e9d35",
+      "bytes": 15738,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/meeting_scheduling_ternary_summary.csv",
+      "sha256": "59d58451c6ca09b4ccfd9bbb7dcc3c5d54165d69b0e7803a6d9681ee4d7294e5",
+      "bytes": 731,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_dense_ternary_final_costs.csv",
+      "sha256": "687262f93baa944b6f7e4dacf06c21e496cdad5359f637540d9a13f1dfd94b9c",
+      "bytes": 31650,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_dense_ternary_metadata.json",
+      "sha256": "3a76a2c984459696bc44d567f065420f7bb08c90b4de05495351bcd4963d93d4",
+      "bytes": 651,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_dense_ternary_raw_costs.csv",
+      "sha256": "08ae4342244b26e79752b1047de3cc955a173de0e07660f1900ba24e90f02c56",
+      "bytes": 37822851,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_dense_ternary_significance.csv",
+      "sha256": "e357f13e283002cc0b4676698888810fdd7dee637fd9655f8db04f7ca089271c",
+      "bytes": 18346,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_dense_ternary_summary.csv",
+      "sha256": "ae9447c60be56ef03eba9bb995a4f077a7a76370046aa1e10472f4ac1844e157",
+      "bytes": 923,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_sparse_ternary_final_costs.csv",
+      "sha256": "b0d4454f1a29b0dae8a641fda4e6d3a566efdd8fffa06d65967951ea61064482",
+      "bytes": 28622,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_sparse_ternary_metadata.json",
+      "sha256": "73a2372d102d81390ab5aa64ddb73dc06f0d8c78b504b8c514f3b8b4c9f176c1",
+      "bytes": 626,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_sparse_ternary_raw_costs.csv",
+      "sha256": "2257ef8b23a0d9d60a88518faa94c33114a970a2e949311d9bddacf8213f8150",
+      "bytes": 33629201,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_sparse_ternary_significance.csv",
+      "sha256": "528d34bb6056a25130ac762d7ce00ac56531b6500650ba401d43cbade8a9718a",
+      "bytes": 15811,
+      "local_modification": true
+    },
+    {
+      "path": "experiments/aaai/ternary_data/random_sparse_ternary_summary.csv",
+      "sha256": "52e391a2e5f38d971d4cbb6bc8a17a569615d3e55cccb0eef2743d117b8683a9",
+      "bytes": 845,
+      "local_modification": true
+    }
+  ]
+}
