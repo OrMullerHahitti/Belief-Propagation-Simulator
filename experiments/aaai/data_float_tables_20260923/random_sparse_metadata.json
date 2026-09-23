@@ -1,0 +1,29 @@
+{
+  "benchmark": "random_sparse",
+  "n_problems": 50,
+  "seed_start": 0,
+  "max_iter": 2000,
+  "merge_at": 200,
+  "damping": 0.9,
+  "split_at_iters": [
+    50,
+    100,
+    300,
+    500,
+    1000
+  ],
+  "asym_split": 0.95,
+  "pulse": [
+    64,
+    256
+  ],
+  "opt_time_limit_s": 60.0,
+  "float_tables": true,
+  "algorithms": [
+    "DMS",
+    "DMS_split_at_1000",
+    "DMS_split_at_300",
+    "MS"
+  ],
+  "elapsed_s": 313.9
+}
