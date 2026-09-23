@@ -7,8 +7,7 @@ Differences from plot_results.py (the paper's final conventions):
     (@300 -> @600, merges @200 -> @400)
   - MS_split_opt is drawn as recorded (no wall-clock stretch): the merged cost
     drops at the merge point itself
-  - late splits are reduced to @300 and @1000 (plus the best one when it is
-    neither of those)
+  - late splits are reduced to @300 and @1000 (paper k = 600 and 2000)
   - zoom plots exclude all DABP (Attentive) variants
   - one legend per figure, larger font, short labels (no timing suffixes),
     undamped variants listed before damped ones, no titles
@@ -46,19 +45,18 @@ LABELS = {
     "MS": "MS",
     "MS_split_0.5": "MS s=.5",
     "MS_split_MGM_200": f"MGM@{200 * SCALE}",
-    "MS_split_opt_200": f"Opt merge@{200 * SCALE}",
+    "MS_split_opt_200": f"opt@{200 * SCALE}",
     "DMS": "DMS",
     "DMS_split_0.5": "DMS s=.5",
-    "DMS_0.5_split_0.5": "DMS d=.5 s=.5",
     "DMS_split_0.4_0.6": "DMS s=.4-.6",
-    "DMS_split_at_50": f"DMS @{50 * SCALE}",
-    "DMS_split_at_100": f"DMS @{100 * SCALE}",
-    "DMS_split_at_300": f"DMS @{300 * SCALE}",
-    "DMS_split_at_500": f"DMS @{500 * SCALE}",
-    "DMS_split_at_1000": f"DMS @{1000 * SCALE}",
-    "DMS_split_at_1500": f"DMS @{1500 * SCALE}",
+    "DMS_split_at_50": f"DMS@{50 * SCALE}",
+    "DMS_split_at_100": f"DMS@{100 * SCALE}",
+    "DMS_split_at_300": f"DMS@{300 * SCALE}",
+    "DMS_split_at_500": f"DMS@{500 * SCALE}",
+    "DMS_split_at_1000": f"DMS@{1000 * SCALE}",
+    "DMS_split_at_1500": f"DMS@{1500 * SCALE}",
     "Attentive": "DABP",
-    "Attentive_NoSplit": "DABP no-split",
+    "Attentive_NoSplit": "DABP-NoSplit",
 }
 # undamped variants first, then damped, then DABP (legend order = draw order)
 ORDER = list(LABELS)
@@ -187,19 +185,15 @@ def padded_runs(group: pd.DataFrame, horizon: int) -> np.ndarray:
 
 
 def select_algorithms(raw: pd.DataFrame) -> list[str]:
-    """ORDER filtered to present algorithms, with late splits reduced to @300,
-    @1000, and the best-performing one when it is neither of those."""
+    """ORDER filtered to present algorithms, with late splits reduced to @300
+    and @1000. the best late split is not added: it would be chosen on the same
+    instances it is plotted on."""
     present = [a for a in ORDER if a in set(raw["algorithm"])]
-    lates = [a for a in present if a.startswith(LATE_SPLIT_PREFIX)]
-    if not lates:
-        return present
-    final_means = {
-        a: raw[raw["algorithm"] == a].groupby("seed")["cost"].last().mean()
-        for a in lates
-    }
-    best = min(final_means, key=final_means.get)
-    keep = LATE_SPLIT_KEEP | {best}
-    return [a for a in present if not a.startswith(LATE_SPLIT_PREFIX) or a in keep]
+    return [
+        a
+        for a in present
+        if not a.startswith(LATE_SPLIT_PREFIX) or a in LATE_SPLIT_KEEP
+    ]
 
 
 def _merge_curve(
@@ -321,11 +315,6 @@ def _save_plot_with_legend(fig: plt.Figure, out: Path) -> None:
     fig.savefig(out, dpi=150, bbox_inches="tight")
 
 
-def _maybe_draw_optimal(ax: plt.Axes, optimal: pd.Series) -> None:
-    if len(optimal):
-        ax.axhline(optimal.mean(), color="black", ls="--", lw=1.6, label="Optimal")
-
-
 def _set_zoom_ylim(
     ax: plt.Axes, curves: list[CostCurve], x_min: float, x_max: float
 ) -> None:
@@ -382,11 +371,9 @@ def plot_benchmark(
     merge_ratios: dict[str, dict[str, float]],
 ) -> None:
     raw = pd.read_csv(data_dir / f"{benchmark}_raw_costs.csv")
-    final = pd.read_csv(data_dir / f"{benchmark}_final_costs.csv")
     horizon = int(raw["iteration"].max()) + 1
     algorithms = select_algorithms(raw)
 
-    optimal = final.loc[final["algorithm"] == "Optimal", "final_cost"].dropna()
     curves = mean_cost_curves(
         raw,
         algorithms,
@@ -397,7 +384,6 @@ def plot_benchmark(
 
     fig, ax = plt.subplots(figsize=(11, 5))
     _draw_curves(ax, curves)
-    _maybe_draw_optimal(ax, optimal)
     # keep the standard horizon so DABP is read as "where it reaches within the
     # wall-clock budget of `horizon` plain-BP steps"
     ax.set_xlim(0, SCALE * (horizon - 1))
