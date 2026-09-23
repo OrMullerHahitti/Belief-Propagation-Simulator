@@ -31,6 +31,7 @@ which assignment is optimal.
 
 from __future__ import annotations
 
+import os
 from itertools import combinations
 from typing import Callable, Dict, List, Tuple
 
@@ -38,6 +39,7 @@ import networkx as nx
 import numpy as np
 
 from propflow import FGBuilder
+from propflow.configs.global_config_mapping import create_random_int_table
 from propflow.bp.factor_graph import FactorGraph
 from propflow.core.agents import FactorAgent, VariableAgent
 
@@ -78,13 +80,26 @@ def _with_tiebreak_prefs(fg: FactorGraph, rng: np.random.Generator) -> FactorGra
     return FGBuilder.build_with_unary_costs(fg, unary)
 
 
+FLOAT_TABLES_ENV = "AAAI_FLOAT_TABLES"
+
+
+def _random_int_as_float_table(n: int, domain: int, low: int = 0, high: int = 10):
+    """same draws as the "random_int" factory, stored as float64.
+
+    compute_R casts incoming messages to the cost table's dtype, so integer
+    tables drop the fractional part of every message on unsplit graphs.
+    """
+    return create_random_int_table(n, domain, low=low, high=high).astype(float)
+
+
 def _random_uniform(seed: int, density: float) -> FactorGraph:
     # cost tables are drawn from the legacy global rng inside FGBuilder
     np.random.seed(seed)
+    float_tables = os.environ.get(FLOAT_TABLES_ENV) == "1"
     fg = FGBuilder.build_random_graph(
         num_vars=NUM_AGENTS,
         domain_size=10,
-        ct_factory="random_int",
+        ct_factory=_random_int_as_float_table if float_tables else "random_int",
         ct_params={"low": 100, "high": 200},
         density=density,
         seed=seed,

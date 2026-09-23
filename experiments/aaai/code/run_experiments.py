@@ -82,7 +82,7 @@ from merge import (
     mgm1_binary_merge,
     score_assignment,
 )
-from problems import BENCHMARKS, capture_original
+from problems import BENCHMARKS, FLOAT_TABLES_ENV, capture_original
 from problems_ternary import TERNARY_BENCHMARKS
 
 DAMPING = 0.9
@@ -505,6 +505,7 @@ def _write_metadata(
         "asym_split": ASYM_SPLIT,
         "pulse": [PULSE_START, PULSE_STOP],
         "opt_time_limit_s": args.opt_time_limit,
+        "float_tables": args.float_tables,
         "algorithms": sorted(labels),
         "elapsed_s": round(elapsed, 1),
     }
@@ -656,7 +657,16 @@ def main() -> None:
     parser.add_argument(
         "--out-dir", default=str(Path(__file__).resolve().parents[1] / "data")
     )
+    parser.add_argument(
+        "--float-tables",
+        action="store_true",
+        help="build random_sparse/random_dense cost tables as float64 (same "
+        "values); integer tables make compute_R truncate messages",
+    )
     args = parser.parse_args()
+    if args.float_tables:
+        # set before any worker pool starts so every worker inherits it
+        os.environ[FLOAT_TABLES_ENV] = "1"
 
     if args.benchmarks == ["all"]:
         benchmarks = list(BENCHMARKS)
