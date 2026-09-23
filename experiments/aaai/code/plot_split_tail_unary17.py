@@ -75,14 +75,18 @@ SCENARIOS = [
 ]
 
 
-def run_tail_engine(*, split: bool, damping_factor: float, iterations: int):
+def run_tail_engine(
+    *, split: bool, damping_factor: float, iterations: int, float_tables: bool = False
+):
     """Build a fresh tail chain and step it, so runs never share graph state."""
+    # integer tables make compute_R truncate the incoming messages
+    dtype = float if float_tables else C12_FULL.dtype
     x1 = VariableAgent("X1", domain=2)
     x2 = VariableAgent("X2", domain=2)
     x3 = VariableAgent("X3", domain=2)
 
-    f12 = FactorAgent.create_from_cost_table("F12", cost_table=C12_FULL.copy())
-    f23 = FactorAgent.create_from_cost_table("F23", cost_table=C23_UNARY.copy())
+    f12 = FactorAgent.create_from_cost_table("F12", cost_table=C12_FULL.astype(dtype))
+    f23 = FactorAgent.create_from_cost_table("F23", cost_table=C23_UNARY.astype(dtype))
 
     graph = FGBuilder.build_from_edges(
         variables=[x1, x2, x3],
@@ -111,30 +115,50 @@ def belief_deltas(engine, var: str = "X1", delta: str = "b1-b0") -> list[float]:
     return deltas
 
 
-def output_name(iterations: int, delta: str = "b1-b0") -> str:
+def output_name(
+    iterations: int,
+    delta: str = "b1-b0",
+    float_tables: bool = False,
+    paper_units: bool = False,
+) -> str:
     """Plain name for the default horizon and delta; suffixes for anything else."""
     stem = "split_tail_unary17"
     if delta != "b1-b0":
         stem += "_b0b1"
     if iterations != ITERATIONS:
         stem += f"_it{iterations}"
+    if float_tables:
+        stem += "_float"
+    if paper_units:
+        stem += "_paper"
     return f"{stem}.pdf"
 
 
-def plot_tail_unary17(plots_dir: Path, iterations: int, delta: str = "b1-b0") -> Path:
+def plot_tail_unary17(
+    plots_dir: Path,
+    iterations: int,
+    delta: str = "b1-b0",
+    float_tables: bool = False,
+    paper_units: bool = False,
+) -> Path:
     fig, ax = plt.subplots(figsize=(8, 5))
+    # one engine step = two paper iterations (variable-nodes, then function-nodes)
+    scale = 2 if paper_units else 1
 
     for label, split, damping, color, style in SCENARIOS:
         engine = run_tail_engine(
-            split=split, damping_factor=damping, iterations=iterations
+            split=split,
+            damping_factor=damping,
+            iterations=iterations,
+            float_tables=float_tables,
         )
         deltas = belief_deltas(engine, delta=delta)
         ax.plot(
-            range(len(deltas)), deltas, style, color=color, label=label, linewidth=1.6
+            [scale * i for i in range(len(deltas))], deltas, style, color=color, label=label, linewidth=1.6
         )
 
     lo, hi = DELTAS[delta]
-    ax.set_xlim(0, iterations - 1)
+    ax.set_xlim(0, scale * (iterations - 1))
     ax.set_xlabel("Iteration")
     ax.set_ylabel(f"Belief delta at X1 (b[{lo}] - b[{hi}])")
     ax.grid(True, alpha=0.3)
@@ -142,7 +166,7 @@ def plot_tail_unary17(plots_dir: Path, iterations: int, delta: str = "b1-b0") ->
     ax.legend(fontsize=9, loc="upper left", bbox_to_anchor=(1.02, 1.0))
 
     plots_dir.mkdir(parents=True, exist_ok=True)
-    out = plots_dir / output_name(iterations, delta)
+    out = plots_dir / output_name(iterations, delta, float_tables, paper_units)
     fig.savefig(out, bbox_inches="tight")
     plt.close(fig)
     return out
@@ -155,9 +179,25 @@ def main() -> None:
     )
     parser.add_argument("--iterations", type=int, default=ITERATIONS)
     parser.add_argument("--delta", choices=sorted(DELTAS), default="b1-b0")
+    parser.add_argument(
+        "--float-tables",
+        action="store_true",
+        help="store the tables as float64 so messages are not truncated to integers",
+    )
+    parser.add_argument(
+        "--paper-units",
+        action="store_true",
+        help="x axis in paper iterations (two per engine step)",
+    )
     args = parser.parse_args()
 
-    out = plot_tail_unary17(Path(args.plots_dir), args.iterations, args.delta)
+    out = plot_tail_unary17(
+        Path(args.plots_dir),
+        args.iterations,
+        args.delta,
+        args.float_tables,
+        args.paper_units,
+    )
     print(f"wrote {out}")
 
 
