@@ -1,7 +1,7 @@
 name = "bp_verify"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["BpVerify"]
+defaultTargets = ["BpVerify", "AamasProofs"]
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -16,3 +16,7 @@ rev = "v4.30.0"
 
 [[lean_lib]]
 name = "BpVerify"
+
+[[lean_lib]]
+name = "AamasProofs"
+srcDir = "aamas_proofs"
