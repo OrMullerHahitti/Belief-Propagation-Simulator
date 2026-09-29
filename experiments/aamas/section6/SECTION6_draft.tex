@@ -1,0 +1,116 @@
+% =====================================================================
+% Section 6 draft, 2026-09-28. Replaces everything from
+% \section{Experimental Evaluation} up to \section{Conclusions} in
+% min-sum_split_AAMAS-2027_ors_revision_3_section6.tex, plus the second
+% paragraph of the Conclusions (at the end of this file).
+%
+% Every number comes from experiments/aaai/data_paper_20260928 (cost lines,
+% paired Wilcoxon over the 50 instances), experiments/aamas/splitting_explanation
+% (fraction of messages at a bound), experiments/aamas/section6/split_at_best and
+% experiments/aamas/section6/out/delayed_split_sweep.csv. Iterations are in
+% paper units (two per library iteration). See numbers.md next to this file.
+%
+% Figure files (experiments/aamas/section6/overleaf_upload/): sparse_2.pdf,
+% dense_2.pdf, scale_free_2.pdf, graph_coloring_2.pdf, meeting_scheduling_2.pdf
+% (replace the Overleaf files of the same names), the zoom files
+% *_zoom_2.pdf for the appendix, and the new bound_fraction.pdf.
+% =====================================================================
+
+\section{Experimental Evaluation}
+\label{Sec:experiments}
+
+Our empirical study asks four questions about standard DCOP benchmarks: whether the messages of a split factor graph reach the bounds of Section~\ref{sec:split} and whether the undamped run separates into two runs as in Section~\ref{Sec:MS-split}; how fast the combination of splitting and damping converges; what happens when the split is performed in the middle of a run; and how well the selection heuristics of Section~\ref{Sec:MS-split} recover the solution that damping would find.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.32\textwidth]{sparse_2.pdf}
+\includegraphics[width=.32\textwidth]{dense_2.pdf}
+\includegraphics[width=.32\textwidth]{scale_free_2.pdf}
+\vspace{-8pt}
+\caption{Mean solution cost per iteration when solving the random sparse, random dense and scale free problems.}
+\vspace{-8pt}
+\label{Fig:random}
+\end{figure*}
+
+\paragraph{Setup:}
+Following \citet{CohenGZ20}, we evaluate the algorithms on five benchmarks, \emph{Random sparse}, \emph{Random dense}, \emph{Scale-free}, \emph{Graph coloring} and \emph{Meeting scheduling} (their description is in the supplementary material), generating 50 independent instances per benchmark. All algorithms run for 4000 synchronous iterations, and in every iteration the cost of the assignment selected by the current beliefs is evaluated on the original problem. All damped versions use $\lambda = 0.9$, which was found to be the best in \citet{CohenGZ20}. We report means over the 50 instances; every comparison between two versions is a paired Wilcoxon signed-rank test over the instances, and we call a difference significant when $p < 0.01$.
+
+Two measurements connect the experiments to Sections~\ref{sec:split} and~\ref{Sec:damp}. A run \emph{converged} if the cost of its selected assignment did not change during the last 200 iterations; its convergence iteration is the last iteration at which the cost changed. A message from a function-node to a variable-node is \emph{at a bound} if a single value of the sending variable minimizes the sum of the constraint cost and the incoming belief for every value of the receiving variable. Such a message is a fixed difference between two rows of the cost table; when the variables are binary this is exactly a message difference that sits at one of the bounds of Section~\ref{sec:split}. We report the fraction of function-to-variable messages at a bound in each iteration.
+
+\paragraph{Algorithms:}
+\textbf{MS}, standard Min-sum on the original factor graph. \textbf{MS-SCFG}, Min-sum on the symmetric split constraint factor graph, in which every function-node is replaced by two copies holding half of its cost table. \textbf{MS-SCFG-MGM} and \textbf{MS-SCFG-opt} (Section~\ref{Sec:MS-split}): MS-SCFG runs for 400 iterations, the two assignments selected in iterations 398 and 400 define a problem with two values per variable, and this problem is solved by MGM \cite{MaheswaranTBPV04} or by a centralized branch and bound search that returns the solution SyncBB \cite{HirayamaY97} would return, with a time cap of 300 seconds per instance. \textbf{DMS}, damped Min-sum on the original factor graph. \textbf{DMS-SCFG}, damped Min-sum on the symmetric SCFG. \textbf{DMS-$k$DS} (Section~\ref{Sec:with}): DMS on the original factor graph for $k$ iterations, then the graph is converted to an SCFG; the last message that each function-node sent to each neighbor is divided equally between its two copies, so the beliefs do not change at the moment of the split. \textbf{DABP} \cite{DengKL022}, Deep Attentive Belief Propagation, which learns damping factors and message weights on an SCFG with a $0.95/0.05$ split. DABP is centralized, trained, and its iterations require neural nets and a GPU; to plot it on the iteration axis we use the simulated runtime method \cite{SultanikLR08}, with times measured on an NVIDIA RTX 4090. We include it as a reference for the best published centralized version and do not analyze it further.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=.35\textwidth]{graph_coloring_2.pdf}
+\includegraphics[width=.35\textwidth]{meeting_scheduling_2.pdf}
+\vspace{-8pt}
+\caption{Mean solution cost per iteration when solving Graph coloring (left) and Meeting scheduling (right) problems.}
+\vspace{-12pt}
+\label{Fig:structured}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{bound_fraction.pdf}
+\vspace{-8pt}
+\caption{Fraction of function-to-variable messages at a bound, per iteration, mean over 50 instances. The dotted vertical line marks the split of DMS-$k$DS ($k=1000$).}
+\vspace{-8pt}
+\label{Fig:bound}
+\end{figure*}
+
+\paragraph{The mechanism in large graphs:}
+Figure~\ref{Fig:bound} presents the fraction of messages at a bound. On the original factor graph few messages ever reach a bound: at the end of the run 0.07, 0.47, 0.11, 0.00 and 0.01 of the messages of MS on random sparse, random dense, scale free, graph coloring and meeting scheduling, respectively, and 0.14, 0.81, 0.23, 0.04 and 0.06 of the messages of DMS. On the SCFG of the three random benchmarks the split alone brings most messages to a bound, with or without damping: 0.77, 0.96 and 0.76 for MS-SCFG and 0.77, 0.95 and 0.76 for DMS-SCFG, and DMS-SCFG reaches these levels within the first 200 iterations. On the two structured benchmarks the split needs damping: MS-SCFG has only 0.19 and 0.07 of its messages at a bound, DMS-SCFG 0.83 and 0.56. Thus the feedback loop of Section~\ref{sec:split}, proved for a single cycle, is what most messages of these factor graphs settle into.
+
+The undamped runs show the separation of Section~\ref{Sec:MS-split} as well. In every benchmark the assignments that MS-SCFG selects in its last 400 iterations alternate between two assignments with period two (50 of the 50 instances on random sparse, random dense, scale free and meeting scheduling, 48 on graph coloring), although most of its messages sit at a bound. Only with damping do the runs converge.
+
+\paragraph{Convergence with damping:}
+Figures~\ref{Fig:random} and~\ref{Fig:structured} present the mean cost per iteration. Consistent with published results, MS oscillates and produces low quality solutions, and MS-SCFG only slightly improves them. DMS improves the cost slowly: it converged in 17, 33, 22, 8 and 3 of the 50 runs, after a median of 1088, 966, 717, 758 and 892 iterations. DMS-SCFG converged in 49, 50, 49, 40 and 43 runs, after a median of 140, 121, 86, 258 and 208 iterations. This is a statement about speed, not about the cost of the converged solution: DMS-SCFG ends with a lower mean cost than DMS on all five benchmarks, significantly on random sparse ($-3.6\%$, $p = 6.5\cdot 10^{-5}$), graph coloring ($-75\%$) and meeting scheduling ($-62\%$), but on random dense its mean is lower by $0.3\%$ while DMS ends lower on 37 of the 50 instances ($p = 0.054$), and on scale free the difference is not significant ($p = 0.25$). The random split of \citet{CohenGZ20}, in which each entry is divided in a ratio drawn uniformly from $[0.4, 0.6)$, is lower than the symmetric split by $0.2$--$0.4\%$ on the three random benchmarks ($p \le 0.006$) and higher by $12\%$ on meeting scheduling ($p = 2.7\cdot 10^{-7}$).
+
+\paragraph{Splitting in the middle of a run:}
+The blue line in Figure~\ref{Fig:bound} is DMS-$k$DS with $k = 1000$. Before the split it follows DMS, with 0.08, 0.61, 0.17, 0.01 and 0.05 of its messages at a bound; 100 iterations after the split 0.75, 0.94, 0.76, 0.66 and 0.56 are at a bound, the level DMS-SCFG reaches when the split is performed before the run, and the runs converge a median of 46, 32, 50, 118 and 134 iterations after the split. The split therefore acts as a mechanism that can be switched on at any point of the run, and it takes effect within the same number of iterations as from the start.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Mean final cost of DMS-$k$DS relative to DMS-SCFG (a negative value is a lower cost), 50 instances per benchmark; $^{*}$ marks a significant difference ($p < 0.01$).}
+\label{Tab:delay}
+\begin{tabular}{lrrrrrr}
+$k$ & 100 & 200 & 600 & 1000 & 2000 & 3000 \\ \hline
+Random sparse & $-0.32^{*}$ & $-0.36^{*}$ & $-0.32^{*}$ & $-0.42^{*}$ & $-0.41^{*}$ & -- \\
+Random dense & $-0.22^{*}$ & $-0.31^{*}$ & $-0.32^{*}$ & $-0.33^{*}$ & $-0.36^{*}$ & $-0.40^{*}$ \\
+Scale free & $-0.39^{*}$ & $-0.27$ & $-0.59^{*}$ & $-0.65^{*}$ & $-0.75^{*}$ & -- \\
+Graph coloring & $+3.5$ & $-10.4$ & $-11.0$ & $-4.1$ & $-8.1$ & -- \\
+Meeting sched. & $+0.1$ & $+0.8$ & $-1.4$ & $+1.6$ & $+1.1$ & -- \\
+\end{tabular}
+\end{table}
+
+Table~\ref{Tab:delay} presents the effect of the moment of the split. On the three random benchmarks every $k$ ends with a lower mean cost than DMS-SCFG, significantly for every $k$ on random sparse and random dense and for $k \ge 600$ on scale free, and on random dense and scale free the gain grows with $k$, from $0.22\%$ to $0.40\%$ and from $0.39\%$ to $0.75\%$. On these benchmarks DMS keeps improving its solution long before it converges, a later split starts from a better solution, and the cost after the split follows the cost at the split: over the 50 instances, the Spearman correlation between the cost of DMS at iteration $k$ and the final cost of DMS-$k$DS is $0.85$--$0.92$ on random sparse and random dense and $0.50$--$0.77$ on scale free. On graph coloring and meeting scheduling no $k$ differs significantly from DMS-SCFG, and the final cost does not depend on the moment of the split (Spearman correlation at most $0.38$; on meeting scheduling the mean is within $8.0$--$8.3$ for every $k$).
+
+To see what the split does to the best solution DMS finds, we also split each run at its own best point (\textbf{DMS-BDS} in Figures~\ref{Fig:random} and~\ref{Fig:structured}): the anytime mechanism of \citet{ZivanOP14} tracks the best state DMS reaches, the split is performed from that state at the iteration it was reached, which differs from instance to instance (median 654 to 1494 iterations), and the run continues to iteration 4000. This is not an algorithm, since the best iteration is known only in hindsight, but it shows the mechanism at its best starting point; averaged over the instances, the line leaves DMS gradually as one instance after another splits. On the three random benchmarks the split keeps the best solution of DMS on 34, 40 and 39 of the 50 instances and lowers it on 16, 8 and 11 (on random dense it raises it on 2), and the three lines end at 14{,}500, 99{,}190 and 16{,}582, below every fixed $k$ of Table~\ref{Tab:delay}. On graph coloring the split changes the best solution on 39 instances (21 lower, 18 higher; mean cost from 33.2 to 27.8) and on meeting scheduling on 39 (33 lower, 6 higher; from 8.9 to 8.0).
+
+\paragraph{Selecting between the two runs:}
+MS-SCFG-MGM and MS-SCFG-opt turn the alternation of MS-SCFG into a solution. They lower the mean cost of MS-SCFG by $13.3\%$ and $13.5\%$ on random sparse, $6.3\%$ on random dense, $12.2\%$ and $12.5\%$ on scale free, $85\%$ and $88\%$ on graph coloring and $74\%$ and $75\%$ on meeting scheduling, on every instance of the random benchmarks and meeting scheduling and on 49 of the 50 graph coloring instances. Measured against the gap between MS-SCFG and DMS-SCFG, the selection closes $90$--$95\%$ of it on the first four benchmarks and $82$--$84\%$ on meeting scheduling. The exact search improves on MGM by at most $0.4\%$ on the random benchmarks, $15\%$ on graph coloring and $4.4\%$ on meeting scheduling, so the distributed version keeps almost all of the gain. DMS-SCFG remains lower than MS-SCFG-opt on every benchmark ($0.7$--$0.9\%$ on the random benchmarks, $p \le 1.6\cdot 10^{-5}$; $59\%$ and $60\%$ on the structured ones): the two runs of Section~\ref{Sec:MS-split} each hold a good solution, and damping, which joins them, finds a better one than selecting between them.
+
+DABP ends with the lowest mean cost on the three random benchmarks, $0.5$--$0.8\%$ below DMS-SCFG, and with a higher cost than DMS-SCFG on graph coloring (39.2 against 34.4, $p = 0.31$) and meeting scheduling (27.2 against 8.1). % CHECK: the recorded DABP runs on random dense, scale free and meeting scheduling predate the current benchmark generator; see FOLLOWUPS.md before quoting them
+Its advantage over the same architecture without a split (DABP-NoSplit: 15{,}108, 100{,}310, 17{,}088, 136.4 and 24.0) is of the same kind as the advantage of DMS-SCFG over DMS.
+
+\paragraph{Discussion:}
+\label{Sec:disc}
+The results tie the two analyses of the paper to the behavior on standard benchmarks. The messages of a split factor graph reach the bounds of Section~\ref{sec:split} in large numbers, within the first 200 iterations, and once there they stop moving. Without damping the messages reach the bounds but the assignments alternate between two solutions, one per run, as in the lemniscate of Section~\ref{Sec:MS-split}; selecting between the two runs recovers most, but not all, of the gap to the damped version. With damping the two runs are joined and the run converges within a few hundred iterations, where DMS alone needs thousands. The split is not tied to the start of the run: performed at any iteration it brings the messages to their bounds within the same number of iterations, and where DMS is still improving when the split is performed, a later split ends with a lower cost. Where DMS is far from converging, on the structured benchmarks, the moment of the split does not matter. The theory covers a single cycle without damping; the fraction of messages at a bound is our empirical counterpart for graphs with many cycles and larger domains, and the results indicate that it describes the behavior well.
+
+% =====================================================================
+% Conclusions: replacement for the second paragraph ("We use this
+% understanding ... novel understanding of the algorithm.")
+% =====================================================================
+%
+% We use this understanding of the algorithm's behavior to propose two types of
+% heuristics. The first delays the split: DMS runs on the original factor graph
+% and the split is performed later, at which point it brings the messages to
+% their bounds within a few dozen iterations; on problems with random
+% constraints a later split ends with a lower cost than a split before the run.
+% The second uses MS-SCFG for a limited number of iterations, takes the two
+% alternatives that its two runs hold for each variable, and selects between
+% them with a distributed search algorithm; this recovers most of the gap to the
+% damped version without damping. We hope in the future to investigate further
+% heuristics that stem from this understanding of the algorithm.

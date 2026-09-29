@@ -77,6 +77,7 @@ COLORS = {
     "MS_split_opt_200": "#882255",
     "Attentive": "#000000",
     "Attentive_NoSplit": "#BBBBBB",
+    "DMS_split_at_best": "#E69F00",
 }
 
 # DABP variants whose curve is stretched onto the wall-clock axis
@@ -184,11 +185,41 @@ def padded_runs(group: pd.DataFrame, horizon: int) -> np.ndarray:
     return np.asarray(runs)
 
 
+# --section6: only the lines Section 6 of the AAMAS paper talks about, under the
+# names the text uses (one delayed split, k = 1000 paper iterations; DABP as a
+# reference line)
+SECTION6_LINES = [
+    "MS",
+    "MS_split_0.5",
+    "MS_split_opt_200",
+    "DMS",
+    "DMS_split_0.5",
+    "DMS_split_at_500",
+    "DMS_split_at_best",
+    "Attentive",
+]
+SECTION6_LABELS = {
+    "MS": "MS",
+    "MS_split_0.5": "MS-SCFG",
+    "MS_split_opt_200": "MS-SCFG-opt",
+    "DMS": "DMS",
+    "DMS_split_0.5": "DMS-SCFG",
+    "DMS_split_at_500": "DMS-kDS, k=1000",
+    "DMS_split_at_best": "DMS-BDS",
+    "Attentive": "DABP",
+}
+LINE_FILTER: list[str] | None = None
+EXTRA_RAW_DIR: Path | None = None
+
+
 def select_algorithms(raw: pd.DataFrame) -> list[str]:
     """ORDER filtered to present algorithms, with late splits reduced to @300
     and @1000. the best late split is not added: it would be chosen on the same
     instances it is plotted on."""
     present = [a for a in ORDER if a in set(raw["algorithm"])]
+    if LINE_FILTER is not None:
+        # the filter may name lines that are not in ORDER (the split at the best point)
+        return [a for a in LINE_FILTER if a in set(raw["algorithm"])]
     return [
         a
         for a in present
@@ -371,6 +402,9 @@ def plot_benchmark(
     merge_ratios: dict[str, dict[str, float]],
 ) -> None:
     raw = pd.read_csv(data_dir / f"{benchmark}_raw_costs.csv")
+    if EXTRA_RAW_DIR is not None and (EXTRA_RAW_DIR / f"{benchmark}_raw_costs.csv").exists():
+        # lines recorded outside the data folder (the split at the best point)
+        raw = pd.concat([raw, pd.read_csv(EXTRA_RAW_DIR / f"{benchmark}_raw_costs.csv")], ignore_index=True)
     horizon = int(raw["iteration"].max()) + 1
     algorithms = select_algorithms(raw)
 
@@ -536,7 +570,20 @@ def main() -> None:
     parser.add_argument("--ternary-data-dir", default=str(root / "ternary_data"))
     parser.add_argument("--plots-dir", default=str(root / "final_plots"))
     parser.add_argument("--skip-tail", action="store_true")
+    parser.add_argument(
+        "--section6",
+        action="store_true",
+        help="draw only the Section 6 lines under the names the text uses",
+    )
+    parser.add_argument("--extra-raw", default=None, help="folder with extra <benchmark>_raw_costs.csv lines to draw")
     args = parser.parse_args()
+    if args.section6:
+        global LINE_FILTER
+        LINE_FILTER = SECTION6_LINES
+        LABELS.update(SECTION6_LABELS)
+    if args.extra_raw:
+        global EXTRA_RAW_DIR
+        EXTRA_RAW_DIR = Path(args.extra_raw)
 
     data_dir = Path(args.data_dir)
     ternary_dir = Path(args.ternary_data_dir)

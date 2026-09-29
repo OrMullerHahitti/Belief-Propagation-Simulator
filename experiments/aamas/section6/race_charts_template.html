@@ -1,0 +1,724 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Section 6 race charts</title>
+<style>
+  :root {
+    --bg: #fcfcfb;
+    --panel: #ffffff;
+    --ink: #1d1d1b;
+    --ink-2: #55554f;
+    --ink-3: #8a8a83;
+    --rule: #e4e4df;
+    --grid: #efefea;
+    --accent: #0072B2;
+    --btn: #f1f1ec;
+    --btn-on: #1d1d1b;
+    --btn-on-ink: #ffffff;
+    --event: #b04a00;
+    --c-MS: #8c8c8c;
+    --c-MS-SCFG: #44AA99;
+    --c-MS-SCFG-opt: #882255;
+    --c-DMS: #0072B2;
+    --c-DMS-SCFG: #009E73;
+    --c-DMS-kDS: #332288;
+    --c-DMS-BDS: #E69F00;
+    --c-DABP: #000000;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614;
+      --panel: #1e1e1c;
+      --ink: #ececE6;
+      --ink-2: #b4b4ac;
+      --ink-3: #85857e;
+      --rule: #34342f;
+      --grid: #2a2a26;
+      --accent: #56B4E9;
+      --btn: #2a2a26;
+      --btn-on: #ececE6;
+      --btn-on-ink: #161614;
+      --event: #f0a060;
+      --c-MS: #a8a8a8;
+      --c-MS-SCFG: #5cc4b2;
+      --c-MS-SCFG-opt: #d0679a;
+      --c-DMS: #3a9ee0;
+      --c-DMS-SCFG: #22c08f;
+      --c-DMS-kDS: #9a8cf0;
+      --c-DMS-BDS: #f0b030;
+      --c-DABP: #e8e8e2;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614;
+    --panel: #1e1e1c;
+    --ink: #ececE6;
+    --ink-2: #b4b4ac;
+    --ink-3: #85857e;
+    --rule: #34342f;
+    --grid: #2a2a26;
+    --accent: #56B4E9;
+    --btn: #2a2a26;
+    --btn-on: #ececE6;
+    --btn-on-ink: #161614;
+    --event: #f0a060;
+    --c-MS: #a8a8a8;
+    --c-MS-SCFG: #5cc4b2;
+    --c-MS-SCFG-opt: #d0679a;
+    --c-DMS: #3a9ee0;
+    --c-DMS-SCFG: #22c08f;
+    --c-DMS-kDS: #9a8cf0;
+    --c-DMS-BDS: #f0b030;
+    --c-DABP: #e8e8e2;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 24px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .lede { color: var(--ink-2); max-width: 900px; margin: 0 0 6px; }
+  .try { color: var(--ink-2); max-width: 900px; margin: 0 0 18px; font-size: 14px; }
+  .try b { color: var(--ink); }
+
+  .controls {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;
+    padding: 12px 14px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px;
+    position: sticky; top: 0; z-index: 5;
+  }
+  .group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .group > .lbl { font-size: 12px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.05em; margin-right: 2px; }
+  button, select {
+    font: inherit; font-size: 13px; color: var(--ink); background: var(--btn);
+    border: 1px solid var(--rule); border-radius: 7px; padding: 5px 10px; cursor: pointer;
+  }
+  button[aria-pressed="true"] { background: var(--btn-on); color: var(--btn-on-ink); border-color: var(--btn-on); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #play { min-width: 76px; font-weight: 600; }
+  .timeline { display: flex; align-items: center; gap: 12px; flex: 1 1 100%; min-width: 0; }
+  .track { position: relative; flex: 1; height: 44px; }
+  .track input { position: absolute; left: 0; right: 0; top: 4px; width: 100%; margin: 0; accent-color: var(--accent); }
+  .track .ev { position: absolute; top: 20px; transform: translateX(-50%); font-size: 10px; color: var(--event); white-space: nowrap; pointer-events: none; }
+  .track .ev::before { content: ""; position: absolute; left: 50%; top: -6px; width: 1px; height: 6px; background: var(--event); }
+  .counter { font-variant-numeric: tabular-nums; min-width: 96px; text-align: right; }
+  .counter b { font-size: 22px; }
+  .counter span { color: var(--ink-3); font-size: 12px; display: block; line-height: 1.1; }
+
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width: 980px) { .charts { grid-template-columns: 1fr; } .counter { min-width: 0; } }
+  .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 14px 8px; min-width: 0; }
+  .card header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .card h2 { font-size: 16px; margin: 0; }
+  .card .sub { font-size: 12.5px; color: var(--ink-3); margin: 2px 0 0; }
+  .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; flex: none; }
+  .seg button { border: 0; border-radius: 0; padding: 4px 10px; }
+  .plot { position: relative; margin-top: 8px; }
+  .plot svg { display: block; width: 100%; height: 440px; overflow: visible; }
+  @media (max-width: 600px) {
+    .plot svg { height: 380px; }
+    .timeline { flex-wrap: wrap; }
+    .track { flex: 1 1 100%; order: 3; }
+    .controls { position: static; }
+  }
+  .note { font-size: 12px; color: var(--ink-3); margin: 4px 0 6px; min-height: 18px; }
+
+  svg text { fill: var(--ink); font-family: inherit; }
+  .axis text { fill: var(--ink-3); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .axis line { stroke: var(--grid); }
+  .axis .base { stroke: var(--rule); }
+  .bar-name { font-size: 12.5px; font-weight: 600; }
+  .bar-val { font-size: 12px; fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .tip-lbl { font-size: 12px; font-variant-numeric: tabular-nums; }
+  .ev-line { stroke: var(--event); stroke-dasharray: 3 3; stroke-width: 1; }
+  .ev-txt { fill: var(--event); font-size: 10.5px; }
+  .cut { fill: var(--ink-3); font-size: 10.5px; font-style: italic; }
+  .cross { stroke: var(--ink-3); stroke-width: 1; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 4; background: var(--panel); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 8px; padding: 7px 9px; font-size: 12px; line-height: 1.45;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12); display: none; min-width: 150px; font-variant-numeric: tabular-nums;
+  }
+  .tooltip .t { color: var(--ink-3); margin-bottom: 3px; }
+  .tooltip .row { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+  .tooltip .sw { width: 10px; height: 3px; border-radius: 2px; display: inline-block; margin-right: 4px; }
+
+  footer { margin-top: 22px; font-size: 12.5px; color: var(--ink-3); max-width: 1000px; }
+  footer p { margin: 0 0 6px; }
+  footer code { overflow-wrap: anywhere; }
+  body.solo h1, body.solo .lede, body.solo .try, body.solo footer, body.solo #card-cost,
+  body.solo .seg, body.solo .card .sub, body.solo .note { display: none; }
+  body.solo .charts { grid-template-columns: 1fr; }
+  body.solo .plot svg { height: 560px; }
+  @media (max-width: 600px) { body.solo .plot svg { height: 420px; } }
+  .head-it { fill: var(--ink); font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .head-line { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.7; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Section 6 race charts</h1>
+  <p class="lede">
+    The left chart shows the mean cost of each algorithm over the 50 instances, iteration by iteration.
+    The right chart shows, for the same algorithms, the share of function-to-variable messages that sit at a bound.
+    Both charts run on one timeline. So you can see that when a line's messages reach the bound, it stops moving.
+  </p>
+  <p class="try">
+    <b>Try this:</b> pick <b>Random dense</b>, keep k = 1,000 and press <b>Play</b>. By iteration 100, 91% of DMS-SCFG's messages are at a bound, and by iteration 140 its cost is within 0.1% of its final value.
+    DMS-kDS runs exactly as DMS until iteration 1,000. Then it splits: within 50 iterations its share at a bound goes from 61% to 93%, and from iteration 1,028 its cost is below DMS-SCFG.
+  </p>
+
+  <div class="controls" role="group" aria-label="Chart controls">
+    <div class="group" id="benches"><span class="lbl">Benchmark</span></div>
+    <div class="group">
+      <span class="lbl">DMS-kDS split at k =</span>
+      <select id="k" aria-label="Delayed split iteration k"></select>
+    </div>
+    <div class="timeline">
+      <button id="play" type="button">▶ Play</button>
+      <div class="track">
+        <input id="slider" type="range" min="0" step="1" value="0" aria-label="Iteration">
+        <div id="events"></div>
+      </div>
+      <select id="speed" aria-label="Playback speed">
+        <option value="0.5">0.5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+      <div class="counter"><b id="iter">0</b><span>paper iteration</span></div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <section class="card" id="card-cost">
+      <header>
+        <div>
+          <h2>Mean solution cost</h2>
+          <p class="sub">Lower is better. Bars are sorted with the lowest cost on top.</p>
+        </div>
+        <div class="seg" role="group" aria-label="Cost chart view">
+          <button type="button" data-view="bars" aria-pressed="true">Bars</button>
+          <button type="button" data-view="lines" aria-pressed="false">Lines</button>
+        </div>
+      </header>
+      <div class="plot"><svg role="img" aria-label="Mean cost race"></svg><div class="tooltip"></div></div>
+      <p class="note"></p>
+    </section>
+    <section class="card" id="card-bound">
+      <header>
+        <div>
+          <h2>Messages at a bound</h2>
+          <p class="sub">Share of function-to-variable messages at a bound. Sorted with the highest share on top.</p>
+        </div>
+        <div class="seg" role="group" aria-label="Bound chart view">
+          <button type="button" data-view="bars" aria-pressed="true">Bars</button>
+          <button type="button" data-view="lines" aria-pressed="false">Lines</button>
+        </div>
+      </header>
+      <div class="plot"><svg role="img" aria-label="Messages at a bound race"></svg><div class="tooltip"></div></div>
+      <p class="note"></p>
+    </section>
+  </div>
+
+  <footer>
+    <p>Iterations are paper iterations (one library iteration = two paper iterations), as in the paper's figures. Each value is the mean over the same 50 instances per benchmark.</p>
+    <p>DABP is drawn on the wall-clock axis, as in the cost figures: one DABP iteration takes as long as several DMS iterations, so at paper iteration <i>t</i> DABP shows its own iteration <i>t</i>&nbsp;/&nbsp;(2 × ratio). MS-SCFG-opt merges at iteration 400 and keeps its merged cost after that.</p>
+    <p>Cost data: <code>experiments/aaai/data_paper_20260928</code> (DMS-BDS from <code>experiments/aamas/section6/split_at_best_fixed_horizon</code>). Bound data: exp1 and exp1_delayed in <code>experiments/aamas/splitting_explanation/results</code>. That run uses a separate fast engine, so its costs are not shown. Built by <code>experiments/aamas/section6/race_charts.py</code>.</p>
+  </footer>
+</main>
+
+<script>
+const DATA = /*__DATA__*/null;
+
+const COST_ORDER = ["MS", "MS-SCFG", "MS-SCFG-opt", "DMS", "DMS-SCFG", "DMS-kDS", "DMS-BDS", "DABP"];
+const BOUND_ORDER = ["MS", "MS-SCFG", "DMS", "DMS-SCFG", "DMS-kDS"];
+const FPS_1X = 40; // frames per second at 1x; a full run (2000 frames) takes 50 s
+
+const SOLO = DATA.solo === true;
+if (SOLO) document.body.classList.add("solo");
+
+const state = {
+  bench: 1, // random dense, the guided example
+  k: DATA.default_k,
+  frame: 0, // float, fractional frames interpolate
+  playing: false,
+  speed: 1,
+  view: { cost: "bars", bound: SOLO ? "lines" : "bars" },
+};
+
+const NF = DATA.frames;
+const fmtInt = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+const fmt1 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const fmt2 = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+function bench() { return DATA.benches[state.bench]; }
+function label(key) { return key === "DMS-kDS" ? `DMS-kDS, k=${state.k}` : key; }
+function color(key) { return `var(--c-${key})`; }
+
+function series(kind) {
+  // [{key, values}] for the chart, in legend order
+  const b = bench()[kind];
+  const order = kind === "cost" ? COST_ORDER : BOUND_ORDER;
+  return order.map((key) => ({
+    key,
+    values: key === "DMS-kDS" ? b.kds[String(state.k)] : b.lines[key],
+  }));
+}
+
+function valueAt(values, f) {
+  const i = Math.floor(f);
+  const a = values[Math.min(i, NF - 1)];
+  const b = values[Math.min(i + 1, NF - 1)];
+  if (a === null || a === undefined) return null;
+  if (b === null || b === undefined) return a;
+  return a + (b - a) * (f - i);
+}
+
+function fmtCost(v) {
+  if (v === null) return "–";
+  return bench().cost.decimals >= 3 ? fmt2.format(v) : fmtInt.format(v);
+}
+function fmtBound(v) { return v === null ? "–" : `${fmt1.format(100 * v)}%`; }
+
+function niceTicks(lo, hi, count) {
+  const span = hi - lo;
+  if (!(span > 0)) return [lo];
+  const raw = span / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) || 10 * mag;
+  const out = [];
+  for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9 * span; t += step) out.push(+t.toPrecision(12));
+  return out;
+}
+
+const SVGNS = "http://www.w3.org/2000/svg";
+function el(name, attrs, parent) {
+  const node = document.createElementNS(SVGNS, name);
+  for (const [k, v] of Object.entries(attrs || {})) node.setAttribute(k, v);
+  if (parent) parent.appendChild(node);
+  return node;
+}
+
+// events drawn on the timeline and in the line charts: [paper iteration, text, charts]
+function events() {
+  return [
+    [400, "opt merge", ["cost"]],
+    [state.k, "k split", ["cost", "bound"]],
+  ];
+}
+
+// ---------------------------------------------------------------- chart object
+
+function makeChart(kind) {
+  const card = document.getElementById(`card-${kind}`);
+  const svg = card.querySelector("svg");
+  const tooltip = card.querySelector(".tooltip");
+  const note = card.querySelector(".note");
+  const chart = {
+    kind, card, svg, tooltip, note,
+    ypos: {}, // smoothed row positions for bars (row index, float)
+    domain: null, // smoothed value domain
+    hover: null,
+  };
+
+  card.querySelectorAll(".seg button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.view[kind] = btn.dataset.view;
+      card.querySelectorAll(".seg button").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+      chart.domain = null;
+      chart.ypos = {};
+      hideTip(chart);
+      render(true);
+    });
+  });
+
+  svg.addEventListener("pointermove", (e) => { chart.hover = pointer(svg, e); drawTip(chart); });
+  svg.addEventListener("pointerleave", () => { chart.hover = null; hideTip(chart); });
+  return chart;
+}
+
+function pointer(svg, e) {
+  const r = svg.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function size(svg) {
+  const r = svg.getBoundingClientRect();
+  return { w: Math.max(r.width, 280), h: Math.max(r.height, 240) };
+}
+
+function approach(current, target, alpha) {
+  return current === undefined || current === null ? target : current + (target - current) * alpha;
+}
+
+// ---------------------------------------------------------------- bar race
+
+function drawBars(chart, snap) {
+  const { kind, svg } = chart;
+  const { w, h } = size(svg);
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.replaceChildren();
+  const f = state.frame;
+  const rows = series(kind).map((s) => ({ key: s.key, v: valueAt(s.values, f) }));
+  const present = rows.filter((r) => r.v !== null);
+  const narrow = w < 460;
+  const m = { top: 30, right: narrow ? 64 : 84, bottom: 10, left: narrow ? 104 : 138 };
+  const pw = w - m.left - m.right;
+  const ph = h - m.top - m.bottom;
+
+  // value domain: cost uses a cut axis around the current values, bound is fixed 0..100 %
+  let target;
+  if (kind === "cost") {
+    const vs = present.map((r) => r.v);
+    const lo = Math.min(...vs), hi = Math.max(...vs);
+    const span = Math.max(hi - lo, Math.abs(hi) * 0.004, 1e-6);
+    // costs are never negative, so the cut never goes below zero
+    target = [lo >= 0 ? Math.max(0, lo - 0.35 * span) : lo - 0.35 * span, hi + 0.02 * span];
+  } else {
+    target = [0, 1];
+  }
+  const alpha = snap ? 1 : 0.18;
+  chart.domain = chart.domain
+    ? [approach(chart.domain[0], target[0], alpha), approach(chart.domain[1], target[1], alpha)]
+    : target;
+  const [d0, d1] = chart.domain;
+  const x = (v) => m.left + Math.max(0, Math.min(1, (v - d0) / (d1 - d0))) * pw;
+
+  // ranking: cost ascending (leader = lowest), bound descending (leader = highest)
+  const ranked = present.slice().sort((a, b) => (kind === "cost" ? a.v - b.v : b.v - a.v));
+  const n = rows.length;
+  const rowH = ph / n;
+  const barH = Math.min(30, rowH * 0.72);
+  ranked.forEach((r, i) => { chart.ypos[r.key] = snap ? i : approach(chart.ypos[r.key], i, 0.2); });
+
+  // axis and grid on top
+  const ax = el("g", { class: "axis" }, svg);
+  for (const t of niceTicks(d0, d1, narrow ? 3 : 5)) {
+    const xx = x(t);
+    if (xx < m.left - 0.5 || xx > m.left + pw + 0.5) continue;
+    el("line", { x1: xx, x2: xx, y1: m.top - 6, y2: m.top + ph }, ax);
+    const txt = el("text", { x: xx, y: m.top - 12, "text-anchor": "middle" }, ax);
+    txt.textContent = kind === "cost" ? fmtCost(t) : `${Math.round(100 * t)}%`;
+  }
+  el("line", { class: "base", x1: m.left, x2: m.left, y1: m.top - 6, y2: m.top + ph }, ax);
+  if (kind === "cost" && d0 > 0) {
+    const cut = el("text", { class: "cut", x: m.left - 8, y: m.top - 12, "text-anchor": "end" }, svg);
+    cut.textContent = "axis cut ⟩";
+  }
+
+  chart.rects = [];
+  for (const r of ranked) {
+    const yy = m.top + chart.ypos[r.key] * rowH + (rowH - barH) / 2;
+    const x1 = x(r.v);
+    const g = el("g", {}, svg);
+    const bw = Math.max(x1 - m.left, 2);
+    el("rect", { x: m.left, y: yy, width: bw, height: barH, rx: 4, fill: color(r.key) }, g);
+    const name = el("text", { class: "bar-name", x: m.left - 8, y: yy + barH / 2, "text-anchor": "end", "dominant-baseline": "central" }, g);
+    name.textContent = label(r.key);
+    const val = el("text", { class: "bar-val", x: m.left + bw + 6, y: yy + barH / 2, "dominant-baseline": "central" }, g);
+    val.textContent = kind === "cost" ? fmtCost(r.v) : fmtBound(r.v);
+    chart.rects.push({ key: r.key, v: r.v, y0: yy, y1: yy + barH, rank: ranked.indexOf(r) + 1 });
+  }
+  if (!present.length) {
+    const t = el("text", { x: m.left + pw / 2, y: m.top + ph / 2, "text-anchor": "middle", fill: "var(--ink-3)" }, svg);
+    t.textContent = "No messages have been sent yet (iteration 0).";
+  }
+  const settled = !snap && ranked.some((r) => Math.abs(chart.ypos[r.key] - ranked.indexOf(r)) > 0.01);
+  return settled || (!snap && Math.abs(chart.domain[0] - target[0]) + Math.abs(chart.domain[1] - target[1]) > 1e-6 * Math.abs(target[1] || 1));
+}
+
+// ---------------------------------------------------------------- line race
+
+function drawLines(chart, snap) {
+  const { kind, svg } = chart;
+  const { w, h } = size(svg);
+  svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+  svg.replaceChildren();
+  const f = state.frame;
+  const fi = Math.floor(f);
+  const all = series(kind);
+  const narrow = w < 460;
+  const m = { top: 14, right: narrow ? 108 : 150, bottom: 30, left: kind === "cost" ? (narrow ? 52 : 64) : 44 };
+  const pw = w - m.left - m.right;
+  const ph = h - m.top - m.bottom;
+  const xMax = 2 * (NF - 1);
+  const x = (frame) => m.left + (2 * frame / xMax) * pw;
+
+  // y domain: cost zooms in on the second half of what has been drawn so far, bound is 0..100 %
+  let target;
+  if (kind === "cost") {
+    const from = Math.floor(fi / 2);
+    let lo = Infinity, hi = -Infinity;
+    for (const s of all) {
+      for (let i = from; i <= fi; i++) {
+        const v = s.values[i];
+        if (v !== null) { if (v < lo) lo = v; if (v > hi) hi = v; }
+      }
+      const v = valueAt(s.values, f);
+      if (v !== null) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    }
+    const span = Math.max(hi - lo, Math.abs(hi) * 0.004, 1e-6);
+    target = [lo - 0.06 * span, hi + 0.06 * span];
+  } else {
+    target = [0, 1];
+  }
+  const alpha = snap ? 1 : 0.15;
+  chart.domain = chart.domain
+    ? [approach(chart.domain[0], target[0], alpha), approach(chart.domain[1], target[1], alpha)]
+    : target;
+  const [d0, d1] = chart.domain;
+  const y = (v) => m.top + (1 - (v - d0) / (d1 - d0)) * ph;
+  chart.geom = { m, pw, ph, x, y, xMax };
+
+  const clipId = `clip-${kind}`;
+  const defs = el("defs", {}, svg);
+  const clip = el("clipPath", { id: clipId }, defs);
+  el("rect", { x: m.left, y: m.top - 1, width: pw + 1, height: ph + 2 }, clip);
+
+  const ax = el("g", { class: "axis" }, svg);
+  for (const t of niceTicks(d0, d1, 5)) {
+    const yy = y(t);
+    if (yy < m.top - 0.5 || yy > m.top + ph + 0.5) continue;
+    el("line", { x1: m.left, x2: m.left + pw, y1: yy, y2: yy }, ax);
+    const txt = el("text", { x: m.left - 6, y: yy, "text-anchor": "end", "dominant-baseline": "central" }, ax);
+    txt.textContent = kind === "cost" ? fmtCost(t) : `${Math.round(100 * t)}%`;
+  }
+  const headX = x(f);
+  for (const t of niceTicks(0, xMax, narrow ? 3 : 4)) {
+    const xx = m.left + (t / xMax) * pw;
+    if (Math.abs(xx - headX) < 34) continue; // the moving iteration label sits here
+    const txt = el("text", { x: xx, y: m.top + ph + 18, "text-anchor": "middle" }, ax);
+    txt.textContent = fmtInt.format(t);
+  }
+  el("line", { class: "base", x1: m.left, x2: m.left + pw, y1: m.top + ph, y2: m.top + ph }, ax);
+
+  for (const [it, text, kinds] of events()) {
+    if (!kinds.includes(kind)) continue;
+    const xx = m.left + (it / xMax) * pw;
+    el("line", { class: "ev-line", x1: xx, x2: xx, y1: m.top, y2: m.top + ph }, svg);
+    const t = el("text", { class: "ev-txt", x: xx + 4, y: m.top + 10 }, svg);
+    t.textContent = text;
+  }
+
+  const lines = el("g", { "clip-path": `url(#${clipId})` }, svg);
+  const tips = [];
+  for (const s of all) {
+    let d = "";
+    let started = false;
+    for (let i = 0; i <= fi; i++) {
+      const v = s.values[i];
+      if (v === null) { started = false; continue; }
+      d += `${started ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`;
+      started = true;
+    }
+    const vEnd = valueAt(s.values, f);
+    if (vEnd !== null && f > fi) d += `L${x(f).toFixed(1)},${y(vEnd).toFixed(1)}`;
+    el("path", { d, fill: "none", stroke: color(s.key), "stroke-width": 2, "stroke-linejoin": "round" }, lines);
+    if (vEnd !== null) tips.push({ key: s.key, v: vEnd, cy: y(vEnd) });
+  }
+
+  // tips: a dot at each line's head and its name + value, pushed apart so they never overlap
+  const gap = 14;
+  const placed = tips
+    .map((t) => ({ ...t, ly: Math.max(m.top + 6, Math.min(m.top + ph - 2, t.cy)) }))
+    .sort((a, b) => a.ly - b.ly);
+  for (let pass = 0; pass < 40; pass++) {
+    let moved = false;
+    for (let i = 1; i < placed.length; i++) {
+      const need = placed[i - 1].ly + gap - placed[i].ly;
+      if (need > 0) { placed[i - 1].ly -= need / 2; placed[i].ly += need / 2; moved = true; }
+    }
+    const lo = m.top + 6 - placed[0]?.ly;
+    if (lo > 0) placed.forEach((p) => (p.ly += lo));
+    const hi = placed.length ? placed[placed.length - 1].ly - (m.top + ph + 8) : 0;
+    if (hi > 0) placed.forEach((p) => (p.ly -= hi));
+    if (!moved) break;
+  }
+  const hx = x(f);
+  el("line", { class: "head-line", x1: hx, x2: hx, y1: m.top, y2: m.top + ph }, svg);
+  const headLbl = el("text", { class: "head-it", x: hx, y: m.top + ph + 18, "text-anchor": "middle" }, svg);
+  headLbl.textContent = fmtInt.format(2 * Math.round(f));
+  for (const p of placed) {
+    const inside = p.cy >= m.top - 1 && p.cy <= m.top + ph + 1;
+    if (inside) el("circle", { cx: hx, cy: p.cy, r: 4, fill: color(p.key), stroke: "var(--panel)", "stroke-width": 2 }, svg);
+    el("line", { x1: hx + 5, x2: m.left + pw + 6, y1: inside ? p.cy : p.ly, y2: p.ly, stroke: color(p.key), "stroke-width": 1, opacity: 0.5 }, svg);
+    el("rect", { x: m.left + pw + 8, y: p.ly - 1.5, width: 9, height: 3, rx: 1.5, fill: color(p.key) }, svg);
+    const t = el("text", { class: "tip-lbl", x: m.left + pw + 21, y: p.ly, "dominant-baseline": "central" }, svg);
+    const name = el("tspan", { "font-weight": 600 }, t);
+    name.textContent = label(p.key);
+    const val = el("tspan", { fill: "var(--ink-2)", dx: 5 }, t);
+    val.textContent = kind === "cost" ? fmtCost(p.v) : fmtBound(p.v);
+  }
+  const moving = !snap && Math.abs(chart.domain[0] - target[0]) + Math.abs(chart.domain[1] - target[1]) > 1e-6 * Math.abs(target[1] || 1);
+  return moving;
+}
+
+// ---------------------------------------------------------------- tooltip
+
+function hideTip(chart) { chart.tooltip.style.display = "none"; chart.svg.querySelector(".cross")?.remove(); }
+
+function drawTip(chart) {
+  const p = chart.hover;
+  if (!p) return hideTip(chart);
+  const view = state.view[chart.kind];
+  const fmt = chart.kind === "cost" ? fmtCost : fmtBound;
+  let html = "";
+  if (view === "bars") {
+    const hit = (chart.rects || []).find((r) => p.y >= r.y0 - 4 && p.y <= r.y1 + 4);
+    if (!hit) return hideTip(chart);
+    html = `<div class="t">Iteration ${fmtInt.format(2 * Math.round(state.frame))} · rank ${hit.rank}</div>`
+      + `<div class="row"><span><i class="sw" style="background:${color(hit.key)}"></i>${label(hit.key)}</span><b>${fmt(hit.v)}</b></div>`;
+  } else {
+    const g = chart.geom;
+    if (!g || p.x < g.m.left || p.x > g.m.left + g.pw) return hideTip(chart);
+    const frame = Math.min(state.frame, ((p.x - g.m.left) / g.pw) * (g.xMax / 2));
+    const fi = Math.round(frame);
+    const rows = series(chart.kind)
+      .map((s) => ({ key: s.key, v: s.values[fi] }))
+      .filter((r) => r.v !== null)
+      .sort((a, b) => (chart.kind === "cost" ? a.v - b.v : b.v - a.v));
+    if (!rows.length) return hideTip(chart);
+    html = `<div class="t">Iteration ${fmtInt.format(2 * fi)}</div>`
+      + rows.map((r) => `<div class="row"><span><i class="sw" style="background:${color(r.key)}"></i>${label(r.key)}</span><b>${fmt(r.v)}</b></div>`).join("");
+    chart.svg.querySelector(".cross")?.remove();
+    const cx = g.x(fi);
+    el("line", { class: "cross", x1: cx, x2: cx, y1: g.m.top, y2: g.m.top + g.ph }, chart.svg);
+  }
+  const tip = chart.tooltip;
+  tip.innerHTML = html;
+  tip.style.display = "block";
+  const box = chart.svg.getBoundingClientRect();
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let left = p.x + 14;
+  if (left + tw > box.width) left = p.x - tw - 14;
+  tip.style.left = `${Math.max(0, left)}px`;
+  tip.style.top = `${Math.max(0, Math.min(p.y - th / 2, box.height - th))}px`;
+}
+
+// ---------------------------------------------------------------- page wiring
+
+const charts = SOLO ? [makeChart("bound")] : [makeChart("cost"), makeChart("bound")];
+const slider = document.getElementById("slider");
+const playBtn = document.getElementById("play");
+const iterOut = document.getElementById("iter");
+const kSelect = document.getElementById("k");
+slider.max = String(NF - 1);
+
+function notes() {
+  if (SOLO) return;
+  const b = bench();
+  charts[0].note.textContent = state.view.cost === "bars"
+    ? `The axis is cut: it starts just below the lowest bar, so the few-percent gaps are visible. DABP runs ${b.cost.dabp_ratio}× slower per iteration than DMS.`
+    : `The y-axis zooms in on the second half of the drawn run. DABP runs ${b.cost.dabp_ratio}× slower per iteration than DMS.`;
+  charts[1].note.textContent = "A message at a bound: one sender value is the best choice for every receiver value.";
+}
+
+function buildBenchButtons() {
+  const box = document.getElementById("benches");
+  DATA.benches.forEach((b, i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = b.title;
+    btn.setAttribute("aria-pressed", String(i === state.bench));
+    btn.addEventListener("click", () => {
+      state.bench = i;
+      box.querySelectorAll("button").forEach((x, j) => x.setAttribute("aria-pressed", String(j === i)));
+      buildKOptions();
+      charts.forEach((c) => { c.domain = null; c.ypos = {}; });
+      render(true);
+    });
+    box.appendChild(btn);
+  });
+}
+
+function buildKOptions() {
+  const ks = bench().ks;
+  if (!ks.includes(state.k)) state.k = ks.includes(DATA.default_k) ? DATA.default_k : ks[ks.length - 1];
+  kSelect.replaceChildren(...ks.map((k) => {
+    const o = document.createElement("option");
+    o.value = String(k);
+    o.textContent = fmtInt.format(k);
+    o.selected = k === state.k;
+    return o;
+  }));
+}
+
+kSelect.addEventListener("change", () => { state.k = Number(kSelect.value); render(true); });
+
+function drawEventsOnTrack() {
+  const box = document.getElementById("events");
+  box.replaceChildren();
+  const xMax = 2 * (NF - 1);
+  // only the events of the charts on the page (the opt merge belongs to the cost chart)
+  events().filter(([, , kinds]) => charts.some((c) => kinds.includes(c.kind))).forEach(([it, text], i) => {
+    const d = document.createElement("div");
+    d.className = "ev";
+    d.style.top = `${20 + 13 * i}px`; // one row per event so close events never overlap
+    d.style.left = `calc(${(100 * it) / xMax}% + ${8 - (16 * it) / xMax}px)`; // thumb inset
+    d.textContent = `${text} ${fmtInt.format(it)}`;
+    box.appendChild(d);
+  });
+  document.querySelectorAll("[data-k-text]").forEach((n) => (n.textContent = fmtInt.format(state.k)));
+}
+
+let animating = false;
+function render(snap) {
+  slider.value = String(Math.round(state.frame));
+  iterOut.textContent = fmtInt.format(2 * Math.round(state.frame));
+  drawEventsOnTrack();
+  notes();
+  let busy = false;
+  for (const c of charts) {
+    busy = (state.view[c.kind] === "bars" ? drawBars(c, snap) : drawLines(c, snap)) || busy;
+    if (c.hover) drawTip(c);
+  }
+  // keep easing bars and axes after a jump even when paused
+  if (busy && !state.playing && !animating) { animating = true; requestAnimationFrame(() => { animating = false; render(false); }); }
+}
+
+let last = null;
+function tick(ts) {
+  if (!state.playing) { last = null; return; }
+  if (last !== null) {
+    state.frame = Math.min(NF - 1, state.frame + ((ts - last) / 1000) * FPS_1X * state.speed);
+    if (state.frame >= NF - 1) setPlaying(false);
+  }
+  last = ts;
+  render(false);
+  requestAnimationFrame(tick);
+}
+
+function setPlaying(on) {
+  state.playing = on;
+  playBtn.textContent = on ? "❚❚ Pause" : state.frame >= NF - 1 ? "↺ Replay" : "▶ Play";
+  if (on) requestAnimationFrame(tick);
+}
+
+playBtn.addEventListener("click", () => {
+  if (!state.playing && state.frame >= NF - 1) { state.frame = 0; charts.forEach((c) => { c.domain = null; c.ypos = {}; }); }
+  setPlaying(!state.playing);
+});
+slider.addEventListener("input", () => { state.frame = Number(slider.value); if (!state.playing) setPlaying(false); render(false); });
+document.getElementById("speed").addEventListener("change", (e) => { state.speed = Number(e.target.value); });
+document.addEventListener("keydown", (e) => {
+  if (e.target.closest("select, input, button")) return;
+  if (e.key === " ") { e.preventDefault(); playBtn.click(); }
+  if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+    state.frame = Math.max(0, Math.min(NF - 1, Math.round(state.frame) + (e.key === "ArrowRight" ? 5 : -5)));
+    render(false);
+  }
+});
+window.addEventListener("resize", () => render(true));
+
+buildBenchButtons();
+buildKOptions();
+render(true);
+</script>
+</body>
+</html>
