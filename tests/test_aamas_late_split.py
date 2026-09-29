@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from experiments.aamas.late_split import core, run
+from experiments.aamas.late_split import domains
 from experiments.aaai.code.problems import capture_original
 from experiments.aaai.code.merge import score_assignment
 from propflow import DampingEngine, FGBuilder, MidRunSplitEngine, MinSumComputator
@@ -201,3 +202,53 @@ def test_baseline_validation_matches_actual_csv_precision(tmp_path):
     trace["costs"][0] += 0.001
     with pytest.raises(RuntimeError, match="prefix mismatch"):
         run.validate_prefix(tmp_path, trace)
+
+
+def test_dense_domain_override_preserves_generator_and_topology():
+    from experiments.aaai.code.problems import build_random_dense
+
+    historical = build_random_dense(1)
+    assert core.input_fingerprint(domains.build_dense(1, 10)) == core.input_fingerprint(
+        historical
+    )
+    larger = domains.build_dense(1, 20)
+    assert len(larger.variables) == 50
+    assert all(v.domain == 20 for v in larger.variables)
+    assert [f.connection_number for f in larger.factors] == [
+        f.connection_number for f in historical.factors
+    ]
+    assert core.input_fingerprint(larger) == core.input_fingerprint(
+        domains.build_dense(1, 20)
+    )
+
+
+def test_domain20_pipeline_uses_fresh_exact_baselines(tmp_path, monkeypatch):
+    monkeypatch.setattr(domains, "NUM_AGENTS", 5)
+    config = core.Config(prefix_steps=8, post_steps=8, tail_steps=4, bb_seconds=0.1)
+    case = tmp_path / "random_dense_1"
+    case.mkdir()
+    fixed = run.run_case(
+        (str(tmp_path), "random_dense", 1, "fixed", config, False), domain_size=20
+    )
+    best = run.run_case(
+        (str(tmp_path), "random_dense", 1, "best", config, False), domain_size=20
+    )
+    assert fixed["domain_size"] == best["domain_size"] == 20
+    assert best["checkpoint_replay_max_error"] == 0
+    assert json_read(case / "prefix.json")["retained_dms_max_error"] == 0
+    assert all(v.domain == 20 for v in core.load_input(case / "input.npz").variables)
+    with np.load(case / "DMS_trace.npz") as f:
+        reference = dict(f)
+    with np.load(case / "prefix.npz") as f:
+        prefix = dict(f)
+    np.testing.assert_array_equal(reference["assignments"][:8], prefix["assignments"])
+    prefix["assignments"][0, 0] = (prefix["assignments"][0, 0] + 1) % 20
+    with pytest.raises(RuntimeError, match="fresh native DMS prefix mismatch"):
+        run.validate_prefix(case, prefix)
+    assert (case / "DMS_split_0.5_trace.npz").exists()
+
+
+def json_read(path):
+    import json
+
+    return json.loads(path.read_text())

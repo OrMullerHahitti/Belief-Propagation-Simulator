@@ -195,9 +195,16 @@ class Checkpoint:
     monitor: dict
 
     @classmethod
-    def capture(cls, engine, next_iteration: int, fingerprint: str) -> Checkpoint:
+    def capture(
+        cls,
+        engine,
+        next_iteration: int,
+        fingerprint: str,
+        *,
+        runtime_graph: bool = False,
+    ) -> Checkpoint:
         """Copy mailboxes, all retained damping history, monitor and update phase."""
-        if engine._split_applied:
+        if getattr(engine, "_split_applied", False) and not runtime_graph:
             raise ValueError("only unsplit checkpoints are supported")
         nodes = {}
         for node in engine.graph.G.nodes():

@@ -1,10 +1,23 @@
 # AAMAS experiments
 
+The central [plots directory](plots/README.md) contains copies grouped by domain
+size, seed set, and experiment, including the latest MGM/restored-damping
+comparison. The original run directories are unchanged.
+
 This directory collects the recent work for the next submission. Inclusion is
 an inventory decision, not a decision to include a study in the paper. The new
 [late-split experiment](late_split/README.md) is implemented and its approved
 three-seed local pilot is complete. The exact order and parameters are in
-[PROTOCOL.md](PROTOCOL.md). The 50-instance studies await final approval.
+[PROTOCOL.md](PROTOCOL.md). On September 21 the user approved the separate
+[50-seed domain-20 dense study](late_split/POPULATION_DOMAIN20.md), now complete
+under `runs/late_split_domain20_50seeds_20260921/`. Its report is `RESULTS.md`
+and separate mean trajectory figures are in `plots/`. This approval does not expand
+the run to the other benchmark families.
+
+The approved follow-up [restores damping after the best-checkpoint split](damping_after_split/README.md)
+at the existing MGM handoff, retaining the split graph for another 1,000 updates
+on the same 50 seeds. Its separate results and mean comparison plots belong in
+`runs/best_split_restore_damping_50seeds_20260921/`; the original study is retained.
 
 ## What moved here
 
@@ -72,7 +85,8 @@ Migration checks and the existing CI limitation are in
 1. Select which inherited studies are relevant; all seven are currently kept.
 2. Review the completed three-seed pilot: all six final assignment tails are
    fixed, their costs equal the prefix incumbent, and both merges are no-ops.
-3. Review [HANDOFF.md](HANDOFF.md) and give final approval before a 50-instance
-   run. No such run has been started.
-4. After the larger results return, verify their inputs and protocol, summarize
-   outcomes, and make plots. The pilot does not establish general behavior.
+3. The older five-family proposal in [HANDOFF.md](HANDOFF.md) remains deferred.
+   The approved domain-20 dense expansion has its own protocol and output path
+   linked above, including all-tail-values MGM and resumable phases.
+4. Verify the population evidence and report cost-over-iterations means. Keep
+   the original pilot evidence and population results distinct.

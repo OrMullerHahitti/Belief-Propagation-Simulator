@@ -64,9 +64,7 @@ def sha(path: Path) -> str:
 def source_files() -> list[Path]:
     """All native and experiment dependencies used by this runner."""
     files = list((ROOT / "src/propflow").rglob("*.py"))
-    files += [
-        Path(__file__).parent / name for name in ["__init__.py", "core.py", "run.py"]
-    ]
+    files += list(Path(__file__).parent.glob("*.py"))
     files += [
         ROOT / "experiments/aaai/code" / name
         for name in ["engines.py", "merge.py", "problems.py"]
@@ -75,13 +73,26 @@ def source_files() -> list[Path]:
     return sorted(files)
 
 
-def prepare(out: Path, config: Config, benchmarks: list[str], seeds: list[int]) -> None:
+def prepare(
+    out: Path,
+    config: Config,
+    benchmarks: list[str],
+    seeds: list[int],
+    domain_size: int | None = None,
+) -> None:
     """Freeze code and compact prior-data slices; never modify previous results."""
     hashes = {str(p.relative_to(ROOT)): sha(p) for p in source_files()}
     expected = {"config": asdict(config), "benchmarks": benchmarks, "seeds": seeds}
+    if domain_size is not None:
+        if benchmarks != ["random_dense"] or domain_size < 2:
+            raise ValueError("domain override supports random_dense only, domain >= 2")
+        expected["domain_size"] = domain_size
+        expected["reference_source"] = "fresh matched native baselines"
     if (out / "manifest.json").exists():
         previous = json.loads((out / "manifest.json").read_text())
-        if any(previous[k] != v for k, v in expected.items()):
+        if any(previous.get(k) != v for k, v in expected.items()) or (
+            previous.get("domain_size") != domain_size
+        ):
             raise ValueError("existing run has different inputs/configuration")
         if previous["source_sha256"] != hashes:
             raise ValueError("source changed; use a new output directory")
@@ -93,6 +104,10 @@ def prepare(out: Path, config: Config, benchmarks: list[str], seeds: list[int]) 
         shutil.copyfile(path, target)
     baseline_hashes = {}
     for benchmark in benchmarks:
+        if domain_size is not None:
+            for seed in seeds:
+                (out / f"{benchmark}_{seed}").mkdir()
+            continue
         path = ROOT / "experiments/aaai/data" / f"{benchmark}_raw_costs.csv"
         baseline_hashes[str(path.relative_to(ROOT))] = sha(path)
         pieces = []
@@ -148,6 +163,21 @@ def validate_prefix(case: Path, trace: dict) -> float:
         if len(costs) < n or not np.array_equal(iterations[:n], trace["iterations"]):
             raise RuntimeError("baseline DMS prefix is missing or misindexed")
         error = float(np.max(np.abs(costs[:n] - trace["costs"])))
+        if (case / "DMS_trace.npz").exists():
+            with np.load(case / "DMS_trace.npz", allow_pickle=False) as native:
+                if (
+                    error != 0.0
+                    or not np.array_equal(native["costs"], costs)
+                    or not np.array_equal(native["iterations"], iterations)
+                    or not np.array_equal(
+                        native["variable_names"], trace["variable_names"]
+                    )
+                    or not np.array_equal(
+                        native["assignments"][:n], trace["assignments"]
+                    )
+                ):
+                    raise RuntimeError("fresh native DMS prefix mismatch")
+            return error
         # the inherited harness writes raw costs with f"{cost:.4f}"
         serialized = np.array([float(f"{value:.4f}") for value in trace["costs"]])
         if not np.isfinite(error) or not np.array_equal(serialized, costs[:n]):
@@ -155,9 +185,22 @@ def validate_prefix(case: Path, trace: dict) -> float:
         return error
 
 
-def prepare_prefix(case: Path, benchmark: str, seed: int, config: Config) -> dict:
+def prepare_prefix(
+    case: Path,
+    benchmark: str,
+    seed: int,
+    config: Config,
+    domain_size: int | None = None,
+) -> dict:
     """Capture the earliest best checkpoint during the approved search window."""
-    graph = BENCHMARKS[benchmark](seed)
+    if domain_size is None:
+        graph = BENCHMARKS[benchmark](seed)
+    else:
+        if benchmark != "random_dense":
+            raise ValueError("domain override supports random_dense only")
+        from .domains import generate_references
+
+        graph = generate_references(case, seed, domain_size, config)
     fingerprint = input_fingerprint(graph)
     save_input(graph, case / "input.npz")
     if input_fingerprint(load_input(case / "input.npz")) != fingerprint:
@@ -221,7 +264,7 @@ def validate_restored_prefix(case: Path, config: Config) -> float:
     return error
 
 
-def run_case(task: tuple) -> dict:
+def run_case(task: tuple, domain_size: int | None = None) -> dict:
     """Run one immutable fixed-time or best-checkpoint continuation."""
     out, benchmark, seed, mode, config, resume = task
     case = Path(out) / f"{benchmark}_{seed}"
@@ -236,7 +279,7 @@ def run_case(task: tuple) -> dict:
     start = time.perf_counter()
     print(f"START {mode} {benchmark} seed={seed}", flush=True)
     if mode == "fixed":
-        info = prepare_prefix(case, benchmark, seed, config)
+        info = prepare_prefix(case, benchmark, seed, config, domain_size)
         replay_error = None
     else:
         fixed_result = json.loads((case / "fixed_result.json").read_text())
@@ -297,6 +340,10 @@ def run_case(task: tuple) -> dict:
             ]
         },
     }
+    if domain_size is not None:
+        result["domain_size"] = domain_size
+        for name in ["DMS_trace.npz", "DMS_split_0.5_trace.npz", "references.json"]:
+            result["files_sha256"][name] = sha(case / name)
     write_json(target, result)
     print(
         f"DONE {mode} {benchmark} seed={seed}: tail={merge['tail_kind']}, "
@@ -320,6 +367,11 @@ def main() -> None:
     parser.add_argument("--post-steps", type=int, default=1000)
     parser.add_argument("--tail-steps", type=int, default=100)
     parser.add_argument("--bb-seconds", type=float, default=300)
+    parser.add_argument(
+        "--domain-size",
+        type=int,
+        help="random_dense only; generate matched baselines instead of reusing old CSVs",
+    )
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
     if (
@@ -330,10 +382,14 @@ def main() -> None:
         parser.error("positive workers and distinct nonnegative seeds required")
     if len(set(args.benchmarks)) != len(args.benchmarks):
         parser.error("duplicate benchmarks")
+    if args.domain_size is not None and (
+        args.domain_size < 2 or args.benchmarks != ["random_dense"]
+    ):
+        parser.error("--domain-size requires random_dense only and domain >= 2")
     config = Config(
         args.prefix_steps, args.post_steps, args.tail_steps, bb_seconds=args.bb_seconds
     )
-    prepare(args.out, config, args.benchmarks, args.seeds)
+    prepare(args.out, config, args.benchmarks, args.seeds, args.domain_size)
     for mode in ["fixed", "best"] if args.phase == "both" else [args.phase]:
         tasks = [
             (str(args.out), b, s, mode, config, args.resume)
@@ -342,10 +398,10 @@ def main() -> None:
         ]
         if args.workers == 1:
             for task in tasks:
-                run_case(task)
+                run_case(task, args.domain_size)
         else:
             with ProcessPoolExecutor(max_workers=args.workers) as pool:
-                list(pool.map(run_case, tasks))
+                list(pool.map(run_case, tasks, [args.domain_size] * len(tasks)))
     print("COMPLETE requested phases; no further studies launched", flush=True)
 
 
