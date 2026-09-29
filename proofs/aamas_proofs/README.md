@@ -30,3 +30,31 @@ lake build AamasProofs
 ```
 
 The file contains no `sorry` or `admit` declarations.
+
+## Every ordering of the table entries (added 2026-09-27, not yet compiled)
+
+`AamasProofs/AllOrderings.lean` starts from the direct min-sum maps and assumes only
+that `M_a` is the minimal entry:
+
+- every message difference lies between the two caps of its direction, for every
+  table (`directToJ_range`, `directToI_range`);
+- the clip form of the one-pass recurrence holds exactly when
+  `M_a + M_b <= B_a + B_b` (`directToJ_eq_toJ_of_clipCond`,
+  `exists_directToJ_ne_toJ_of_not_clipCond`);
+- under that condition and a constant `Delta_(bar R_i)` with `2d + delta != 0`,
+  every chain becomes constant at the two-sided clip limit
+  (`directPass_converges_upper`, `directPass_converges_lower`);
+- when `B_a <= M_b` the chain is constant from the second pass on
+  (`dominant_constant_from_two`);
+- for every ordering, the chain becomes constant and a cap is active at the limit
+  (`all_orderings`).
+
+`AamasProofs/Section4Relaxed.lean` re-proves Lemmas 4.4, 4.5, 4.7 and Theorems 4.8,
+4.9 with the hypothesis `M_b < B_b` dropped (only `M_a < M_b`, `M_b < B_a`,
+`M_a < B_b`), drops `B_b < B_a` from the flipping-threshold change lemmas and
+Theorem 4.8, and adds the paper's definition of the flipping threshold
+(`flippingThreshold_spec`) and persistence along a trajectory
+(`upper_persistence_traj`, `lower_persistence_traj`).
+
+Both files were written without a Lean toolchain at hand; their statements were
+checked by exact rational simulation, the proofs have not been compiled yet.
