@@ -61,6 +61,7 @@ compose.yaml
 # propflow_web build/deps artifacts (source itself lives on web-sim)
 src/propflow_web/node_modules/
 src/propflow_web/dist/
+src/propflow_web/.vite/
 
 # ad-hoc debug scripts (should not be committed)
 /append_cell.py
@@ -86,3 +87,21 @@ notebooks/.cache/
 
 # legacy generated csv bundle
 experiments/generated_csv.zip
+# overleaf paper, its own git repo (cloned from git.overleaf.com)
+publication/
+
+# local scratch work and generated experiment backups/logs
+/tmp/
+/experiments/aaai/backups/
+/experiments/aaai/logs/
+
+# dated paper datasets and rendered figures stay local
+/experiments/aaai/data_paper_20[0-9]*/
+/experiments/aaai/data_meeting_rerun_20[0-9]*/
+/experiments/aaai/final_plots_paper_20[0-9]*/
+/experiments/aaai/plots_float_tables_20[0-9]*/
+
+# generated manuscript previews and plot exports
+/publish/*.pdf
+/publish/plots/
+/publish/changes_diff.html

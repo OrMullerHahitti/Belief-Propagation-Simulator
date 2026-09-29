@@ -4,6 +4,15 @@
 /logs/
 /splitting_explanation/logs/
 
+# section 6 generated data, previews, and upload copies
+/section6/best_point_curve/
+/section6/split_at_best/
+/section6/split_at_best_fixed_horizon/
+/section6/split_at_best_window/
+/section6/out/
+/section6/overleaf_upload/
+/section6/*.log
+
 # preserve the small historical results that were already tracked before moving
 !/splitting_explanation/results/
 /splitting_explanation/results/*
