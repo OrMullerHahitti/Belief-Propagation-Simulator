@@ -518,6 +518,42 @@ lemma lower_progress_step
     max_def, min_def] at *
   split_ifs <;> constructor <;> linarith
 
+/-- Without the bounder condition, a uniform positive margin either makes one
+complete pass positive already or increases the difference by at least `eps`.
+This is the step used for assignment convergence at `X_j`. -/
+lemma upper_assignment_step
+    (Ma Mb Ba Bb delta eps r : ℝ)
+    (hMaMb : Ma < Mb) (hMbBb : Mb < Bb) (hBbBa : Bb < Ba)
+    (heps : 0 < eps)
+    (hgrowth : eps ≤ delta + 2 * d Ma Mb)
+    (hr : -d Ma Mb ≤ r) :
+    0 < pass Ma Mb Ba Bb delta r ∨
+      r + eps ≤ pass Ma Mb Ba Bb delta r := by
+  by_cases hpos : 0 < pass Ma Mb Ba Bb delta r
+  · exact Or.inl hpos
+  · right
+    push Not at hpos
+    simp only [pass, toJ, toI, clip, d, lowerJ, upperJ, lowerI, upperI,
+      max_def, min_def] at *
+    split_ifs at hpos ⊢ <;> linarith
+
+/-- Symmetric sign-progress step for convergence to assignment `b`. -/
+lemma lower_assignment_step
+    (Ma Mb Ba Bb delta eps r : ℝ)
+    (hMaMb : Ma < Mb) (hMbBb : Mb < Bb) (hBbBa : Bb < Ba)
+    (heps : 0 < eps)
+    (hgrowth : delta + 2 * d Ma Mb ≤ -eps)
+    (hr : r ≤ d Ma Mb) :
+    pass Ma Mb Ba Bb delta r < 0 ∨
+      pass Ma Mb Ba Bb delta r ≤ r - eps := by
+  by_cases hneg : pass Ma Mb Ba Bb delta r < 0
+  · exact Or.inl hneg
+  · right
+    push Not at hneg
+    simp only [pass, toJ, toI, clip, d, lowerJ, upperJ, lowerI, upperI,
+      max_def, min_def] at *
+    split_ifs at hneg ⊢ <;> linarith
+
 lemma first_message_upper_seed
     (Ma Mb Ba Bb delta q : ℝ)
     (hMaMb : Ma < Mb) (hMbBa : Mb < Ba) (hMbBb : Mb < Bb)
@@ -539,6 +575,98 @@ lemma first_message_lower_seed
   rcases hq with rfl | rfl | rfl <;>
     simp only [toJ, clip, d, lowerJ, upperJ, max_def, min_def] <;>
     split_ifs <;> constructor <;> linarith
+
+/-- Theorem 4.8, assignment part, upper direction.  Once the accumulated
+uniform margin exceeds the worst initial deficit `d`, every later difference
+sent on this cycle-aligned stream is positive.  Hence `X_j` selects `a`. -/
+theorem varying_input_eventually_positive
+    (Ma Mb Ba Bb eps r0 : ℝ) (delta : ℕ → ℝ)
+    (hMaMb : Ma < Mb) (hMbBb : Mb < Bb) (hBbBa : Bb < Ba)
+    (heps : 0 < eps)
+    (hgrowth : ∀ k, eps ≤ delta k + 2 * d Ma Mb)
+    (hr0 : -d Ma Mb ≤ r0) :
+    ∀ n : ℕ,
+      d Ma Mb < (n : ℝ) * eps →
+      0 < trajectory Ma Mb Ba Bb delta r0 n := by
+  have key : ∀ n : ℕ,
+      0 < trajectory Ma Mb Ba Bb delta r0 n ∨
+        -d Ma Mb + (n : ℝ) * eps ≤
+          trajectory Ma Mb Ba Bb delta r0 n := by
+    intro n
+    induction n with
+    | zero =>
+        right
+        simpa using hr0
+    | succ k ih =>
+        rw [trajectory_succ]
+        rcases ih with hpos | hgrow
+        · have hr : -d Ma Mb ≤ trajectory Ma Mb Ba Bb delta r0 k := by
+            have hd : 0 < d Ma Mb := by simp only [d]; linarith
+            linarith
+          rcases upper_assignment_step Ma Mb Ba Bb (delta k) eps
+              (trajectory Ma Mb Ba Bb delta r0 k) hMaMb hMbBb hBbBa
+              heps (hgrowth k) hr with hnext | hnext
+          · exact Or.inl hnext
+          · exact Or.inl (lt_of_lt_of_le (by linarith) hnext)
+        · have hr : -d Ma Mb ≤ trajectory Ma Mb Ba Bb delta r0 k := by
+            have hn : 0 ≤ (k : ℝ) * eps := by positivity
+            linarith
+          rcases upper_assignment_step Ma Mb Ba Bb (delta k) eps
+              (trajectory Ma Mb Ba Bb delta r0 k) hMaMb hMbBb hBbBa
+              heps (hgrowth k) hr with hnext | hnext
+          · exact Or.inl hnext
+          · right
+            push_cast
+            linarith
+  intro n hn
+  rcases key n with hpos | hgrow
+  · exact hpos
+  · linarith
+
+/-- Theorem 4.8, assignment part, lower direction. -/
+theorem varying_input_eventually_negative
+    (Ma Mb Ba Bb eps r0 : ℝ) (delta : ℕ → ℝ)
+    (hMaMb : Ma < Mb) (hMbBb : Mb < Bb) (hBbBa : Bb < Ba)
+    (heps : 0 < eps)
+    (hgrowth : ∀ k, delta k + 2 * d Ma Mb ≤ -eps)
+    (hr0 : r0 ≤ d Ma Mb) :
+    ∀ n : ℕ,
+      d Ma Mb < (n : ℝ) * eps →
+      trajectory Ma Mb Ba Bb delta r0 n < 0 := by
+  have key : ∀ n : ℕ,
+      trajectory Ma Mb Ba Bb delta r0 n < 0 ∨
+        trajectory Ma Mb Ba Bb delta r0 n ≤
+          d Ma Mb - (n : ℝ) * eps := by
+    intro n
+    induction n with
+    | zero =>
+        right
+        simpa using hr0
+    | succ k ih =>
+        rw [trajectory_succ]
+        rcases ih with hneg | hdrop
+        · have hr : trajectory Ma Mb Ba Bb delta r0 k ≤ d Ma Mb := by
+            have hd : 0 < d Ma Mb := by simp only [d]; linarith
+            linarith
+          rcases lower_assignment_step Ma Mb Ba Bb (delta k) eps
+              (trajectory Ma Mb Ba Bb delta r0 k) hMaMb hMbBb hBbBa
+              heps (hgrowth k) hr with hnext | hnext
+          · exact Or.inl hnext
+          · exact Or.inl (lt_of_le_of_lt hnext (by linarith))
+        · have hr : trajectory Ma Mb Ba Bb delta r0 k ≤ d Ma Mb := by
+            have hn : 0 ≤ (k : ℝ) * eps := by positivity
+            linarith
+          rcases lower_assignment_step Ma Mb Ba Bb (delta k) eps
+              (trajectory Ma Mb Ba Bb delta r0 k) hMaMb hMbBb hBbBa
+              heps (hgrowth k) hr with hnext | hnext
+          · exact Or.inl hnext
+          · right
+            push_cast
+            linarith
+  intro n hn
+  rcases key n with hneg | hdrop
+  · exact hneg
+  · linarith
 
 theorem varying_input_reaches_upper
     (Ma Mb Ba Bb eps r0 : ℝ) (delta : ℕ → ℝ)

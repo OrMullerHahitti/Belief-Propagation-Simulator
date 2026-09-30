@@ -14,14 +14,18 @@ contains machine-checked proofs of:
   neutral boundary case (Lemma 4.5);
 - the initial flipping threshold and its change in both directions
   (Lemma 4.7);
-- finite-time arrival at the upper and lower bounds under varying inputs,
-  with the paper's quantitative pass bounds (Theorem 4.8); and
+- finite-time stabilization of the assignment at `X_j` under a uniform sign
+  margin for varying inputs, followed by finite-time arrival at the upper or
+  lower message bound under the additional bounder condition, with the paper's
+  quantitative pass bounds (Theorem 4.8); and
 - the necessary-and-sufficient persistence thresholds, including their
   equivalent min/max forms (Theorem 4.9).
 
-The finite-time results use exact eventual equality, matching the paper's
-definition of convergence: after finitely many complete passes, the message
-difference reaches the stated value and remains there.
+The assignment part of Theorem 4.8 proves eventual strict positivity or strict
+negativity of every cycle-aligned message stream.  Its stronger bound-arrival
+part uses exact eventual equality, matching the paper's definition of message
+convergence: after finitely many complete passes, the message difference reaches
+the stated value and remains there.
 
 From the repository's `proofs` directory, verify the complete library with:
 
