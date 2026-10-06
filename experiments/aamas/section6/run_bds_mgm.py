@@ -13,14 +13,16 @@ phases (outputs in --out, default experiments/aamas/section6/split_at_best_mgm/)
           equals the one two steps earlier up to the horizon: one fixed assignment or two alternating
           ones. settle.csv, and the distribution per benchmark in paper iterations
   merge   MGM-1 on the two assignments of steps K+N-2 and K+N-1, started from each of them, the better
-          result kept (the MGM of MS-SCFG-MGM). --n N gives every instance N undamped steps, --n settle
-          gives each instance its own settle step (--n-unsettled N for instances that never settle).
-          <bench>_final_costs.csv and <bench>_raw_costs.csv (BP costs to step K+N-1, the MGM cost at K+N)
+          result kept (the MGM of MS-SCFG-MGM). --n max gives every instance of a benchmark the same
+          number of undamped steps, the largest settle step among its instances (the paper's line);
+          --n settle gives each instance its own settle step (--n-unsettled N for instances that never
+          settle); --n N gives every instance N steps. <bench>_final_costs.csv and <bench>_raw_costs.csv
+          (BP costs to step K+N-1, the MGM cost at K+N)
 
 usage:
   uv run python experiments/aamas/section6/run_bds_mgm.py run [--benchmarks ...] [--seeds 50] [--jobs N]
   uv run python experiments/aamas/section6/run_bds_mgm.py settle
-  uv run python experiments/aamas/section6/run_bds_mgm.py merge --n settle [--n-unsettled N]
+  uv run python experiments/aamas/section6/run_bds_mgm.py merge --n max
 """
 
 from __future__ import annotations
@@ -196,34 +198,65 @@ def settle_phase(args) -> None:
         )
 
 
+def undamped_steps(
+    args, settle: pd.DataFrame | None, bench: str, seeds: list[int], splits: list[int]
+) -> dict[int, int]:
+    """undamped library steps after the split, per seed of one benchmark."""
+    if args.n == "max":
+        # one undamped phase for every instance: the longest that any settled instance needs
+        need = settle[
+            (settle.benchmark == bench) & settle.settle_steps.notna()
+        ].settle_steps
+        if need.empty:
+            raise SystemExit(f"{bench}: no instance settles; pass an integer --n")
+        n = int(need.max())
+        print(
+            f"{bench}: {n} undamped library steps ({2 * n} paper iterations) for every instance",
+            flush=True,
+        )
+        steps = {seed: n for seed in seeds}
+    elif args.n == "settle":
+        steps = {}
+        for seed in seeds:
+            s = settle[
+                (settle.benchmark == bench) & (settle.seed == seed)
+            ].settle_steps.iloc[0]
+            if pd.notna(s):
+                steps[seed] = int(s)
+            elif args.n_unsettled is not None:
+                steps[seed] = args.n_unsettled
+            else:
+                raise SystemExit(
+                    f"{bench} seed {seed} never settles; pass --n-unsettled"
+                )
+    else:
+        steps = {seed: int(args.n) for seed in seeds}
+    late = [
+        seed
+        for seed, split_iter in zip(seeds, splits)
+        if split_iter + steps[seed] >= HORIZON
+    ]
+    if late:
+        raise SystemExit(
+            f"{bench}: the MGM result would fall after the horizon for seeds {late}"
+        )
+    return steps
+
+
 def merge_phase(args) -> None:
     out = Path(args.out)
-    settle = pd.read_csv(out / "settle.csv") if args.n == "settle" else None
+    settle = pd.read_csv(out / "settle.csv") if args.n in ("settle", "max") else None
     for bench in args.benchmarks:
         z = np.load(out / f"{bench}_bp.npz")
         var_names = [str(v) for v in z["var_names"]]
+        seeds = [int(seed) for seed in z["seeds"]]
+        steps = undamped_steps(
+            args, settle, bench, seeds, [int(s) for s in z["split_iter"]]
+        )
         rows, raws = [], []
-        for k, seed in enumerate(z["seeds"]):
-            seed = int(seed)
+        for k, seed in enumerate(seeds):
             split_iter = int(z["split_iter"][k])
-            if settle is None:
-                n = int(args.n)
-            else:
-                s = settle[
-                    (settle.benchmark == bench) & (settle.seed == seed)
-                ].settle_steps.iloc[0]
-                if pd.notna(s):
-                    n = int(s)
-                elif args.n_unsettled is not None:
-                    n = args.n_unsettled
-                else:
-                    raise SystemExit(
-                        f"{bench} seed {seed} never settles; pass --n-unsettled"
-                    )
-            if split_iter + n >= HORIZON:
-                raise SystemExit(
-                    f"{bench} seed {seed}: the MGM result would fall after the horizon"
-                )
+            n = steps[seed]
 
             names, factor_vars, tables = capture_original(
                 BENCHMARK_BUILDERS[bench](seed)
@@ -300,8 +333,8 @@ def main() -> None:
     parser.add_argument("--out", default=str(OUT))
     parser.add_argument(
         "--n",
-        default="settle",
-        help="undamped library steps after the split before MGM: an integer, or 'settle'",
+        default="max",
+        help="undamped library steps after the split before MGM: 'max', 'settle' or an integer",
     )
     parser.add_argument(
         "--n-unsettled",
