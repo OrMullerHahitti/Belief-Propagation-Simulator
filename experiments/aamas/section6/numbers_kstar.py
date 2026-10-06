@@ -1,7 +1,7 @@
 """numbers for the Section 6 text after the 2026-10-06 runs, read from the result folders.
 
 DMS-k^*DS: K = the best DMS point in the first 2000 paper iterations, damping kept (split_at_best_first2000/).
-DMS-k^*DS-MGM: the same K, no damping after the split, MGM on two assignments (split_at_best_mgm_20261006/).
+DMS-k^*DS-MS-MGM: the same K, no damping after the split, MGM on two assignments (split_at_best_mgm_20261006/).
 DABP and DABP-NoSplit, DMS-SCFG, MS-SCFG-MGM and the fixed k lines from data_paper_20261002.
 iterations are printed in paper units (two per library iteration); every test is a paired Wilcoxon
 signed-rank test over the 50 instances.
@@ -81,7 +81,7 @@ def main() -> None:
             f"- DMS-k^*DS vs the old version (K from all 4000 iterations): {compare(ks.final_cost, old.final_cost)}",
             f"- fixed k means: {fixed_text}; "
             f"DMS-k^*DS below every one: {bool(all(ks.final_cost.mean() < m for m in fixed_means.values()))}",
-            f"- DMS-k^*DS-MGM undamped iterations needed (paper): settled {len(settled)}/50 "
+            f"- DMS-k^*DS-MS-MGM undamped iterations needed (paper): settled {len(settled)}/50 "
             f"(one assignment {(settle.kind == 'fixed').sum()}, two alternating {(settle.kind == 'two').sum()}, "
             f"never {(settle.kind == 'none').sum()})"
             + (
@@ -89,10 +89,10 @@ def main() -> None:
                 if len(settled)
                 else ""
             ),
-            f"- DMS-k^*DS-MGM vs the DMS best at its split: {compare(mg.final_cost, mg.dms_best)}",
-            f"- DMS-k^*DS-MGM vs DMS-k^*DS: {compare(mg.final_cost, ks.final_cost)}",
-            f"- DMS-k^*DS-MGM vs DMS-SCFG: {compare(mg.final_cost, fin['DMS_split_0.5'])}",
-            f"- DMS-k^*DS-MGM vs MS-SCFG-MGM: {compare(mg.final_cost, fin['MS_split_MGM_200'])}",
+            f"- DMS-k^*DS-MS-MGM vs the DMS best at its split: {compare(mg.final_cost, mg.dms_best)}",
+            f"- DMS-k^*DS-MS-MGM vs DMS-k^*DS: {compare(mg.final_cost, ks.final_cost)}",
+            f"- DMS-k^*DS-MS-MGM vs DMS-SCFG: {compare(mg.final_cost, fin['DMS_split_0.5'])}",
+            f"- DMS-k^*DS-MS-MGM vs MS-SCFG-MGM: {compare(mg.final_cost, fin['MS_split_MGM_200'])}",
             f"- DABP vs DABP-NoSplit: {compare(fin['Attentive'], fin['Attentive_NoSplit'])}",
             "",
         ]

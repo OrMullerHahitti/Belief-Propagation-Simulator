@@ -1,4 +1,4 @@
-"""DMS-k^*DS-MGM: the split point of DMS-k^*DS, no damping after the split, then MGM on two assignments.
+"""DMS-k^*DS-MS-MGM: the split point of DMS-k^*DS, no damping after the split, then MGM on two assignments.
 
 every benchmark and seed splits at the same iteration as DMS-k^*DS: K = t* + 1, where t* is the first
 iteration of the lowest DMS cost within the first WINDOW library iterations of the paper folder's DMS
