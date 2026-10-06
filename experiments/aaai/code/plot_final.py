@@ -210,7 +210,7 @@ SECTION6_LABELS = {
     "DMS_split_0.5": "DMS-SCFG",
     "DMS_split_at_500": "DMS-kDS, k=1000",
     "DMS_split_at_best": "DMS-$k^*$DS",
-    "DMS_split_at_best_MGM": "DMS-$k^*$DS-MGM",
+    "DMS_split_at_best_MGM": "DMS-$k^*$DS-MS-MGM",
     "Attentive": "DABP",
     "Attentive_NoSplit": "DABP-NoSplit",
 }
