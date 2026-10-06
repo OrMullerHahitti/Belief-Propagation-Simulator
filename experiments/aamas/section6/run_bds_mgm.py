@@ -6,7 +6,7 @@ line (WINDOW = 1000 library iterations = the first 2000 paper iterations; nothin
 looked at). the engine repeats DMS exactly until K, splits every factor 0.5/0.5 (transfer mode), turns
 damping off and runs undamped min-sum on the split graph up to the common horizon.
 
-phases (outputs in --out, default experiments/aamas/section6/split_at_best_mgm/):
+phases (outputs in --out, default experiments/aamas/section6/split_at_best_mgm_20261006/):
   run     BP only. <bench>_bp.npz: costs [seed, iteration] and assignments [seed, iteration, variable]
           of every iteration, with t*, K and the variable order. a benchmark whose npz exists is skipped
   settle  per instance, the first step after the split (0 = the split step) from which every assignment
@@ -48,7 +48,7 @@ from problems import capture_original  # noqa: E402
 
 from experiments.aamas.late_split.core import ReleasedDampingSplitEngine  # noqa: E402
 
-OUT = HERE / "split_at_best_mgm"
+OUT = HERE / "split_at_best_mgm_20261006"
 LABEL = "DMS_split_at_best_MGM"
 # library iterations searched for t* (the first 2000 paper iterations)
 WINDOW = 1000
@@ -75,12 +75,15 @@ def bp_task(args):
     assignments = np.empty((HORIZON, len(var_names)), dtype=np.int8)
     for i in range(HORIZON):
         engine.step(i)
+        # read the assignment the step's cost was computed from: assignments are recomputed from the
+        # inbox on every read, and the normalization in the cycle events can flip an argmin when the
+        # undamped messages are large
+        current = engine.assignments
+        assignments[i] = [current[v] for v in var_names]
         try:
             engine._handle_cycle_events(i)
         except StopIteration:
             pass
-        current = engine.assignments
-        assignments[i] = [current[v] for v in var_names]
     costs = np.array([float(engine._snapshots[i].global_cost) for i in range(HORIZON)])
     return bench, seed, costs, assignments, var_names
 
