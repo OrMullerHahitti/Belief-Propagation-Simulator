@@ -1,6 +1,6 @@
-"""DMS-k*DS-MGM: the split point of DMS-k*DS, no damping after the split, then MGM on two assignments.
+"""DMS-k^*DS-MGM: the split point of DMS-k^*DS, no damping after the split, then MGM on two assignments.
 
-every benchmark and seed splits at the same iteration as DMS-k*DS: K = t* + 1, where t* is the first
+every benchmark and seed splits at the same iteration as DMS-k^*DS: K = t* + 1, where t* is the first
 iteration of the lowest DMS cost within the first WINDOW library iterations of the paper folder's DMS
 line (WINDOW = 1000 library iterations = the first 2000 paper iterations; nothing after the window is
 looked at). the engine repeats DMS exactly until K, splits every factor 0.5/0.5 (transfer mode), turns
@@ -37,7 +37,7 @@ import pandas as pd
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-# the DMS-k*DS runner sets the float-table switch and the aaai code path; its t* gives both lines the same K
+# the DMS-k^*DS runner sets the float-table switch and the aaai code path; its t* gives both lines the same K
 from run_split_at_best import BENCHES, DATA, t_star  # noqa: E402
 from run_experiments import BENCHMARK_BUILDERS, DAMPING, _common_kwargs  # noqa: E402
 from merge import mgm1_binary_merge, score_assignment  # noqa: E402
