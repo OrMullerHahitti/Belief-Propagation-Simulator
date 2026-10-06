@@ -11,6 +11,7 @@ outputs (experiments/aamas/section6/split_at_best/):
   <bench>_raw_costs.csv    algorithm, seed, iteration, cost   (iterations 0 .. split_iter + AFTER - 1)
 
 usage: uv run python experiments/aamas/section6/run_split_at_best.py [--benchmarks ...] [--seeds 50] [--jobs N] [--after 1000]
+       [--window W] [--horizon H] [--out DIR]
 """
 
 from __future__ import annotations
@@ -85,10 +86,18 @@ def main() -> None:
         default=0,
         help="search the best DMS iteration in the first W library iterations only (the earlier study's protocol: W = 1000, then AFTER iterations after the split; output in split_at_best_window/)",
     )
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="output folder (default: split_at_best_window/ with --window, else split_at_best_fixed_horizon/ with --horizon, else split_at_best/)",
+    )
     parser.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 4) - 4))
     args = parser.parse_args()
-    out = OUT_WINDOW if args.window else (OUT_FIXED if args.horizon else OUT)
-    out.mkdir(exist_ok=True)
+    if args.out:
+        out = Path(args.out)
+    else:
+        out = OUT_WINDOW if args.window else (OUT_FIXED if args.horizon else OUT)
+    out.mkdir(parents=True, exist_ok=True)
 
     for bench in args.benchmarks:
         t0 = time.time()
@@ -99,7 +108,10 @@ def main() -> None:
         for seed in range(args.seeds):
             d = dms[dms.seed == seed].sort_values("iteration").cost.values
             dms_best[seed] = float((d[: args.window] if args.window else d).min())
-        jobs = [(bench, seed, ts[seed], args.after, args.horizon) for seed in range(args.seeds)]
+        jobs = [
+            (bench, seed, ts[seed], args.after, args.horizon)
+            for seed in range(args.seeds)
+        ]
         print(f"START {bench}: {len(jobs)} runs on {args.jobs} workers", flush=True)
         finals, raws = [], []
         with Pool(args.jobs) as pool:
