@@ -78,6 +78,7 @@ COLORS = {
     "Attentive": "#000000",
     "Attentive_NoSplit": "#BBBBBB",
     "DMS_split_at_best": "#E69F00",
+    "DMS_split_at_best_MGM": "#CC6677",
 }
 
 # DABP variants whose curve is stretched onto the wall-clock axis
@@ -186,8 +187,8 @@ def padded_runs(group: pd.DataFrame, horizon: int) -> np.ndarray:
 
 
 # --section6: only the lines Section 6 of the AAMAS paper talks about, under the
-# names the text uses (one delayed split, k = 1000 paper iterations; DABP as a
-# reference line)
+# names the text uses (one delayed split, k = 1000 paper iterations; DABP with
+# and without its split as reference lines)
 SECTION6_LINES = [
     "MS",
     "MS_split_0.5",
@@ -196,7 +197,9 @@ SECTION6_LINES = [
     "DMS_split_0.5",
     "DMS_split_at_500",
     "DMS_split_at_best",
+    "DMS_split_at_best_MGM",
     "Attentive",
+    "Attentive_NoSplit",
 ]
 SECTION6_LABELS = {
     "MS": "MS",
@@ -206,10 +209,12 @@ SECTION6_LABELS = {
     "DMS_split_0.5": "DMS-SCFG",
     "DMS_split_at_500": "DMS-kDS, k=1000",
     "DMS_split_at_best": "DMS-BDS",
+    "DMS_split_at_best_MGM": "DMS-BDS-MGM",
     "Attentive": "DABP",
+    "Attentive_NoSplit": "DABP-NoSplit",
 }
 LINE_FILTER: list[str] | None = None
-EXTRA_RAW_DIR: Path | None = None
+EXTRA_RAW_DIRS: list[Path] = []
 
 
 def select_algorithms(raw: pd.DataFrame) -> list[str]:
@@ -402,9 +407,13 @@ def plot_benchmark(
     merge_ratios: dict[str, dict[str, float]],
 ) -> None:
     raw = pd.read_csv(data_dir / f"{benchmark}_raw_costs.csv")
-    if EXTRA_RAW_DIR is not None and (EXTRA_RAW_DIR / f"{benchmark}_raw_costs.csv").exists():
-        # lines recorded outside the data folder (the split at the best point)
-        raw = pd.concat([raw, pd.read_csv(EXTRA_RAW_DIR / f"{benchmark}_raw_costs.csv")], ignore_index=True)
+    for extra_dir in EXTRA_RAW_DIRS:
+        # lines recorded outside the data folder (the splits at the best point)
+        if (extra_dir / f"{benchmark}_raw_costs.csv").exists():
+            raw = pd.concat(
+                [raw, pd.read_csv(extra_dir / f"{benchmark}_raw_costs.csv")],
+                ignore_index=True,
+            )
     horizon = int(raw["iteration"].max()) + 1
     algorithms = select_algorithms(raw)
 
@@ -575,15 +584,18 @@ def main() -> None:
         action="store_true",
         help="draw only the Section 6 lines under the names the text uses",
     )
-    parser.add_argument("--extra-raw", default=None, help="folder with extra <benchmark>_raw_costs.csv lines to draw")
+    parser.add_argument(
+        "--extra-raw",
+        nargs="+",
+        default=[],
+        help="folders with extra <benchmark>_raw_costs.csv lines to draw",
+    )
     args = parser.parse_args()
     if args.section6:
         global LINE_FILTER
         LINE_FILTER = SECTION6_LINES
         LABELS.update(SECTION6_LABELS)
-    if args.extra_raw:
-        global EXTRA_RAW_DIR
-        EXTRA_RAW_DIR = Path(args.extra_raw)
+    EXTRA_RAW_DIRS.extend(Path(p) for p in args.extra_raw)
 
     data_dir = Path(args.data_dir)
     ternary_dir = Path(args.ternary_data_dir)
