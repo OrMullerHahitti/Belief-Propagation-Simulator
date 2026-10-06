@@ -1,0 +1,16 @@
+% Table 1 of Section 6 (mean final cost of DMS-kDS relative to DMS-SCFG), removed from the main text at stop 7
+% of the 2026-10-06 rewrite; for the supplementary material. A text summary replaces it in the main text.
+\begin{table}[t]
+\centering
+\small
+\caption{Mean final cost of DMS-$k$DS relative to DMS-SCFG, in percent (a negative value is a lower cost), 50 instances per benchmark; $^{*}$ marks a significant difference ($p < 0.01$, uncorrected; with Holm's correction over the 26 cells at $0.05$, all marked cells except random sparse at $k = 600$ remain significant); -- marks a value of $k$ that was not run.}
+\label{Tab:delay}
+\begin{tabular}{lrrrrrr}
+$k$ (iterations) & 100 & 200 & 600 & 1000 & 2000 & 3000 \\ \hline
+Random sparse & $-0.32^{*}$ & $-0.36^{*}$ & $-0.32^{*}$ & $-0.42^{*}$ & $-0.41^{*}$ & -- \\
+Random dense & $-0.22^{*}$ & $-0.31^{*}$ & $-0.32^{*}$ & $-0.33^{*}$ & $-0.36^{*}$ & $-0.40^{*}$ \\
+Scale free & $-0.39^{*}$ & $-0.27$ & $-0.59^{*}$ & $-0.65^{*}$ & $-0.75^{*}$ & -- \\
+Graph coloring & $+3.5$ & $-10.4$ & $-11.0$ & $-4.1$ & $-8.1$ & -- \\
+Meeting sched. & $+0.1$ & $+0.8$ & $-1.4$ & $+1.6$ & $+1.1$ & -- \\
+\end{tabular}
+\end{table}
