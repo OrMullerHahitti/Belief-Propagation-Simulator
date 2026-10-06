@@ -265,13 +265,13 @@ def merge_phase(args) -> None:
         z = np.load(out / f"{bench}_bp.npz")
         var_names = [str(v) for v in z["var_names"]]
         seeds = [int(seed) for seed in z["seeds"]]
-        steps = undamped_steps(
+        n_by_seed = undamped_steps(
             args, settle, bench, seeds, [int(s) for s in z["split_iter"]]
         )
         rows, raws = [], []
         for k, seed in enumerate(seeds):
             split_iter = int(z["split_iter"][k])
-            n = steps[seed]
+            n = n_by_seed[seed]
 
             names, factor_vars, tables = capture_original(
                 BENCHMARK_BUILDERS[bench](seed)
