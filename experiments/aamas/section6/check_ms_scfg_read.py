@@ -34,7 +34,9 @@ from merge import mgm1_binary_merge, score_assignment  # noqa: E402
 from problems import capture_original  # noqa: E402
 from run_experiments import BENCHMARK_BUILDERS, MGM_LABEL, SPLIT_MS_LABEL, make_engine  # noqa: E402
 
-DATA = ROOT / "aaai" / "data_paper_20261002"
+# its MS-SCFG and MS-SCFG-MGM rows are identical to data_paper_20261002 (which only replaced DABP lines),
+# and it exists on rtx as well
+DATA = ROOT / "aaai" / "data_paper_20260928"
 OUT = HERE / "ms_scfg_read_check"
 BENCHES = [
     "random_sparse",
