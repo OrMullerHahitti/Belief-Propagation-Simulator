@@ -13,16 +13,17 @@ phases (outputs in --out, default experiments/aamas/section6/split_at_best_mgm/)
           equals the one two steps earlier up to the horizon: one fixed assignment or two alternating
           ones. settle.csv, and the distribution per benchmark in paper iterations
   merge   MGM-1 on the two assignments of steps K+N-2 and K+N-1, started from each of them, the better
-          result kept (the MGM of MS-SCFG-MGM). --n max gives every instance of a benchmark the same
-          number of undamped steps, the largest settle step among its instances (the paper's line);
-          --n settle gives each instance its own settle step (--n-unsettled N for instances that never
-          settle); --n N gives every instance N steps. <bench>_final_costs.csv and <bench>_raw_costs.csv
-          (BP costs to step K+N-1, the MGM cost at K+N)
+          result kept (the MGM of MS-SCFG-MGM). --n same runs MGM at one step for every instance of a
+          benchmark, the latest K + settle step among its instances (the paper's line, it always fits in
+          the horizon); --n max gives every instance the same number of undamped steps, the largest
+          settle step; --n settle gives each instance its own settle step (--n-unsettled N for instances
+          that never settle); --n N gives every instance N steps. <bench>_final_costs.csv and
+          <bench>_raw_costs.csv (BP costs to step K+N-1, the MGM cost at K+N)
 
 usage:
   uv run python experiments/aamas/section6/run_bds_mgm.py run [--benchmarks ...] [--seeds 50] [--jobs N]
   uv run python experiments/aamas/section6/run_bds_mgm.py settle
-  uv run python experiments/aamas/section6/run_bds_mgm.py merge --n max
+  uv run python experiments/aamas/section6/run_bds_mgm.py merge --n same
 """
 
 from __future__ import annotations
@@ -202,7 +203,19 @@ def undamped_steps(
     args, settle: pd.DataFrame | None, bench: str, seeds: list[int], splits: list[int]
 ) -> dict[int, int]:
     """undamped library steps after the split, per seed of one benchmark."""
-    if args.n == "max":
+    if args.n == "same":
+        # one MGM iteration for every instance: the latest point that any settled instance needs,
+        # and at least two steps after every split
+        st = settle[(settle.benchmark == bench) & settle.settle_steps.notna()]
+        if st.empty:
+            raise SystemExit(f"{bench}: no instance settles; pass an integer --n")
+        t = max(int((st.split_iter + st.settle_steps).max()), max(splits) + 2)
+        print(
+            f"{bench}: MGM at library step {t} (paper iteration {2 * t}) for every instance",
+            flush=True,
+        )
+        steps = {seed: t - split_iter for seed, split_iter in zip(seeds, splits)}
+    elif args.n == "max":
         # one undamped phase for every instance: the longest that any settled instance needs
         need = settle[
             (settle.benchmark == bench) & settle.settle_steps.notna()
@@ -245,7 +258,9 @@ def undamped_steps(
 
 def merge_phase(args) -> None:
     out = Path(args.out)
-    settle = pd.read_csv(out / "settle.csv") if args.n in ("settle", "max") else None
+    settle = (
+        pd.read_csv(out / "settle.csv") if args.n in ("same", "settle", "max") else None
+    )
     for bench in args.benchmarks:
         z = np.load(out / f"{bench}_bp.npz")
         var_names = [str(v) for v in z["var_names"]]
@@ -333,7 +348,7 @@ def main() -> None:
     parser.add_argument("--out", default=str(OUT))
     parser.add_argument(
         "--n",
-        default="max",
+        default="same",
         help="undamped library steps after the split before MGM: 'max', 'settle' or an integer",
     )
     parser.add_argument(
