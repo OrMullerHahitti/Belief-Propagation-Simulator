@@ -8,7 +8,8 @@ Differences from plot_results.py (the paper's final conventions):
   - MS_split_opt is drawn as recorded (no wall-clock stretch): the merged cost
     drops at the merge point itself
   - late splits are reduced to @300 and @1000 (paper k = 600 and 2000)
-  - zoom plots exclude all DABP (Attentive) variants
+  - zoom plots exclude all DABP (Attentive) variants, unless --zoom-dabp draws them
+    on top of the zoomed lines
   - one legend per figure, larger font, short labels (no timing suffixes),
     undamped variants listed before damped ones, no titles
 
@@ -215,6 +216,8 @@ SECTION6_LABELS = {
 }
 LINE_FILTER: list[str] | None = None
 EXTRA_RAW_DIRS: list[Path] = []
+# --zoom-dabp: draw the DABP lines in the zoom plots too
+ZOOM_DABP = False
 
 
 def select_algorithms(raw: pd.DataFrame) -> list[str]:
@@ -377,11 +380,14 @@ def plot_zoom_benchmark(
     horizon: int,
     curves: list[CostCurve],
 ) -> None:
-    # zoom plots exclude all DABP variants
+    # the zoomed lines are chosen without the DABP variants
     candidates = [c for c in curves if c.algorithm not in DABP_ALGOS]
     zoom_curves = select_zoom_curves(candidates, horizon)
     if not zoom_curves:
         return
+    if ZOOM_DABP:
+        # on the stretched time axis the window shows earlier iterations of DABP's own run
+        zoom_curves = zoom_curves + [c for c in curves if c.algorithm in DABP_ALGOS]
 
     x_min = SCALE * int(horizon * ZOOM_START_FRACTION)
     x_max = SCALE * (horizon - 1)
@@ -590,12 +596,19 @@ def main() -> None:
         default=[],
         help="folders with extra <benchmark>_raw_costs.csv lines to draw",
     )
+    parser.add_argument(
+        "--zoom-dabp",
+        action="store_true",
+        help="also draw the DABP lines in the zoom plots (their own earlier iterations, because of the time stretch)",
+    )
     args = parser.parse_args()
     if args.section6:
         global LINE_FILTER
         LINE_FILTER = SECTION6_LINES
         LABELS.update(SECTION6_LABELS)
     EXTRA_RAW_DIRS.extend(Path(p) for p in args.extra_raw)
+    global ZOOM_DABP
+    ZOOM_DABP = args.zoom_dabp
 
     data_dir = Path(args.data_dir)
     ternary_dir = Path(args.ternary_data_dir)
