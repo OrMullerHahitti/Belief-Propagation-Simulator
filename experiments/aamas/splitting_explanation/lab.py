@@ -364,6 +364,20 @@ class FastEngine:
     def saturation(self) -> float:
         return float(self.commit_mask().mean())
 
+    def commit2_mask(self) -> np.ndarray:
+        """arc is two-committed iff the two smallest entries of the message it sends are served by
+        the same sender row (the difference between the two minimal entries then equals the
+        difference of the corresponding entries of that row); the same as commit_mask when m == 2."""
+        Z = self.Ct + self.q_seen()[:, :, None]  # (A, m, m) [u, v]
+        R = Z.min(axis=1)  # (A, m): the message, one entry per receiver value
+        arg = Z.argmin(axis=1)  # (A, m): the sender row serving each receiver value
+        two = np.argsort(R, axis=1, kind="stable")[:, :2]  # the two smallest entries
+        rows = np.take_along_axis(arg, two, axis=1)
+        return rows[:, 0] == rows[:, 1]
+
+    def saturation2(self) -> float:
+        return float(self.commit2_mask().mean())
+
     def commit_margin(self) -> np.ndarray:
         """signed margin of the sender's preferred row u0 = argmin Q: the smallest amount by which
         row u0 beats every other row over all receiver values (>= 0 iff committed at u0)."""
@@ -404,6 +418,7 @@ def run_record(
     inst = engine.inst
     costs = np.empty(iters)
     sats = np.empty(iters)
+    sats2 = np.empty(iters)
     changes = np.empty(iters, dtype=int)
     dq = np.empty(iters) if record_dq else None
     assigns = []
@@ -422,11 +437,12 @@ def run_record(
         x = engine.assignment()
         costs[t] = inst.cost(x)
         sats[t] = engine.saturation()
+        sats2[t] = engine.saturation2()
         changes[t] = inst.n if prev is None else int((x != prev).sum())
         prev = x
         if record_assign:
             assigns.append(x)
-    out = dict(costs=costs, sats=sats, changes=changes)
+    out = dict(costs=costs, sats=sats, sats2=sats2, changes=changes)
     if record_assign:
         out["assigns"] = np.array(assigns)
     if record_dq:

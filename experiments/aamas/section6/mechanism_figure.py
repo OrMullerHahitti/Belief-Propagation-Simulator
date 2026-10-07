@@ -55,11 +55,21 @@ def main() -> None:
         default=500,
         help="split iteration of the DMS-kDS line, library units",
     )
+    parser.add_argument(
+        "--height", type=float, default=1.9, help="figure height in inches"
+    )
+    parser.add_argument(
+        "--measure",
+        choices=["sats", "sats2"],
+        default="sats",
+        help="sats: one sender value minimizes for every receiver value; sats2: only for the two smallest entries of the message",
+    )
     args = parser.parse_args()
     k = args.k
+    m = args.measure
 
     fig, axes = plt.subplots(
-        1, len(BENCHES), figsize=(1.45 * len(BENCHES), 1.9), sharey=True
+        1, len(BENCHES), figsize=(1.45 * len(BENCHES), args.height), sharey=True
     )
     for ax, (bench, title) in zip(axes, BENCHES):
         z = np.load(RESULTS / f"exp1_{bench}.npz")
@@ -67,10 +77,10 @@ def main() -> None:
         n_it = z["MS/sats"].shape[1]
         it = 2 * np.arange(1, n_it + 1)  # paper iterations
         for alg, style in LINES.items():
-            ax.plot(it, z[f"{alg}/sats"].mean(axis=0), lw=1.0, **style)
+            ax.plot(it, z[f"{alg}/{m}"].mean(axis=0), lw=1.0, **style)
         ax.plot(
             it,
-            zd[f"DMS_split_at_{k}/sats"].mean(axis=0),
+            zd[f"DMS_split_at_{k}/{m}"].mean(axis=0),
             lw=1.0,
             label=f"DMS-kDS, k={2 * k}",
             **DELAYED,
@@ -85,21 +95,28 @@ def main() -> None:
     axes[0].set_ylim(0, 1)
     axes[0].set_ylabel("messages at a bound", fontsize=7)
     # legend outside the right-most panel, so it covers no line
-    axes[-1].legend(frameon=False, fontsize=6, loc="center left", bbox_to_anchor=(1.02, 0.5))
+    axes[-1].legend(
+        frameon=False, fontsize=6, loc="center left", bbox_to_anchor=(1.02, 0.5)
+    )
     fig.tight_layout(w_pad=0.6)
     OUT.mkdir(exist_ok=True)
-    path = OUT / "mechanism_fraction_at_bound.pdf"
+    path = OUT / (
+        "mechanism_fraction_at_bound.pdf"
+        if m == "sats"
+        else f"mechanism_fraction_at_bound_{m}.pdf"
+    )
     fig.savefig(path, bbox_inches="tight")
     print(f"wrote {path}")
     # the numbers behind the figure: final fraction and the level just before the split
+    print(f"measure {m}")
     print("bench            MS    DMS  MS-SCFG DMS-SCFG | DMS at k  kDS final")
     for bench, _ in BENCHES:
         z = np.load(RESULTS / f"exp1_{bench}.npz")
         zd = np.load(RESULTS / f"exp1_delayed_{bench}.npz")
-        s = zd[f"DMS_split_at_{k}/sats"]
+        s = zd[f"DMS_split_at_{k}/{m}"]
         print(
             f"{bench:18}"
-            + " ".join(f"{z[f'{a}/sats'][:, -1].mean():6.2f}" for a in LINES)
+            + " ".join(f"{z[f'{a}/{m}'][:, -1].mean():6.2f}" for a in LINES)
             + f" | {s[:, k - 1].mean():6.2f}  {s[:, -1].mean():6.2f}"
         )
 

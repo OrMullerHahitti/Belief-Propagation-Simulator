@@ -52,6 +52,7 @@ def task(args):
         out[label(k)] = dict(
             costs=r["costs"].astype(np.float32),
             sats=r["sats"].astype(np.float32),
+            sats2=r["sats2"].astype(np.float32),
             changes=r["changes"].astype(np.int16),
             dq=r["dq"].astype(np.float32),
             freeze=freeze_time(r["changes"]),
@@ -72,7 +73,7 @@ def run_all() -> None:
             arrays = {}
             for k in SPLIT_AT:
                 alg = label(k)
-                for key in ("costs", "sats", "changes", "dq"):
+                for key in ("costs", "sats", "sats2", "changes", "dq"):
                     arrays[f"{alg}/{key}"] = np.stack([r[2][alg][key] for r in res])
                 for key in ("freeze", "period", "final", "best", "t95"):
                     arrays[f"{alg}/{key}"] = np.array([r[2][alg][key] for r in res])

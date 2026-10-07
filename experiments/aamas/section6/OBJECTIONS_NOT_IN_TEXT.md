@@ -41,3 +41,35 @@ Plainer wording proposed the same day, if it is ever put back:
 > DMS without a split and discarded the stored messages at iteration 1000: 100 iterations later 0.08, 0.61,
 > 0.18, 0.01 and 0.05 of its messages are at a bound, as in DMS, and its final cost is not lower than that
 > of DMS.
+
+## 2. "Why not count a message as at a bound when only its two smallest entries come from one row?"
+
+**Where it came from.** Roie's v7 (2026-10-07) reworded the definition of a message at a bound as "the
+difference between its two minimal beliefs is equal to the difference between the costs of the corresponding
+entries in the row of the constraint table". For binary variables that is the paper's definition; for larger
+domains it only asks that the two smallest entries of the message be served by the same sender value, while
+the paper's definition (and Figure 5) asks that one sender value serve every receiver value, i.e. that the
+message be one row of the table up to a constant.
+
+**What it gives.** Measured on the same runs (`FastEngine.commit2_mask`, saved as `sats2` next to `sats`),
+mean over 50 instances at the end of the run, old measure -> new:
+
+| benchmark | MS | DMS | MS-SCFG | DMS-SCFG | DMS-kDS (k = 1000) |
+|---|---|---|---|---|---|
+| random sparse | 0.07 -> 0.73 | 0.14 -> 0.76 | 0.77 -> 0.97 | 0.77 -> 0.97 | 0.78 -> 0.98 |
+| random dense | 0.47 -> 0.91 | 0.81 -> 0.97 | 0.96 -> 1.00 | 0.95 -> 0.99 | 0.96 -> 1.00 |
+| scale free | 0.11 -> 0.76 | 0.23 -> 0.81 | 0.76 -> 0.97 | 0.76 -> 0.97 | 0.78 -> 0.98 |
+| graph coloring | 0.00 -> 1.00 | 0.04 -> 1.00 | 0.19 -> 1.00 | 0.83 -> 1.00 | 0.82 -> 1.00 |
+| meeting scheduling | 0.01 -> 1.00 | 0.06 -> 0.94 | 0.07 -> 0.99 | 0.56 -> 0.98 | 0.58 -> 0.98 |
+
+On graph coloring and meeting scheduling the looser measure is about 1 for every line from the first
+iterations, split or not: a not-equal row has only two distinct values, so the two smallest entries of a
+message always share a row; only the receiver value that clashes with the sender's best value is served by
+another row, and whether the best row serves that value too is exactly the bound. On the random benchmarks
+the contrast between lines shrinks from 0.07-0.77 to 0.73-0.97. So the looser measure does not separate
+splitting from no splitting; the paper keeps the stricter one, whose numbers are the ones in the text.
+
+**Data.** `experiments/aamas/splitting_explanation/results/exp1_<benchmark>.npz` and
+`exp1_delayed_<benchmark>.npz` (rerun 2026-10-07 on the Mac with both measures; the old `sats` and costs
+reproduced exactly, backup of the previous files in `results/backup_before_sats2_20261007/`); figure
+`section6/out/mechanism_fraction_at_bound_sats2.pdf` (`mechanism_figure.py --measure sats2`).
